@@ -23,9 +23,10 @@ import { sessionKey } from './lib/session-key.mjs';
 import { resolveCwd, projectDir } from './suggest-ticker.js';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { execFileSync } from 'node:child_process';
 
-const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
+const CCC_DIR = stateDir();
 
 function gitBranch(cwd = process.cwd()) {
   try {

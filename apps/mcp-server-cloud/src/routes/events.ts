@@ -1,8 +1,11 @@
 // POST /v1/events — Anonymous telemetry ingestion endpoint
 //
-// Accepts batches of telemetry events from the local plugin + CLI surface.
-// Each event is validated, sensitive properties are scrubbed, and the result
-// is forwarded fire-and-forget to PostHog for aggregation.
+// Accepts batches of opt-in telemetry events from the local plugin + CLI surface.
+// Each event is validated and sensitive properties are scrubbed. Accepted events
+// are then acknowledged and DISCARDED: the server has no telemetry store and
+// forwards nothing to a third party. Only aggregate in-memory counters survive
+// (exposed on /metrics and in one log line per batch, with no device ID and no
+// properties); they reset when the process restarts.
 //
 // This endpoint is unauthenticated. Anonymity is guaranteed by:
 //   - Client-side anon device ID (UUID, no PII)
@@ -11,7 +14,6 @@
 //   - Per-distinct_id rate limit (100 batches/hour, in-memory TTL counter)
 
 import { Hono } from "hono";
-import { captureEvent } from "../lib/posthog.js";
 import { logger } from "../lib/logger.js";
 
 // ─── Configuration ─────────────────────────────────────────────────────────
@@ -143,6 +145,15 @@ const pruneInterval = setInterval(
 );
 if (typeof pruneInterval.unref === "function") {
   pruneInterval.unref();
+}
+
+// ─── Aggregate discard counters ─────────────────────────────────────────────
+// Process-lifetime totals only. No per-device or per-event-name breakdown, so
+// nothing here can be tied back to an anon device ID.
+const telemetryCounters = { batches: 0, eventsDiscarded: 0 };
+
+function getTelemetryCounters(): { batches: number; eventsDiscarded: number } {
+  return { ...telemetryCounters };
 }
 
 // ─── Validation helpers ─────────────────────────────────────────────────────
@@ -286,27 +297,18 @@ eventsRouter.post("/", async (c) => {
     );
   }
 
-  // Forward to PostHog (fire-and-forget, never block response)
-  let accepted = 0;
-  for (const evt of validated) {
-    try {
-      captureEvent(evt.distinct_id, evt.name, {
-        ...evt.properties,
-        ccc_surface: evt.properties.ccc_surface ?? "plugin_cli",
-      });
-      accepted++;
-    } catch (err) {
-      // Replace the success entry with a failure for this event
-      const idx = results.findIndex((r) => r.success === true);
-      if (idx >= 0) {
-        results[idx] = { success: false, error: (err as Error).message };
-      }
-      logger.warn(
-        { err: (err as Error).message, event: evt.name },
-        "Event forwarding to PostHog failed"
-      );
-    }
-  }
+  // Acknowledge and discard: there is no telemetry store and no forwarding.
+  const accepted = validated.length;
+  telemetryCounters.batches++;
+  telemetryCounters.eventsDiscarded += accepted;
+  logger.info(
+    {
+      accepted,
+      batchesTotal: telemetryCounters.batches,
+      eventsDiscardedTotal: telemetryCounters.eventsDiscarded,
+    },
+    "Telemetry batch acknowledged and discarded"
+  );
 
   c.header("X-RateLimit-Remaining", String(rate.remaining));
 
@@ -320,3 +322,5 @@ eventsRouter.post("/", async (c) => {
 
 // Exported for tests
 export { validateEvent, checkRateLimit, ALLOWED_EVENTS, scrubProperties, SCRUB_ALLOWLIST, SENSITIVE_PATTERN };
+// Read by the /metrics handler in index.ts.
+export { getTelemetryCounters };

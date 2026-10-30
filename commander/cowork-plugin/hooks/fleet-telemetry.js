@@ -12,7 +12,7 @@
  */
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { homedir } from 'node:os';
+import { stateDir } from '../lib/lane-state.js';
 
 const clip = (v, n) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, n);
 
@@ -25,7 +25,7 @@ async function main() {
   if (typeof input !== 'object') return;
   if (input.hook_event_name && input.hook_event_name !== 'TeammateIdle') return;
 
-  const dir = join(process.env.HOME || homedir(), '.claude', 'commander', 'fleet');
+  const dir = join(stateDir(), 'fleet');
   await mkdir(dir, { recursive: true });
   const row = {
     timestamp: new Date().toISOString(),

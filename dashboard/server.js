@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { buildMissionModel, filterEventsAfter } from './lib/mission-model.js';
 import { defaultDbPath as defaultHistoryDbPath, readHistory } from './lib/history.js';
 import { brandBaseCss } from '../commander/cowork-plugin/lib/brand-css.js';
+import { readableStateDir, stateDir } from '../commander/cowork-plugin/lib/lane-state.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,7 +16,9 @@ const __dirname = path.dirname(__filename);
 const HOST = '127.0.0.1';
 const DEFAULT_PORT = 4690;
 const DEFAULT_SESSIONS_DIR = path.join(os.homedir(), '.claude', 'sessions');
-const DEFAULT_COMMANDER_DIR = path.join(os.homedir(), '.claude', 'commander');
+// The lane's state dir (CCC_CONFIG_DIR > CLAUDE_CONFIG_DIR > ~/.claude). Reads fall back to the legacy dir
+// while the lane has none; that is resolved per request so the fallback ends once the hooks create it.
+const DEFAULT_COMMANDER_DIR = stateDir();
 const DEFAULT_HISTORY_DB_PATH = defaultHistoryDbPath();
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PACKAGE_PATH = path.join(__dirname, 'package.json');
@@ -146,7 +149,8 @@ async function readSessionFile(sessionsDir, filename) {
 
 function createServer(options = {}) {
   const sessionsDir = options.sessionsDir || DEFAULT_SESSIONS_DIR;
-  const commanderDir = options.commanderDir || DEFAULT_COMMANDER_DIR;
+  const readDir = () => options.commanderDir || readableStateDir();
+  const metricsWriteDir = options.commanderDir || stateDir();
   const historyDbPath = options.historyDbPath || DEFAULT_HISTORY_DB_PATH;
   const startedAt = process.hrtime.bigint();
 
@@ -223,18 +227,18 @@ function createServer(options = {}) {
       }
 
       if (url.pathname === '/api/mission') {
-        sendJson(res, 200, await buildMissionModel({ baseDir: commanderDir }));
+        sendJson(res, 200, await buildMissionModel({ baseDir: readDir(), writeDir: metricsWriteDir }));
         return;
       }
 
       if (url.pathname === '/api/mission/filter-options') {
-        const model = await buildMissionModel({ baseDir: commanderDir });
+        const model = await buildMissionModel({ baseDir: readDir(), writeDir: metricsWriteDir });
         sendJson(res, 200, model.filterOptions);
         return;
       }
 
       if (url.pathname === '/api/mission/events') {
-        const model = await buildMissionModel({ baseDir: commanderDir });
+        const model = await buildMissionModel({ baseDir: readDir(), writeDir: metricsWriteDir });
         sendJson(res, 200, {
           events: filterEventsAfter(model.events, url.searchParams.get('after')),
           generatedAt: model.generatedAt,
@@ -243,19 +247,19 @@ function createServer(options = {}) {
       }
 
       if (url.pathname === '/api/suggestions') {
-        const model = await buildMissionModel({ baseDir: commanderDir });
+        const model = await buildMissionModel({ baseDir: readDir(), writeDir: metricsWriteDir });
         sendJson(res, 200, { suggestions: model.suggestions });
         return;
       }
 
       if (url.pathname === '/api/metrics') {
-        const model = await buildMissionModel({ baseDir: commanderDir });
+        const model = await buildMissionModel({ baseDir: readDir(), writeDir: metricsWriteDir });
         sendJson(res, 200, { metrics: model.metrics, generatedAt: model.generatedAt });
         return;
       }
 
       if (url.pathname === '/api/top-skills') {
-        const model = await buildMissionModel({ baseDir: commanderDir });
+        const model = await buildMissionModel({ baseDir: readDir(), writeDir: metricsWriteDir });
         sendJson(res, 200, { topSkills: model.topSkills, generatedAt: model.generatedAt });
         return;
       }

@@ -14,7 +14,7 @@
  * Like scripts/build-cockpit.mjs, every path resolves relative to THIS file
  * (import.meta.url) rather than process.cwd(), so it behaves the same run from
  * the repo root or from a marketplace plugin cache. It reads only the user's own
- * telemetry under ~/.claude/commander and writes only where told; it never
+ * telemetry under the lane state dir and writes only where told; it never
  * publishes anything — publishing is the skill's job, and it is consent-gated.
  *
  * Usage:

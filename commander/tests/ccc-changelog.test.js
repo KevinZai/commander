@@ -41,17 +41,17 @@ test('ccc-changelog SKILL.md frontmatter parses — required keys present', func
 
   assert.ok(frontmatter.includes('name:'), 'Frontmatter must have "name:" key');
   assert.ok(frontmatter.includes('description:'), 'Frontmatter must have "description:" key');
-  assert.ok(frontmatter.includes('model:'), 'Frontmatter must have "model:" key');
-  assert.ok(frontmatter.includes('effort:'), 'Frontmatter must have "effort:" key');
+  assert.ok(!/^model:/m.test(frontmatter), 'no model pin: a skill keeps the session model (CC-2115)');
+  assert.ok(!/^effort:/m.test(frontmatter), 'no effort pin: a skill keeps the session effort (CC-2115)');
 });
 
-test('ccc-changelog SKILL.md model is sonnet and effort is medium', function () {
+test('ccc-changelog SKILL.md pins no model or effort (CC-2115)', function () {
   var content = fs.readFileSync(SKILL_PATH, 'utf8');
   var endIdx = content.indexOf('---', 3);
   var frontmatter = content.slice(3, endIdx);
 
-  assert.ok(frontmatter.includes('model: sonnet'), 'model must be sonnet');
-  assert.ok(frontmatter.includes('effort: medium'), 'effort must be medium');
+  assert.ok(!/^model:/m.test(frontmatter), 'no model pin: a skill keeps the session model (CC-2115)');
+  assert.ok(!/^effort:/m.test(frontmatter), 'no effort pin: a skill keeps the session effort (CC-2115)');
 });
 
 test('ccc-changelog SKILL.md description has no angle brackets', function () {

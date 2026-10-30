@@ -1,5 +1,5 @@
 {
-  "_comment": "Routing overlay merged with skill/agent frontmatter by scripts/build-routes.js into commander/cowork-plugin/hooks/lib/ccc-routes.json. strong = distinctive whole-word phrases (+0.6, enough for a menu alone); triggers = supporting phrases (+0.35 multi-word, +0.25 single word, never enough alone); patterns = request-shaped intent regex (+0.6, case-insensitive; topic mentions belong in strong/triggers); negatives = regex that removes the route; paths = file names/extensions mentioned in the prompt (+0.2); requirePath = score only when a path matches; next = the 'what next' graph read by the Stop handler; exclude = never route. A menu needs 0.55; auto-run needs an intent pattern hit plus 0.8 with a 0.25 lead. Edit this file, run `npm run build:routes`, then `node --test commander/tests/route-eval.test.js`.",
+  "_comment": "Routing overlay merged with skill/agent frontmatter by scripts/build-routes.js into commander/cowork-plugin/hooks/lib/ccc-routes.json. strong = distinctive whole-word phrases (+0.6, enough for a menu alone); triggers = supporting phrases (+0.35 multi-word, +0.25 single word, never enough alone); patterns = request-shaped intent regex (+0.6, case-insensitive; topic mentions belong in strong/triggers); negatives = regex that removes the route; paths = file names/extensions mentioned in the prompt (+0.2); requirePath = score only when a path matches; next = the 'what next' graph read by the Stop handler; priority = integer tiebreak when two routes score the same (higher first, default 0); exclude = never route. A route with no signal at all fails the build. A menu needs 0.55; auto-run needs an intent pattern hit plus 0.8 with a 0.25 lead. Edit this file, run `npm run build:routes`, then `npm run eval:routes`.",
   "skills": {
     "ccc": {
       "strong": ["commander menu", "open commander"]
@@ -301,7 +301,9 @@
     },
     "ccc-session": { "exclude": true },
     "ccc-settings": {
-      "strong": ["commander settings", "cost ceiling"]
+      "strong": ["commander settings", "cost ceiling"],
+      "triggers": ["auto-routing"],
+      "patterns": ["\\b(turn|switch|shut)\\s+(off|on)\\s+(the\\s+)?(ccc\\s+|commander\\s+)?(auto[- ]?routing|skill routing)\\b", "\\b(disable|enable|stop)\\s+(the\\s+)?(ccc\\s+|commander\\s+)?(auto[- ]?routing|skill routing)\\b"]
     },
     "ccc-ship": {
       "strong": ["ship it", "cut a release", "tag a version", "tag a release"],
@@ -379,6 +381,53 @@
     },
     "ccc-yolo-setup": {
       "strong": ["yolo setup", "too many permission prompts", "fewer approvals", "skip permissions"]
+    },
+    "ccc-full-send": {
+      "strong": ["full send", "full-send"],
+      "patterns": ["^\\s*full[- ]send\\b", "\\bfull[- ]send\\s+(this|it|the|that|pr|#?\\d+)\\b"],
+      "negatives": ["\\bwhat (does|is)\\b.{0,20}\\bfull[- ]send\\b", "\\bfull[- ]send(er|ing)\\b"]
+    },
+    "ccc-full-stop": {
+      "strong": ["full stop mode"],
+      "patterns": ["^\\s*full[- ]stop\\s*[.!]?\\s*$", "\\b(do|run|use|go)\\s+(a\\s+)?full[- ]stop\\b", "\\bfull[- ]stop\\s+(on|this|the|it|pr|#?\\d+)\\b"],
+      "negatives": ["\\S.*[.!?]\\s+full[- ]stop\\s*[.!]?\\s*$", "\\b(period|punctuation|comma|semicolon)\\b"]
+    },
+    "ccc-council": {
+      "strong": ["council review", "convene the council", "council of models", "ask the council"],
+      "patterns": ["^\\s*council\\b", "\\b(run|get|use|convene|call)\\s+(a|the)\\s+(model\\s+)?council\\b", "\\bcross[- ]provider\\s+review\\b", "\\breview\\b.{0,30}\\bthree (models|providers)\\b"],
+      "negatives": ["\\b(city|town|student|security|parish|county|works) council\\b", "\\bcouncil (meeting|tax|member|election)s?\\b"],
+      "next": ["ccc-file-pr"]
+    },
+    "ccc-sol-loop": {
+      "strong": ["sol loop", "sol-loop"],
+      "patterns": ["\\b(codex|gpt)\\b.{0,30}\\breview\\b.{0,30}\\b(in a loop|until (it|they|both|we) (agree|approve)s?)\\b", "\\breview loop\\b.{0,30}\\b(codex|gpt)\\b"],
+      "next": ["ccc-file-pr"]
+    },
+    "ccc-file-pr": {
+      "strong": ["file a pr", "file the pr", "file a pull request", "open a pr", "open a pull request", "create a pr", "create a pull request"],
+      "patterns": ["\\b(file|open|create|raise)\\s+(a|the|my)\\s+(draft\\s+)?(pr|pull request)\\b(?!\\s+(review|template|comment))"],
+      "negatives": ["\\bbefore (i|we) (open|file|create|raise)\\b", "\\breview (this|the|my|our) (pr|pull request)\\b"],
+      "next": ["ccc-babysit-pr"]
+    },
+    "ccc-takeover": {
+      "strong": ["take over this pr", "take over the pr", "take over this branch", "take over this thread"],
+      "patterns": ["\\btake\\s*over\\s+(this|that|the|their|an?)\\s+(pr|pull request|branch|agent thread|thread)\\b", "\\b(finish|continue|pick up)\\s+(someone else's|another agent's|their|the abandoned)\\s+(pr|pull request|branch)\\b"],
+      "negatives": ["\\bhostile takeover\\b", "\\btakeover (bid|offer|target)\\b"],
+      "next": ["ccc-babysit-pr"]
+    },
+    "ccc-babysit-pr": {
+      "strong": ["babysit this pr", "babysit the pr", "babysit my pr", "babysit pr"],
+      "patterns": ["\\b(babysit|watch|monitor|shepherd)\\s+(this|the|my|our|that)\\s+(pr|pull request)\\b", "\\bbabysit\\b.{0,20}#\\d+"],
+      "negatives": ["\\bbabysit(ting)?\\s+(my|the|our)\\s+(kid|kids|child|children|baby|dog|cat)\\b"]
+    },
+    "ccc-modernize": {
+      "strong": ["modernize this pr", "modernize the pr", "modernize pr"],
+      "patterns": ["\\bmodernize\\s+(this|the|my|that|an?)\\s+(old\\s+|stale\\s+)?(pr|pull request|branch)\\b", "\\b(rebase|refresh|update|revive)\\s+(this|the|my|an?|that)\\s+(old|stale|aging|outdated)\\s+(pr|pull request|branch)\\b", "\\bis this (old |stale )?(pr|pull request) still (worth|needed|relevant)\\b"],
+      "next": ["ccc-babysit-pr"]
+    },
+    "ccc-pr-comments": {
+      "strong": ["reply to the review comments", "reply to review comments", "respond to the pr comments", "leave a pr comment"],
+      "patterns": ["\\b(reply|respond)\\s+to\\s+(the\\s+|this\\s+|those\\s+|these\\s+)?(pr|review|bot)\\s+comments?\\b", "\\b(leave|post|write)\\s+(a\\s+)?(comment|reply)\\s+on\\s+(the|this|my)\\s+(pr|pull request)\\b"]
     }
   },
   "agents": {

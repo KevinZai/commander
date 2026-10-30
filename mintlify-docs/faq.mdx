@@ -1,6 +1,6 @@
 ---
 title: "FAQ"
-description: "Frequently asked questions about CC Commander v8.1.1 — install, plugin usage, privacy, cost, and troubleshooting basics."
+description: "Frequently asked questions about CC Commander v8.1.5 — install, plugin usage, privacy, cost, and troubleshooting basics."
 ---
 
 # Frequently Asked Questions
@@ -29,7 +29,7 @@ Quick answers to the questions we hear most. For deeper diagnostics, see [Troubl
   </Accordion>
 
   <Accordion title="Is it really core free forever?">
-    Yes. All **84 plugin skills**, **22 specialist sub-agents**, **30 lifecycle hooks (52 handlers)**, and **2 credential-free bundled MCP servers** are free with no caps, no license check, and no Stripe.
+    Yes. All **93 plugin skills**, **22 specialist sub-agents**, **30 lifecycle hooks (51 handlers)**, and **2 credential-free bundled MCP servers** are free with no caps, no license check, and no Stripe.
 
     Revenue comes from four optional sources: Kevin's consulting practice, transparent affiliate links surfaced through `/ccc-connect`, an optional paid Discord community, and GitHub Sponsors. None of those gate functionality.
   </Accordion>
@@ -77,17 +77,17 @@ Quick answers to the questions we hear most. For deeper diagnostics, see [Troubl
 
 <AccordionGroup>
   <Accordion title="Does the plugin phone home?">
-    The plugin collects **anonymous usage telemetry** (enabled by default, easy to opt out). It sends event names (e.g. "hook fired", "skill used"), OS, Node version, and plugin version to our analytics endpoint — **never** prompts, file contents, paths, secrets, or any code. A random device ID is stored at `~/.commander/anon-id`; no account or identity is attached.
+    Not unless you opt in. **Anonymous usage telemetry is off by default.** If you turn it on, it sends event names (e.g. "hook fired", "skill used"), OS, Node version, and plugin version to the hosted CC Commander server (`/v1/events`) — **never** prompts, file contents, paths, secrets, or any code. A random device ID is stored at `~/.commander/anon-id`; no account or identity is attached.
 
-    **Opt out instantly:** set `CCC_TELEMETRY=0` in your shell, or add `{"telemetry": false}` to `~/.commander/config.json`. No restart required.
+    **Opt in:** set `CCC_TELEMETRY=1` in your shell, or add `{"telemetry": true}` to `~/.commander/config.json`. `CCC_TELEMETRY=0` forces it off (`true`/`yes`/`on` and `false`/`no`/`off` work too, any case). The session-start update check reads a public file on GitHub; `CCC_OFFLINE=1` (or `{"offline": true}`) blocks it and every other outbound call.
   </Accordion>
 
   <Accordion title="What exactly does telemetry collect?">
-    **Collected:** event name, anonymous device UUID, OS platform, Node.js version, plugin version, CCC surface (plugin vs CLI), and basic counts (e.g. hook name, skill name). **Never collected:** prompts, Claude responses, file contents, file paths, environment variables, secrets, or anything matching `/prompt|content|path|file|cwd|secret|password|key|token/i`. The docs site uses Plausible (cookieless) for page-view counts. Knowledge compounding is **local** — `~/.claude/commander/` stays on your machine.
+    **Collected:** event name, anonymous device UUID, OS platform, Node.js version, plugin version, CCC surface (plugin vs CLI), and basic counts (e.g. hook name, skill name). **Never collected:** prompts, Claude responses, file contents, file paths, environment variables, secrets, or anything matching `/prompt|content|path|file|cwd|secret|password|key|token/i`. **What the server does with it:** validates the batch, scrubs sensitive keys, then discards the events. Nothing is stored or forwarded to a third party; the server keeps only running totals of batches and events (no device ID), and holds the device ID in memory for up to an hour to enforce the 100-batches-per-hour rate limit. The docs site uses Plausible (cookieless) for page-view counts. Knowledge compounding is **local** — `~/.claude/commander/` stays on your machine.
   </Accordion>
 
   <Accordion title="What does \"core free forever\" actually guarantee?">
-    All 84 plugin skills, 22 specialist sub-agents, 30 lifecycle hooks (52 handlers), and 2 credential-free bundled MCP servers are free with no caps, no rate limit, and no feature gating. The hosted MCP service at `https://mcp.commanderplugin.com/mcp` has a 100-call/month anti-abuse cap and requires a CC Commander access token (Bearer header). Self-serve token issuance isn't live yet. A hosted-infrastructure Pro tier is planned later — hosted infrastructure only; all content stays free forever.
+    All 93 plugin skills, 22 specialist sub-agents, 30 lifecycle hooks (51 handlers), and 2 credential-free bundled MCP servers are free with no caps, no rate limit, and no feature gating. The hosted MCP service at `https://mcp.commanderplugin.com/mcp` has a 100-call/month anti-abuse cap and requires a CC Commander access token (Bearer header). Self-serve token issuance isn't live yet. A hosted-infrastructure Pro tier is planned later — hosted infrastructure only; all content stays free forever.
   </Accordion>
 
   <Accordion title="How do affiliate links work?">

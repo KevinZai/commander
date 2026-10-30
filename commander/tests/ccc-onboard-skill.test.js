@@ -35,8 +35,8 @@ test('ccc-onboard frontmatter is valid and description has no angle brackets', f
 
   assert.ok(fm.includes('name: ccc-onboard'), 'name must be ccc-onboard');
   assert.ok(fm.includes('description:'), 'Frontmatter must have "description:" key');
-  assert.ok(fm.includes('model: sonnet'), 'model must be sonnet');
-  assert.ok(fm.includes('effort: high'), 'effort must be high');
+  assert.ok(!/^model:/m.test(fm), 'no model pin: a skill keeps the session model (CC-2115)');
+  assert.ok(!/^effort:/m.test(fm), 'no effort pin: a skill keeps the session effort (CC-2115)');
   assert.ok(!/[<>]/.test(fm), 'Frontmatter must not contain angle brackets');
 });
 

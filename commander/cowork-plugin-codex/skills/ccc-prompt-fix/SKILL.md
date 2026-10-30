@@ -7,8 +7,7 @@ allowed-tools:
   - Write
   - AskUserQuestion
 argument-hint: "[<your prompt> | last | for <task> | score <prompt>]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-prompt-fix — a sharper prompt, with reasons
@@ -110,7 +109,7 @@ On **Save as a project skill**:
 2. Write `.claude/skills/<slug>/SKILL.md` with frontmatter `name: <slug>` and `description: "<one sentence>. Use when <trigger>."`, and the sharper prompt as the body. Where the task-specific part goes, write the platform's argument placeholder: a dollar sign followed by `ARGUMENTS` (spelled out here so it is not substituted while this skill loads).
 3. Verify with `head -4 ".claude/skills/<slug>/SKILL.md"` and report the path and the `/<slug>` command.
 
-On **Record in CLAUDE.md**, hand off to `$ccc-memory`, which shows the change before writing.
+On **Record in CLAUDE.md**, ask the user to type `$ccc-memory` (it is not invocable from here); it shows the change before writing.
 
 ## Decision points
 
@@ -135,7 +134,7 @@ Make it stick (after a fix that looks reusable):
 
 - 🟢 Done — use the sharper prompt now.
 - Save as a project skill — writes `.claude/skills/<slug>/SKILL.md`, invoked as `/<slug>`.
-- Record in CLAUDE.md — hands off to `$ccc-memory`.
+- Record in CLAUDE.md — ask the user to type `$ccc-memory`.
 
 ## Done when
 

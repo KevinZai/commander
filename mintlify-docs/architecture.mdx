@@ -37,7 +37,7 @@ Each agent declares a model **alias** and an effort level in its frontmatter, so
 
 Read-only reviewers use `disallowedTools` so they cannot edit. Fable is reserved for work where a wrong call is expensive: architecture, threat models, and verification of load-bearing claims. See [Agents](/plugin/agents) for each persona.
 
-## 30 Lifecycle Hooks / 52 Handlers
+## 30 Lifecycle Hooks / 51 Handlers
 
 Hooks fire automatically around Claude Code sessions; each event can have several handlers. The main groups:
 
@@ -71,7 +71,7 @@ See [Dynamic Workflows](/dynamic-workflows) for the developer reference.
 
 ## The Commander HUD mod
 
-On Claude Code 2.1.287+ (Desktop 2.1.286+), the plugin's mod draws a band above the prompt with the Fable Method state, running agents, the session's tool-call budget and an update pill; `/ccc-hud` toggles it without a model turn. It is observe-only: no tool approval, no model calls, no network, and it reads only `~/.claude/commander/`. Elsewhere Commander runs hooks-only.
+On Claude Code 2.1.287+ (Desktop 2.1.286+), the plugin's mod draws a band above the prompt with the Commander Method state, running agents, the session's tool-call budget and an update pill; `/ccc-hud` toggles it without a model turn. It is observe-only: no tool approval, no model calls, no network, and it reads only `~/.claude/commander/`. Elsewhere Commander runs hooks-only.
 
 ## Data Flow
 

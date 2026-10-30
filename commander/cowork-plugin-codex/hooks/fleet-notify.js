@@ -3,9 +3,10 @@ import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { existsSync } from 'node:fs';
 
-const FLEET_DIR = join(process.env.HOME, '.claude', 'commander', 'fleet');
+const FLEET_DIR = join(stateDir(), 'fleet');
 
 async function main() {
   try {

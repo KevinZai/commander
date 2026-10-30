@@ -6,8 +6,6 @@ allowed-tools:
   - Bash
   - AskUserQuestion
 argument-hint: "[skill | agent | hook | list]"
-model: sonnet
-effort: medium
 disable-model-invocation: true
 ---
 

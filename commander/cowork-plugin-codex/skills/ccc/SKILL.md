@@ -1,6 +1,6 @@
 ---
 name: ccc
-description: "Commander's click-first home: reads the project context, then routes to build, review, ship or the More menu (plan, x-ray, Codex CLI, fleet, connectors, plugin audit workflows) in one or two clicks. Use when the user types /ccc, opens the Commander menu, or asks where to start."
+description: "Commander home: reads project context, then routes to build, review, ship or the More menu in one or two clicks. Use when asked where to start."
 allowed-tools:
   - Read
   - Bash
@@ -9,8 +9,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[build | review | ship | design | learn | more | plan | xray | codex | fleet | workflows]"
-model: sonnet
-effort: low
 ---
 
 # /ccc — one click to the right workflow
@@ -32,7 +30,9 @@ The hub is a thin control plane: it detects context, offers a choice, and hands 
 Run first:
 
 ```bash
-STATE="$HOME/.claude/commander/state.json"
+# Lane state dir: CCC_CONFIG_DIR, then CLAUDE_CONFIG_DIR, then ~/.claude; the legacy copy until the lane has its own.
+STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander/state.json"
+[ -e "$STATE" ] || STATE="$HOME/.claude/commander/state.json"
 if [ ! -f "$STATE" ] || ! grep -q '"onboardingCompleted": *true' "$STATE" 2>/dev/null; then
   echo "ONBOARDING_NEEDED"
 fi
@@ -48,10 +48,11 @@ If `$ARGUMENTS` matches a row below, invoke that skill with the Skill tool and s
 
 | Argument | Skill |
 |---|---|
-| `build` · `review` · `ship` · `design` · `learn` | `ccc-build` · `ccc-review` · `ccc-ship` · `ccc-design` · `ccc-learn` |
+| `build` · `review` · `design` · `learn` | `ccc-build` · `ccc-review` · `ccc-design` · `ccc-learn` |
+| `ship` | `$ccc-ship` is user-invoked only: tell the user to type `$ccc-ship` and stop |
 | `more` | `ccc-more` |
 | `plan` · `xray` · `linear` · `fleet` · `connect` · `tuneup` · `browse` | `ccc-more` with the same argument (it dispatches directly) |
-| `codex` | `ccc-codex` (Codex CLI: doctor, models, plugins, mcp, agents, cloud, remote, review, update, import, config) |
+| `codex` | `$ccc-codex` is user-invoked only (Codex CLI: doctor, models, plugins, mcp, agents, cloud, remote, review, update, import, config): tell the user to type `$ccc-codex` and stop |
 | `workflows` · `audit` · `deep-review` · `migrate` · `prompt-audit` · `release-audit` | `ccc-more` with the same argument (plugin workflows page) |
 | `cheatsheet` · `start` · `doctor` · `update` | `ccc-cheatsheet` · `ccc-start` · `ccc-doctor` · `ccc-update` |
 
@@ -118,7 +119,7 @@ Invoke the picked skill with the Skill tool immediately; do not ask again.
 |---|---|
 | Build something | `ccc-build` |
 | Review my work | `ccc-review` |
-| Ship it | `ccc-ship` |
+| Ship it | `$ccc-ship` is user-invoked only (it can deploy): tell the user to type `$ccc-ship` |
 | More tools | `ccc-more` |
 
 Say one line before the hand-off, for example "Loading `ccc-build` — one more click picks web, API, CLI or mobile." The target skill owns its own picker and its menu file in `${CLAUDE_PLUGIN_ROOT}/menus/`.

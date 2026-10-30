@@ -21,7 +21,7 @@ const HOOK = path.join(
 function runHook(payload, env = {}) {
   const home = env.HOME || fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-route-'));
   const cleanEnv = { ...process.env };
-  for (const key of ['PLUGIN_ROOT', 'CCC_SOURCE_APP', 'CCC_ROUTE_MODE', 'CCC_ROUTE_NEXT', 'CCC_ROUTE_MENU']) delete cleanEnv[key];
+  for (const key of ['PLUGIN_ROOT', 'CCC_SOURCE_APP', 'CCC_ROUTE_MODE', 'CCC_ROUTE_NEXT', 'CCC_ROUTE_NEXT_COOLDOWN_MIN', 'CCC_ROUTE_MENU']) delete cleanEnv[key];
   const result = spawnSync(process.execPath, [HOOK], {
     input: JSON.stringify(payload),
     encoding: 'utf8',
@@ -93,6 +93,26 @@ test('medium tier: AskUserQuestion menu with recommended first and "Just answer"
   assert.match(ctx, /Just answer/);
 });
 
+// CC-2112: hidden (disable-model-invocation) skills are offered, never invoked.
+test('hidden-skill match: AskUserQuestion offer, no direct Skill invocation', function () {
+  const ctx = routeContext(classify('write my standup for today'));
+  assert.match(ctx, /tier="medium"/);
+  assert.match(ctx, /Hidden skill/);
+  assert.match(ctx, /AskUserQuestion once/);
+  assert.match(ctx, /🟢 first/);
+  assert.match(ctx, /Just answer/);
+  assert.match(ctx, /\/ccc-standup: [^;]*\*/);
+  assert.match(ctx, /never invoke it/);
+  assert.doesNotMatch(ctx, /invoke Skill commander:/);
+});
+
+test('visible-skill match keeps the direct Skill instruction', function () {
+  const ctx = routeContext(classify('plan this feature before we write any code: team invites'));
+  assert.match(ctx, /tier="high"/);
+  assert.match(ctx, /invoke Skill commander:ccc-plan now/);
+  assert.doesNotMatch(ctx, /Hidden skill/);
+});
+
 test('Codex host (PLUGIN_ROOT set) uses request_user_input and $ccc-* names', function () {
   const ctx = routeContext(classify('should I deploy this branch now or wait', { PLUGIN_ROOT: '/tmp/codex-plugin' }));
   assert.match(ctx, /request_user_input/);
@@ -123,6 +143,70 @@ test('CCC_ROUTE_MODE=suggest never auto-runs: high becomes a menu', function () 
   const ctx = routeContext(classify('please do a code review, review my changes', { CCC_ROUTE_MODE: 'suggest' }));
   assert.match(ctx, /tier="medium"/);
   assert.match(ctx, /AskUserQuestion/);
+});
+
+function laneWithConfig(config) {
+  const lane = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-lane-'));
+  fs.mkdirSync(path.join(lane, 'commander'));
+  fs.writeFileSync(path.join(lane, 'commander', 'config.json'), typeof config === 'string' ? config : JSON.stringify(config));
+  return lane;
+}
+
+const REVIEW_PROMPT = 'please do a code review, review my changes';
+
+test('saved routeMode=off in the lane config silences routing and the next menu', function () {
+  const lane = laneWithConfig({ name: 'x', routeMode: 'off' });
+  const r = classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: lane });
+  assert.strictEqual(r.suppressOutput, true);
+  assert.ok(!r.hookSpecificOutput);
+  const transcript = path.join(lane, 't.jsonl');
+  fs.writeFileSync(transcript, [
+    JSON.stringify({ type: 'user', message: { content: 'build me an app' } }),
+    JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', id: 'tu1', name: 'Skill', input: { skill: 'commander:ccc-build' } }, { type: 'text', text: 'Done.' }] } }),
+  ].join('\n'));
+  const stop = runHook({ hook_event_name: 'Stop', session_id: 'test', transcript_path: transcript }, { CLAUDE_CONFIG_DIR: lane }).out;
+  assert.ok(!stop.decision);
+});
+
+test('saved routeMode=suggest turns a high-tier match into a menu', function () {
+  const ctx = routeContext(classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: laneWithConfig({ routeMode: 'suggest' }) }));
+  assert.match(ctx, /tier="medium"/);
+});
+
+test('CCC_ROUTE_MODE overrides the saved routeMode both ways', function () {
+  const off = laneWithConfig({ routeMode: 'off' });
+  assert.match(routeContext(classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: off, CCC_ROUTE_MODE: 'auto' })), /tier="high"/);
+  const auto = laneWithConfig({ routeMode: 'auto' });
+  assert.ok(!classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: auto, CCC_ROUTE_MODE: 'off' }).hookSpecificOutput);
+});
+
+test('unknown or unreadable saved routeMode falls back to auto', function () {
+  for (const config of [{ routeMode: 'sometimes' }, { routeMode: 3 }, '{not json', '[]']) {
+    assert.match(routeContext(classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: laneWithConfig(config) })), /tier="high"/, JSON.stringify(config));
+  }
+});
+
+test('a junk CCC_ROUTE_MODE keeps the saved routeMode', function () {
+  const r = classify(REVIEW_PROMPT, { CLAUDE_CONFIG_DIR: laneWithConfig({ routeMode: 'off' }), CCC_ROUTE_MODE: 'loud' });
+  assert.ok(!r.hookSpecificOutput);
+});
+
+test('the lane config wins over the legacy ~/.claude copy, which is read until the lane has one', function () {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-route-'));
+  fs.mkdirSync(path.join(home, '.claude', 'commander'), { recursive: true });
+  fs.writeFileSync(path.join(home, '.claude', 'commander', 'config.json'), JSON.stringify({ routeMode: 'off' }));
+  const freshLane = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-lane-'));
+  assert.ok(!classify(REVIEW_PROMPT, { HOME: home, CLAUDE_CONFIG_DIR: freshLane }).hookSpecificOutput);
+  const ownLane = laneWithConfig({ routeMode: 'auto' });
+  assert.match(routeContext(classify(REVIEW_PROMPT, { HOME: home, CLAUDE_CONFIG_DIR: ownLane })), /tier="high"/);
+});
+
+test('routeMode(): env, then saved preference, then auto', async function () {
+  const { routeMode } = await import(path.join(__dirname, '..', 'cowork-plugin', 'hooks', 'lib', 'route-scorer.mjs'));
+  assert.strictEqual(routeMode({}, null), 'auto');
+  assert.strictEqual(routeMode({}, ' Suggest '), 'suggest');
+  assert.strictEqual(routeMode({ CCC_ROUTE_MODE: 'OFF' }, 'auto'), 'off');
+  assert.strictEqual(routeMode({ CCC_ROUTE_MODE: 'nope' }, 'nope'), 'auto');
 });
 
 test('explicit /ccc-* and $ccc-* prompts are not routed', function () {
@@ -167,17 +251,17 @@ function transcript(dir, entries) {
   return file;
 }
 
-function skillTurn(skill, finalText = 'Review done. Findings are in tasks/reviews/.') {
+function skillTurn(skill, finalText = 'Review done. Findings are in tasks/reviews/.', runId = 'tu_1') {
   return [
     { type: 'user', uuid: 'u1', message: { role: 'user', content: 'please review my changes' } },
-    { type: 'assistant', message: { content: [{ type: 'tool_use', id: 'tu_1', name: 'Skill', input: { skill: `commander:${skill}` } }] } },
-    { type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'tu_1', content: 'loaded' }] } },
+    { type: 'assistant', message: { content: [{ type: 'tool_use', id: runId, name: 'Skill', input: { skill: `commander:${skill}` } }] } },
+    { type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: runId, content: 'loaded' }] } },
     { type: 'assistant', message: { content: [{ type: 'text', text: finalText }] } },
   ];
 }
 
-function stop(home, file, extra = {}) {
-  return runHook({ hook_event_name: 'Stop', session_id: 'stop-test', transcript_path: file, stop_hook_active: false, ...extra }, { HOME: home }).out;
+function stop(home, file, extra = {}, env = {}) {
+  return runHook({ hook_event_name: 'Stop', session_id: 'stop-test', transcript_path: file, stop_hook_active: false, ...extra }, { HOME: home, ...env }).out;
 }
 
 test('Stop: after a skill ran, offers its next[] steps once via decision:block', function () {
@@ -297,6 +381,66 @@ test('Stop: tool output quoting the mute label or a command tag neither mutes no
   ]);
   assert.ok(!stop(home, noisy).decision, 'a command tag inside tool output is not a skill run');
   assert.strictEqual(stop(home, transcript(home, skillTurn('ccc-review'))).decision, 'block', 'session must not be muted by tool output');
+});
+
+// Cooldown between menus (CC-2062): default 10 min, CCC_ROUTE_NEXT_COOLDOWN_MIN.
+
+function run(home, id, finalText, env) {
+  return stop(home, transcript(home, skillTurn('ccc-review', finalText, id)), {}, env);
+}
+
+function ageLastOffer(stateFile, minutes) {
+  const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+  state.lastOfferAt = new Date(Date.now() - minutes * 60000).toISOString();
+  fs.writeFileSync(stateFile, JSON.stringify(state));
+}
+
+test('Stop: a second skill run inside the cooldown is consumed silently, not deferred', function () {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-next-'));
+  const stateFile = path.join(home, '.claude', 'commander', 'route-state', 'stop-test.json');
+  assert.strictEqual(run(home, 'tu_a').decision, 'block');
+  assert.ok(!run(home, 'tu_b').decision, 'second menu within 10 minutes must stay silent');
+  ageLastOffer(stateFile, 11);
+  assert.ok(!run(home, 'tu_b').decision, 'a run consumed during the cooldown is not offered later');
+  assert.strictEqual(run(home, 'tu_c').decision, 'block', 'a new run after the cooldown gets a menu');
+});
+
+test('Stop: CCC_ROUTE_NEXT_COOLDOWN_MIN sets the cooldown; 0 offers after every run', function () {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-next-'));
+  const off = { CCC_ROUTE_NEXT_COOLDOWN_MIN: '0' };
+  for (const id of ['tu_a', 'tu_b', 'tu_c']) assert.strictEqual(run(home, id, undefined, off).decision, 'block', id);
+  const short = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-next-'));
+  const stateFile = path.join(short, '.claude', 'commander', 'route-state', 'stop-test.json');
+  const two = { CCC_ROUTE_NEXT_COOLDOWN_MIN: '2' };
+  assert.strictEqual(run(short, 'tu_a', undefined, two).decision, 'block');
+  ageLastOffer(stateFile, 3);
+  assert.strictEqual(run(short, 'tu_b', undefined, two).decision, 'block', '2-minute cooldown has passed');
+});
+
+test('Stop: a junk or negative cooldown falls back to 10 minutes', function () {
+  for (const value of ['soon', '-5', '']) {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-next-'));
+    const env = { CCC_ROUTE_NEXT_COOLDOWN_MIN: value };
+    assert.strictEqual(run(home, 'tu_a', undefined, env).decision, 'block');
+    assert.ok(!run(home, 'tu_b', undefined, env).decision, `"${value}" must not disable the cooldown`);
+  }
+});
+
+test('Stop: a run skipped for its own question does not start the cooldown', function () {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-next-'));
+  assert.ok(!run(home, 'tu_a', 'Want me to fix the two findings?').decision);
+  assert.strictEqual(run(home, 'tu_b').decision, 'block');
+});
+
+test('Stop: cooldown state lives in the lane config dir, never ~/.claude', function () {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-next-'));
+  const lane = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-lane-'));
+  const env = { CLAUDE_CONFIG_DIR: lane };
+  assert.strictEqual(run(home, 'tu_a', undefined, env).decision, 'block');
+  const state = JSON.parse(fs.readFileSync(path.join(lane, 'commander', 'route-state', 'stop-test.json'), 'utf8'));
+  assert.ok(Date.parse(state.lastOfferAt) <= Date.now());
+  assert.ok(!fs.existsSync(path.join(home, '.claude', 'commander', 'route-state')), 'nothing written under ~/.claude');
+  assert.ok(!run(home, 'tu_b', undefined, env).decision);
 });
 
 test('CCC_ROUTE_MENU=list keeps Codex skill naming', function () {

@@ -7,8 +7,6 @@ allowed-tools:
   - WebFetch
   - AskUserQuestion
 argument-hint: "[platform: vercel | fly | cloudflare | github-pages | npm]"
-model: sonnet
-effort: high
 disable-model-invocation: true
 ---
 
@@ -164,7 +162,7 @@ When the deploy, a watch command or the health check fails:
 - Never claim success from an exit code alone; never skip step 5.
 - Never print secrets or `.env` values; never fabricate credentials.
 - Never roll a custom deploy pipeline when the platform or package script exists.
-- Never run `$ccc-ship` from here; this skill is the deploy step.
+- Never run the ship step from here; this skill is the deploy step, and `$ccc-ship` is a typed command.
 
 ## See also
 

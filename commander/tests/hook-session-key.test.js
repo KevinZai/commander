@@ -65,6 +65,61 @@ describe('budget hooks key state on stdin session_id', () => {
   });
 });
 
+// CC-1360 F14: SessionEnd runs session-save and session-end in parallel.
+// session-save archives active-session.json and unlinks it, so session-end
+// must find the session in either file, whichever hook runs first.
+describe('SessionEnd hooks are order-independent', () => {
+  const KNOWLEDGE = path.join(HOME, '.claude', 'commander', 'knowledge');
+  const ACTIVE = path.join(SESSIONS, 'active-session.json');
+  const knowledge = (key) => path.join(KNOWLEDGE, `session-${key}.json`);
+  const seed = (startedAt) => {
+    fs.mkdirSync(SESSIONS, { recursive: true });
+    fs.writeFileSync(ACTIVE, JSON.stringify({ startedAt, status: 'active' }));
+  };
+
+  it('session-end after session-save still writes the knowledge record', () => {
+    seed('2026-10-26T10:00:00.000Z');
+    runHook('session-save.js', { session_id: 'f14-save-first', hook_event_name: 'SessionEnd' });
+    assert.ok(!fs.existsSync(ACTIVE), 'session-save removed the active file');
+    runHook('session-end.js', { session_id: 'f14-save-first', hook_event_name: 'SessionEnd' });
+    const rec = JSON.parse(fs.readFileSync(knowledge('f14-save-first'), 'utf8'));
+    assert.equal(rec.startedAt, '2026-10-26T10:00:00.000Z');
+    assert.ok(!fs.existsSync(ACTIVE), 'session-end does not recreate active-session.json');
+  });
+
+  it('session-end before session-save writes the record and leaves the archive to session-save', () => {
+    seed('2026-10-26T11:00:00.000Z');
+    runHook('session-end.js', { session_id: 'f14-end-first', hook_event_name: 'SessionEnd' });
+    runHook('session-save.js', { session_id: 'f14-end-first', hook_event_name: 'SessionEnd' });
+    const rec = JSON.parse(fs.readFileSync(knowledge('f14-end-first'), 'utf8'));
+    assert.equal(rec.startedAt, '2026-10-26T11:00:00.000Z');
+    const archived = fs.readdirSync(SESSIONS).filter((n) => /^\d{4}-\d{2}-\d{2}-[0-9a-f]+\.json$/.test(n))
+      .map((n) => JSON.parse(fs.readFileSync(path.join(SESSIONS, n), 'utf8')));
+    assert.ok(archived.some((a) => a.sessionId === 'f14-end-first' && a.status === 'complete'));
+    assert.ok(!fs.existsSync(ACTIVE));
+  });
+
+  it('finds the newest archive among more than 50 from the same day', () => {
+    fs.mkdirSync(SESSIONS, { recursive: true });
+    const old = new Date('2026-10-26T00:00:00Z');
+    for (let i = 0; i < 60; i++) {
+      const f = path.join(SESSIONS, `2026-10-26-ffff${String(i).padStart(4, '0')}.json`);
+      fs.writeFileSync(f, JSON.stringify({ sessionId: `filler-${i}`, status: 'complete' }));
+      fs.utimesSync(f, old, old);
+    }
+    seed('2026-10-26T12:00:00.000Z');
+    runHook('session-save.js', { session_id: 'f14-busy-day', hook_event_name: 'SessionEnd' });
+    runHook('session-end.js', { session_id: 'f14-busy-day', hook_event_name: 'SessionEnd' });
+    const rec = JSON.parse(fs.readFileSync(knowledge('f14-busy-day'), 'utf8'));
+    assert.equal(rec.startedAt, '2026-10-26T12:00:00.000Z');
+  });
+
+  it("does not adopt another session's archive", () => {
+    runHook('session-end.js', { session_id: 'f14-stranger', hook_event_name: 'SessionEnd' });
+    assert.ok(!fs.existsSync(knowledge('f14-stranger')));
+  });
+});
+
 describe('PreToolUse guards deny the call instead of halting the turn', () => {
   it('config-protection denies an edit to a protected config with a reason', () => {
     const r = runHook('config-protection.js', {

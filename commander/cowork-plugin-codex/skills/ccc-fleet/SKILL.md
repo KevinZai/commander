@@ -1,6 +1,6 @@
 ---
 name: ccc-fleet
-description: "Run parallel agents on one task: fan-out slices in isolated worktrees, a sequential pipeline, a review panel, a background run, or a director-lead-specialist team, then verify and synthesize. Use when the user types $ccc-fleet or wants work split across several agents."
+description: "Run parallel agents on one task: worktree fan-out, pipeline, review panel, background run or team, then verify. Use to split work across agents."
 allowed-tools:
   - Read
   - Write
@@ -11,7 +11,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[fanout | pipeline | review | judge | background | team]"
 model: inherit
-effort: high
 ---
 
 # $ccc-fleet — parallel agents, one synthesis
@@ -61,7 +60,7 @@ options:
 
 Follow-up pickers:
 
-- Review panel → `FOR/AGAINST/Referee` (🟢 for a yes/no decision) · `Judge panel` (2–5 independent attempts scored by a referee) · `Multi-lens debate` (hand off to `$ccc-debate`).
+- Review panel → `FOR/AGAINST/Referee` (🟢 for a yes/no decision) · `Judge panel` (2–5 independent attempts scored by a referee) · `Multi-lens debate` (ask the user to type `$ccc-debate`; it is not invocable from here).
 - Long-running → `Background agent` (🟢 for one long task) · `Team hierarchy` (architecture, implementation and polish tiers).
 
 Then ask for the task in plain text (free text, not a picker). For Fan-out, also ask for or propose the slices with a non-overlapping file domain each; for Pipeline, the ordered stages.
