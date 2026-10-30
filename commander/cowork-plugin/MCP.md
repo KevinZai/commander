@@ -8,26 +8,67 @@ The plugin is 100% functional without any network connection. MCP is opt-in icin
 |-------------|----------|
 | Local skill catalog only | Skill catalog synced from cloud |
 | Usage tracked locally | Usage tracked server-side (analytics) |
-| Local catalog only | 100-call/mo anti-abuse cap — no account, no license key |
+| Local catalog only | Hosted catalog (needs a CC Commander access token) |
 | No cross-IDE support | Works in Cursor, Windsurf, Zed, and any MCP-compatible IDE |
 
-## How to opt in
+## Hosted endpoint
 
-1. Copy `lib/mcp-config.example.json` to `.claude/mcp.json` in your project root.
-2. That's it. The plugin detects the config automatically on next session start.
+| | |
+|---|---|
+| URL | `https://mcp.commanderplugin.com/mcp` (also `https://commander-mcp.fly.dev/mcp`) |
+| Transport | MCP Streamable HTTP (`"type": "http"`) |
+| Auth | `Authorization: Bearer <token>`. Required on every request |
+| Health | `GET https://mcp.commanderplugin.com/health` (no auth) |
 
-There are no license keys — the hosted endpoint is free for everyone with a
-100-call/mo anti-abuse cap. No `Authorization` header is needed.
+There is no `/sse` endpoint (it returns `404`). The legacy `/v1/sse` and
+`/v1/call` routes also require a Bearer token.
+
+### Auth and OAuth status
+
+A request with no token gets `401` and an RFC 9728 challenge:
+
+```
+WWW-Authenticate: Bearer realm="cc-commander", resource_metadata="https://commander-mcp.fly.dev/.well-known/oauth-protected-resource"
+```
+
+The metadata document lists the resource (`https://commander-mcp.fly.dev/mcp`)
+and `bearer_methods_supported: ["header"]`, but **no `authorization_servers`**.
+MCP clients therefore can't start an OAuth sign-in: they have to send a static
+Bearer token in a header. The server accepts CC Commander access tokens
+(license JWTs). Self-serve token issuance is not live yet. Without a token, use
+the plugin on its own; everything below falls back to the local catalog.
+
+## How to connect Claude Code
+
+Add the server to your project's `.mcp.json` (or run
+`claude mcp add --transport http cc-commander https://mcp.commanderplugin.com/mcp --header "Authorization: Bearer $COMMANDER_TOKEN"`).
+`lib/mcp-config.example.json` contains this block:
 
 ```json
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.commanderplugin.com/sse"
+      "type": "http",
+      "url": "https://mcp.commanderplugin.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${COMMANDER_TOKEN}"
+      }
     }
   }
 }
 ```
+
+Claude Code expands `${COMMANDER_TOKEN}` from your environment, so the token
+never has to be committed.
+
+### Plugin passthrough (`lib/mcp-passthrough.js`)
+
+The plugin's own passthrough is separate from Claude Code's MCP client. It
+reads a `cc-commander` entry from `.claude/mcp.json` or `~/.claude/mcp.json`
+and calls `<url>/health` and `<url>/tools/<name>`, sending any `headers` from
+that entry. The hosted server does not serve that REST shape on `/mcp`, so
+today the passthrough always takes the local fallback. It does so silently, as
+the contract below requires.
 
 ## Fallback contract
 

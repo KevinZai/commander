@@ -116,7 +116,7 @@ High-intent keywords + product adoption.
 Structure: Challenge → Solution → Results → Key learnings
 
 **Meta Content**
-Behind-the-scenes transparency. "How We Got Our First $5k MRR," "Why We Chose Debt Over VC."
+Behind-the-scenes transparency. "How We Got Our First \$5k MRR," "Why We Chose Debt Over VC."
 
 For programmatic content at scale, see **programmatic-seo** skill.
 

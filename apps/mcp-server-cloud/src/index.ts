@@ -35,10 +35,10 @@ import {
 import type { AuthContext } from "./middleware/auth.js";
 import { SERVER_VERSION } from "./lib/version.js";
 import { getServerTagline } from "./lib/registry-stats.js";
-import { captureEvent } from "./lib/posthog.js";
-import { eventsRouter } from "./routes/events.js";
+import { eventsRouter, getTelemetryCounters } from "./routes/events.js";
 import { createStripeWebhookApp } from "./routes/stripe-webhook.js";
 import { mcpAuthMiddleware } from "./mcp/auth-middleware.js";
+import { requestPublicOrigin } from "./lib/public-origin.js";
 import { createMcpTransportApp } from "./mcp/transport.js";
 
 declare module "hono" {
@@ -144,6 +144,7 @@ app.get("/metrics", (c) => {
     }
   }
   const reg = getRegistryState();
+  const telemetry = getTelemetryCounters();
   const lines: string[] = [
     "# HELP commander_skills_loaded Number of skills in registry",
     "# TYPE commander_skills_loaded gauge",
@@ -157,6 +158,12 @@ app.get("/metrics", (c) => {
     "# HELP commander_tool_errors_total Total tool errors",
     "# TYPE commander_tool_errors_total counter",
     `commander_tool_errors_total ${totalErrors}`,
+    "# HELP commander_telemetry_batches_total Opt-in telemetry batches accepted on /v1/events",
+    "# TYPE commander_telemetry_batches_total counter",
+    `commander_telemetry_batches_total ${telemetry.batches}`,
+    "# HELP commander_telemetry_events_discarded_total Opt-in telemetry events accepted then discarded (not stored or forwarded)",
+    "# TYPE commander_telemetry_events_discarded_total counter",
+    `commander_telemetry_events_discarded_total ${telemetry.eventsDiscarded}`,
   ];
 
   for (const tool of Object.keys(callCounters)) {
@@ -295,9 +302,8 @@ mcp.post("/call", async (c) => {
   }
 
   const reqId = c.get("reqId");
-  // PRIVACY: `args` are NOT logged here and NOT sent to PostHog at any point in this handler.
-  // Tool inputs are processed transiently, server-side, and are NOT stored or retained.
-  // The captureEvent calls below intentionally omit `args` — do not add them.
+  // PRIVACY: `args` are NOT logged here and NOT sent to any third party at any point in this
+  // handler. Tool inputs are processed transiently, server-side, and are NOT stored or retained.
   logger.info({ userId: auth.userId, tool, reqId }, "Tool call");
   const t0 = Date.now();
 
@@ -305,12 +311,6 @@ mcp.post("/call", async (c) => {
     const result = await dispatchTool(tool, args, auth);
     const latency = Date.now() - t0;
     recordCall(tool, latency, false);
-    captureEvent(auth.userId, "mcp_tool_called", {
-      tool,
-      tier: auth.tier,
-      latency_ms: latency,
-      success: true,
-    });
     if ("jsonrpcId" in parsed) {
       return c.json({ jsonrpc: "2.0", id: parsed.jsonrpcId ?? null, result });
     }
@@ -318,17 +318,6 @@ mcp.post("/call", async (c) => {
   } catch (err) {
     const latency = Date.now() - t0;
     recordCall(tool, latency, true);
-    // PRIVACY: Never send error message text — may contain user input or file paths.
-    // Only send error class, optional code, and message length for cardinality signal.
-    captureEvent(auth.userId, "mcp_tool_called", {
-      tool,
-      tier: auth.tier,
-      latency_ms: latency,
-      success: false,
-      error_class: (err as Error).constructor?.name ?? "Error",
-      error_code: (err as any).code ?? null,
-      error_message_length: (err as Error).message?.length ?? 0,
-    });
     logger.error(
       { err: (err as Error).message, tool, userId: auth.userId, reqId },
       "Tool call error"
@@ -397,7 +386,7 @@ app.route("/v1", mcp);
 // for authorization-code + PKCE. Served at both the bare well-known path and
 // the path-suffixed variant (RFC 9728 §3 for resources with path components).
 function protectedResourceMetadata(c: Context) {
-  const origin = new URL(c.req.url).origin;
+  const origin = requestPublicOrigin(c);
   const body: Record<string, unknown> = {
     resource: env.oauthResourceUrl || `${origin}/mcp`,
     bearer_methods_supported: ["header"],
@@ -421,7 +410,7 @@ mcpStreamable.use("*", mcpAuthMiddleware);
 mcpStreamable.use("*", rateLimitMiddleware);
 mcpStreamable.route(
   "/",
-  createMcpTransportApp({ dispatchTool, recordCall, captureEvent })
+  createMcpTransportApp({ dispatchTool, recordCall })
 );
 app.route("/mcp", mcpStreamable);
 

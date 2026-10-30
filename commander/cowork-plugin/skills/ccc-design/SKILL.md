@@ -1,6 +1,6 @@
 ---
 name: ccc-design
-description: "Route design work to the right method: landing page, component system, Impeccable polish pass, Figma to code, chat UI, Design.md capture or screenshot to interactive UI. Use when the user wants to design, restyle, polish or animate a UI, or types /ccc-design."
+description: "UI design: landing pages, component systems, polish passes, Figma to code, screenshot to UI. Use to design, restyle, polish or animate a UI."
 allowed-tools:
   - Read
   - Write
@@ -17,7 +17,6 @@ allowed-tools:
   - mcp__figma
 argument-hint: "[landing | components | polish | figma | chat | design-md | screenshot]"
 model: inherit
-effort: medium
 ---
 
 # /ccc-design — pick the design job
@@ -69,7 +68,7 @@ Skip the picker when intent is already clear:
 | A screenshot or mockup is attached, `screenshot` | Sub-flow C |
 | Named look, motion, particles, slides and other specific asks | the route in [references/routing.md](references/routing.md) |
 
-Otherwise read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-design.json` once and ask with AskUserQuestion (header "CC Commander · Design", question "What design work?"), using its four non-back choices. Put the recommended option first, marked 🟢:
+Otherwise read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-design.json` once and ask with AskUserQuestion (header "Design", question "What design work?"), using its four non-back choices. Put the recommended option first, marked 🟢:
 
 - 🚀 Landing page — hero, social proof, CTA stack; built by the `designer` agent in the background.
 - 🏗️ Component system — shadcn-style library with tokens and variants.

@@ -23,7 +23,6 @@ export const env = {
   upstashRedisUrl: process.env.UPSTASH_REDIS_REST_URL!,
   upstashRedisToken: process.env.UPSTASH_REDIS_REST_TOKEN!,
   jwtSecret: process.env.JWT_SECRET!,
-  posthogKey: process.env.POSTHOG_API_KEY ?? "",
   metricsAuthToken: process.env.METRICS_AUTH_TOKEN ?? "",
   openaiAppsChallengeToken: process.env.OPENAI_APPS_CHALLENGE_TOKEN ?? "",
   // ── OAuth 2.1 resource-server config for the /mcp streamable-HTTP endpoint.

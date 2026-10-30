@@ -1,0 +1,6 @@
+interface:
+  display_name: "Modernize PR"
+  short_description: "Update and reassess an aging pull request"
+  default_prompt: "Use $ccc-modernize to update this PR from its current base without rewriting pushed history, check for conceptual conflicts, and tell me honestly whether it should stay open."
+policy:
+  allow_implicit_invocation: false

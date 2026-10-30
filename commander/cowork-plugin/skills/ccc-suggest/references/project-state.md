@@ -3,16 +3,19 @@
 `hooks/suggest-ticker.js` keeps one state file per project:
 
 ```
-~/.claude/commander/projects/<slug>/project-state.json
+<config dir>/commander/projects/<slug>/project-state.json
 ```
+
+The config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude` (`~/.claude/commander/projects/<slug>/project-state.json` by default).
 
 `<slug>` is `basename(cwd)` + `-` + the first 8 hex characters of `sha256(cwd)` (`projectSlug()` in the hook). Locate the current project's file with:
 
 ```bash
-ls -d ~/.claude/commander/projects/"$(basename "$PWD")"-* 2>/dev/null
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+ls -d "$CCC_STATE"/projects/"$(basename "$PWD")"-* 2>/dev/null
 ```
 
-The flat `~/.claude/commander/project-state.json` is from an older layout and is no longer written; treat it as stale. The ticker refreshes the cached state on a throttle (`shouldRun()`), so check `timestamp` before relying on it, and prefer the live scan for anything load-bearing.
+The flat `<config dir>/commander/project-state.json` is from an older layout and is no longer written; treat it as stale. The ticker refreshes the cached state on a throttle (`shouldRun()`), so check `timestamp` before relying on it, and prefer the live scan for anything load-bearing.
 
 ## Fields (as `computeState()` writes them)
 
@@ -42,7 +45,7 @@ The flat `~/.claude/commander/project-state.json` is from an older layout and is
 ## Signal sources
 
 - `ciStatus`: a cached `gh run list --limit 1 --json conclusion` (up to ~10 minutes old; a stale cache refreshes in a detached background process so the hook never blocks).
-- `testsStatus`, `lintStatus`, `securityAlerts`: the PostToolUse cache at `~/.claude/commander/last-test-result.json` (30-minute TTL).
+- `testsStatus`, `lintStatus`, `securityAlerts`: the PostToolUse cache at `<config dir>/commander/last-test-result.json` (30-minute TTL).
 - `defaultBranch`: `git symbolic-ref refs/remotes/origin/HEAD`, falling back to `origin/main`.
 - Status values are `passing`, `failing` or `unknown`.
 - `hasClaudeMd` and `claudeMdAgeDays` drive CLAUDE.md drift picks: `/ccc-claudemd` when older than 30 days, `/ccc-adopt` when missing.

@@ -11,6 +11,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 
 const OK = JSON.stringify({ continue: true, suppressOutput: true }) + '\n';
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -108,8 +109,7 @@ async function main() {
     if (!match) return;
     if (BUILTIN_COMMANDS.has(match[1].toLowerCase())) return;
 
-    const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
-    const dir = path.join(home, '.claude', 'commander');
+    const dir = stateDir();
     const file = path.join(dir, 'skill-runs.jsonl');
     const entry = {
       ts: new Date().toISOString(),

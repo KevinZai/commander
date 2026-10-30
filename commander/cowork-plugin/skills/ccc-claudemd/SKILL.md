@@ -10,8 +10,7 @@ allowed-tools:
   - Grep
   - AskUserQuestion
 argument-hint: "[check | fix | report]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-claudemd — Keep instructions honest
@@ -20,7 +19,7 @@ effort: medium
 
 ## When to use / when not to
 
-- Use when CLAUDE.md may have drifted from the tree. The suggest engine recommends this skill when `claudeMdAgeDays` exceeds 30, read from the per-project state at `~/.claude/commander/projects/<slug>/project-state.json` (find it with `ls -d ~/.claude/commander/projects/$(basename "$PWD")-*`).
+- Use when CLAUDE.md may have drifted from the tree. The suggest engine recommends this skill when `claudeMdAgeDays` exceeds 30, read from the per-project state at `<config dir>/commander/projects/<slug>/project-state.json` (the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`; find it with `ls -d "${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}"/commander/projects/$(basename "$PWD")-*`).
 - No CLAUDE.md at all: route to `/ccc-adopt`, which owns the create flow (diff preview, approval, backup, delimited write). This skill never creates one.
 - For older-model prompting patterns across CLAUDE.md, skills, agents and commands, the user can also run `/doctor prompt-audit` in Claude Code; this skill checks factual drift against the tree.
 - `$ARGUMENTS`: `check` runs steps 1–3 and prints findings; `report` also writes the report file; `fix` runs the full flow including the approval picker. No argument means `fix`.

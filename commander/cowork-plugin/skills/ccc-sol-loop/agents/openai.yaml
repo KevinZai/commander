@@ -1,0 +1,6 @@
+interface:
+  display_name: "Review Loop (sol-loop)"
+  short_description: "Review a change in a loop with an OpenAI reviewer"
+  default_prompt: "Use $ccc-sol-loop to review my current change with an OpenAI reviewer through Codex, fix the real findings minimally, and stop at agreement or budget."
+policy:
+  allow_implicit_invocation: false

@@ -7,6 +7,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
+import { isOffline } from './network-mode.js';
 
 const COMMANDER_DIR = join(homedir(), '.claude', 'commander');
 const LICENSE_FILE = join(COMMANDER_DIR, 'license.json');
@@ -99,9 +100,10 @@ function extractTier(lsResponse) {
  * Call Lemon Squeezy validation endpoint.
  * @param {string} key
  * @returns {Promise<{valid: boolean, tier: string, expires_at: string|null, raw: object}|null>}
- *   null if the network call fails
+ *   null if the network call fails or CCC_OFFLINE is on (no request is made)
  */
 async function callLSValidate(key) {
+  if (isOffline(process.env)) return null;
   try {
     const res = await fetch(LS_VALIDATE_URL, {
       method: 'POST',

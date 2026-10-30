@@ -344,12 +344,12 @@ The recommendation should be contextual:
 Infrastructure & Fleet
 ━━━━━━━━━━━━━━━━━━━━━
 
-Fleet Commander v0.0.16 — 0 teams | Synapse — 2 clients | Cost: $0.02 today
+Fleet Commander v0.0.16 — 0 teams | Synapse — 2 clients | Cost: \$0.02 today
 
 What would you like to do?
 
   a) Fleet Commander — Launch parallel agent teams (Recommended — you have 3 open issues)
-  b) Cost Dashboard — $0.02 today, $0.15 total
+  b) Cost Dashboard — \$0.02 today, \$0.15 total
   c) Synapse — 2 active clients
   d) Composio AO — ao CLI ready
   e) CloudCLI — https://your-cloudcli.example.com
@@ -366,7 +366,7 @@ What would you like to do?
 The CCC footer bar renders at the bottom of every menu screen. It shows live session state:
 
 ```
-━━ CCC2.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██45%░░▌5h│📅▐██45%░░▌7d│💰$2.34│⬆️640K⬇️694K│⏰8h0m│🎯453│📋CC-150│📂~/project
+━━ CCC2.3.0│🔥Opus1M│🔑gAA│🧠▐██45%░░▌│⏱️▐██45%░░▌5h│📅▐██45%░░▌7d│💰\$2.34│⬆️640K⬇️694K│⏰8h0m│🎯453│📋CC-150│📂~/project
 ```
 
 _(Example only — actual values come from `commander/status-line.js` at runtime)_

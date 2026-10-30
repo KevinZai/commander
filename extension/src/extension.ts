@@ -3,11 +3,22 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-const STATE_PATH = path.join(os.homedir(), '.claude', 'commander', 'state.json');
-const SESSIONS_DIR = path.join(os.homedir(), '.claude', 'commander', 'sessions');
+const LEGACY_DIR = path.join(os.homedir(), '.claude', 'commander');
+const SESSIONS_DIR = path.join(LEGACY_DIR, 'sessions');
+
+// The ccc CLI keeps state per lane (<config dir>/commander, CCC_CONFIG_DIR >
+// CLAUDE_CONFIG_DIR); read that copy first, else the legacy shared one.
+function statePath(): string {
+  const configDir = process.env.CCC_CONFIG_DIR || process.env.CLAUDE_CONFIG_DIR;
+  if (configDir) {
+    const laneFile = path.join(path.resolve(configDir), 'commander', 'state.json');
+    if (fs.existsSync(laneFile)) return laneFile;
+  }
+  return path.join(LEGACY_DIR, 'state.json');
+}
 
 function readState(): any {
-  try { return JSON.parse(fs.readFileSync(STATE_PATH, 'utf8')); }
+  try { return JSON.parse(fs.readFileSync(statePath(), 'utf8')); }
   catch { return { user: { name: 'User', level: 'guided', sessionsCompleted: 0 } }; }
 }
 

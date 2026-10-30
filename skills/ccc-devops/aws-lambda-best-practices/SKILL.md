@@ -269,7 +269,7 @@ export async function handler(event) {
 1. **Not initializing SDK clients outside handler** — Recreating clients per invocation wastes time.
 2. **Missing timeout** — Default 3s timeout. Always set explicitly based on expected duration.
 3. **No dead letter queue** — Failed async invocations are silently dropped without DLQ.
-4. **Synchronous calls in VPC** — VPC + internet access needs NAT Gateway ($32/mo minimum).
+4. **Synchronous calls in VPC** — VPC + internet access needs NAT Gateway (\$32/mo minimum).
 5. **Over-provisioning memory** — Profile first, then choose. 128MB is often fine for simple functions.
 6. **Not reporting batch item failures** — Without `ReportBatchItemFailures`, one failure retries entire batch.
 7. **Logging raw events** — Events may contain PII. Log selectively.

@@ -1,6 +1,6 @@
 ---
 name: ccc-build
-description: "Scaffold a new web app, API or CLI from a three-question spec interview, built by a background agent and verified before it is called ready. Use when the user wants to build something new, start a project, create an app, or types /ccc-build."
+description: "Scaffold a new web app, API or CLI from a three-question spec, built by a background agent and verified. Use to start a new project or app."
 allowed-tools:
   - Read
   - Write
@@ -14,7 +14,6 @@ allowed-tools:
   - mcp__ccd_session__mark_chapter
 argument-hint: "[web-app | api | cli | mobile | spec | status | free-form idea]"
 model: inherit
-effort: medium
 ---
 
 # /ccc-build — scaffold, verify, hand over
@@ -63,7 +62,7 @@ If the directory already holds a project, add: "I'll scaffold into a sub-directo
 
 ### 2. Template picker
 
-Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for the canonical labels and descriptions. Ask with AskUserQuestion (header "CC Commander Build", question "What are we building?", single select). Offer four options, recommended first and marked 🟢:
+Read `${CLAUDE_PLUGIN_ROOT}/menus/ccc-build.json` for the canonical labels and descriptions. Ask with AskUserQuestion (header "Build", question "What are we building?", single select). Offer four options, recommended first and marked 🟢:
 
 - 🌐 Web app — Next.js + Tailwind + shadcn/ui; SSR, auth, Stripe-ready. For product sites, dashboards, SaaS frontends.
 - 🔧 API / backend — TypeScript Fastify or Hono, Postgres via Supabase. For REST/GraphQL, webhooks, internal services.

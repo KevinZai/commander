@@ -72,3 +72,5 @@ docs/bible.pdf
 
 .agent/
 .preview/
+__pycache__/
+*.pyc

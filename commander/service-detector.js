@@ -1,7 +1,10 @@
 'use strict';
 
 var childProcess = require('child_process');
+var fs = require('fs');
 var http = require('http');
+var os = require('os');
+var path = require('path');
 
 var SERVICES = [
   { name: 'Fleet Commander', port: 4680, path: '/api/status', cli: 'fleet-commander', command: '/fleet' },
@@ -10,6 +13,7 @@ var SERVICES = [
   { name: 'CloudCLI', port: 4681, path: '/', cli: null, command: '/cloudcli' },
   { name: 'Paperclip', port: 3110, path: '/', cli: null, command: '/paperclip' },
   { name: 'OpenClaw', port: 18789, path: '/', cli: 'openclaw', command: '/openclaw' },
+  { name: 'ClaudeSwap', port: 8082, path: '/', cli: null, command: null },
   // NOTE: local-inference services are detected for status display only. Commander
   // never routes work to them — Anthropic models + the Codex CLI are the only
   // execution paths. Do not wire a detected local model into dispatch.
@@ -22,6 +26,7 @@ var CLIS = [
   { name: 'claude', command: 'claude', skill: null },
   { name: 'fleet-commander', command: 'fleet-commander', skill: '/fleet' },
   { name: 'repomix', command: 'repomix', skill: null },
+  { name: 'rtk', command: 'rtk', skill: null },
   { name: 'task-master', command: 'task-master', skill: '/tm' },
 ];
 
@@ -100,4 +105,67 @@ function renderDetectionSummary(detection) {
   return lines.join('\n');
 }
 
-module.exports = { detectServices: detectServices, renderDetectionSummary: renderDetectionSummary, SERVICES: SERVICES, CLIS: CLIS };
+// CC-197: MCP servers the user already configured, by name only (never env, headers or args, which can hold tokens).
+// Claude Code keeps user-scope servers in <config dir>/.claude.json (mcpServers, and per-project entries under projects),
+// project-scope ones in <project>/.mcp.json.
+var KNOWN_MCP = [
+  { name: 'Linear', match: /linear/i, command: '/ccc-linear' },
+  { name: 'context-mode', match: /context-?mode/i, command: null },
+];
+
+function readJson(file) {
+  try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch (_) { return null; }
+}
+
+function detectMcpServers(opts) {
+  var o = opts || {};
+  var configDir = o.configDir || process.env.CLAUDE_CONFIG_DIR || os.homedir();
+  var cwd = o.cwd || process.cwd();
+  var found = [];
+  var add = function(names, source) {
+    names.forEach(function(n) { if (!found.some(function(f) { return f.name === n; })) found.push({ name: n, source: source }); });
+  };
+  // Claude Code's precedence: local, then project, then user; a name keeps the scope that is in effect
+  var user = readJson(path.join(configDir, '.claude.json'));
+  var proj = user && user.projects && user.projects[cwd];
+  if (proj && proj.mcpServers && typeof proj.mcpServers === 'object') add(Object.keys(proj.mcpServers), 'local');
+  var shared = readJson(path.join(cwd, '.mcp.json'));
+  if (shared && shared.mcpServers && typeof shared.mcpServers === 'object') add(Object.keys(shared.mcpServers), 'project');
+  if (user && user.mcpServers && typeof user.mcpServers === 'object') add(Object.keys(user.mcpServers), 'user');
+  return found.map(function(f) {
+    var known = KNOWN_MCP.find(function(k) { return k.match.test(f.name); });
+    return { name: f.name, source: f.source, known: known ? known.name : null, command: known ? known.command : null };
+  });
+}
+
+// The "Infrastructure detected" block /ccc-init shows in its plan: only what is up, installed or configured.
+// Read-only: it suggests commands, it never writes config.
+function renderInitSection(detection) {
+  var lines = ['## Infrastructure detected (read-only)'];
+  var up = (detection.services || []).filter(function(s) { return s.up; });
+  var clis = (detection.clis || []).filter(function(c) { return c.available; });
+  var mcp = detection.mcp || [];
+  up.forEach(function(s) { lines.push('- ' + s.name + ' on :' + s.port + (s.command ? ' → ' + s.command : '')); });
+  clis.forEach(function(c) { lines.push('- ' + c.name + ' CLI' + (c.skill ? ' → ' + c.skill : '')); });
+  mcp.forEach(function(m) { lines.push('- MCP ' + m.name + ' (' + m.source + ')' + (m.command ? ' → ' + m.command : '')); });
+  if (lines.length === 1) lines.push('- nothing detected');
+  return lines.join('\n');
+}
+
+// Port probes of the legacy SERVICES list are opt-in (opts.probe): only Claude Code and Codex are first-class, so a
+// default run reads MCP names and checks CLIs on PATH and touches no port.
+async function detectInfra(opts) {
+  var o = opts || {};
+  var d = o.probe ? await detectServices() : { services: [], clis: CLIS.map(function(c) { return { name: c.name, available: checkCli(c.command), skill: c.skill }; }) };
+  d.mcp = detectMcpServers(o);
+  return d;
+}
+
+module.exports = { detectServices: detectServices, detectInfra: detectInfra, detectMcpServers: detectMcpServers, renderDetectionSummary: renderDetectionSummary, renderInitSection: renderInitSection, SERVICES: SERVICES, CLIS: CLIS, KNOWN_MCP: KNOWN_MCP };
+
+// node commander/service-detector.js [--json] [--probe]: what /ccc-init step 3 runs (--probe only when the user asks)
+if (require.main === module) {
+  detectInfra({ probe: process.argv.includes('--probe') }).then(function(d) {
+    process.stdout.write((process.argv.includes('--json') ? JSON.stringify(d, null, 2) : renderInitSection(d)) + '\n');
+  });
+}

@@ -634,7 +634,9 @@ describe('readModel — tolerant reading', () => {
       );
       fs.writeFileSync(
         path.join(dir, 'agent-runs.jsonl'),
-        `${JSON.stringify({ ts: '2026-07-16T10:05:00.000Z', agent: 'unknown', agentId: 'agent-bbb', sessionId: 's1', durationMs: 60000, status: 'ok' })}\n`
+        // internal:false = a dispatched agent; without it this nameless, start-less
+        // stop is a Claude Code internal agent and is skipped (CC-2120).
+        `${JSON.stringify({ ts: '2026-07-16T10:05:00.000Z', agent: 'unknown', agentId: 'agent-bbb', sessionId: 's1', durationMs: 60000, status: 'ok', internal: false })}\n`
       );
 
       const model = await readModel({ baseDir: dir, now: FIXED_NOW });

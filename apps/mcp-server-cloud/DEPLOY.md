@@ -26,7 +26,6 @@ Create these items in your 1Password vault (replace `<vault>` with its name):
 | `op://<vault>/cc-commander-upstash/url` | Upstash REST URL |
 | `op://<vault>/cc-commander-upstash/token` | Upstash REST token |
 | `op://<vault>/cc-commander-jwt/secret` | `openssl rand -hex 32` (≥32 chars) |
-| `op://<vault>/cc-commander-posthog/api-key` | (optional) PostHog project key |
 | `op://<vault>/cc-commander-fly/api-token` | `fly tokens create deploy` |
 
 ## 3. Push secrets to Fly.io
@@ -38,14 +37,35 @@ fly secrets set \
   UPSTASH_REDIS_REST_URL="$(op read op://<vault>/cc-commander-upstash/url)" \
   UPSTASH_REDIS_REST_TOKEN="$(op read op://<vault>/cc-commander-upstash/token)" \
   JWT_SECRET="$(op read op://<vault>/cc-commander-jwt/secret)" \
-  POSTHOG_API_KEY="$(op read op://<vault>/cc-commander-posthog/api-key)" \
   METRICS_AUTH_TOKEN="$(op read op://<vault>/cc-commander-metrics/token)" \
   --app commander-mcp
-
-# Public, non-secret: canonical /mcp resource for RFC 9728 metadata. Without it the
-# metadata derives the origin from the request, which is http:// behind Fly's proxy.
-fly secrets set OAUTH_RESOURCE_URL=https://commander-mcp.fly.dev/mcp --app commander-mcp
 ```
+
+The server no longer reads `POSTHOG_API_KEY` (CC-2119 removed the analytics SDK). If an older deploy set it, remove the stale secret with `fly secrets unset POSTHOG_API_KEY --app commander-mcp`.
+
+`OAUTH_RESOURCE_URL` is public and non-secret, so it lives in `fly.toml` `[env]`
+(not in `fly secrets`): `https://mcp.commanderplugin.com/mcp`. It is the canonical
+/mcp resource for RFC 9728 metadata, the origin of the `WWW-Authenticate`
+`resource_metadata` challenge, and the default OAuth `aud`. Without it they derive
+from the request's public origin (X-Forwarded-Proto aware), so each host would
+advertise itself.
+
+A Fly secret with the same name **overrides** `[env]`. An earlier version of this
+runbook set `OAUTH_RESOURCE_URL=https://commander-mcp.fly.dev/mcp` as a secret,
+and production still advertises that resource. Check before relying on `fly.toml`:
+
+```bash
+fly secrets list --app commander-mcp | grep OAUTH_RESOURCE_URL   # names/digests only
+curl -s https://mcp.commanderplugin.com/.well-known/oauth-protected-resource
+```
+
+If the secret is listed, the `fly.toml` value only takes effect after
+`fly secrets unset OAUTH_RESOURCE_URL --app commander-mcp`, which restarts the
+machines (a release). That is a prod change: Kevin approves and runs it, then
+smoke (§6). Expected after: `"resource":"https://mcp.commanderplugin.com/mcp"` and a
+`resource_metadata="https://mcp.commanderplugin.com/.well-known/oauth-protected-resource"`
+challenge on an unauthenticated `POST /mcp`. If an OAuth issuer is configured later,
+its tokens must carry `aud=https://mcp.commanderplugin.com/mcp` (or set `OAUTH_AUDIENCE`).
 
 `fly secrets set` restarts the machines, which is a release: smoke afterwards (§6). OAuth issuer, Stripe and paywall variables are listed in `PAYWALL.md` and stay unset until monetization is armed.
 
@@ -74,7 +94,7 @@ Two workflows deploy to the same app (they share the `deploy-commander-productio
 | `deploy-mcp.yml` (Deploy MCP Cloud) | push to `main` under `apps/mcp-server-cloud/**`; `workflow_dispatch` with `deploy=true` | `flyctl deploy --remote-only` after typecheck, tests and build |
 | `deploy.yml` (Deploy (v4 Beta)) | push to `main` under `apps/mcp-server-cloud/**`, `site/**`, `supabase/**`; `workflow_dispatch` | `flyctl deploy --strategy canary`, then the `site` Vercel job |
 
-A `site/**`-only merge therefore also redeploys the MCP app via `deploy.yml`. The `deploy-site` job fails until the Vercel IDs are configured; that failure does not affect the MCP deploy.
+`deploy.yml` runs its `deploy-mcp` job only when the push changed `apps/mcp-server-cloud/**` (or on manual dispatch), so `site/**`-only merges no longer redeploy the MCP app. A push that touches the app is deployed by both workflows, one after the other. The `deploy-site` job fails until the Vercel IDs are configured; that failure does not affect the MCP deploy.
 
 Watch logs during a release:
 
@@ -120,7 +140,7 @@ To revert only a secret change: `fly secrets unset <NAME> --app commander-mcp`.
 ## Monitoring
 
 - **SLI/SLO:** p95 latency on `/v1/call` < 500ms; error rate < 1%.
-- **Alert channels:** Fly email + PostHog event `mcp_error`.
+- **Alert channels:** Fly email.
 - **Grafana:** scrape `/metrics` at 10s interval with `Authorization: Bearer $METRICS_AUTH_TOKEN`.
 
 ## TODO(v4.1)
