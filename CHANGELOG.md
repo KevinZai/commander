@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- CLI: review-inbox adventure. The main menu shows "Review inbox (N pending)" when the ingestion inbox has pending packages; accept updates `commander/plugins.js`, `SKILLS-INDEX.md` and `CHANGELOG.md` idempotently with per-file error reporting, reject edits nothing (CC-36).
+
 ## [8.1.5] - 2026-10-28
 
 Release for the backfill batches (#249-#259), per-lane weekly usage (#260) and the tstack PR-workflow skills (#261). The permission gate now denies every force-push and remote-delete form, one context hook replaces two (51 handlers), and hook, telemetry and session fixes land. The Superfleet status line and `ccc checkin` now report each lane's 7-day usage window alongside the 5-hour one, and nine PR-workflow skills adapted from t3dotgg/tstack ship on demand with CCC's safety rules applied. Bumps the pinned plugin version so `claude plugin update` picks these up.
