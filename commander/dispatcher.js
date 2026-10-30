@@ -227,12 +227,13 @@ var MODEL_PRICING = {
 };
 
 /**
- * Load cost config from ~/.claude/commander/config.json (create with defaults if missing).
+ * Load cost config from the lane's commander/config.json (create with defaults if
+ * missing; an existing legacy ~/.claude/commander/config.json is read instead).
  */
 function loadCostConfig() {
-  var os = require('os');
-  var configDir = require('path').join(os.homedir(), '.claude', 'commander');
-  var configPath = require('path').join(configDir, 'config.json');
+  var lane = require('./lib/lane');
+  var configDir = lane.resolveLane().stateDir;
+  var configPath = lane.readable('config.json');
   var defaults = { costWarnThresholdUsd: 0.50, costBlockThresholdUsd: 2.00, costGateEnabled: true };
   try {
     require('fs').mkdirSync(configDir, { recursive: true });

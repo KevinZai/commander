@@ -67,11 +67,6 @@
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-warning.js\"",
-            "timeout": 3
-          },
-          {
-            "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-guard.js\"",
             "timeout": 3
           },
@@ -229,6 +224,11 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/clickability-watch.js\"",
             "timeout": 2
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/intent-classifier.js\"",
+            "timeout": 3
           }
         ]
       }

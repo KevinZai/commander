@@ -312,7 +312,8 @@ describe("initProject tool", () => {
 
   it("includes mcp config block", () => {
     const result = initProjectForTest({ projectType: "saas" });
-    assert.ok(result.mcpConfig?.commander?.url?.includes("mcp.commanderplugin.com"));
+    assert.strictEqual(result.mcpConfig?.commander?.url, "https://mcp.commanderplugin.com/mcp");
+    assert.strictEqual(result.mcpConfig?.commander?.type, "http");
   });
 });
 
@@ -467,7 +468,8 @@ function initProjectForTest(args: { projectType?: string; ide?: string }) {
     installCommand: `/plugin marketplace add KevinZai/commander && /plugin install commander`,
     mcpConfig: {
       commander: {
-        url: "https://mcp.commanderplugin.com/sse",
+        type: "http",
+        url: "https://mcp.commanderplugin.com/mcp",
         headers: { Authorization: "Bearer ${COMMANDER_TOKEN}" },
       },
     },

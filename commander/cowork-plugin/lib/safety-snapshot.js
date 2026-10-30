@@ -48,12 +48,13 @@
  * Deterministic rendering: every timestamp derives from the model or the
  * `now` argument — never Date.now() inside buildSafetyHtml.
  * Zero dependencies (beyond this plugin's own lib/), ESM, read-only,
- * fail-open. Core free forever — no license check, no tier gating.
+ * redaction fails closed. Core free forever — no license check, no tier gating.
  */
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
+import { readableStateDir } from './lane-state.js';
+import { fileURLToPath } from 'node:url';
 
 import { buildDeckHtml } from './console-render.js';
 
@@ -65,8 +66,7 @@ const SAMPLE_MAX = 240;
 const SIGNATURE_MAX = 160;
 
 function defaultBaseDir() {
-  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  return path.join(home, '.claude', 'commander');
+  return readableStateDir();
 }
 
 function toMs(value) {
@@ -154,30 +154,39 @@ async function readJsonl(filePath, maxLines = MAX_JSONL_LINES) {
 // This file is ESM — require() is unavailable, so read the JSON synchronously
 // relative to this module. (A silent `require` failure here was caught by the
 // regression tests: the catch swallowed it and the pattern list became [].)
-const EXTRA_SECRET_PATTERNS = (() => {
-  try {
-    const here = path.dirname(new URL(import.meta.url).pathname);
-    const lib = JSON.parse(
-      fs.readFileSync(path.join(here, 'secret-patterns.json'), 'utf8')
-    );
-    return (lib.patterns || [])
-      .map((p) => {
-        try {
-          const insensitive = p.regex.startsWith('(?i)');
-          const source = insensitive ? p.regex.slice(4) : p.regex;
-          return new RegExp(source, insensitive ? 'gi' : 'g');
-        } catch {
-          return null;
-        }
-      })
-      .filter(Boolean);
-  } catch {
-    return [];
+// Fail closed: if the pattern data cannot be loaded (or compiles to nothing),
+// redact() masks the whole string instead of passing it through.
+function loadSecretPatterns(file = fileURLToPath(new URL('./secret-patterns.json', import.meta.url))) {
+  const lib = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const compiled = (Array.isArray(lib.patterns) ? lib.patterns : [])
+    .map((p) => {
+      try {
+        const insensitive = p.regex.startsWith('(?i)');
+        const source = insensitive ? p.regex.slice(4) : p.regex;
+        return new RegExp(source, insensitive ? 'gi' : 'g');
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+  const declared = Array.isArray(lib.patterns) ? lib.patterns.length : 0;
+  if (compiled.length < declared) {
+    process.stderr.write(`safety-snapshot: ${declared - compiled.length} secret pattern(s) failed to compile and were skipped\n`);
   }
-})();
+  if (compiled.length === 0) throw new Error('secret-patterns.json has no usable patterns');
+  return compiled;
+}
+
+let EXTRA_SECRET_PATTERNS = null; // null = load failed -> redact() fails closed
+try {
+  EXTRA_SECRET_PATTERNS = loadSecretPatterns();
+} catch (err) {
+  process.stderr.write(`safety-snapshot: secret pattern load failed, redacting all text (${err.message})\n`);
+}
 
 function redact(value) {
   if (typeof value !== 'string') return null;
+  if (EXTRA_SECRET_PATTERNS === null) return value.trim() ? '[redacted: pattern data unavailable]' : value;
   let out = value;
   for (const re of EXTRA_SECRET_PATTERNS) {
     out = out.replace(re, '[redacted]');
@@ -374,4 +383,4 @@ function buildSafetyHtml(model, { now } = {}) {
 
 // redact/redactedSample exported so their behaviour is pinned by tests instead of
 // re-verified by hand each audit (same lesson as the contract patcher).
-export { buildSafetyHtml, readSafetyModel, redact, redactedSample };
+export { buildSafetyHtml, loadSecretPatterns, readSafetyModel, redact, redactedSample };

@@ -16,6 +16,55 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # What this push touched, and whether the site deploy is configured. Site-only
+  # pushes do not redeploy MCP; MCP-only pushes do not redeploy the site; the
+  # site job skips (not fails) until the Vercel secrets exist. Secret values are
+  # only tested for presence, never printed.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      mcp: ${{ steps.paths.outputs.mcp }}
+      site: ${{ steps.paths.outputs.site }}
+      site_ready: ${{ steps.vercel.outputs.ready }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Changed paths
+        id: paths
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          # Non-push events (workflow_dispatch) and undiffable pushes (new ref,
+          # zero/missing base, base not in history) deploy everything (CC-1365).
+          if [ "$EVENT" != push ] || [ -z "$BEFORE" ] || [[ "$BEFORE" =~ ^0+$ ]] \
+             || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "mcp=true" >> "$GITHUB_OUTPUT"; echo "site=true" >> "$GITHUB_OUTPUT"
+            echo "changed: undiffable or non-push event -> mcp=true site=true"; exit 0
+          fi
+          files=$(git diff --name-only "$BEFORE" "$AFTER")
+          shared='^(\.github/workflows/deploy\.yml)$'
+          # Site-only pushes must not redeploy the MCP app (CC-1365); MCP paths are
+          # the union of #203 and c3bcc409 (apps/mcp-server-cloud/ is in both).
+          if echo "$files" | grep -Eq '^(apps/mcp-server-cloud/|supabase/|scripts/deploy\.sh$)' || echo "$files" | grep -Eq "$shared"; then mcp=true; else mcp=false; fi
+          if echo "$files" | grep -Eq '^site/' || echo "$files" | grep -Eq "$shared"; then site=true; else site=false; fi
+          echo "mcp=$mcp" >> "$GITHUB_OUTPUT"; echo "site=$site" >> "$GITHUB_OUTPUT"
+          echo "changed: mcp=$mcp site=$site"
+      - name: Vercel target configured?
+        id: vercel
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ] && [ -n "$VERCEL_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Site deploy skipped: VERCEL_ORG_ID / VERCEL_PROJECT_ID / VERCEL_TOKEN are not set."
+          fi
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -33,7 +82,8 @@ jobs:
         run: node scripts/build-from-registry.js --check
 
   deploy-mcp:
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.mcp == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -53,7 +103,8 @@ jobs:
           exit 1
 
   deploy-site:
-    needs: test
+    needs: [test, changes]
+    if: needs.changes.outputs.site == 'true' && needs.changes.outputs.site_ready == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -87,9 +138,23 @@ jobs:
 
   post-deploy-smoke:
     needs: [deploy-mcp, deploy-site]
+    # Runs when something deployed and nothing failed (a skipped job is fine).
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && (needs.deploy-mcp.result == 'success' || needs.deploy-site.result == 'success') }}
     runs-on: ubuntu-latest
     steps:
+      # Retry to ride out a Fly machine swap right after a canary deploy
+      # (seen on #211: one 5s timeout, healthy again ~10s later). 6 tries x 10s.
       - name: Site probe
-        run: curl -fsS --max-time 5 https://commanderplugin.com > /dev/null
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 5 https://commanderplugin.com > /dev/null; then exit 0; fi
+            echo "site probe attempt $i failed; retrying in 10s"; sleep 10
+          done
+          exit 1
       - name: MCP health probe
-        run: curl -fsS --max-time 5 https://mcp.commanderplugin.com/health > /dev/null
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 5 https://mcp.commanderplugin.com/health > /dev/null; then exit 0; fi
+            echo "MCP health attempt $i failed; retrying in 10s"; sleep 10
+          done
+          exit 1

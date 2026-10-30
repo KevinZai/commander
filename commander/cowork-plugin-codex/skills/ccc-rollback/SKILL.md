@@ -7,8 +7,6 @@ allowed-tools:
   - WebFetch
   - AskUserQuestion
 argument-hint: "[target: last-good | tag | n-back]"
-model: sonnet
-effort: high
 disable-model-invocation: true
 ---
 
@@ -52,7 +50,6 @@ Skip this picker when `$ARGUMENTS` names the target type.
 question: "What should I roll back to?"
 header: "Rollback"
 multiSelect: false
-autocomplete: true
 options:
   - label: "🟢 Last good commit"
     description: "You provide or confirm the last known good commit sha."

@@ -7,8 +7,6 @@ allowed-tools:
   - WebFetch
   - AskUserQuestion
 argument-hint: "[platform: vercel | fly | cloudflare | github-pages | npm]"
-model: sonnet
-effort: high
 disable-model-invocation: true
 ---
 
@@ -53,7 +51,6 @@ Build the options from step 1. Each picker below has exactly one 🟢 option, li
 question: "Where should I deploy?"
 header: "Deploy"
 multiSelect: false
-autocomplete: true
 options:
   - label: "🟢 Vercel production"
     description: "Detected from vercel.json or Vercel scripts. Runs vercel deploy --prod."
@@ -75,7 +72,6 @@ On "More deployment targets", show the second picker. Mark its strongest detecte
 question: "Which deploy target?"
 header: "Deploy"
 multiSelect: false
-autocomplete: true
 options:
   - label: "🟢 GitHub Pages"
     description: "Detected from GitHub Pages workflow files."
@@ -166,7 +162,7 @@ When the deploy, a watch command or the health check fails:
 - Never claim success from an exit code alone; never skip step 5.
 - Never print secrets or `.env` values; never fabricate credentials.
 - Never roll a custom deploy pipeline when the platform or package script exists.
-- Never run `/ccc-ship` from here; this skill is the deploy step.
+- Never run the ship step from here; this skill is the deploy step, and `/ccc-ship` is a typed command.
 
 ## See also
 

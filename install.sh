@@ -16,10 +16,9 @@
 set -euo pipefail
 
 VERSION="$(grep '"version"' package.json | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')"
-# XDG Base Directory spec (CWE-732 / defense-in-depth):
-# If XDG_CONFIG_HOME is set, cc-commander uses it directly as the config root.
-# When unset, falls back to ~/.claude (traditional default).
-CLAUDE_DIR="${XDG_CONFIG_HOME:-$HOME/.claude}"
+# Install where Claude Code reads its config: CLAUDE_CONFIG_DIR when set,
+# else ~/.claude. XDG_CONFIG_HOME is the shared ~/.config root, not Claude's dir.
+CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 [[ -n "${CLAUDE_DIR:-}" && "$CLAUDE_DIR" != "/" && "$CLAUDE_DIR" != "$HOME" ]] || { echo "ERROR: Invalid CLAUDE_DIR ($CLAUDE_DIR)"; exit 1; }
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 USER_NAME=""
@@ -313,7 +312,7 @@ if [ -d "$CLAUDE_DIR" ]; then
   cc_status_line "✓" "Archived to: ${M_WHITE}${BACKUP_DIR}${NC}"
   echo ""
   echo -e "  ${M_DIM}Restore command:${NC}"
-  echo -e "  ${M_CYAN}rm -rf ~/.claude && mv ${BACKUP_DIR} ~/.claude${NC}"
+  echo -e "  ${M_CYAN}rm -rf \"${CLAUDE_DIR}\" && mv \"${BACKUP_DIR}\" \"${CLAUDE_DIR}\"${NC}"
 fi
 
 # ── OpenClaw Detection ──────────────────────────────────────────────────────
@@ -366,8 +365,8 @@ if should_install "skills"; then
   fi
   tiers_file="$SCRIPT_DIR/skills/_tiers.json"
 
-  # Defensive: never rm -rf if the path doesn't include /.claude/ or an XDG-rooted dir
-  if [[ "$CLAUDE_DIR/skills" != *"/.claude"* && "$CLAUDE_DIR/skills" != "${XDG_CONFIG_HOME:-}/"* ]]; then
+  # Defensive: never rm -rf outside a .claude dir or an explicit CLAUDE_CONFIG_DIR
+  if [[ "$CLAUDE_DIR/skills" != *"/.claude"* && ( -z "${CLAUDE_CONFIG_DIR:-}" || "$CLAUDE_DIR/skills" != "${CLAUDE_CONFIG_DIR}/"* ) ]]; then
     echo "❌ Refusing to rm -rf outside a .claude config dir — got: $CLAUDE_DIR/skills"
     exit 1
   fi
@@ -461,8 +460,8 @@ fi
 if should_install "commands"; then
   ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Commands"
-  # Defensive: never rm -rf if the path doesn't include /.claude/ or an XDG-rooted dir
-  if [[ "$CLAUDE_DIR/commands" != *"/.claude"* && "$CLAUDE_DIR/commands" != "${XDG_CONFIG_HOME:-}/"* ]]; then
+  # Defensive: never rm -rf outside a .claude dir or an explicit CLAUDE_CONFIG_DIR
+  if [[ "$CLAUDE_DIR/commands" != *"/.claude"* && ( -z "${CLAUDE_CONFIG_DIR:-}" || "$CLAUDE_DIR/commands" != "${CLAUDE_CONFIG_DIR}/"* ) ]]; then
     echo "❌ Refusing to rm -rf outside a .claude config dir — got: $CLAUDE_DIR/commands"
     exit 1
   fi
@@ -476,8 +475,8 @@ fi
 if should_install "hooks"; then
   ((install_step++)) || true
   cc_progress_bar "$install_step" "$install_total" "Hooks"
-  # Defensive: never rm -rf if the path doesn't include /.claude/ or an XDG-rooted dir
-  if [[ "$CLAUDE_DIR/hooks" != *"/.claude"* && "$CLAUDE_DIR/hooks" != "${XDG_CONFIG_HOME:-}/"* ]]; then
+  # Defensive: never rm -rf outside a .claude dir or an explicit CLAUDE_CONFIG_DIR
+  if [[ "$CLAUDE_DIR/hooks" != *"/.claude"* && ( -z "${CLAUDE_CONFIG_DIR:-}" || "$CLAUDE_DIR/hooks" != "${CLAUDE_CONFIG_DIR}/"* ) ]]; then
     echo "❌ Refusing to rm -rf outside a .claude config dir — got: $CLAUDE_DIR/hooks"
     exit 1
   fi

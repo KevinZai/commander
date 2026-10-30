@@ -12,7 +12,7 @@ Founders are optimists by nature. That's a feature — you need optimism to star
 
 **The most dangerous assumptions are the ones everyone agrees on.**
 
-When the whole team believes the $50M market is real, when every investor call goes well so you assume the round will close, when your model shows $2M ARR by December and nobody questions it — that's when you're most exposed.
+When the whole team believes the \$50M market is real, when every investor call goes well so you assume the round will close, when your model shows \$2M ARR by December and nobody questions it — that's when you're most exposed.
 
 Stress testing isn't pessimism. It's calibration.
 
@@ -167,7 +167,7 @@ For every high-risk assumption, there should be a hedge:
 
 **Stress questions:**
 - If the market leader copies your product in 6 months, how does pricing change?
-- What's your response if a competitor raises $30M to attack your space?
+- What's your response if a competitor raises \$30M to attack your space?
 - Which of your customers have vendor relationships with your competitors?
 
 ---

@@ -8,7 +8,7 @@ var path = require('path');
 var SCRIPT = path.join(__dirname, '..', '..', 'scripts', 'build-from-registry.js');
 
 test('registry drift check passes', function() {
-  var result = cp.execSync('node ' + SCRIPT + ' --check', { encoding: 'utf8' });
+  var result = cp.execFileSync(process.execPath, [SCRIPT, '--check'], { encoding: 'utf8' });
   assert.ok(result.includes('PASS'), 'Registry drift check should PASS');
 });
 

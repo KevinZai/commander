@@ -7,7 +7,14 @@
  * ~/.claude/commander/agent-runs.jsonl
  *
  * Record shape:
- *   { ts, agent, sessionId, durationMs, inputTokens, outputTokens, status }
+ *   { ts, agent, agentId, sessionId, durationMs, inputTokens, outputTokens,
+ *     cacheReadTokens, status, tokensAvailable, internal }
+ *
+ * `internal` is true for Claude Code's own internal/background agents: no
+ * agent name or type, and no SubagentStart record for the agent_id (CC-2120,
+ * see lib/agent-runs.js). It is null when the start log is larger than the
+ * scanned tail and the id was not in it (inconclusive). Readers skip true
+ * rows (unless they hold the matching start) and keep null rows.
  *
  * The SubagentStop hook payload on stdin is the PRIMARY source for agent
  * name, session id, status, duration, and tokens — probed defensively
@@ -24,14 +31,18 @@
  * Core free forever — no license check, no tier gating.
  */
 import { track } from '../lib/telemetry.mjs';
-import { appendFile, mkdir, stat, rename } from 'node:fs/promises';
+import { appendFile, mkdir, stat, rename, open } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 import { readTranscriptUsage } from './lib/transcript-usage.mjs';
 
-const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
-const CCC_DIR = join(HOME, '.claude', 'commander');
+const CCC_DIR = stateDir();
 const LOG_FILE = join(CCC_DIR, 'agent-runs.jsonl');
+const START_FILE = join(CCC_DIR, 'subagent-runs.jsonl');
+// A subagent's SubagentStart lands shortly before its stop, so the newest
+// records are enough; the cap keeps this hook fast on a long-lived file.
+const START_TAIL_BYTES = 1024 * 1024;
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 const STDIN_MAX_BYTES = 256 * 1024;
 
@@ -86,6 +97,32 @@ async function readStdinJson() {
     return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
   } catch {
     return {};
+  }
+}
+
+// 'found' | 'absent' | 'unknown' (the id is not in the tail but older records
+// were not scanned, or the log could not be read).
+async function startRecordState(agentId) {
+  let handle;
+  try {
+    handle = await open(START_FILE, 'r');
+    const { size } = await handle.stat();
+    const length = Math.min(size, START_TAIL_BYTES);
+    const buffer = Buffer.alloc(length);
+    await handle.read(buffer, 0, length, size - length);
+    for (const line of buffer.toString('utf8').split('\n')) {
+      if (!line.includes(agentId)) continue;
+      try {
+        if (JSON.parse(line).agent_id === agentId) return 'found';
+      } catch {
+        // partial first line of the tail window, or a torn write
+      }
+    }
+    return size > length ? 'unknown' : 'absent';
+  } catch (error) {
+    return error?.code === 'ENOENT' ? 'absent' : 'unknown'; // ENOENT: no start log yet
+  } finally {
+    await handle?.close();
   }
 }
 
@@ -237,6 +274,12 @@ async function main() {
       process.env.CLAUDE_SUBAGENT_STATUS ||
       'completed';
 
+    let internal = false;
+    if (agentName === 'unknown' && agentId !== null) {
+      const start = await startRecordState(agentId);
+      internal = start === 'found' ? false : start === 'absent' ? true : null;
+    }
+
     const entry = {
       ts: new Date().toISOString(),
       agent: agentName,
@@ -248,6 +291,7 @@ async function main() {
       cacheReadTokens,
       status,
       tokensAvailable,
+      internal,
     };
 
     await mkdir(CCC_DIR, { recursive: true });

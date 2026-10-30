@@ -10,6 +10,7 @@ import { track } from '../lib/telemetry.mjs';
  */
 
 async function main() {
+  track('hook_fired', { hook: 'PostToolUse', handler: 'pr-link-notify' });
   let input = {};
   try {
     const chunks = [];
@@ -17,8 +18,6 @@ async function main() {
     const raw = Buffer.concat(chunks).toString('utf8').trim();
     if (raw) input = JSON.parse(raw);
   } catch {
-      track('hook_fired', { hook: 'PostToolUse', handler: 'pr-link-notify' });
-
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
     return;
   }

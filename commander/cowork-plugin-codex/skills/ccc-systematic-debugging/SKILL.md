@@ -1,6 +1,6 @@
 ---
 name: ccc-systematic-debugging
-description: "Root-cause debugging under one law: no fix without a confirmed root cause. Reproduce, compare, hypothesize, then fix once with a failing test first. Use when investigating a bug, a failing or flaky test, or an error of unknown cause."
+description: "Root-cause debugging: reproduce, hypothesize, then fix once with a failing test first. Use for a bug, a failing or flaky test, or an unknown error."
 allowed-tools:
   - Read
   - Write
@@ -11,8 +11,6 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[symptom, error message or failing test]"
-model: opus
-effort: high
 ---
 
 # $ccc-systematic-debugging — root cause before fix
@@ -126,7 +124,7 @@ options:
 - No fix before Phase 1 and Phase 3 are complete.
 - One change at a time; revert probes that did not confirm the hypothesis.
 - Never weaken, skip or delete a test to make it pass.
-- Never commit, push or deploy as part of this skill; hand off to `$ccc-ship` or the user.
+- Never commit, push or deploy as part of this skill; ask the user to type `$ccc-ship` (it is not invocable from here).
 - Never report "fixed" from a self-report or a delegated agent's claim without re-running the reproduction.
 
 ## See also

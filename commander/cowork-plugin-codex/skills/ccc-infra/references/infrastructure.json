@@ -16,7 +16,7 @@
     {
       "key": "b",
       "label": "Help me set up services.json",
-      "description": "Create ~/.claude/commander/services.json with your project's own local services",
+      "description": "Create <config dir>/commander/services.json with your project's own local services",
       "action": "setup_services_json"
     },
     {

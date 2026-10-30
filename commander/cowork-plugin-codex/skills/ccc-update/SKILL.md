@@ -1,13 +1,11 @@
 ---
 name: ccc-update
-description: "Update the installed CC Commander plugin: detect the install mode and installed vs latest version, hand over the exact update commands, then verify the installed runtime and hooks after restart. Use when the user asks to update Commander or suspects an outdated install."
+description: "Update the installed Commander plugin: detect install mode and versions, give the exact update commands, verify after restart. Use when outdated."
 allowed-tools:
   - Bash
   - Read
   - AskUserQuestion
 argument-hint: ""
-model: sonnet
-effort: low
 ---
 
 # $ccc-update — Get onto the latest

@@ -1,7 +1,11 @@
 {
   "mcpServers": {
     "cc-commander": {
-      "url": "https://mcp.commanderplugin.com/sse"
+      "type": "http",
+      "url": "https://mcp.commanderplugin.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${COMMANDER_TOKEN}"
+      }
     }
   }
 }

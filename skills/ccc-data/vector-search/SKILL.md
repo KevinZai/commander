@@ -39,10 +39,10 @@ Sets up vector databases and implements semantic search — enabling search by m
 
    | Model | Dimensions | Best For | Cost |
    |-------|-----------|----------|------|
-   | OpenAI text-embedding-3-small | 1536 | General text, good quality/cost balance | $0.02/1M tokens |
-   | OpenAI text-embedding-3-large | 3072 | Highest quality text embeddings | $0.13/1M tokens |
-   | Cohere embed-v3 | 1024 | Multilingual, search-optimized | $0.10/1M tokens |
-   | Voyage AI voyage-3 | 1024 | Code and technical content | $0.06/1M tokens |
+   | OpenAI text-embedding-3-small | 1536 | General text, good quality/cost balance | \$0.02/1M tokens |
+   | OpenAI text-embedding-3-large | 3072 | Highest quality text embeddings | \$0.13/1M tokens |
+   | Cohere embed-v3 | 1024 | Multilingual, search-optimized | \$0.10/1M tokens |
+   | Voyage AI voyage-3 | 1024 | Code and technical content | \$0.06/1M tokens |
    | sentence-transformers (local) | 384-768 | Free, private, offline | Free (CPU/GPU) |
 
 4. **Set up pgvector.**
@@ -66,10 +66,10 @@ Sets up vector databases and implements semantic search — enabling search by m
 
    -- Semantic search query
    SELECT id, content, metadata,
-          1 - (embedding <=> $1::vector) AS similarity
+          1 - (embedding <=> \$1::vector) AS similarity
    FROM documents
    WHERE metadata->>'category' = 'tech'  -- pre-filter
-   ORDER BY embedding <=> $1::vector
+   ORDER BY embedding <=> \$1::vector
    LIMIT 10;
    ```
 
@@ -177,15 +177,15 @@ Sets up vector databases and implements semantic search — enabling search by m
    ```sql
    -- pgvector + pg_trgm hybrid search
    WITH semantic AS (
-       SELECT id, content, 1 - (embedding <=> $1::vector) AS semantic_score
+       SELECT id, content, 1 - (embedding <=> \$1::vector) AS semantic_score
        FROM documents
-       ORDER BY embedding <=> $1::vector
+       ORDER BY embedding <=> \$1::vector
        LIMIT 20
    ),
    keyword AS (
-       SELECT id, content, ts_rank(to_tsvector(content), plainto_tsquery($2)) AS keyword_score
+       SELECT id, content, ts_rank(to_tsvector(content), plainto_tsquery(\$2)) AS keyword_score
        FROM documents
-       WHERE to_tsvector(content) @@ plainto_tsquery($2)
+       WHERE to_tsvector(content) @@ plainto_tsquery(\$2)
        LIMIT 20
    )
    SELECT
