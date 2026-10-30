@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # CLAUDE.md — CC Commander
 
 ## Product and source of truth
