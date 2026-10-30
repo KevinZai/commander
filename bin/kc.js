@@ -38,6 +38,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  checkin      Fleet check-in: versions, drift, lane, health (--json, --no-cli)');
   console.log('  statusline sync  Diff each lane\'s status line with this checkout (--lane X, --apply, --json, --home DIR)');
   console.log('  next         Fleet what-next for a job (JSON on stdin or --kind/--tags/--title; --json)');
+  console.log('  hold         Fleet pause control: hold set [--until ISO] [--reason T] | clear | show (--json)');
   console.log('  --template   Print the latest CLAUDE.md template (pipe to file)');
   console.log('  --daemon     Start persistent background daemon');
   console.log('  --queue "task"  Add task to daemon queue');
@@ -60,6 +61,20 @@ if (args[0] === 'checkin' || args.includes('--checkin')) {
   var ciResult = ci.buildCheckin({ root: path.resolve(__dirname, '..'), cli: !args.includes('--no-cli') });
   console.log(args.includes('--json') ? JSON.stringify(ciResult, null, 2) : ci.summaryLine(ciResult) + '\n' + ci.usageLine(ciResult));
   process.exit(ci.exitCode(ciResult));
+}
+// Agent API: hold set|clear|show (the one writer of fleet-hold.json; docs/FLEET-CHECKIN.md)
+if (args[0] === 'hold') {
+  var hd = require(path.join(__dirname,'..','commander','lib','hold'));
+  try {
+    var hdArgs = hd.parseArgs(args);
+    var hdResult = hdArgs.sub === 'set' ? hd.set({ until: hdArgs.until, reason: hdArgs.reason })
+      : hdArgs.sub === 'clear' ? hd.clear() : hd.show();
+    console.log(hdArgs.json ? JSON.stringify(hdResult) : hd.render(hdResult));
+    process.exit(0);
+  } catch (e) {
+    process.stderr.write('ccc hold: ' + e.message + '\n');
+    process.exit(e.exitCode || 1);
+  }
 }
 // Agent API: statusline sync (dry run unless --apply; docs/FLEET-CHECKIN.md)
 if (args[0] === 'statusline') {
