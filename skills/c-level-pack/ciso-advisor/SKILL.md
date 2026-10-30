@@ -43,7 +43,7 @@ Zero trust is a direction, not a product. Sequence: identity (IAM + MFA) → net
 The CISO owns the executive IR playbook: communication decisions, escalation triggers, board notification, regulatory timelines. See `references/incident_response.md` for templates.
 
 ### 5. Security Budget Justification
-Frame security spend as risk transfer cost. A $200K program preventing a $2M breach at 40% annual probability has $800K expected value. See `references/security_strategy.md`.
+Frame security spend as risk transfer cost. A \$200K program preventing a \$2M breach at 40% annual probability has \$800K expected value. See `references/security_strategy.md`.
 
 ### 6. Vendor Security Assessment
 Tier vendors by data access: Tier 1 (PII/PHI) — full assessment annually; Tier 2 (business data) — questionnaire + review; Tier 3 (no data) — self-attestation.

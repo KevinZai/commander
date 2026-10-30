@@ -4,12 +4,23 @@ const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
 
-const STATE_FILE = path.join(
+const LEGACY_STATE_FILE = path.join(
   process.env.HOME || '',
   '.claude',
   'commander',
   'state.json'
 );
+
+// The ccc CLI keeps state per lane (<config dir>/commander, CCC_CONFIG_DIR >
+// CLAUDE_CONFIG_DIR); read that copy first, else the legacy shared one.
+function stateFile() {
+  const configDir = process.env.CCC_CONFIG_DIR || process.env.CLAUDE_CONFIG_DIR;
+  if (configDir) {
+    const laneFile = path.join(path.resolve(configDir), 'commander', 'state.json');
+    if (fs.existsSync(laneFile)) return laneFile;
+  }
+  return LEGACY_STATE_FILE;
+}
 
 function activate(context) {
   const statsProvider = new StatsProvider();
@@ -86,8 +97,9 @@ class StatsProvider {
 
   _loadState() {
     try {
-      if (!fs.existsSync(STATE_FILE)) return null;
-      return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+      const file = stateFile();
+      if (!fs.existsSync(file)) return null;
+      return JSON.parse(fs.readFileSync(file, 'utf8'));
     } catch {
       return null;
     }
@@ -102,4 +114,4 @@ class StatItem extends vscode.TreeItem {
   }
 }
 
-module.exports = { activate, deactivate };
+module.exports = { activate, deactivate, stateFile };

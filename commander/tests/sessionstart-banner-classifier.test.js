@@ -83,26 +83,65 @@ test('SessionStart orchestrator on a fresh startup: right version, no compaction
   assert.ok(!text.includes('Context compacted'), 'fresh startup must not say Context compacted: ' + text);
 });
 
-function classify(prompt) {
+function classify(prompt, t) {
+  const home = tmpHome(t);
+  const env = Object.assign({}, process.env, { HOME: home, USERPROFILE: home, CCC_TELEMETRY: '0' });
+  for (const key of ['PLUGIN_ROOT', 'CCC_SOURCE_APP', 'CCC_ROUTE_MODE', 'CCC_ROUTE_MENU']) delete env[key];
   const r = spawnSync(process.execPath, [path.join(HOOKS, 'intent-classifier.js')], {
     input: JSON.stringify({ prompt: prompt }),
     encoding: 'utf8',
     timeout: 5000,
-    env: Object.assign({}, process.env, { HOME: os.tmpdir(), USERPROFILE: os.tmpdir() }),
+    env: env,
   });
   assert.strictEqual(r.status, 0, 'classifier should exit 0');
   return JSON.parse(r.stdout.trim());
 }
 
-test('intent classifier routes "audit" to /ccc-xray, not /ccc-research', function () {
-  for (const prompt of ['audit this repo', 'run a security audit please']) {
-    const msg = classify(prompt).systemMessage || '';
+test('intent classifier routes repo audits to /ccc-xray, not /ccc-research', function (t) {
+  for (const prompt of ['audit this repo', 'audit the codebase']) {
+    const out = classify(prompt, t);
+    const msg = out.hookSpecificOutput && out.hookSpecificOutput.additionalContext || '';
+    assert.match(msg, /<ccc-route/);
     assert.ok(msg.includes('/ccc-xray'), prompt + ' → expected /ccc-xray, got: ' + msg);
     assert.ok(!msg.includes('/ccc-research'), prompt + ' must not suggest /ccc-research');
   }
 });
 
-test('intent classifier still routes research prompts to /ccc-research', function () {
-  const msg = classify('research the competitive landscape').systemMessage || '';
-  assert.ok(msg.includes('/ccc-research'), 'expected /ccc-research, got: ' + msg);
+test('intent classifier still routes research prompts to /ccc-research', function (t) {
+  for (const prompt of ['research the competitive landscape', 'research the best libraries for pdf parsing in node']) {
+    const out = classify(prompt, t);
+    const msg = out.hookSpecificOutput && out.hookSpecificOutput.additionalContext || '';
+    assert.match(msg, /<ccc-route/);
+    assert.ok(msg.includes('/ccc-research'), 'expected /ccc-research, got: ' + msg);
+  }
+});
+
+// CC-1360 F24: the welcome keys on CCC's own first run (no state.json yet),
+// not on an empty ~/.claude/sessions.
+function freshHome(t, priorClaudeSessions) {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-f24-home-'));
+  t.after(function () { fs.rmSync(home, { recursive: true, force: true }); });
+  if (priorClaudeSessions) {
+    fs.mkdirSync(path.join(home, '.claude', 'sessions'), { recursive: true });
+    fs.writeFileSync(path.join(home, '.claude', 'sessions', 'prior.json'), '{}');
+  }
+  return home;
+}
+
+test('first CCC run welcomes a user who already has Claude Code sessions, once', async function (t) {
+  const home = freshHome(t, true);
+  const mod = await import(pathToFileURL(path.join(HOOKS, '_archive', 'session-start.js')).href);
+  const first = await mod.run({ home: home, cwd: home });
+  assert.match(String(first.status), /Welcome to CC Commander/);
+  assert.strictEqual(first.suppressOutput, false);
+  const second = await mod.run({ home: home, cwd: home });
+  assert.doesNotMatch(JSON.stringify(second), /Welcome to CC Commander/);
+});
+
+test('an empty ~/.claude/sessions does not re-welcome after the first run', async function (t) {
+  const home = freshHome(t, false);
+  const mod = await import(pathToFileURL(path.join(HOOKS, '_archive', 'session-start.js')).href);
+  await mod.run({ home: home, cwd: home });
+  const again = await mod.run({ home: home, cwd: home });
+  assert.doesNotMatch(JSON.stringify(again), /Welcome to CC Commander/);
 });

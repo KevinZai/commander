@@ -1,6 +1,6 @@
 ---
 name: ccc-fleet
-description: "Run parallel agents on one task: fan-out slices in isolated worktrees, a sequential pipeline, a review panel, a background run, or a director-lead-specialist team, then verify and synthesize. Use when the user types $ccc-fleet or wants work split across several agents."
+description: "Run parallel agents on one task: worktree fan-out, pipeline, review panel, background run or team, then verify. Use to split work across agents."
 allowed-tools:
   - Read
   - Write
@@ -11,14 +11,13 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[fanout | pipeline | review | judge | background | team]"
 model: inherit
-effort: high
 ---
 
 # $ccc-fleet — parallel agents, one synthesis
 
 **CC Commander** · $ccc-fleet · you pick the pattern, agents do the work in isolation, the coordinator verifies and merges.
 
-This is the manual-dispatch side of `rules/workflow-first.md`: delegate the doing, keep the deciding. The engine is the platform's Workflow tool (the bundled workflow runs as `/commander:ccc-fleet`); the Agent tool is the engine for patterns the workflow does not cover and for clients without Workflow.
+This is the manual-dispatch side of `rules/workflow-first.md`: delegate the doing, keep the deciding. The engine is the platform's Workflow tool (the bundled workflow runs as `/commander:ccc-fleet-run`); the Agent tool is the engine for patterns the workflow does not cover and for clients without Workflow.
 
 ## When to use / when not to
 
@@ -61,7 +60,7 @@ options:
 
 Follow-up pickers:
 
-- Review panel → `FOR/AGAINST/Referee` (🟢 for a yes/no decision) · `Judge panel` (2–5 independent attempts scored by a referee) · `Multi-lens debate` (hand off to `$ccc-debate`).
+- Review panel → `FOR/AGAINST/Referee` (🟢 for a yes/no decision) · `Judge panel` (2–5 independent attempts scored by a referee) · `Multi-lens debate` (ask the user to type `$ccc-debate`; it is not invocable from here).
 - Long-running → `Background agent` (🟢 for one long task) · `Team hierarchy` (architecture, implementation and polish tiers).
 
 Then ask for the task in plain text (free text, not a picker). For Fan-out, also ask for or propose the slices with a non-overlapping file domain each; for Pipeline, the ordered stages.
@@ -96,12 +95,12 @@ Prefer the Workflow tool for Fan-out, Pipeline and Judge panel. It runs fan-out 
 
 | Pattern | Workflow call |
 |---|---|
-| Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "fanout", tasks: ["slice 1 …", "slice 2 …"] } })` |
-| Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 …", "stage 2 …"] } })` (2 or more stages) |
-| Judge panel | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
+| Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "fanout", tasks: ["slice 1 …", "slice 2 …"] } })` |
+| Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 …", "stage 2 …"] } })` (2 or more stages) |
+| Judge panel | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
 | Pattern migration | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js", args: { pattern: "…", transform: "…", verify: "…" } })` |
 
-The same workflow runs from the prompt as `/commander:ccc-fleet`; inspect running and finished runs with `/workflows`. Pass at most `<cap>` fan-out slices.
+The same workflow runs from the prompt as `/commander:ccc-fleet-run`; inspect running and finished runs with `/workflows`. Pass at most `<cap>` fan-out slices.
 
 **Pinned fleet.** When the user wants every workflow agent on one model, `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` must already be set in the session environment. Check with `printenv CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL`; if it is empty, tell the user how to set it (launch environment or settings `env`) and proceed role-based unless they relaunch. Details: [references/model-tiers.md](references/model-tiers.md).
 

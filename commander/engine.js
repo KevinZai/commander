@@ -575,7 +575,7 @@ class KitCommander {
     try {
       sp.stop(true);
       tmuxStatus('Building: ' + fullTask.slice(0, 60));
-      try { var fs = require('fs'); var path = require('path'); fs.mkdirSync(path.join(require('os').homedir(), '.claude', 'commander'), { recursive: true }); fs.writeFileSync(path.join(require('os').homedir(), '.claude', 'commander', 'yolo-status.txt'), 'BUILD: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
+      try { var fs = require('fs'); fs.mkdirSync(require('./lib/lane').resolveLane().stateDir, { recursive: true }); fs.writeFileSync(require('./lib/lane').statePath('yolo-status.txt'), 'BUILD: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
 
       if (inSplitMode()) {
         // Split mode: launch interactive Claude Code session the user can take over
@@ -616,7 +616,7 @@ class KitCommander {
         } catch(_e) { try { require('./error-logger').log(_e, 'linear-sync-done'); } catch(_) {} }
         try { var replay = require("./session-replay"); var r = replay.generateReplay(state.getSession(session.id)); if (r) { replay.saveReplay(r); replay.postToLinear(r).catch(function(){}); process.stdout.write('\n  ' + tui.dimText('Session replay saved. Score: ' + r.score.total + '/100') + '\n'); } } catch(_e) {}
         tmuxStatus('BUILD COMPLETE');
-        try { require('fs').writeFileSync(require('path').join(require('os').homedir(), '.claude', 'commander', 'yolo-status.txt'), 'COMPLETE: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
+        try { require('fs').writeFileSync(require('./lib/lane').statePath('yolo-status.txt'), 'COMPLETE: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
         process.stdout.write(tui.celebrate('BUILD COMPLETE'));
         if (result && result.result) { var summary = typeof result.result === 'string' ? result.result.slice(0, 500) : JSON.stringify(result.result).slice(0, 500); process.stdout.write('\n  ' + summary + '\n'); }
       }
@@ -656,7 +656,7 @@ class KitCommander {
     try {
       sp.stop(true);
       tmuxStatus('Building: ' + fullTask.slice(0, 60));
-      try { var fs = require('fs'); var path = require('path'); fs.mkdirSync(path.join(require('os').homedir(), '.claude', 'commander'), { recursive: true }); fs.writeFileSync(path.join(require('os').homedir(), '.claude', 'commander', 'yolo-status.txt'), 'BUILD: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
+      try { var fs = require('fs'); fs.mkdirSync(require('./lib/lane').resolveLane().stateDir, { recursive: true }); fs.writeFileSync(require('./lib/lane').statePath('yolo-status.txt'), 'BUILD: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
 
       if (inSplitMode()) {
         // Split mode: launch interactive Claude Code session the user can take over
@@ -687,7 +687,7 @@ class KitCommander {
       if (!inSplitMode()) {
         try { var linearDone = require("./integrations/linear"); var doneSession = state.getSession(session.id); if (doneSession) linearDone.syncSession(doneSession, "success").catch(function(){}); } catch(_e) { try { require('./error-logger').log(_e, 'linear-issue-done'); } catch(_) {} }
         tmuxStatus('BUILD COMPLETE');
-        try { require('fs').writeFileSync(require('path').join(require('os').homedir(), '.claude', 'commander', 'yolo-status.txt'), 'COMPLETE: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
+        try { require('fs').writeFileSync(require('./lib/lane').statePath('yolo-status.txt'), 'COMPLETE: ' + fullTask.slice(0, 200) + ' | ' + new Date().toISOString()); } catch(_e) {}
         process.stdout.write(tui.celebrate('BUILD COMPLETE'));
       }
     } catch (err) {
@@ -868,7 +868,7 @@ class KitCommander {
     process.stdout.write("\n" + tui.divider("YOLO LOOP") + "\n\n");
     process.stdout.write("  " + tui.boldText("YOLO Loop = continuous improvement until perfect.", tui.getTheme().primary) + "\n");
     process.stdout.write("  " + tui.dimText("After each build step, Commander reviews, tests, and iterates.") + "\n");
-    process.stdout.write("  " + tui.dimText("Writes status to ~/.claude/commander/yolo-status.txt every cycle.") + "\n\n");
+    process.stdout.write("  " + tui.dimText("Writes status to <config dir>/commander/yolo-status.txt every cycle.") + "\n\n");
 
     if (process.env.CCC_DISABLE_SKIP_PERMISSIONS === '1') {
       process.stdout.write('  \x1b[38;5;208mYOLO mode is disabled (CCC_DISABLE_SKIP_PERMISSIONS=1).\x1b[0m\n');
@@ -897,11 +897,12 @@ class KitCommander {
     var knowledge = require("./knowledge");
     var fs = require("fs");
     var path = require("path");
-    var statusPath = path.join(require("os").homedir(), ".claude", "commander", "yolo-status.txt");
-    var stopPath = require('path').join(require('os').homedir(), '.claude', 'commander', 'yolo-stop');
+    var statusPath = require('./lib/lane').statePath('yolo-status.txt');
+    // /ccc-night-mode writes yolo-stop in the lane dir; an older skill wrote ~/.claude/commander. Either one stops the loop.
+    var stopPaths = [require('./lib/lane').statePath('yolo-stop'), path.join(require('./lib/lane').legacyStateDir(), 'yolo-stop')];
     for (var cycle = 1; cycle <= maxCycles; cycle++) {
       // Check for stop signal between cycles
-      try { if (require('fs').existsSync(stopPath)) { require('fs').unlinkSync(stopPath); process.stdout.write('\n  ' + tui.colorText('YOLO stopped by user (yolo-stop file detected)', tui.getTheme().accent) + '\n'); break; } } catch(_) {}
+      try { var stopPath = stopPaths.filter(function(p) { return require('fs').existsSync(p); })[0]; if (stopPath) { require('fs').unlinkSync(stopPath); process.stdout.write('\n  ' + tui.colorText('YOLO stopped by user (yolo-stop file detected)', tui.getTheme().accent) + '\n'); break; } } catch(_) {}
       var sp = tui.spinner("Cycle " + cycle + "/" + maxCycles + ": " + (cycle === 1 ? "Building" : "Improving") + "...");
       sp.start();
       var session = state.createSession({ task: "YOLO cycle " + cycle + ": " + task, project: null });
@@ -920,7 +921,7 @@ class KitCommander {
         tmuxStatus("YOLO Cycle " + cycle + "/" + maxCycles + " started");
         sp.stop(true);
         process.stdout.write("\x0a" + tui.divider("YOLO Cycle " + cycle + "/" + maxCycles + (cycle === 1 ? " \u2014 Building" : " \u2014 Improving")) + "\x0a\x0a");
-        process.stdout.write("  " + tui.dimText("Live output below. Watch file: ~/.claude/commander/yolo-status.txt") + "\x0a\x0a");
+        process.stdout.write("  " + tui.dimText("Live output below. Watch file: " + statusPath + "") + "\x0a\x0a");
         var result = await d.dispatch(prompt, { stream: true, maxTurns: Math.round(100 / maxCycles), effort: cycle === 1 ? "high" : "medium", model: "opus", maxBudgetUsd: Math.round(10 / maxCycles), permissionMode: "plan", fallbackModel: "sonnet", bare: false, name: d.generateSessionName("yolo-" + cycle + "-" + task), systemPrompt: "YOLO Loop cycle " + cycle + "/" + maxCycles + ". " + (cycle === 1 ? "Build from scratch." : "Review previous work. Fix issues. Add tests. Ship quality.") + knowledgePrompt });
         state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
         state.completeSession(session.id, "success");

@@ -87,7 +87,7 @@ Treat prompts like code. Plugin eval cases live in `evals/<case>/`; run them wit
 - Respect the Claude Approvals check on PRs where it is configured.
 - For a second opinion, `codex review --uncommitted` or `/ccc-codex review`.
 
-## The Fable Method
+## The Commander Method
 Twelve enforceable gates that make any model produce frontier-shaped results. Full text: `rules/fable-method.md`. Arm it for a session with `/ccc-fable`.
 
 1. **Orchestrate, don't type:** plan with acceptance criteria before implementation.

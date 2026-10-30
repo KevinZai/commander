@@ -12,8 +12,9 @@ import { emitUser } from './lib/emit.mjs';
 import { estimateContextPct } from './lib/context-estimate.mjs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { stateDir } from '../lib/lane-state.js';
 
-const CCC_DIR = join(process.env.HOME, '.claude', 'commander');
+const CCC_DIR = stateDir();
 const SESSION_FILE = join(CCC_DIR, 'sessions', 'active-session.json');
 
 // Context thresholds (% remaining) with urgency levels

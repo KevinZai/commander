@@ -1,6 +1,6 @@
 ---
 name: ccc-suggest
-description: "Reads project state and recent activity, then recommends one next /ccc-* workflow, skill or plugin with named reasons and picker alternatives; also runs as a standing PM loop. Use when the user asks what next, which tool to use, or is stuck."
+description: "Recommends the one next /ccc-* skill or workflow from project state, with reasons and alternatives. Use when asked what next or when stuck."
 allowed-tools:
   - Read
   - Bash
@@ -10,8 +10,6 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[loop | loop status | loop stop | --history | --tune | --level=N --force | <situation in plain English>]"
-model: opus
-effort: medium
 ---
 
 # /ccc-suggest — the next best move
@@ -38,7 +36,7 @@ Two surfaces share one brain:
 |---|---|
 | empty or plain-English situation | Steps 2 to 5 |
 | `loop` / `loop status` / `loop stop` | PM loop, step 6 |
-| `--history` | Print the last 10 lines of `~/.claude/commander/suggest-log.jsonl` as a table (time, pick, picked or not); say so if the file is absent |
+| `--history` | Print the last 10 lines of `<config dir>/commander/suggest-log.jsonl` (`~/.claude/commander/suggest-log.jsonl` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) as a table (time, pick, picked or not); say so if the file is absent |
 | `--tune` | Picker for the preferred level (see the reference), then give the exact `CCC_SUGGEST_LEVEL=<n>` line to set; this skill does not edit shell profiles or settings |
 | `--level=N --force` | Run steps 2 to 5 at level N for this turn only |
 
@@ -48,6 +46,7 @@ Open with the header line `**CC Commander Suggest** · reading your project stat
 
 ```bash
 bash <<'SCAN'
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
 echo "branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo none)"
 base=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)
 echo "behind/ahead $base: $(git rev-list --left-right --count "$base"...HEAD 2>/dev/null || echo n/a)"
@@ -61,7 +60,7 @@ echo "last session: $(ls -t ~/.claude/sessions/*.tmp 2>/dev/null | head -1)"
 echo "installed plugins: $(ls ~/.claude/plugins/cache/*/*/*/.claude-plugin/plugin.json 2>/dev/null | wc -l | tr -d ' ')"
 command -v claude >/dev/null && echo "connected MCPs: $(claude mcp list 2>/dev/null | grep -c 'Connected')" || echo "connected MCPs: unknown"
 echo "ci: $(gh run list --limit 1 --json conclusion -q '.[0].conclusion' 2>/dev/null || echo unknown)"
-state=$(ls -d ~/.claude/commander/projects/"$(basename "$PWD")"-* 2>/dev/null | head -1)
+state=$(ls -d "$CCC_STATE"/projects/"$(basename "$PWD")"-* 2>/dev/null | head -1)
 [ -n "$state" ] && cat "$state/project-state.json" 2>/dev/null
 SCAN
 ```
@@ -146,13 +145,14 @@ options:
     description: "Opens /ccc-browse with the full skill picker."
 ```
 
-On a pick, invoke the chosen skill with the Skill tool. Append one JSON line to `~/.claude/commander/suggest-log.jsonl` only if the file already exists (the ticker owns its creation):
+On a pick, invoke the chosen skill with the Skill tool; if its frontmatter has `disable-model-invocation: true`, tell the user to type its `/` command instead. Append one JSON line to `<config dir>/commander/suggest-log.jsonl` only if the file already exists (the ticker owns its creation):
 
 ```bash
-[ -f ~/.claude/commander/suggest-log.jsonl ] && node -e 'require("fs").appendFileSync(require("os").homedir()+"/.claude/commander/suggest-log.jsonl",JSON.stringify({ts:new Date().toISOString(),source:"explicit",pick:process.argv[1],chosen:process.argv[2]})+"\n")' "/ccc-<workflow>" "<chosen option>"
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+[ -f "$CCC_STATE/suggest-log.jsonl" ] && node -e 'require("fs").appendFileSync(process.argv[3],JSON.stringify({ts:new Date().toISOString(),source:"explicit",pick:process.argv[1],chosen:process.argv[2]})+"\n")' "/ccc-<workflow>" "<chosen option>" "$CCC_STATE/suggest-log.jsonl"
 ```
 
-The log line is best-effort telemetry and never blocks the hand-off. When the append ran, confirm it with `tail -n 1 ~/.claude/commander/suggest-log.jsonl` and check that the line shows `"source":"explicit"` and the pick; if it is missing, say the log was not written and continue.
+The log line is best-effort telemetry and never blocks the hand-off. When the append ran, confirm it with `tail -n 1 "$CCC_STATE/suggest-log.jsonl"` and check that the line shows `"source":"explicit"` and the pick; if it is missing, say the log was not written and continue.
 
 When a hook injected suggestion chips this turn, render them exactly as the hook names them (formats in [references/involvement-levels.md](references/involvement-levels.md)); that is the chip contract. Never offer choices as a typed-letter list.
 
@@ -169,14 +169,14 @@ The loop passes the should-loop gate: it recurs every turn, its verifier is dete
 
 ### Deep-reasoning nudge
 
-When the session is strongly deep-reasoning (two or more of: architecture, redesign, migration, threat model, system design, entire refactor, roadmap; or a prompt over ~800 characters with planning verbs), add once: "🧠 Deep-reasoning session detected — consider `/model fable` (Fable 5.1, 1M context). Commander routes subagents cost-efficiently either way." The `intent-classifier.js` hook already does this automatically at most once per day (marker `~/.claude/commander/fable-nudge-<date>`); in an explicit run, skip it if that marker exists for today. Never block or delay the answer for it.
+When the session is strongly deep-reasoning (two or more of: architecture, redesign, migration, threat model, system design, entire refactor, roadmap; or a prompt over ~800 characters with planning verbs), add once: "🧠 Deep-reasoning session detected — consider `/model fable` (Fable 5.1, 1M context). Commander routes subagents cost-efficiently either way." The `intent-classifier.js` hook already does this automatically at most once per day (marker `<config dir>/commander/fable-nudge-<date>`); in an explicit run, skip it if that marker exists for today. Never block or delay the answer for it.
 
 ## Done when
 
 - The scan output was shown as a context card and every reason in the recommendation cites a line from it.
 - Exactly one recommendation carries the 🎯 header and one 🟢 call.
 - The picker was shown, or the user picked; a pick invoked the chosen skill.
-- When `suggest-log.jsonl` existed and the user picked, `tail -n 1 ~/.claude/commander/suggest-log.jsonl` shows the new explicit entry.
+- When `suggest-log.jsonl` existed and the user picked, `tail -n 1 "$CCC_STATE/suggest-log.jsonl"` shows the new explicit entry.
 - In loop mode, `.claude/loop-state/ccc-suggest.json` exists and its `iteration` advanced (`cat` it to confirm).
 
 ## Guardrails

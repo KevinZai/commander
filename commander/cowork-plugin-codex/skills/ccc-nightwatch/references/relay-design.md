@@ -63,4 +63,4 @@ The relay sends the tool name and an argument summary only: no file contents, se
 - Approval latency is about 2–5 seconds per 🟡 call (network round trip).
 - Telegram needs a bot token from @BotFather (a few minutes, once).
 - Discord inline ✅/❌ buttons need a bot with interactions enabled; webhook-only mode falls back to reaction-based approval.
-- It does not replace reviewing the session afterwards: audit `~/.claude/commander/nightwatch.log` and `~/.claude/commander/analytics/permission-gate.jsonl`.
+- It does not replace reviewing the session afterwards: audit `<config dir>/commander/nightwatch.log` and `<config dir>/commander/analytics/permission-gate.jsonl` (the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`).

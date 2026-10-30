@@ -1,0 +1,6 @@
+interface:
+  display_name: "Babysit PR"
+  short_description: "Monitor a PR through review and CI"
+  default_prompt: "Use $ccc-babysit-pr to monitor this pull request through review and CI."
+policy:
+  allow_implicit_invocation: false

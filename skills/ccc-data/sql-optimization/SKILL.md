@@ -99,7 +99,7 @@ Analyzes and optimizes slow SQL queries by examining execution plans, recommendi
    -- Application: for each order, SELECT * FROM order_items WHERE order_id = ?
 
    -- BETTER: Batch load
-   SELECT * FROM order_items WHERE order_id = ANY($1);
+   SELECT * FROM order_items WHERE order_id = ANY(\$1);
    -- Or use JOIN in the original query
    ```
 

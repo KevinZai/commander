@@ -4,7 +4,7 @@
 /**
  * CC Commander — Fable Contract Footer
  *
- * Idempotent: appends a one-line Fable Method contract footer to every
+ * Idempotent: appends a one-line method contract footer to every
  * commander/cowork-plugin/skills/*\/SKILL.md that doesn't already have one.
  * Safe to re-run — files already carrying the footer are skipped.
  *

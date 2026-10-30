@@ -11,6 +11,7 @@
 'use strict';
 
 var fs = require('fs');
+var os = require('os');
 var path = require('path');
 
 // --- helpers ----------------------------------------------------------------
@@ -99,28 +100,44 @@ function fail(category, message, remediation) {
 
 // --- 0. Claude settings -----------------------------------------------------
 
+// The running lane's settings.json: <config dir>/settings.json with the
+// CCC_CONFIG_DIR > CLAUDE_CONFIG_DIR > ~/.claude precedence of lib/lane-state.js.
+// options.env and options.homeDir let tests pin both.
 function settingsPathFromOptions(options) {
+  var env = options && options.env ? options.env : process.env;
+  var homeDir = options && options.homeDir ? options.homeDir : env.HOME || process.env.HOME;
+  var configDir = require('../../../lib/lane-state').configDir({
+    CCC_CONFIG_DIR: env.CCC_CONFIG_DIR,
+    CLAUDE_CONFIG_DIR: env.CLAUDE_CONFIG_DIR,
+    HOME: homeDir || '',
+  });
+  return path.join(configDir, 'settings.json');
+}
+
+/** A settings path for messages: ~ for the home dir. */
+function shownPath(p, options) {
   var homeDir = options && options.homeDir ? options.homeDir : process.env.HOME;
-  return path.join(homeDir || '', '.claude', 'settings.json');
+  return homeDir && p.indexOf(homeDir + path.sep) === 0 ? '~' + p.slice(homeDir.length) : p;
 }
 
 function checkClaudeTeamsFlag(root, options) {
   var settingsPath = settingsPathFromOptions(options);
+  var shown = shownPath(settingsPath, options);
   var settings = safeJson(settingsPath);
   if (!settings) {
     return warn(
       'claude-teams-flag',
-      'Could not read ~/.claude/settings.json; CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS not verified',
-      'Set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS to "1" in ~/.claude/settings.json.'
+      'Could not read ' + shown + '; CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS not verified',
+      'Set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS to "1" in ' + shown + '.'
     );
   }
   var env = settings.env || {};
   if (env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS === '1') {
-    return ok('claude-teams-flag', 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 in ~/.claude/settings.json');
+    return ok('claude-teams-flag', 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 in ' + shown);
   }
   return warn(
     'claude-teams-flag',
-    'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS is not "1" in ~/.claude/settings.json',
+    'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS is not "1" in ' + shown,
     'Set env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS to "1" for multi-agent fan-out.'
   );
 }
@@ -129,24 +146,25 @@ var VALID_EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max'];
 
 function checkEffortDefault(root, options) {
   var settingsPath = settingsPathFromOptions(options);
+  var shown = shownPath(settingsPath, options);
   var settings = safeJson(settingsPath);
   if (!settings) {
     return warn(
       'effort-default',
-      'Could not read ~/.claude/settings.json; effortLevel inherits harness default'
+      'Could not read ' + shown + '; effortLevel inherits harness default'
     );
   }
   if (settings.effortLevel) {
     if (VALID_EFFORT_LEVELS.indexOf(settings.effortLevel) === -1) {
       return warn(
         'effort-default',
-        'effortLevel=' + settings.effortLevel + ' in ~/.claude/settings.json is not a valid level',
-        'Valid levels are: ' + VALID_EFFORT_LEVELS.join(', ') + '. Fix the typo or invalid value in ~/.claude/settings.json.'
+        'effortLevel=' + settings.effortLevel + ' in ' + shown + ' is not a valid level',
+        'Valid levels are: ' + VALID_EFFORT_LEVELS.join(', ') + '. Fix the typo or invalid value in ' + shown + '.'
       );
     }
-    return ok('effort-default', 'effortLevel=' + settings.effortLevel + ' in ~/.claude/settings.json');
+    return ok('effort-default', 'effortLevel=' + settings.effortLevel + ' in ' + shown);
   }
-  return ok('effort-default', 'effortLevel absent in ~/.claude/settings.json; inherits harness default');
+  return ok('effort-default', 'effortLevel absent in ' + shown + '; inherits harness default');
 }
 
 // --- 1. License-tier cleanup verification -----------------------------------
@@ -186,20 +204,101 @@ function checkLicenseCleanup(root) {
 // --- 2. Hook-chain health ---------------------------------------------------
 
 // Files that may live in hooks/ but aren't in hooks.json (acceptable dormant utilities).
-var DORMANT_HOOK_ALLOWLIST = ['README.md'];
+// _archive/permission-denied.js: superseded by permission-denied-logger.js; kept, never run.
+// _archive/context-warning.js: folded into context-guard.js (CC-1357); kept, never run.
+var DORMANT_HOOK_ALLOWLIST = ['README.md', '_archive/permission-denied.js', '_archive/context-warning.js'];
 
-function checkHookChain(root) {
-  var hooksDir = path.join(root, 'commander', 'cowork-plugin', 'hooks');
+var ORCHESTRATOR_REL = path.join('orchestrator', 'session-start-orchestrator.js');
+
+function stripComments(content) {
+  return content
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+}
+
+/**
+ * Handlers the SessionStart orchestrator imports ({ file: '../x.js' } entries),
+ * as paths relative to hooksDir ('fable-armed-nudge.js', '_archive/session-start.js').
+ */
+function orchestratorHandlers(hooksDir) {
+  var content = safeRead(path.join(hooksDir, ORCHESTRATOR_REL));
+  if (!content) return [];
+  var orchestratorDir = path.dirname(path.join(hooksDir, ORCHESTRATOR_REL));
+  var out = [];
+  var re = /\bfile:\s*['"]([^'"]+\.js)['"]/g;
+  var m;
+  var body = stripComments(content);
+  while ((m = re.exec(body)) !== null) {
+    out.push(path.relative(hooksDir, path.resolve(orchestratorDir, m[1])).split(path.sep).join('/'));
+  }
+  return out;
+}
+
+// A literal ~/.claude/commander path: join(..., '.claude', 'commander') or a
+// "<home>/.claude/commander" string. Hooks must use lib/lane-state.js instead.
+var SHARED_STATE_PATTERNS = [
+  /['"`]\.claude['"`]\s*,\s*['"`]commander['"`]/,
+  /\$\{[^}]*\}\/\.claude\/commander/,
+  /['"`]\/\.claude\/commander/,
+];
+
+/**
+ * Live hook code that builds the shared ~/.claude/commander path instead of the
+ * lane state dir: hooks/*.js, hooks/lib/*.mjs, the orchestrator and the
+ * _archive handlers it still imports. Returns sorted relative paths.
+ */
+function findSharedStateWriters(hooksDir) {
+  var files = listFiles(hooksDir, '.js')
+    .concat(listFiles(path.join(hooksDir, 'lib'), '.mjs').map(function (f) { return 'lib/' + f; }))
+    .concat(listFiles(path.join(hooksDir, 'orchestrator'), '.js').map(function (f) { return 'orchestrator/' + f; }))
+    .concat(orchestratorHandlers(hooksDir));
+  var seen = {};
+  return files.filter(function (rel) {
+    if (seen[rel]) return false;
+    seen[rel] = true;
+    var content = safeRead(path.join(hooksDir, rel));
+    if (!content) return false;
+    var code = stripComments(content);
+    return SHARED_STATE_PATTERNS.some(function (re) { return re.test(code); });
+  }).sort();
+}
+
+/**
+ * Hook-chain facts for one plugin hooks dir. A handler is registered when
+ * hooks.json runs it or the SessionStart orchestrator imports it.
+ * Returns {loadable, manifestPath, registered[], unregistered[], missing[],
+ * legacyRequire[], noEsm[]} with paths relative to hooksDir. loadable is false
+ * when hooks.json is missing or unparseable.
+ */
+// hooks.json shape Claude Code loads: {hooks: {<event>: [{hooks: [{command}]}]}}.
+function wellFormedManifest(manifest) {
+  if (!manifest || typeof manifest.hooks !== 'object' || manifest.hooks === null || Array.isArray(manifest.hooks)) return false;
+  return Object.keys(manifest.hooks).every(function (event) {
+    var groups = manifest.hooks[event];
+    return Array.isArray(groups) && groups.every(function (g) {
+      return g && typeof g === 'object' && Array.isArray(g.hooks) && g.hooks.every(function (h) {
+        if (!h || typeof h !== 'object' || typeof h.type !== 'string') return false;
+        // A command handler needs a non-empty command string; other handler types carry their own fields.
+        return h.type !== 'command' || (typeof h.command === 'string' && h.command.trim() !== '');
+      });
+    });
+  });
+}
+
+function hookChainReport(hooksDir) {
   var manifestPath = path.join(hooksDir, 'hooks.json');
   var manifest = safeJson(manifestPath);
-  if (!manifest || !manifest.hooks) {
-    return fail(
-      'hook-chain',
-      'hooks.json missing or unparseable at ' + manifestPath,
-      'Restore hooks.json from a known-good commit.'
-    );
-  }
-  // Collect referenced .js paths from manifest
+  var report = {
+    loadable: wellFormedManifest(manifest),
+    manifestPath: manifestPath,
+    registered: [],
+    unregistered: [],
+    missing: [],
+    legacyRequire: [],
+    noEsm: [],
+  };
+  if (!report.loadable) return report;
+
   var referenced = new Set();
   Object.keys(manifest.hooks).forEach(function (event) {
     var groups = manifest.hooks[event] || [];
@@ -210,39 +309,56 @@ function checkHookChain(root) {
       });
     });
   });
+  // Handlers the orchestrator imports run on SessionStart without their own hooks.json entry.
+  if (referenced.has(ORCHESTRATOR_REL.split(path.sep).join('/'))) {
+    orchestratorHandlers(hooksDir).forEach(function (rel) { referenced.add(rel); });
+  }
 
-  var problems = [];
-  // Each referenced file exists + uses ESM import (not require)
   referenced.forEach(function (rel) {
     var p = path.join(hooksDir, rel);
     if (!exists(p)) {
-      problems.push('missing: ' + rel);
+      report.missing.push(rel);
       return;
     }
-    var content = safeRead(p) || '';
-    // Strip block + line comments before scanning so prose mentions don't trigger.
-    var stripped = content
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
-    if (/^\s*(?:const|var|let)\s+[\w{},\s]+\s*=\s*require\s*\(/m.test(stripped)) {
-      problems.push('legacy require(): ' + rel);
-    }
-    if (!/^\s*import\s+/m.test(stripped)) {
-      problems.push('no ESM import: ' + rel);
-    }
+    // Strip comments before scanning so prose mentions don't trigger.
+    var stripped = stripComments(safeRead(p) || '');
+    if (/^\s*(?:const|var|let)\s+[\w{},\s]+\s*=\s*require\s*\(/m.test(stripped)) report.legacyRequire.push(rel);
+    if (!/^\s*import\s+/m.test(stripped)) report.noEsm.push(rel);
   });
+  report.registered = Array.from(referenced).filter(function (rel) {
+    return report.missing.indexOf(rel) === -1;
+  }).sort();
 
-  // Unregistered .js files in hooks/ that aren't in dormant allowlist
-  var onDisk = listFiles(hooksDir, '.js');
-  var unregistered = onDisk.filter(function (f) {
+  // Shipped handler files (hooks/*.js and hooks/_archive/*.js) nothing registers.
+  var onDisk = listFiles(hooksDir, '.js')
+    .concat(listFiles(path.join(hooksDir, '_archive'), '.js').map(function (f) { return '_archive/' + f; }));
+  report.unregistered = onDisk.filter(function (f) {
     return !referenced.has(f) && DORMANT_HOOK_ALLOWLIST.indexOf(f) === -1;
-  });
-  if (unregistered.length > 0) {
-    problems.push('unregistered: ' + unregistered.join(', '));
+  }).sort();
+  return report;
+}
+
+function checkHookChain(root) {
+  var hooksDir = path.join(root, 'commander', 'cowork-plugin', 'hooks');
+  var report = hookChainReport(hooksDir);
+  if (!report.loadable) {
+    return fail(
+      'hook-chain',
+      'hooks.json missing, unparseable or malformed at ' + report.manifestPath,
+      'Restore hooks.json from a known-good commit.'
+    );
+  }
+
+  var problems = []
+    .concat(report.missing.map(function (rel) { return 'missing: ' + rel; }))
+    .concat(report.legacyRequire.map(function (rel) { return 'legacy require(): ' + rel; }))
+    .concat(report.noEsm.map(function (rel) { return 'no ESM import: ' + rel; }));
+  if (report.unregistered.length > 0) {
+    problems.push('unregistered: ' + report.unregistered.join(', '));
   }
 
   if (problems.length === 0) {
-    return ok('hook-chain', 'All ' + referenced.size + ' referenced hooks present + ESM');
+    return ok('hook-chain', 'All ' + report.registered.length + ' referenced hooks present + ESM');
   }
   return fail(
     'hook-chain',
@@ -256,7 +372,95 @@ function checkHookChain(root) {
 var EXPECTED_MCP_SERVERS = ['context7', 'sequential-thinking'];
 var EXPECTED_CONNECTOR_COUNT = 16;
 
-function checkMcpAvailability(root) {
+// --- Connector counts: one source for `ccc doctor` and `ccc checkin` --------
+
+/**
+ * Rows in the opt-in MCP catalog table (the table whose header starts with
+ * "| MCP |") in CONNECTORS.md text. null when the text or the table is missing,
+ * so a renamed heading or a broken table reads as unknown, never as 0.
+ */
+function countCatalogConnectors(markdown) {
+  if (typeof markdown !== 'string') return null;
+  var lines = markdown.split('\n').map(function (l) { return l.trim(); });
+  var head = -1;
+  for (var i = 0; i < lines.length; i++) {
+    if (/^\|\s*MCP\s*\|/i.test(lines[i])) { head = i; break; }
+  }
+  if (head < 0 || !/^\|[-:\s|]+\|$/.test(lines[head + 1] || '')) return null;
+  var n = 0;
+  for (var j = head + 2; j < lines.length && lines[j].charAt(0) === '|'; j++) n++;
+  return n;
+}
+
+/** Claude Code's user config file for a lane: <config dir>/.claude.json, or ~/.claude.json for the default dir. */
+function claudeUserConfigFile(env) {
+  env = env || process.env;
+  var dir = env.CCC_CONFIG_DIR || env.CLAUDE_CONFIG_DIR;
+  return dir ? path.join(path.resolve(dir), '.claude.json') : path.join(env.HOME || os.homedir(), '.claude.json');
+}
+
+function isPlainObject(v) {
+  return !!v && typeof v === 'object' && !Array.isArray(v);
+}
+
+// Server count of an {mcpServers} holder: 0 when the holder or its mcpServers
+// is absent, null when either is present but not an object.
+function serverCount(holder) {
+  if (holder === undefined) return 0;
+  if (!isPlainObject(holder)) return null;
+  if (holder.mcpServers === undefined) return 0;
+  var m = holder.mcpServers;
+  return m && typeof m === 'object' && !Array.isArray(m) ? Object.keys(m).length : null;
+}
+
+// {state: 'absent'|'bad'|'ok', json}
+function readConfig(file) {
+  var raw;
+  try { raw = fs.readFileSync(file, 'utf8'); } catch (e) { return { state: e.code === 'ENOENT' ? 'absent' : 'bad' }; }
+  try {
+    var json = JSON.parse(raw);
+    return json && typeof json === 'object' && !Array.isArray(json) ? { state: 'ok', json: json } : { state: 'bad' };
+  } catch (_) { return { state: 'bad' }; }
+}
+
+/**
+ * MCP servers configured for a lane, by Claude Code scope: user (top-level
+ * mcpServers in the lane's .claude.json), local (that file's projects[cwd])
+ * and project (<cwd>/.mcp.json). A missing file counts 0; an unreadable or
+ * malformed one is null (unknown), and then total is null too.
+ * opts: {env, cwd}. Only names are counted; values are never read out.
+ */
+function countConfiguredConnectors(opts) {
+  opts = opts || {};
+  var env = opts.env || process.env;
+  var cwd = path.resolve(opts.cwd || process.cwd());
+  var userFile = claudeUserConfigFile(env);
+  var user = readConfig(userFile);
+  var project = readConfig(path.join(cwd, '.mcp.json'));
+  var counts = {
+    user: user.state === 'bad' ? null : user.state === 'absent' ? 0 : serverCount(user.json),
+    local: user.state === 'bad' ? null : user.state === 'absent' ? 0
+      : user.json.projects === undefined ? 0
+        : isPlainObject(user.json.projects) ? serverCount(user.json.projects[cwd]) : null,
+    project: project.state === 'bad' ? null : project.state === 'absent' ? 0 : serverCount(project.json),
+  };
+  var known = counts.user !== null && counts.local !== null && counts.project !== null;
+  return {
+    user: counts.user,
+    local: counts.local,
+    project: counts.project,
+    total: known ? counts.user + counts.local + counts.project : null,
+    user_file: userFile,
+  };
+}
+
+function describeConfigured(c) {
+  var part = function (n) { return n === null ? 'unknown' : String(n); };
+  return 'configured: ' + part(c.total) + ' (user ' + part(c.user) + ', local ' + part(c.local) + ', project ' + part(c.project) + ')';
+}
+
+function checkMcpAvailability(root, options) {
+  options = options || {};
   var mcpPath = path.join(root, 'commander', 'cowork-plugin', '.mcp.json');
   var mcp = safeJson(mcpPath);
   if (!mcp || !mcp.mcpServers) {
@@ -271,48 +475,29 @@ function checkMcpAvailability(root) {
   var driftMcp = names.length !== expected.length ||
     names.some(function (n, i) { return n !== expected[i]; });
 
-  // Count opt-in connectors in CONNECTORS.md MCP catalog
-  var connectorsPath = path.join(root, 'commander', 'cowork-plugin', 'CONNECTORS.md');
-  var connectors = safeRead(connectorsPath);
-  var connectorRows = 0;
-  var driftConnectors = false;
-  if (connectors) {
-    // Find the "Recommended MCP Servers" table and count data rows
-    var idx = connectors.indexOf('Recommended MCP Servers');
-    if (idx >= 0) {
-      var section = connectors.slice(idx);
-      var lines = section.split('\n');
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].trim();
-        // Skip header + separator + non-table lines
-        if (!line.startsWith('|')) continue;
-        if (/^\|\s*MCP\s*\|/i.test(line)) continue;
-        if (/^\|[-\s|]+\|$/.test(line)) continue;
-        connectorRows++;
-      }
-    }
-    driftConnectors = connectorRows !== EXPECTED_CONNECTOR_COUNT;
-  } else {
-    driftConnectors = true;
-  }
+  var catalog = countCatalogConnectors(safeRead(path.join(root, 'commander', 'cowork-plugin', 'CONNECTORS.md')));
+  var configured = countConfiguredConnectors({ env: options.env, cwd: options.cwd });
+  var summary = 'opt-in connectors: ' + (catalog === null ? 'unknown' : catalog) + ' · ' + describeConfigured(configured);
 
-  if (!driftMcp && !driftConnectors) {
-    return ok(
-      'mcp-availability',
-      'Bundled MCP: ' + names.join(', ') + ' · opt-in connectors: ' + connectorRows
-    );
-  }
   var msgs = [];
   if (driftMcp) {
     msgs.push('bundled MCP drift — found [' + names.join(',') + '], expected [' + expected.join(',') + ']');
   }
-  if (driftConnectors) {
-    msgs.push('connector count drift — found ' + connectorRows + ', expected ' + EXPECTED_CONNECTOR_COUNT);
+  if (catalog === null) {
+    msgs.push('connector catalog unknown — no "| MCP |" table in CONNECTORS.md');
+  } else if (catalog !== EXPECTED_CONNECTOR_COUNT) {
+    msgs.push('connector count drift — found ' + catalog + ', expected ' + EXPECTED_CONNECTOR_COUNT);
+  }
+  if (configured.total === null) {
+    msgs.push('configured MCP servers unknown — ' + configured.user_file + ' or .mcp.json is unreadable or malformed');
+  }
+  if (msgs.length === 0) {
+    return ok('mcp-availability', 'Bundled MCP: ' + names.join(', ') + ' · ' + summary);
   }
   return warn(
     'mcp-availability',
-    msgs.join('; '),
-    'Reconcile .mcp.json or CONNECTORS.md with canonical claim (2 bundled + ' + EXPECTED_CONNECTOR_COUNT + ' opt-in).'
+    msgs.join('; ') + ' (' + summary + ')',
+    'Reconcile .mcp.json or CONNECTORS.md with canonical claim (2 bundled + ' + EXPECTED_CONNECTOR_COUNT + ' opt-in), and fix any malformed MCP config.'
   );
 }
 
@@ -607,6 +792,24 @@ function checkCriticalFiles(root) {
   );
 }
 
+// --- Network mode -----------------------------------------------------------
+
+/**
+ * Informational: which outbound switches are on (lib/network-mode.js reads
+ * CCC_TELEMETRY / CCC_OFFLINE / CCC_CI_TICKER and ~/.commander/config.json).
+ * options.env and options.homeDir let tests pin both.
+ */
+function checkNetworkMode(root, options) {
+  var networkMode = require('../../../lib/network-mode').networkMode;
+  var env = options && options.env ? options.env : process.env;
+  var mode = networkMode(env, { homeDir: options && options.homeDir });
+  var onOff = function (b) { return b ? 'on' : 'off'; };
+  return ok(
+    'network-mode',
+    'telemetry ' + onOff(mode.telemetry) + ' · offline ' + onOff(mode.offline) + ' · ci-ticker ' + onOff(mode.ciTicker)
+  );
+}
+
 // --- runner -----------------------------------------------------------------
 
 function runDiagnostics(root, options) {
@@ -616,7 +819,7 @@ function runDiagnostics(root, options) {
     checkEffortDefault(r, options),
     checkLicenseCleanup(r),
     checkHookChain(r),
-    checkMcpAvailability(r),
+    checkMcpAvailability(r, options),
     checkContractIntegrity(r),
     checkVendorSubmodules(r),
     checkBundledMcpServers(r),
@@ -625,6 +828,7 @@ function runDiagnostics(root, options) {
     checkDisplayName(r),
     checkVersionParity(r),
     checkCriticalFiles(r),
+    checkNetworkMode(r, options),
   ];
 }
 
@@ -634,7 +838,14 @@ module.exports = {
   checkEffortDefault: checkEffortDefault,
   checkLicenseCleanup: checkLicenseCleanup,
   checkHookChain: checkHookChain,
+  hookChainReport: hookChainReport,
+  DORMANT_HOOK_ALLOWLIST: DORMANT_HOOK_ALLOWLIST,
+  orchestratorHandlers: orchestratorHandlers,
+  findSharedStateWriters: findSharedStateWriters,
   checkMcpAvailability: checkMcpAvailability,
+  countCatalogConnectors: countCatalogConnectors,
+  countConfiguredConnectors: countConfiguredConnectors,
+  claudeUserConfigFile: claudeUserConfigFile,
   checkContractIntegrity: checkContractIntegrity,
   checkVendorSubmodules: checkVendorSubmodules,
   checkBundledMcpServers: checkBundledMcpServers,
@@ -643,6 +854,7 @@ module.exports = {
   checkDisplayName: checkDisplayName,
   checkVersionParity: checkVersionParity,
   checkCriticalFiles: checkCriticalFiles,
+  checkNetworkMode: checkNetworkMode,
   EXPECTED_MCP_SERVERS: EXPECTED_MCP_SERVERS,
   EXPECTED_CONNECTOR_COUNT: EXPECTED_CONNECTOR_COUNT,
 };

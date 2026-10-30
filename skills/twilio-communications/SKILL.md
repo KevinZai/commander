@@ -105,7 +105,7 @@ Handles code generation, delivery, rate limiting, and fraud prevention.
 
 Key benefits over DIY OTP:
 - Twilio manages code generation and expiration
-- Built-in fraud prevention (saved customers $82M+ blocking 747M attempts)
+- Built-in fraud prevention (saved customers \$82M+ blocking 747M attempts)
 - Handles rate limiting automatically
 - Multi-channel: SMS, Voice, Email, Push, WhatsApp
 
