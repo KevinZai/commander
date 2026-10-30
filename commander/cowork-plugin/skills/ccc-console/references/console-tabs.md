@@ -11,7 +11,7 @@ Every tab reads local files only. The builder is `scripts/build-console.mjs`; th
 | `history` | the last 30 days: cost, dispatches, tasks, failures, top skills | `mission-control/metrics.jsonl` plus the detail logs | yes |
 | `launch` | fixed chips for common Commander workflows | none | no (widget only) |
 
-All paths above are under `~/.claude/commander/` unless shown otherwise.
+All paths above are under `<config dir>/commander/` (the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) unless shown otherwise.
 
 ## Memory
 

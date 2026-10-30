@@ -52,10 +52,14 @@ function patchHome(tmpDir, licenseObj, cacheObj) {
   };
 }
 
+let importSeq = 0;
+
 /** Import license module fresh (ESM with cache busted via query string trick) */
 async function importLicense() {
-  // Node ESM module cache is keyed by resolved URL — append timestamp to bust it
-  return await import(`${LICENSE_MOD}?t=${Date.now()}`);
+  // Node ESM module cache is keyed by resolved URL — append a unique suffix to bust it.
+  // The counter matters: two imports in the same millisecond share a Date.now() and
+  // would reuse the first import's HOME-derived paths.
+  return await import(`${LICENSE_MOD}?t=${Date.now()}-${importSeq++}`);
 }
 
 /** Install a mock fetch that returns the given response body */
@@ -279,6 +283,105 @@ describe('LS API failure handling', () => {
       assert.equal(tier, 'lifetime');
     } finally {
       restoreFetch();
+      cleanup();
+    }
+  });
+});
+
+// Verify-1 F3: the license POST must ask network-mode.js first.
+describe('offline mode', () => {
+  /** Stub fetch that counts calls and returns an active license. */
+  function countingFetch() {
+    const orig = globalThis.fetch;
+    const calls = [];
+    globalThis.fetch = async (...args) => {
+      calls.push(args);
+      return { json: async () => ({ valid: true, meta: { variant_name: 'Lifetime' } }) };
+    };
+    return { calls, restore: () => { globalThis.fetch = orig; } };
+  }
+
+  async function withEnv(vars, fn) {
+    const saved = {};
+    for (const k of Object.keys(vars)) saved[k] = process.env[k];
+    Object.assign(process.env, vars);
+    try { return await fn(); } finally {
+      for (const k of Object.keys(vars)) {
+        if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k];
+      }
+    }
+  }
+
+  it('makes no fetch under CCC_OFFLINE=1 and falls back to starter', async () => {
+    const tmp = makeTempHome();
+    const cleanup = patchHome(tmp, { license_key: 'some-key' }, undefined);
+    const stub = countingFetch();
+    try {
+      await withEnv({ CCC_OFFLINE: '1' }, async () => {
+        const { validateAndCacheLicense, getLicenseTier } = await importLicense();
+        assert.equal(await validateAndCacheLicense(), null);
+        assert.equal(await getLicenseTier(), 'starter');
+      });
+      assert.equal(stub.calls.length, 0, 'no outbound request when offline');
+    } finally {
+      stub.restore();
+      cleanup();
+    }
+  });
+
+  it('makes no fetch when ~/.commander/config.json sets offline: true', async () => {
+    const tmp = makeTempHome();
+    const cleanup = patchHome(tmp, { license_key: 'some-key' }, undefined);
+    fs.mkdirSync(path.join(tmp, '.commander'), { recursive: true });
+    fs.writeFileSync(path.join(tmp, '.commander', 'config.json'), JSON.stringify({ offline: true }));
+    const stub = countingFetch();
+    try {
+      await withEnv({ CCC_OFFLINE: '' }, async () => {
+        const { validateAndCacheLicense } = await importLicense();
+        assert.equal(await validateAndCacheLicense(), null);
+      });
+      assert.equal(stub.calls.length, 0);
+    } finally {
+      stub.restore();
+      cleanup();
+    }
+  });
+
+  it('keeps an active cached tier offline instead of downgrading', async () => {
+    const tmp = makeTempHome();
+    const staleCache = {
+      validated_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      status: 'active',
+      tier: 'lifetime',
+      expires_at: null,
+    };
+    const cleanup = patchHome(tmp, { license_key: 'some-key' }, staleCache);
+    const stub = countingFetch();
+    try {
+      await withEnv({ CCC_OFFLINE: '1' }, async () => {
+        const { getLicenseTier } = await importLicense();
+        assert.equal(await getLicenseTier(), 'lifetime');
+      });
+      assert.equal(stub.calls.length, 0);
+    } finally {
+      stub.restore();
+      cleanup();
+    }
+  });
+
+  it('still validates online when offline mode is off (control)', async () => {
+    const tmp = makeTempHome();
+    const cleanup = patchHome(tmp, { license_key: 'some-key' }, undefined);
+    const stub = countingFetch();
+    try {
+      await withEnv({ CCC_OFFLINE: '' }, async () => {
+        const { validateAndCacheLicense } = await importLicense();
+        const info = await validateAndCacheLicense();
+        assert.equal(info.tier, 'lifetime');
+      });
+      assert.equal(stub.calls.length, 1);
+    } finally {
+      stub.restore();
       cleanup();
     }
   });

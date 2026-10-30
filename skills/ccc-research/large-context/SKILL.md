@@ -26,7 +26,7 @@ Opus 5.5 gives you 1M tokens. Most "too big" tasks are not actually too big anym
 
 ```bash
 # rough estimate — chars/4 is close enough to decide
-find <path> -type f -name '*.ts' -exec cat {} + | wc -c | awk '{print int($1/4)" est. tokens"}'
+find <path> -type f -name '*.ts' -exec cat {} + | wc -c | awk '{print int(\$1/4)" est. tokens"}'
 ```
 
 Under ~800K estimated tokens: read it directly. Don't build a pipeline for a problem you don't have.

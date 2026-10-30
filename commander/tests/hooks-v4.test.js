@@ -63,18 +63,78 @@ function runHook(hookFile, inputObj, envOverrides = {}) {
   };
 }
 
-// ---- elicitation-logger.js ----
+// ---- elicitation-logger.js / elicitation-result-handler.js ----
+// Payloads are the documented samples from code.claude.com/docs/en/hooks
+// (Elicitation input, ElicitationResult input), plus elicitation_id where the
+// docs list it as optional.
+
+const ELICIT_COMMON = {
+  session_id: 'abc123',
+  transcript_path: '/Users/x/.claude/projects/p/00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl',
+  cwd: '/Users/x',
+};
+const ELICIT_FORM = {
+  ...ELICIT_COMMON,
+  hook_event_name: 'Elicitation',
+  mcp_server_name: 'my-mcp-server',
+  message: 'Please provide your credentials',
+  mode: 'form',
+  requested_schema: { type: 'object', properties: { username: { type: 'string', title: 'Username' } } },
+};
+const ELICIT_URL = {
+  ...ELICIT_COMMON,
+  hook_event_name: 'Elicitation',
+  mcp_server_name: 'my-mcp-server',
+  message: 'Please authenticate',
+  mode: 'url',
+  url: 'https://auth.example.com/login',
+  elicitation_id: 'elic-42',
+};
+const ELICIT_RESULT = {
+  ...ELICIT_COMMON,
+  hook_event_name: 'ElicitationResult',
+  mcp_server_name: 'my-mcp-server',
+  action: 'accept',
+  content: { username: 'alice' },
+  mode: 'form',
+};
+
+function elicitationRows(hookFile, payload) {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-elicit-home-'));
+  try {
+    const r = runHook(hookFile, payload, { HOME: home, USERPROFILE: home });
+    assert.equal(r.exitCode, 0);
+    assert.equal(r.parsed?.continue, true);
+    const log = path.join(home, '.claude', 'commander', 'elicitation.jsonl');
+    return fs.readFileSync(log, 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true });
+  }
+}
+
+function assertNoEmptyFields(row) {
+  for (const [k, v] of Object.entries(row)) {
+    assert.ok(v !== null && v !== undefined && v !== 'unknown' && v !== '', `field ${k} is ${JSON.stringify(v)}`);
+  }
+}
 
 describe('elicitation-logger.js', () => {
-  it('returns continue:true on valid input', () => {
-    const r = runHook('elicitation-logger.js', {
-      request_id: 'req-001',
-      prompt: 'Please provide your name',
-      type: 'text',
-    });
-    assert.equal(r.exitCode, 0);
-    assert.ok(r.parsed, 'should output JSON');
-    assert.equal(r.parsed.continue, true);
+  it('logs the documented form-mode fields, none null or unknown', () => {
+    const [row] = elicitationRows('elicitation-logger.js', ELICIT_FORM);
+    assert.equal(row.event, 'Elicitation');
+    assert.equal(row.mcp_server_name, 'my-mcp-server');
+    assert.equal(row.mode, 'form');
+    assert.equal(row.session_id, 'abc123');
+    assertNoEmptyFields(row);
+  });
+
+  it('logs elicitation_id and url mode; never logs message, url or schema', () => {
+    const [row] = elicitationRows('elicitation-logger.js', ELICIT_URL);
+    assert.equal(row.elicitation_id, 'elic-42');
+    assert.equal(row.mode, 'url');
+    assertNoEmptyFields(row);
+    const text = JSON.stringify(row);
+    assert.ok(!text.includes('authenticate') && !text.includes('auth.example.com') && !text.includes('requested_schema'), text);
   });
 
   it('returns continue:true on empty input', () => {
@@ -97,40 +157,33 @@ describe('elicitation-logger.js', () => {
   });
 
   it('does not make network calls (MCP_DISABLED=1)', () => {
-    const r = runHook('elicitation-logger.js', { prompt: 'test' }, { MCP_DISABLED: '1' });
+    const r = runHook('elicitation-logger.js', ELICIT_FORM, { MCP_DISABLED: '1' });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
   });
 });
 
-// ---- elicitation-result-handler.js ----
-
 describe('elicitation-result-handler.js', () => {
-  it('returns continue:true on matched result', () => {
-    const r = runHook('elicitation-result-handler.js', {
-      request_id: 'req-001',
-      result: { value: 'Kevin', matched: true },
-    });
-    assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.continue, true);
+  it('logs the documented accept result, none null or unknown, content not logged', () => {
+    const [row] = elicitationRows('elicitation-result-handler.js', ELICIT_RESULT);
+    assert.equal(row.event, 'ElicitationResult');
+    assert.equal(row.action, 'accept');
+    assert.equal(row.mcp_server_name, 'my-mcp-server');
+    assert.equal(row.mode, 'form');
+    assertNoEmptyFields(row);
+    assert.ok(!JSON.stringify(row).includes('alice'), 'content must not be logged');
   });
 
-  it('returns continue:true on cancelled result', () => {
-    const r = runHook('elicitation-result-handler.js', {
-      request_id: 'req-002',
-      result: { action: 'cancel', cancelled: true },
+  for (const action of ['decline', 'cancel']) {
+    it(`logs action ${action} with elicitation_id`, () => {
+      const [row] = elicitationRows('elicitation-result-handler.js', {
+        ...ELICIT_RESULT, action, content: undefined, elicitation_id: 'elic-7',
+      });
+      assert.equal(row.action, action);
+      assert.equal(row.elicitation_id, 'elic-7');
+      assertNoEmptyFields(row);
     });
-    assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.continue, true);
-  });
-
-  it('returns continue:true on declined result', () => {
-    const r = runHook('elicitation-result-handler.js', {
-      result: { action: 'decline' },
-    });
-    assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.continue, true);
-  });
+  }
 
   it('returns continue:true on malformed input', () => {
     const hookPath = path.join(HOOKS_DIR, 'elicitation-result-handler.js');
@@ -146,7 +199,7 @@ describe('elicitation-result-handler.js', () => {
   });
 
   it('does not make network calls (MCP_DISABLED=1)', () => {
-    const r = runHook('elicitation-result-handler.js', { result: {} }, { MCP_DISABLED: '1' });
+    const r = runHook('elicitation-result-handler.js', ELICIT_RESULT, { MCP_DISABLED: '1' });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
   });
@@ -299,41 +352,96 @@ describe('cost-ceiling-enforcer.js', () => {
     fs.rmSync(tmpHome, { recursive: true, force: true });
   });
 
-  it('warns on first crossing, then blocks with stopReason (warn-then-block)', () => {
+  // Over-budget session fixture: 200 calls == 2.00 budget units.
+  function overBudgetHome(config) {
     const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-test-'));
-    const sessionsDir = path.join(tmpHome, '.claude', 'commander', 'sessions');
     const configDir = path.join(tmpHome, '.claude', 'commander');
-    fs.mkdirSync(sessionsDir, { recursive: true });
+    fs.mkdirSync(path.join(configDir, 'sessions'), { recursive: true });
+    if (config) fs.writeFileSync(path.join(configDir, 'config.json'), JSON.stringify(config));
+    const costFile = path.join(configDir, 'sessions', 'active-cost-default.json');
+    fs.writeFileSync(costFile, JSON.stringify({ toolCalls: 200, estimatedCost: 2.00 }));
+    return { tmpHome, costFile, configFile: path.join(configDir, 'config.json') };
+  }
 
-    // Set a low ceiling of $1.00 (== 100 tool calls in budget units)
-    fs.writeFileSync(path.join(configDir, 'config.json'), JSON.stringify({ costCeiling: 1.00 }));
-    // Session-keyed budget file over the ceiling
-    const costFile = path.join(sessionsDir, 'active-cost-default.json');
-    fs.writeFileSync(costFile, JSON.stringify({
-      toolCalls: 200,
-      estimatedCost: 2.00,
-    }));
+  it('is off by default: an over-budget session with no ceiling configured is never warned or blocked', () => {
+    const { tmpHome, costFile } = overBudgetHome(null);
+    // 2,000 calls: past the old 1,000-call default as well.
+    fs.writeFileSync(costFile, JSON.stringify({ toolCalls: 2000, estimatedCost: 20.00 }));
+    for (let i = 0; i < 3; i++) {
+      const r = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, { HOME: tmpHome, CLAUDE_SESSION_ID: '' });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.continue, true);
+      assert.equal(r.parsed?.systemMessage, undefined, 'no warning when the ceiling is off');
+      assert.equal(r.parsed?.hookSpecificOutput, undefined, 'no deny when the ceiling is off');
+    }
+    fs.rmSync(tmpHome, { recursive: true, force: true });
+  });
+
+  it('config costCeiling: warns on first crossing, then denies with a readable reason (warn-then-block)', () => {
+    const { tmpHome, costFile, configFile } = overBudgetHome({ costCeiling: 1.00 });
 
     // 1st crossing → visible warning, call allowed through
     const warn = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, { HOME: tmpHome, CLAUDE_SESSION_ID: '' });
     assert.equal(warn.exitCode, 0);
-    assert.notEqual(warn.parsed?.continue, false, 'first crossing should warn, not block');
+    assert.equal(warn.parsed?.continue, true, 'first crossing should warn, not block');
     assert.ok(warn.parsed?.systemMessage?.includes('ceiling'), 'warning should mention the ceiling');
+    assert.ok(warn.parsed.systemMessage.includes(configFile), 'warning names the config file actually read');
     const afterWarn = JSON.parse(fs.readFileSync(costFile, 'utf8'));
     assert.ok(afterWarn.ceilingWarnedAt, 'warning timestamp should be persisted');
 
-    // 2nd call → blocks
+    // 2nd call → PreToolUse deny with a reason; the turn itself continues
     const r = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, { HOME: tmpHome, CLAUDE_SESSION_ID: '' });
     assert.equal(r.exitCode, 0, 'process should exit 0 even when blocking');
-    assert.equal(r.parsed?.continue, false);
-    assert.ok(typeof r.parsed?.stopReason === 'string', 'should have stopReason');
-    assert.ok(r.parsed.stopReason.includes('ceiling'), 'stopReason should mention ceiling');
+    assert.equal(r.parsed?.continue, true, 'never halts the whole turn with continue:false');
+    assert.equal(r.parsed?.stopReason, undefined);
+    const hso = r.parsed?.hookSpecificOutput;
+    assert.equal(hso?.hookEventName, 'PreToolUse');
+    assert.equal(hso?.permissionDecision, 'deny');
+    assert.match(hso.permissionDecisionReason, /tool-call budget ceiling: 200 calls >= 100-call limit/);
+    assert.ok(hso.permissionDecisionReason.includes('CCC_COST_OVERRIDE=1'), 'reason says how to continue');
+    assert.ok(hso.permissionDecisionReason.includes(configFile), 'reason names the config file actually read');
+    assert.equal(r.parsed.systemMessage, hso.permissionDecisionReason, 'user sees the same reason');
 
     // CCC_COST_OVERRIDE=1 → always allowed
     const override = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, { HOME: tmpHome, CLAUDE_SESSION_ID: '', CCC_COST_OVERRIDE: '1' });
     assert.equal(override.exitCode, 0);
     assert.equal(override.parsed?.continue, true, 'override env must bypass the ceiling');
+    assert.equal(override.parsed?.hookSpecificOutput, undefined);
 
+    fs.rmSync(tmpHome, { recursive: true, force: true });
+  });
+
+  it('CCC_COST_CEILING=<n> enables it without config; 0 or off disables a configured ceiling', () => {
+    const { tmpHome } = overBudgetHome(null);
+    const env = { HOME: tmpHome, CLAUDE_SESSION_ID: '', CCC_COST_CEILING: '1.5' };
+    const warn = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, env);
+    assert.match(warn.parsed?.systemMessage || '', /150-call limit/);
+    const deny = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, env);
+    assert.equal(deny.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
+    assert.ok(deny.parsed.hookSpecificOutput.permissionDecisionReason.includes('CCC_COST_CEILING'));
+    fs.rmSync(tmpHome, { recursive: true, force: true });
+
+    for (const off of ['0', 'off']) {
+      const cfg = overBudgetHome({ costCeiling: 1.00 });
+      for (let i = 0; i < 2; i++) {
+        const r = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, { HOME: cfg.tmpHome, CLAUDE_SESSION_ID: '', CCC_COST_CEILING: off });
+        assert.equal(r.parsed?.systemMessage, undefined, `CCC_COST_CEILING=${off} turns it off`);
+        assert.equal(r.parsed?.hookSpecificOutput, undefined);
+      }
+      fs.rmSync(cfg.tmpHome, { recursive: true, force: true });
+    }
+  });
+
+  it('names the lane config file, not ~/.claude, when a lane runs', () => {
+    const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-test-'));
+    const laneDir = path.join(tmpHome, '.claude-ai3', 'commander');
+    fs.mkdirSync(path.join(laneDir, 'sessions'), { recursive: true });
+    fs.writeFileSync(path.join(laneDir, 'config.json'), JSON.stringify({ costCeiling: 1.00 }));
+    fs.writeFileSync(path.join(laneDir, 'sessions', 'active-cost-default.json'), JSON.stringify({ toolCalls: 200, estimatedCost: 2.00 }));
+    const env = { HOME: tmpHome, CLAUDE_CONFIG_DIR: path.join(tmpHome, '.claude-ai3'), CLAUDE_SESSION_ID: '' };
+    const warn = runHook('cost-ceiling-enforcer.js', { tool_name: 'Write' }, env);
+    assert.ok(warn.parsed?.systemMessage?.includes(path.join(laneDir, 'config.json')), warn.parsed?.systemMessage);
+    assert.ok(!warn.parsed.systemMessage.includes('~/.claude/commander'), 'no hard-coded primary-lane path');
     fs.rmSync(tmpHome, { recursive: true, force: true });
   });
 
@@ -357,17 +465,17 @@ describe('cost-ceiling-enforcer.js', () => {
   });
 });
 
-// ---- context-warning.js ----
+// ---- context-guard.js (absorbed context-warning.js, CC-1357) ----
 
-describe('context-warning.js', () => {
+describe('context-guard.js as the UserPromptSubmit context hook', () => {
   it('returns continue:true when no context info available', () => {
-    const r = runHook('context-warning.js', { prompt: 'hello' });
+    const r = runHook('context-guard.js', { prompt: 'hello' });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
   });
 
   it('emits warning when context is at 5% remaining (95% used)', () => {
-    const r = runHook('context-warning.js', { prompt: 'hello' }, {
+    const r = runHook('context-guard.js', { prompt: 'hello' }, {
       CLAUDE_CONTEXT_USED_PCT: '95',
     });
     assert.equal(r.exitCode, 0);
@@ -379,16 +487,16 @@ describe('context-warning.js', () => {
   });
 
   it('emits warning when context is at 30% remaining (70% used)', () => {
-    const r = runHook('context-warning.js', { prompt: 'hello' }, {
+    const r = runHook('context-guard.js', { prompt: 'hello' }, {
       CLAUDE_CONTEXT_USED_PCT: '70',
     });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
   });
 
-  it('respects CC_COACH_DISABLE=1', () => {
-    const r = runHook('context-warning.js', { prompt: 'hello' }, {
-      CC_COACH_DISABLE: '1',
+  it('respects CC_CONTEXT_GUARD_DISABLE=1', () => {
+    const r = runHook('context-guard.js', { prompt: 'hello' }, {
+      CC_CONTEXT_GUARD_DISABLE: '1',
       CLAUDE_CONTEXT_USED_PCT: '95',
     });
     assert.equal(r.exitCode, 0);
@@ -398,7 +506,7 @@ describe('context-warning.js', () => {
   });
 
   it('returns continue:true on malformed input', () => {
-    const hookPath = path.join(HOOKS_DIR, 'context-warning.js');
+    const hookPath = path.join(HOOKS_DIR, 'context-guard.js');
     const result = spawnSync('node', [hookPath], {
       input: 'bad input',
       encoding: 'utf-8',
@@ -411,7 +519,7 @@ describe('context-warning.js', () => {
   });
 
   it('does not make network calls (MCP_DISABLED=1)', () => {
-    const r = runHook('context-warning.js', {}, { MCP_DISABLED: '1' });
+    const r = runHook('context-guard.js', {}, { MCP_DISABLED: '1' });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
   });
@@ -534,6 +642,7 @@ describe('secret-leak-guard.js', () => {
     });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('returns continue:true for non-scanned tool (Read)', () => {
@@ -543,6 +652,7 @@ describe('secret-leak-guard.js', () => {
     });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('blocks Write with AWS access key', () => {
@@ -554,9 +664,9 @@ describe('secret-leak-guard.js', () => {
       },
     });
     assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.continue, false);
-    assert.ok(typeof r.parsed?.stopReason === 'string');
-    assert.ok(r.parsed.stopReason.includes('AWS') || r.parsed.stopReason.includes('secret'));
+    assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
+    assert.ok(typeof r.parsed?.hookSpecificOutput?.permissionDecisionReason === 'string');
+    assert.ok(r.parsed.hookSpecificOutput.permissionDecisionReason.includes('AWS') || r.parsed.hookSpecificOutput.permissionDecisionReason.includes('secret'));
   });
 
   it('blocks Bash command with Stripe live key', () => {
@@ -566,7 +676,7 @@ describe('secret-leak-guard.js', () => {
       tool_input: { command: 'curl -H "Authorization: Bearer ' + ['sk', 'live', 'F'.repeat(24)].join('_') + '" https://api.stripe.com' },
     });
     assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.continue, false);
+    assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('blocks Write with Anthropic API key', () => {
@@ -578,7 +688,7 @@ describe('secret-leak-guard.js', () => {
       },
     });
     assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.continue, false);
+    assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('blocks Write with GitHub PAT', () => {
@@ -592,7 +702,7 @@ describe('secret-leak-guard.js', () => {
       },
     });
     assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.continue, false);
+    assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('allows Write with allowlisted test token', () => {
@@ -605,6 +715,51 @@ describe('secret-leak-guard.js', () => {
     });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
+  });
+
+  it('an allowlisted placeholder elsewhere in the input does not exempt a real key', () => {
+    const realKey = 'sk-ant-api03-' + 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLM';
+    for (const content of [
+      `STRIPE_KEY=REPLACE_ME\nANTHROPIC_API_KEY=${realKey}\n`,
+      `const testKey = "sk_test_example";\nconst key = "${realKey}";\n`,
+    ]) {
+      const r = runHook('secret-leak-guard.js', { tool_name: 'Write', tool_input: { file_path: '/tmp/.env', content } });
+      assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny', content);
+    }
+  });
+
+  it('scans PowerShell commands like Bash', () => {
+    const r = runHook('secret-leak-guard.js', {
+      tool_name: 'PowerShell',
+      tool_input: { command: '$env:GH_TOKEN = "' + ['ghp', 'A'.repeat(36)].join('_') + '"' },
+    });
+    assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
+  });
+
+  it('allows full git commit SHAs that contain ac + 32 hex (not a Twilio SID)', () => {
+    const sha = '3f' + 'ac' + '0123456789abcdef0123456789abcdef' + '1234';
+    assert.equal(sha.length, 40);
+    for (const command of [`git show ${sha}`, `git push origin ${sha}:refs/heads/x`, `echo NEW HEAD: ${sha}`]) {
+      const r = runHook('secret-leak-guard.js', { tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.continue, true, command);
+      assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny', command);
+    }
+    const digest = 'ac' + 'f'.repeat(62);
+    const r = runHook('secret-leak-guard.js', { tool_name: 'Write', tool_input: { file_path: '/tmp/x', content: `sha256: ${digest}\n` } });
+    assert.equal(r.parsed?.continue, true, 'sha256 digest allowed');
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny', 'sha256 digest allowed');
+  });
+
+  it('still blocks a real-shaped Twilio Account SID, even next to a SHA', () => {
+    const sid = 'AC' + '0123456789abcdef0123456789abcdef';
+    const sha = 'ac' + '0123456789abcdef0123456789abcdef' + '123456';
+    for (const command of [`curl -u ${sid}:x https://api.twilio.com`, `git show ${sha} && echo ${sid}`]) {
+      const r = runHook('secret-leak-guard.js', { tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny', command);
+      assert.match(r.parsed?.hookSpecificOutput?.permissionDecisionReason || '', /Twilio/);
+    }
   });
 
   it('returns continue:true on malformed input', () => {
@@ -624,6 +779,7 @@ describe('secret-leak-guard.js', () => {
     const r = runHook('secret-leak-guard.js', {});
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   it('does not make network calls (MCP_DISABLED=1)', () => {
@@ -633,6 +789,7 @@ describe('secret-leak-guard.js', () => {
     }, { MCP_DISABLED: '1' });
     assert.equal(r.exitCode, 0);
     assert.equal(r.parsed?.continue, true);
+    assert.notEqual(r.parsed?.hookSpecificOutput?.permissionDecision, 'deny');
   });
 });
 
@@ -645,7 +802,7 @@ describe('hooks work with MCP_DISABLED=1 (airplane mode)', () => {
     'post-compact-recovery.js',
     'subagent-start-tracker.js',
     'cost-ceiling-enforcer.js',
-    'context-warning.js',
+    'context-guard.js',
     'stale-claude-md-nudge.js',
     'secret-leak-guard.js',
   ];
@@ -674,7 +831,7 @@ describe('v4 hook files exist', () => {
     'post-compact-recovery.js',
     'subagent-start-tracker.js',
     'cost-ceiling-enforcer.js',
-    'context-warning.js',
+    'context-guard.js',
     'stale-claude-md-nudge.js',
     'secret-leak-guard.js',
   ];
@@ -697,7 +854,7 @@ describe('v4 hook syntax', () => {
       'post-compact-recovery.js',
       'subagent-start-tracker.js',
       'cost-ceiling-enforcer.js',
-      'context-warning.js',
+      'context-guard.js',
       'stale-claude-md-nudge.js',
       'secret-leak-guard.js',
     ];

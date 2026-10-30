@@ -4,7 +4,8 @@
 /**
  * ccc-doc-sync/sync.js
  *
- * Reads contract.json + package.json for canonical counts/version.
+ * Reads contract.json + package.json for canonical counts/version, and skill
+ * frontmatter for the model-visible / on-demand split.
  * Applies declarative patterns from patterns.json to each target file.
  *
  * Usage:
@@ -28,13 +29,32 @@ const APPLY = args.includes('--apply');
 const CHECK = args.includes('--check') || !APPLY;
 
 // ── load sources ─────────────────────────────────────────────────────────────
+// Skills with `disable-model-invocation: true` load on demand; the rest are
+// model-visible. Read from frontmatter on disk, not from a hand-kept number.
+const SKILLS_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'skills');
+function countOnDemandSkills() {
+  let n = 0;
+  for (const name of fs.readdirSync(SKILLS_DIR)) {
+    const file = path.join(SKILLS_DIR, name, 'SKILL.md');
+    if (!fs.existsSync(file)) continue;
+    const fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(fs.readFileSync(file, 'utf8'));
+    if (fm && /^disable-model-invocation:\s*["']?true["']?\s*$/m.test(fm[1])) n++;
+  }
+  return n;
+}
+
 function loadSources() {
   const contract = JSON.parse(fs.readFileSync(CONTRACT, 'utf8'));
   const pkg = JSON.parse(fs.readFileSync(PKG, 'utf8'));
+  const onDemand = countOnDemandSkills();
   return {
     plugin_skills: String(contract.plugin_skills),
     specialist_agents: String(contract.specialist_agents),
+    lifecycle_hooks: String(contract.lifecycle_hooks),
     hook_handlers: String(contract.hook_handlers),
+    bundled_mcp_servers: String(contract.bundled_mcp_servers),
+    visible_skills: String(contract.plugin_skills - onDemand),
+    on_demand_skills: String(onDemand),
     version: pkg.version,
   };
 }
@@ -110,7 +130,8 @@ function renderTable(results, vars) {
   const lines = [
     '',
     '  ccc-doc-sync',
-    `  Sources: contract.json plugin_skills=${vars.plugin_skills}  specialist_agents=${vars.specialist_agents}  hook_handlers=${vars.hook_handlers}  version=${vars.version}`,
+    `  Sources: contract.json plugin_skills=${vars.plugin_skills}  specialist_agents=${vars.specialist_agents}  lifecycle_hooks=${vars.lifecycle_hooks}  hook_handlers=${vars.hook_handlers}  bundled_mcp=${vars.bundled_mcp_servers}  version=${vars.version}`,
+    `  Skill frontmatter: visible=${vars.visible_skills}  on_demand=${vars.on_demand_skills}`,
     '',
     `  ${header}`,
     `  ${sep}`,

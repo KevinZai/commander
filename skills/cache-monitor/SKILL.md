@@ -59,7 +59,7 @@ find ~/.openclaw/agents/*/sessions/ -name "*.jsonl" -mtime -1 -exec \
 ## Summary
 - Period: Last 24h / 7d / 30d
 - Total cost: $X.XX
-- Budget remaining: $XX.XX of $100/month
+- Budget remaining: $XX.XX of \$100/month
 - Cache hit rate: XX%
 
 ## By Agent (top 10)
@@ -72,7 +72,7 @@ find ~/.openclaw/agents/*/sessions/ -name "*.jsonl" -mtime -1 -exec \
 
 ## Alerts
 - 🔴 Agents with <30% cache rate (settings misconfigured?)
-- 🟡 Agents with cost >$5/day
+- 🟡 Agents with cost >\$5/day
 - ✅ Well-optimized agents (>70% cache rate)
 
 ## Recommendations

@@ -2,10 +2,12 @@
 
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
 const crypto = require('crypto');
+const lane = require('./lib/lane');
 
-const COMMANDER_DIR = path.join(os.homedir(), '.claude', 'commander');
+// Per-lane state dir (<config dir>/commander); reads fall back to the legacy
+// shared ~/.claude/commander copy until this lane writes its own.
+const COMMANDER_DIR = lane.resolveLane().stateDir;
 const STATE_PATH = path.join(COMMANDER_DIR, 'state.json');
 const SESSIONS_DIR = path.join(COMMANDER_DIR, 'sessions');
 const HISTORY_PATH = path.join(COMMANDER_DIR, 'history.json');
@@ -38,9 +40,10 @@ function defaultState() {
 
 function loadState() {
   ensureDirs();
-  if (!fs.existsSync(STATE_PATH)) return defaultState();
+  const file = lane.readable('state.json');
+  if (!fs.existsSync(file)) return defaultState();
   try {
-    return JSON.parse(fs.readFileSync(STATE_PATH, 'utf8'));
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch {
     return defaultState();
   }
@@ -116,8 +119,16 @@ function createSession(metadata) {
   return session;
 }
 
+// A session this lane has not rewritten yet may still be in the legacy dir.
+function sessionFileToRead(id) {
+  const own = path.join(SESSIONS_DIR, `${id}.json`);
+  if (fs.existsSync(own)) return own;
+  const legacy = path.join(lane.legacyStateDir(), 'sessions', `${id}.json`);
+  return fs.existsSync(legacy) ? legacy : own;
+}
+
 function getSession(id) {
-  const p = path.join(SESSIONS_DIR, `${id}.json`);
+  const p = sessionFileToRead(id);
   if (!fs.existsSync(p)) return null;
   try {
     return JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -129,6 +140,7 @@ function getSession(id) {
 function updateSession(id, patch) {
   const session = getSession(id);
   if (!session) return null;
+  ensureDirs();
   const updated = { ...session, ...patch };
   fs.writeFileSync(
     path.join(SESSIONS_DIR, `${id}.json`),
@@ -141,6 +153,7 @@ function updateSession(id, patch) {
 function completeSession(id, outcome) {
   const session = getSession(id);
   if (!session) return null;
+  ensureDirs();
   const endTime = new Date().toISOString();
   const duration = Math.round(
     (new Date(endTime) - new Date(session.startTime)) / 1000
@@ -175,24 +188,30 @@ function completeSession(id, outcome) {
   return completed;
 }
 
+// Session files visible to this lane: its own plus legacy ones it has not
+// rewritten (the lane copy wins), newest first.
+function sessionFiles() {
+  const byName = new Map();
+  const legacy = path.join(lane.legacyStateDir(), 'sessions');
+  for (const dir of legacy === SESSIONS_DIR ? [SESSIONS_DIR] : [legacy, SESSIONS_DIR]) {
+    let names = [];
+    try { names = fs.readdirSync(dir).filter(f => f.endsWith('.json')); } catch { continue; }
+    for (const f of names) {
+      const file = path.join(dir, f);
+      let mtime = 0;
+      try { mtime = fs.statSync(file).mtimeMs; } catch { continue; }
+      byName.set(f, { f, file, mtime });
+    }
+  }
+  return [...byName.values()].sort((a, b) => (b.mtime - a.mtime) || b.f.localeCompare(a.f));
+}
+
 function listSessions(limit = 10) {
   ensureDirs();
   try {
-    const files = fs.readdirSync(SESSIONS_DIR)
-      .filter(f => f.endsWith('.json'))
-      .sort((a, b) => {
-        try {
-          const aMtime = fs.statSync(path.join(SESSIONS_DIR, a)).mtimeMs;
-          const bMtime = fs.statSync(path.join(SESSIONS_DIR, b)).mtimeMs;
-          return bMtime - aMtime;
-        } catch {
-          return b.localeCompare(a);
-        }
-      })
-      .slice(0, limit);
-    return files.map(f => {
+    return sessionFiles().slice(0, limit).map(({ file }) => {
       try {
-        const parsed = JSON.parse(fs.readFileSync(path.join(SESSIONS_DIR, f), 'utf8'));
+        const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
         return (parsed && typeof parsed === 'object') ? parsed : null;
       } catch {
         return null;
@@ -214,9 +233,10 @@ function getActiveSession() {
 function appendHistory(session) {
   ensureDirs();
   let history = [];
-  if (fs.existsSync(HISTORY_PATH)) {
+  const historyFile = lane.readable('history.json');
+  if (fs.existsSync(historyFile)) {
     try {
-      history = JSON.parse(fs.readFileSync(HISTORY_PATH, 'utf8'));
+      history = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
     } catch {
       history = [];
     }

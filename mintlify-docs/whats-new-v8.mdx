@@ -11,7 +11,7 @@ description: "Commander 8 is a full revamp for the October 2026 platform: /ccc-c
 
 | | v8.0.0 |
 |---|---|
-| Plugin skills | 84 (new: `/ccc-codex`) |
+| Plugin skills | new: `/ccc-codex` (84 at v8.0.0; current count in SKILLS-INDEX.md) |
 | Specialist agents | 22, on model aliases |
 | Lifecycle hooks | 30 events × 51 handlers (7 new events) |
 | Plugin workflows | 6, run as `/commander:<name>` |
@@ -26,7 +26,7 @@ One skill covers the whole Codex CLI: `doctor`, model selection, plugins and mar
 
 ## Commander HUD mod
 
-A Claude Mod that draws a band above the prompt with the Fable Method state, running agents, the session's tool-call budget and an update pill, plus a `/ccc-hud` command that runs without a model turn.
+A Claude Mod that draws a band above the prompt with the Commander Method state, running agents, the session's tool-call budget and an update pill, plus a `/ccc-hud` command that runs without a model turn.
 
 - **Observe-only.** No tool approval, no model calls, no network; it reads only `~/.claude/commander/`.
 - **Requires** Claude Code 2.1.287+ (Desktop 2.1.286+). Everywhere else — VS Code, `claude -p`, cloud sessions, older builds — Commander runs hooks-only and nothing breaks.
@@ -39,7 +39,7 @@ Six dynamic workflows ship inside the plugin and run directly as `/commander:<na
 |---|---|
 | `/commander:ccc-audit` | Repo health audit — one finder per dimension, every finding verified |
 | `/commander:ccc-deep-review` | Branch review over four weighted dimensions |
-| `/commander:ccc-fleet` | Fan-out, pipeline, judge panel or debate |
+| `/commander:ccc-fleet-run` | Fan-out, pipeline, judge panel or debate |
 | `/commander:ccc-migrate` | Modernized: pipeline by default, verifiers told to refute, each change verified in its own worktree |
 | `/commander:ccc-prompt-audit` | **New.** Checks every skill and agent against the prompt standard |
 | `/commander:ccc-release-audit` | **New.** Runs every release gate and returns go or no-go with blockers |
@@ -91,7 +91,7 @@ Agents use aliases and current subagent frontmatter (`skills` preloads, `disallo
 - **`/ccc-orchestrate`** executes on `gpt-6-astra`, `gpt-6.1-sol`, `gpt-6-luna`, Codex Cloud or a Sonnet subagent via `codex exec --json --output-last-message`.
 - **Codex mirror** carries the 12 Codex hook events, ships timeouts in seconds, emits valid TOML subagents and never copies `mods/`, `evals/` or `workflows/`.
 - **Ultracode** follows the platform: `/effort ultracode` is its own toggle and no longer forces a reasoning level. See [Ultracode](/ultracode).
-- **Rules.** The Fable Method keeps its 12 pillars on current primitives; settings templates use the `opus` alias and auto permission mode.
+- **Rules.** The Commander Method keeps its 12 pillars on current primitives; settings templates use the `opus` alias and auto permission mode.
 - **Vendors** refreshed to upstream heads, plus `anthropics/claude-code-playground` (sample mods, Apache-2.0) as the 20th.
 - **`/ccc-doctor`** checks agent routing by alias and flags superseded pinned ids as upgrade candidates.
 

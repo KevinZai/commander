@@ -55,6 +55,16 @@ The careful-guard hook is a **best-effort safety net**, not a security boundary.
 2. OS-level file permissions
 3. Code review processes
 
+## rtk-rewrite.sh and "Truth over cache"
+
+`rtk-rewrite.sh` and `headroom-rtk-rewrite.sh` rewrite Bash commands to their `rtk` equivalents (`git status` becomes `rtk git status`), and RTK filters and summarizes the output to save tokens. The Fable method's pillar 6 (Truth over cache, `rules/fable-method.md`) says to verify against the authoritative source, not a mirror or wrapper, and a filtered summary is that kind of wrapper.
+
+How the two fit together:
+
+- Routine commands: the RTK summary is fine.
+- Evidence: a failing test you are diagnosing, a count you will report, or repo state before a destructive step. Read the unfiltered output. RTK does not rewrite a command that calls the binary by absolute path (`/usr/bin/git status`): `rtk rewrite` exits 1, so the hook passes it through unchanged (checked with rtk 1.0.1).
+- To see what the hook would do to a command, run `rtk rewrite "<command>"`. Exit 0 or 3 prints the rewrite; exit 1 means the command passes through.
+
 ## Installation
 
 The installer (`install.sh`) copies all hooks to `~/.claude/hooks/`. If you have ECC, use `hooks.json`. If not, rename `hooks-standalone.json` to the hooks key in your `settings.json`.

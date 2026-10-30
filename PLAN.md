@@ -184,7 +184,7 @@ The current `apps/mcp-server-cloud/` is production-ready scaffold. Stage 4 itera
 Current status: code scaffolded in beta.3 (`commander/cowork-plugin/lib/mcp-passthrough.js`). Activates automatically once user adds `.claude/mcp.json` entry for `cc-commander`.
 
 **After Stage 3 deploy:**
-1. Update `commander/cowork-plugin/MCP.md` with live endpoint URL (`mcp.commanderplugin.com/sse`)
+1. Update `commander/cowork-plugin/MCP.md` with live endpoint URL (`https://mcp.commanderplugin.com/mcp`, Streamable HTTP + Bearer; there is no `/sse`). Done 2026-10-23
 2. Add beta tester instructions: copy the example mcp config + paste license key from `/beta` signup
 3. Monitor passthrough logs (`~/.claude/commander/logs/passthrough.jsonl`) to confirm fallback never fires for good reasons
 

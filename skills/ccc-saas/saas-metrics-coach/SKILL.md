@@ -86,13 +86,13 @@ Fix it this month: ...
 
 **Example 1 — Partial data**
 
-Input: "MRR is $80k, we have 200 customers, about 3 cancel each month."
+Input: "MRR is \$80k, we have 200 customers, about 3 cancel each month."
 
-Expected output: Calculates ARPA ($400), monthly churn (1.5%), ARR ($960k), LTV estimate. Flags CAC and growth rate as missing. Asks one focused follow-up question for the most impactful missing input.
+Expected output: Calculates ARPA (\$400), monthly churn (1.5%), ARR (\$960k), LTV estimate. Flags CAC and growth rate as missing. Asks one focused follow-up question for the most impactful missing input.
 
 **Example 2 — Critical scenario**
 
-Input: "MRR $22k (was $23.5k), 80 customers, lost 9, gained 6, spent $15k on ads, 65% gross margin."
+Input: "MRR \$22k (was \$23.5k), 80 customers, lost 9, gained 6, spent \$15k on ads, 65% gross margin."
 
 Expected output: Flags negative MoM growth (-6.4%), critical churn (11.25%), and LTV:CAC of 0.64:1 as CRITICAL. Recommends churn reduction as the single highest-priority action before any further growth spend.
 

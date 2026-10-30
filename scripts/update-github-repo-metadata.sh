@@ -3,10 +3,11 @@ set -euo pipefail
 REPO="KevinZai/commander"
 
 # Description
-gh repo edit "$REPO" --description "Claude Code Desktop plugin · 60 skills + 22 sub-agents + 9 hooks + 2 bundled MCP · Guided AI PM for devs. Free for now."
+# Keep in step with .parity-extra.txt (scanned by scripts/check-parity.js).
+gh repo edit "$REPO" --description "CC Commander · guided AI PM plugin for Claude Code · 93 skills (32 model-visible, 61 on demand) + 22 sub-agents + 30 hooks + 2 bundled MCP · the Commander Method: 12 enforceable gates · telemetry opt-in · MIT"
 
 # Homepage
-gh repo edit "$REPO" --homepage "https://kevinzai.github.io/cc-commander"
+gh repo edit "$REPO" --homepage "https://commanderplugin.com"
 
 # Topics
 gh repo edit "$REPO" \

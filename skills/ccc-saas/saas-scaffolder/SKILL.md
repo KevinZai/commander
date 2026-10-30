@@ -131,7 +131,7 @@ Plugins:            [ ] Organization (multi-tenant)
 
 ### 4. Billing Setup
 ```
-Billing model:      [ ] Flat-rate subscription (e.g., $29/mo)
+Billing model:      [ ] Flat-rate subscription (e.g., \$29/mo)
                     [ ] Tiered plans (Free, Pro, Enterprise)
                     [ ] Usage-based (metered)
                     [ ] Per-seat pricing

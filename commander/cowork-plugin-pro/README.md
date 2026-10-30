@@ -1,11 +1,6 @@
-# CC Commander Pro — Premium Skill Packs
+# CC Commander Pro skill packs (paused)
 
-This directory contains the Pro tier skill collection for CC Commander.
-
-All packs require a valid Pro license (monthly, annual, or lifetime) to activate.
-License validation is handled by `commander/cowork-plugin/lib/license.js`.
-
-## Packs (5 total — scaffolded, shipping in v4.2)
+**Status: paused.** The packs below are scaffolds: skill manifests and capability outlines only. They are not implemented, not sold, have no release date, and are not part of the published plugin. Whether to finish, archive or replace them is an open product decision; until it is made, nothing here changes.
 
 | Pack | Skill name | Focus |
 |------|-----------|-------|
@@ -15,21 +10,6 @@ License validation is handled by `commander/cowork-plugin/lib/license.js`.
 | `observability-pack` | `ccc-pro-observability` | OpenTelemetry, Honeycomb, Datadog, SLO alerts |
 | `chaos-pack` | `ccc-pro-chaos` | Fault injection, circuit breakers, resilience testing |
 
-## Status
+No license gating is enforced: `commander/cowork-plugin/hooks/license-check.js` is an explicit no-op. The scaffolds' text describes an `isPro()` check that is not wired to anything.
 
-All 5 packs are currently **scaffolded** — skill manifests and capability outlines are complete.
-Full implementation ships in **v4.2** (target: 2026-Q3).
-
-Early access for lifetime license holders will open 2 weeks before the public release.
-
-## License requirement
-
-Each skill calls `isPro()` from `commander/cowork-plugin/lib/license.js` on invocation.
-Non-Pro sessions receive a prompt directing to [commanderplugin.com/pricing](https://commanderplugin.com/pricing).
-
-To activate your license, see the [activation guide](https://commanderplugin.com/docs/plugin/license-activation).
-
-## Not included in Starter
-
-These packs are the primary Pro differentiator. Starter tier includes all 60 plugin skills
-in `commander/cowork-plugin/skills/` — those will never be paywalled.
+The published plugin is `commander/cowork-plugin/`; all 93 plugin skills there are included with every install.

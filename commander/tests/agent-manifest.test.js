@@ -65,6 +65,17 @@ agentFiles.forEach(function(agentFile) {
     );
   });
 
+  // Documented set: code.claude.com/docs/en/sub-agents (frontmatter `color`).
+  test('agent ' + label + ' uses a documented color', function() {
+    var parsed = parseFrontmatter(agentPath);
+    if (!parsed.fm.color) return;
+    var allowed = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan'];
+    assert.ok(
+      allowed.indexOf(parsed.fm.color) !== -1,
+      label + ': color "' + parsed.fm.color + '" is not one of ' + allowed.join(', ')
+    );
+  });
+
   test('agent ' + label + ' has required field: description', function() {
     var parsed = parseFrontmatter(agentPath);
     assert.ok(

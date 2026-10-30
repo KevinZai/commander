@@ -81,7 +81,7 @@ The RAG (Retrieval-Augmented Generation) Architect skill provides comprehensive 
 #### Pinecone
 - **Managed service**: Fully hosted, auto-scaling
 - **Features**: Metadata filtering, hybrid search, real-time updates
-- **Pricing**: $70/month for 1M vectors (1536 dim), pay-per-use scaling
+- **Pricing**: \$70/month for 1M vectors (1536 dim), pay-per-use scaling
 - **Best for**: Production applications, when managed service is preferred
 - **Cons**: Vendor lock-in, costs can scale quickly
 

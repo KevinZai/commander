@@ -42,9 +42,15 @@ Use a legacy model only when the user explicitly asks for it; otherwise use the 
 | Claude Sonnet 4.6 | `claude-sonnet-4-6`                              | `claude-sonnet-5-5`  |
 | Claude Haiku 4.5  | `claude-haiku-4-5` (`claude-haiku-4-5-20251001`) | `claude-haiku-5-5`   |
 
+## Deprecated Models (still served until retirement — migrate now)
+
+| Friendly Name     | Model ID                     | Retires on the Claude API | Replacement         |
+|-------------------|------------------------------|---------------------------|---------------------|
+| Claude Sonnet 4.5 | `claude-sonnet-4-5-20250929` | 2026-11-30                | `claude-sonnet-5-5` |
+
 ## Retired or Unlisted Models
 
-Any model ID not in the two tables above is retired or unverified. Do not send it. Examples whose retirement dates have passed: `claude-opus-4-1-20250805`, `claude-opus-4-20250514`, `claude-sonnet-4-20250514`, every `claude-3-*` and `claude-2.*` ID. If a user needs a model not listed here, WebFetch the Models Overview page first.
+Any model ID not in the tables above is retired or unverified. Do not send it. Examples whose retirement dates have passed: `claude-opus-4-1-20250805`, `claude-opus-4-20250514`, `claude-sonnet-4-20250514`, every `claude-3-*` and `claude-2.*` ID. If a user needs a model not listed here, WebFetch the Models Overview page first.
 
 ## Resolving User Requests
 

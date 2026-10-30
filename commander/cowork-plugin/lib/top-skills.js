@@ -24,8 +24,8 @@
  * Core free forever — no license check, no tier gating.
  */
 import { readFile } from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
+import { readableStateDir } from './lane-state.js';
 
 const MAX_JSONL_LINES = 5000; // Item 6 bounded-scan cap
 const TOP_SKILLS_CAP = 10;
@@ -34,8 +34,7 @@ const WINDOW_7D_MS = 7 * DAY_MS;
 const WINDOW_30D_MS = 30 * DAY_MS;
 
 function defaultBaseDir() {
-  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  return path.join(home, '.claude', 'commander');
+  return readableStateDir();
 }
 
 function skillRunsFile(baseDir) {

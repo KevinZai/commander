@@ -37,14 +37,14 @@ Every section follows: **Headline → Data → Narrative → Ask/Next**
 - Sentence 3: Where we're going next quarter
 
 *Bad:* "We had a good quarter with lots of progress across all areas."
-*Good:* "We closed Q3 at $2.4M ARR (+22% QoQ), signed our largest enterprise contract, and enter Q4 with 14-month runway. The strategic shift to mid-market is working — ACV up 40% and sales cycle down 3 weeks. Q4 priority: close the $3M Series A and hit $2.8M ARR."
+*Good:* "We closed Q3 at \$2.4M ARR (+22% QoQ), signed our largest enterprise contract, and enter Q4 with 14-month runway. The strategic shift to mid-market is working — ACV up 40% and sales cycle down 3 weeks. Q4 priority: close the \$3M Series A and hit \$2.8M ARR."
 
 ### 2. Key Metrics Dashboard (COO)
 **6-8 metrics max. Use a table.**
 
 | Metric | This Period | Last Period | Target | Status |
 |--------|-------------|-------------|--------|--------|
-| ARR | $2.4M | $1.97M | $2.3M | ✅ |
+| ARR | \$2.4M | \$1.97M | \$2.3M | ✅ |
 | MoM growth | 8.1% | 7.2% | 7.5% | ✅ |
 | Burn multiple | 1.8x | 2.1x | <2x | ✅ |
 | NRR | 112% | 108% | >110% | ✅ |
@@ -69,7 +69,7 @@ Pick metrics the board actually tracks. Swap out anything they've said they don'
 - Forecast: next quarter with confidence level
 - Top 3 deals: name/amount/close date/risk
 
-**The forecast must have a confidence level.** "We expect $2.8M" is weak. "High confidence $2.6M, upside to $2.9M if two late-stage deals close" is useful.
+**The forecast must have a confidence level.** "We expect \$2.8M" is weak. "High confidence \$2.6M, upside to \$2.9M if two late-stage deals close" is useful.
 
 ### 5. Product Update (CPO)
 - Shipped this quarter: 3-5 bullets, user impact for each
@@ -143,11 +143,11 @@ This works for good news AND bad news. It's credible because it acknowledges rea
 Never bury it. Boards find out eventually. Finding out late makes it worse.
 
 **Framework:**
-1. **State it plainly** — "We missed Q3 ARR target by $300K (12% gap)"
+1. **State it plainly** — "We missed Q3 ARR target by \$300K (12% gap)"
 2. **Own the cause** — "Primary driver was longer-than-expected sales cycle in enterprise segment"
 3. **Show you understand it** — "We analyzed 8 lost/stalled deals; the pattern is X"
 4. **Present the fix** — "We've made 3 changes: [specific, dated changes]"
-5. **Update the forecast** — "Revised Q4 target is $2.6M; here's the bottom-up build"
+5. **Update the forecast** — "Revised Q4 target is \$2.6M; here's the bottom-up build"
 
 **What NOT to do:**
 - Don't lead with good news to soften bad news — boards notice and distrust the framing

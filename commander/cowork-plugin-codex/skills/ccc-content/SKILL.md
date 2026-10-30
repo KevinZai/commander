@@ -13,7 +13,7 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[blog | social | email | landing | docs] [topic] [--power]"
 model: inherit
-effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-content — draft it in three questions
@@ -46,7 +46,7 @@ If a marketing context file exists, Read it and apply its voice, audience and ba
 
 Skip any question the argument already answers. Ask at most three:
 
-**Question 1 — Content type.** AskUserQuestion, header "CC Commander · Content", question "What kind of content are we creating?". Put the best match for the request first, marked 🟢 (default: blog post; a pasted URL means social repurposing):
+**Question 1 — Content type.** AskUserQuestion, header "Content", question "What kind of content are we creating?". Put the best match for the request first, marked 🟢 (default: blog post; a pasted URL means social repurposing):
 
 - 📝 Blog post or article — long form: tutorial, opinion, how-to, case study.
 - 🌐 Social posts — X thread, LinkedIn post, Instagram caption, with per-platform variants.

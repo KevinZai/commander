@@ -1,4 +1,4 @@
-# The Fable Method
+# The Commander Method
 
 Canonical CC Commander operating doctrine: twelve gates that make any model produce frontier-shaped results. Referenced by `CLAUDE.md.template`, `/ccc-fable`, `rules/workflow-first.md`, and every skill footer that touches planning, delegation, or verification.
 

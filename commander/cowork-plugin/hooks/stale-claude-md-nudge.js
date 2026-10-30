@@ -25,7 +25,7 @@
 import { stat, mkdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname, basename, isAbsolute } from 'node:path';
-import { homedir } from 'node:os';
+import { stateDir } from '../lib/lane-state.js';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { emitUser } from './lib/emit.mjs';
@@ -45,7 +45,7 @@ function looksLikeCodeRepo(cwd) {
 async function onceOnlyToday(env, cwd) {
   // Once-per-project-per-day marker; returns false if already nudged today.
   try {
-    const markerDir = join(env.HOME || homedir(), '.claude', 'commander');
+    const markerDir = stateDir(env);
     const projectHash = createHash('sha256').update(cwd).digest('hex').slice(0, 12);
     const today = new Date().toISOString().slice(0, 10);
     const markerFile = join(markerDir, `claudemd-nudge-${projectHash}-${today}`);

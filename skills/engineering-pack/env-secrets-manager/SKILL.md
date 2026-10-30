@@ -322,8 +322,8 @@ export const config = {
 FAIL=0
 
 check() {
-  local label="$1"
-  local pattern="$2"
+  local label="\$1"
+  local pattern="\$2"
   local matches
 
   matches=$(git diff --cached -U0 2>/dev/null | grep "^+" | grep -vE "^(\+\+\+|#|\/\/)" | \
@@ -475,7 +475,7 @@ git log --all -p --no-color | grep -A2 -B2 "AKIA\|sk_live_\|SECRET"
 
 # Check if secret is in any open PRs
 gh pr list --state open | while read pr; do
-  gh pr diff $(echo $pr | awk '{print $1}') | grep -E "AKIA|sk_live_" && echo "Found in PR: $pr"
+  gh pr diff $(echo $pr | awk '{print \$1}') | grep -E "AKIA|sk_live_" && echo "Found in PR: $pr"
 done
 ```
 
@@ -588,7 +588,7 @@ eval $(aws ssm get-parameters-by-path \
   --with-decryption \
   --query "Parameters[*].[Name,Value]" \
   --output text | \
-  awk '{split($1,a,"/"); print "export " a[length(a)] "=\"" $2 "\""}')
+  awk '{split(\$1,a,"/"); print "export " a[length(a)] "=\"" \$2 "\""}')
 
 # In Node.js at startup
 # Use @aws-sdk/client-ssm to pull params before server starts

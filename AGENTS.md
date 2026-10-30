@@ -17,7 +17,7 @@ CC Commander is a PM and orchestration layer for Claude Code and Codex. The prim
 | `commander/cowork-plugin/skills/<name>/SKILL.md` | Plugin skills (`/ccc-*`) |
 | `commander/cowork-plugin/agents/*.md` | Plugin subagents |
 | `commander/cowork-plugin/hooks/` | `hooks.json` and handler scripts |
-| `commander/cowork-plugin/rules/` | Fable Method, workflow rules, common rules, personas |
+| `commander/cowork-plugin/rules/` | Commander Method (`fable-method.md`), workflow rules, common rules, personas |
 | `commander/cowork-plugin/workflows/` | Plugin workflows (`/commander:<name>`) |
 | `commander/cowork-plugin/mods/` | Claude Code mods |
 | `commander/adapters/codex/` | Codex translation layer used by the build |
@@ -66,3 +66,5 @@ node --test tests/hooks.test.js               # after hook changes
 ## Completion
 
 Define the deliverable and acceptance criteria for substantial work, carry it through implementation and checks, and report what changed, what ran, what passed or failed, and what remains unverified. Planning-only and review-only requests end with the plan or review.
+
+CI process ([CP-GIT-007/008, CP-LN-010](https://github.com/kzicherman/clawd/blob/main/shared/coordinator/control-plane/rules.yaml)): full local suite + lint green before push; push once per ticket batch; ci.yml and the Claude review skip drafts (lighthouse.yml still runs on docs/** PRs); never rerun red CI; Superfleet batches 5-15 tickets per session.

@@ -9,8 +9,7 @@ allowed-tools:
   - Grep
   - AskUserQuestion
 argument-hint: "[--check | --apply]"
-model: sonnet
-effort: low
+disable-model-invocation: true
 ---
 
 # /ccc-doc-sync — One source for counts
@@ -76,7 +75,7 @@ Edit `patterns.json` only; no code change:
 {
   "file": "path/to/new-file.md",
   "replacements": [
-    { "regex": "(Some prefix\\s*)\\d+( skills)", "flags": "g", "template": "$1${plugin_skills}$2" }
+    { "regex": "(Some prefix\\s*)\\d+( skills)", "flags": "g", "template": "\$1${plugin_skills}\$2" }
   ]
 }
 ```
