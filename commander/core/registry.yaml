@@ -2,7 +2,7 @@
 # DO NOT edit by hand. Run: node scripts/build-from-registry.js --generate
 
 generated: 2026-10-27
-version: 8.1.4
+version: 8.1.5
 skills:
   - id: ab-test-setup
     path: skills/ab-test-setup/SKILL.md
