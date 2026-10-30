@@ -251,6 +251,55 @@ describe('agent-run-logger.js — log rotation', () => {
   });
 });
 
+describe('agent-run-logger.js — internal Claude Code agents (CC-2120)', () => {
+  const START_FILE = path.join(TMP_HOME, '.claude', 'commander', 'subagent-runs.jsonl');
+  beforeEach(() => fs.rmSync(START_FILE, { force: true }));
+  after(() => fs.rmSync(START_FILE, { force: true }));
+
+  it('marks a nameless stop with no SubagentStart record as internal', () => {
+    runHook({}, { session_id: 's1', agent_id: 'cc-internal-1' });
+    const [entry] = readLogLines();
+    assert.equal(entry.agent, 'unknown');
+    assert.equal(entry.agentId, 'cc-internal-1');
+    assert.equal(entry.internal, true);
+  });
+
+  it('keeps a nameless stop whose agent_id has a SubagentStart record', () => {
+    fs.writeFileSync(
+      START_FILE,
+      '{"ts":"2026-10-26T14:00:00.000Z","agent_id":"other"}\n' +
+        JSON.stringify({ ts: '2026-10-26T14:00:01.000Z', agent_id: 'a-dispatched', agent_name: null }) + '\n'
+    );
+    runHook({}, { session_id: 's1', agent_id: 'a-dispatched' });
+    assert.equal(readLogLines()[0].internal, false);
+  });
+
+  it('records an inconclusive null when the start log is larger than the scanned tail', () => {
+    const old = JSON.stringify({ ts: '2026-10-26T13:00:00.000Z', agent_id: 'a-long-running', agent_name: null });
+    const filler = JSON.stringify({ ts: '2026-10-26T13:30:00.000Z', agent_id: 'x', prompt: 'p'.repeat(200) });
+    fs.writeFileSync(START_FILE, old + '\n' + (filler + '\n').repeat(6000)); // ~1.4 MB
+    runHook({}, { session_id: 's1', agent_id: 'a-long-running' });
+    runHook({}, { session_id: 's1', agent_id: 'cc-internal-2' });
+    assert.deepEqual(readLogLines().map((e) => e.internal), [null, null]);
+  });
+
+  it('records an inconclusive null when the start log cannot be read', () => {
+    fs.mkdirSync(START_FILE); // EISDIR on read, like EACCES/EIO: not proof of absence
+    try {
+      runHook({}, { session_id: 's1', agent_id: 'a-unreadable' });
+      assert.equal(readLogLines()[0].internal, null);
+    } finally {
+      fs.rmSync(START_FILE, { recursive: true, force: true });
+    }
+  });
+
+  it('never marks a named or id-less stop as internal', () => {
+    runHook({}, { session_id: 's1', agent_id: 'a-1', agent_type: 'reviewer' });
+    runHook({}, { session_id: 's1' });
+    assert.deepEqual(readLogLines().map((e) => e.internal), [false, false]);
+  });
+});
+
 describe('agent-run-logger.js — stdin is the primary source (Iron Law fix, CC-1378)', () => {
   it('reads agent name, session id, status, duration, and tokens from top-level stdin fields', () => {
     runHook({}, {

@@ -1,6 +1,6 @@
 ---
 name: ccc-mobile
-description: "Route mobile work to the right method: React Native/Expo, Flutter, SwiftUI or Jetpack Compose builds, mobile testing, app store optimization, push notifications and deep links, or start a new app. Use when the user is building, testing or shipping an iOS or Android app, or types /ccc-mobile."
+description: "Mobile router: React Native/Expo, Flutter, SwiftUI or Compose builds, mobile testing, ASO, push and deep links. Use for an iOS or Android app."
 allowed-tools:
   - Read
   - Write
@@ -12,7 +12,6 @@ allowed-tools:
   - AskUserQuestion
 argument-hint: "[new | react-native | flutter | swiftui | jetpack-compose | testing | aso | push | deep-links]"
 model: inherit
-effort: medium
 ---
 
 # /ccc-mobile — mobile work, routed

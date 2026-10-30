@@ -31,6 +31,14 @@ function patch(line) {
 // --- must NOT be rewritten (historical or ambiguous) -------------------------
 
 var MUST_KEEP = [
+  ['engine lower bound', 'CC Commander Node.js >=18.0.0'],
+  ['spaced engine lower bound', 'CC Commander Node.js >= 18.0.0'],
+  ['caret dependency range', 'CC Commander dependency ^18.0.0'],
+  ['tilde dependency range', 'CC Commander dependency ~18.0.0'],
+  ['bounded range', 'CC Commander dependency >=18.0.0 <22.0.0'],
+  ['hyphen range', 'CC Commander dependency 18.0.0 - 22.0.0'],
+  ['union range', 'CC Commander dependency 18.0.0 || 22.0.0'],
+  ['plus minimum', 'CC Commander Node.js 18.0.0+'],
   ['heading naming a past release', '## What changed in v7.3.0'],
   ['remediation floor', 'Update to v7.3.0 or later.'],
   ['feature-origin stamp', 'Two new self-contained artifacts in v7.2.0: usage and safety.'],

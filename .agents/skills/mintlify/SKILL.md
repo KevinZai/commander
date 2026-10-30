@@ -27,7 +27,9 @@ Full schema at [mintlify.com/docs.json](https://mintlify.com/docs.json).
 
 ### Understand the project
 
-Read `docs.json` in the project root. This file defines the entire site: navigation structure, theme, colors, links, API and specs.
+Read `docs.json` at the docs root. This file defines the entire site: navigation structure, theme, colors, links, API and specs.
+
+**In this repo (Commander) the docs root is `mintlify-docs/`, so the file is `mintlify-docs/docs.json`, not the repository root and not `docs/`.** In other projects, find the directory that contains `docs.json` (for example `git ls-files '*docs.json'`) and treat that directory as the docs root for every path below.
 
 Understanding the project tells you:
 
@@ -56,6 +58,8 @@ Review the Mintlify [components](https://www.mintlify.com/docs/components) to se
 
 ### CLI commands
 
+Run these from the docs root (the directory that contains `docs.json`; `mintlify-docs/` in this repo), e.g. `cd mintlify-docs && mint dev`.
+
 * `npm i -g mint` - Install the Mintlify CLI
 * `mint dev` - Local preview at localhost:3000
 * `mint broken-links` - Check internal links
@@ -71,7 +75,7 @@ Review the Mintlify [components](https://www.mintlify.com/docs/components) to se
 ### Example file structure
 
 ```
-project/
+mintlify-docs/          # docs root (this repo); other projects may use the repo root
 ├── docs.json           # Site configuration
 ├── introduction.mdx
 ├── quickstart.mdx
@@ -157,7 +161,7 @@ The `navigation` property in `docs.json` controls site structure. Choose one pri
 **What to customize where:**
 
 * **Brand colors, fonts, logo** → `docs.json`. See [global settings](https://mintlify.com/docs/settings/global)
-* **Component styling, layout tweaks** → `custom.css` at project root
+* **Component styling, layout tweaks** → `custom.css` at the docs root (next to `docs.json`)
 * **Dark mode** → Enabled by default. Only disable with `"appearance": "light"` in `docs.json` if brand requires it
 
 Start with `docs.json`. Only add `custom.css` when you need styling that config doesn't support.

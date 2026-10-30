@@ -48,8 +48,8 @@ test('ccc-e2e SKILL.md frontmatter parses cleanly — no XML brackets, valid YAM
   // Required frontmatter keys present
   assert.ok(frontmatter.includes('name:'), 'Frontmatter must have "name:" key');
   assert.ok(frontmatter.includes('description:'), 'Frontmatter must have "description:" key');
-  assert.ok(frontmatter.includes('model:'), 'Frontmatter must have "model:" key');
-  assert.ok(frontmatter.includes('effort:'), 'Frontmatter must have "effort:" key');
+  assert.ok(!/^model:/m.test(frontmatter), 'no model pin: a skill keeps the session model (CC-2115)');
+  assert.ok(!/^effort:/m.test(frontmatter), 'no effort pin: a skill keeps the session effort (CC-2115)');
 });
 
 test('ccc-e2e SKILL.md body references /ccc-fleet and /ccc-testing', function() {

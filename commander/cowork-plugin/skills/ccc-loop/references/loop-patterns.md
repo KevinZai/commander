@@ -49,7 +49,7 @@ Without it, each pass repeats the previous mistake because it does not know what
 Prior art in this repository (follow the pattern, do not edit from here):
 
 - `skills/desktop-preview-loop` writes `.preview-loop.json` to persist project config across preview-loop runs.
-- `ccc-night-mode` writes progress to `~/.claude/commander/yolo-status.txt` after each cycle.
+- `ccc-night-mode` writes progress to `<config dir>/commander/yolo-status.txt` (the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) after each cycle.
 - `ccc-relay` extends this shape with a `relay` block (`phase`, `next`, `signal`, `handoff`).
 
 New loop-capable skills use the `.claude/loop-state/<loop-name>.json` shape rather than a new ad-hoc file.

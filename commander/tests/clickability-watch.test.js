@@ -18,15 +18,19 @@ const HOOK_PATH = path.join(
 const TMP_HOME = path.join(os.tmpdir(), 'ccc-clickability-test-' + process.pid);
 const VIOLATIONS_FILE = path.join(TMP_HOME, '.claude', 'commander', 'clickability-violations.jsonl');
 
-function runHook(envOverrides = {}) {
+function runHook(envOverrides = {}, input) {
   const env = {
     ...process.env,
     HOME: TMP_HOME,
     USERPROFILE: TMP_HOME,
     ...envOverrides,
   };
+  for (const k of ['CLAUDE_LAST_ASSISTANT_MESSAGE', 'CLAUDE_SESSION_ID', 'CLAUDE_PROJECT_DIR']) {
+    if (!(k in envOverrides)) delete env[k];
+  }
   return spawnSync(process.execPath, [HOOK_PATH], {
     env,
+    input: input === undefined ? '' : JSON.stringify(input),
     timeout: 3000,
     encoding: 'utf8',
   });
@@ -129,5 +133,50 @@ describe('clickability-watch hook', () => {
 
     const violations = readViolations();
     assert.strictEqual(violations.length, 0, 'No violations logged when no message available');
+  });
+
+  // CC-1360 F22: the Stop payload names this session's reply and transcript;
+  // the hook must use it and never guess another session's newest .jsonl.
+  describe('Stop payload (CC-1360 F22)', () => {
+    const otherDir = path.join(TMP_HOME, '.claude', 'projects', 'other-project');
+    const transcriptLine = (text) => JSON.stringify({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text }] } }) + '\n';
+
+    after(() => {
+      try { fs.rmSync(path.join(TMP_HOME, '.claude', 'projects'), { recursive: true, force: true }); } catch { /* ok */ }
+    });
+
+    it('uses last_assistant_message and session_id from stdin', () => {
+      clearViolations();
+      const result = runHook({}, { hook_event_name: 'Stop', session_id: 'stdin-session-1', last_assistant_message: 'Reply A to continue.' });
+      assert.strictEqual(result.status, 0, result.stderr);
+      const violations = readViolations();
+      assert.strictEqual(violations.length, 1);
+      assert.strictEqual(violations[0].session, 'stdin-session-1');
+    });
+
+    it('reads the transcript_path from stdin', () => {
+      clearViolations();
+      const transcript = path.join(TMP_HOME, 'own-session.jsonl');
+      fs.writeFileSync(transcript, transcriptLine('Pick a or pick b.'));
+      const result = runHook({}, { hook_event_name: 'Stop', session_id: 'stdin-session-2', transcript_path: transcript });
+      assert.strictEqual(result.status, 0, result.stderr);
+      const violations = readViolations();
+      assert.strictEqual(violations.length, 1);
+      assert.strictEqual(violations[0].session, 'stdin-session-2');
+      assert.match(violations[0].pattern, /Pick/);
+    });
+
+    it("never reads another session's newest transcript", () => {
+      clearViolations();
+      fs.mkdirSync(otherDir, { recursive: true });
+      fs.writeFileSync(path.join(otherDir, 'someone-else.jsonl'), transcriptLine('Reply A for yes, Reply B for no.'));
+      const own = path.join(TMP_HOME, 'clean-session.jsonl');
+      fs.writeFileSync(own, transcriptLine('Done. Nothing to choose.'));
+      const fromPayload = runHook({}, { hook_event_name: 'Stop', session_id: 'clean-1', transcript_path: own });
+      assert.strictEqual(fromPayload.status, 0, fromPayload.stderr);
+      const noPayload = runHook({}, { hook_event_name: 'Stop', session_id: 'clean-2' });
+      assert.strictEqual(noPayload.status, 0, noPayload.stderr);
+      assert.deepStrictEqual(readViolations(), []);
+    });
   });
 });

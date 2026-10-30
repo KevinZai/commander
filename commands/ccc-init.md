@@ -16,6 +16,7 @@ description: "Scaffold or refresh a project's CLAUDE.md, tasks/, lessons.md and 
    - **`CLAUDE.md` unmodified for more than 30 days** (`date -r CLAUDE.md`), **or** its header comment records a version different from the installed one → refresh.
    - **Otherwise** → report healthy and offer the optional template sections it lacks.
 3. Check the companions: `tasks/`, `tasks/todo.md`, `tasks/lessons.md`, `.claude/settings.json`.
+   Then detect local infrastructure (read-only): run `node <install>/commander/service-detector.js` from the project root (the install path is absolute, the working directory stays the project, so its `.mcp.json` and local MCP scope are the ones read). It lists configured MCP servers by name in the scope that is in effect (Linear, context-mode and others) and CLIs on PATH (ao, rtk, task-master and others), each with the command that uses it, and probes no port. Add `--probe` only when the user asks to check local services (Fleet Commander, Synapse, OpenClaw, ClaudeSwap and others). Put its block in the plan as-is.
 4. Build the merge plan:
    - **Scaffold**: the full layout below.
    - **Refresh**: compare H2 sections of `CLAUDE.md` with the template:
@@ -40,6 +41,10 @@ description: "Scaffold or refresh a project's CLAUDE.md, tasks/, lessons.md and 
    + [SCAFFOLD] .claude/settings.json (project permissions scaffold)
    ~ [REFRESH]  CLAUDE.md — <n> new H2 sections, <n> updated
    = [KEEP]     "My Custom Rules" section (untouched)
+
+   ## Infrastructure detected (read-only)
+   - MCP linear (user) → /ccc-linear
+   - rtk CLI
    ```
 
 6. Ask with AskUserQuestion (plain-text question where unavailable):
@@ -75,6 +80,7 @@ The verification in step 8 ran and its output matches the applied plan, or the u
 ## Guardrails
 
 - Nothing is written before the Apply pick.
+- Infrastructure detection reads PATH and MCP server names (ports only with `--probe`); it suggests commands and never writes their config.
 - CUSTOM sections and user-filled content are never modified or removed.
 - No commit or push; the user reviews `git diff` and commits.
 

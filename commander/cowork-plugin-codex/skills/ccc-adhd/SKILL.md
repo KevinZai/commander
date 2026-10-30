@@ -8,8 +8,7 @@ allowed-tools:
   - Skill
   - AskUserQuestion
 argument-hint: "[on | off | status]"
-model: haiku
-effort: low
+disable-model-invocation: true
 ---
 
 # $ccc-adhd — answer-first output mode
@@ -36,8 +35,11 @@ This reorders priority; it does not compress tokens. For fewer words, stack it w
 
 ### 2. Read the state
 
+The state file is `<config dir>/commander/output-mode.json` (`~/.claude/commander/output-mode.json` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`). Until the lane has its own copy, read the `~/.claude/commander/` copy; writes go to the lane.
+
 ```bash
-cat ~/.claude/commander/output-mode.json 2>/dev/null || echo '{}'
+CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"; F="$CCC_STATE/output-mode.json"; [ -e "$F" ] || F="$HOME/.claude/commander/output-mode.json"
+cat "$F" 2>/dev/null || echo '{}'
 ```
 
 Report `adhd` (true/false) and `stackCaveman`. Default is OFF: a missing, empty or malformed file means normal Commander voice.
@@ -53,7 +55,7 @@ multiSelect: false
 options:
   - label: "🟢 Turn on"
     description: "Every response leads with the fix; the answer is always the first line."
-    preview: "Writes {\"adhd\": true} to ~/.claude/commander/output-mode.json"
+    preview: "Writes {\"adhd\": true} to <config dir>/commander/output-mode.json"
   - label: "🎯 On, stacked with caveman"
     description: "Answer-first ordering and far fewer output words: reorder plus compress."
     preview: "Writes {\"adhd\": true, \"stackCaveman\": true}"
@@ -62,7 +64,7 @@ options:
     preview: "Writes {\"adhd\": false}"
   - label: "Show the current setting"
     description: "No change; read-only status check."
-    preview: "Reads ~/.claude/commander/output-mode.json"
+    preview: "Reads <config dir>/commander/output-mode.json"
 ```
 
 Map the picks to step 4 modes `on`, `stack`, `off`, or step 2.
@@ -72,7 +74,7 @@ Map the picks to step 4 modes `on`, `stack`, `off`, or step 2.
 Merge into the file; never replace it, and stop on a parse error rather than overwriting. Pass `on`, `stack` or `off`:
 
 ```bash
-node -e 'const fs=require("fs"),path=require("path"),os=require("os");const m=process.argv[1];if(!["on","stack","off"].includes(m)){console.error("usage: on|stack|off");process.exit(2)}const dir=path.join(os.homedir(),".claude","commander"),p=path.join(dir,"output-mode.json");let s={};try{s=JSON.parse(fs.readFileSync(p,"utf8"))}catch(e){if(e.code!=="ENOENT"){console.error("output-mode.json is unreadable ("+e.message+"); not overwriting it");process.exit(1)}}if(typeof s!=="object"||s===null||Array.isArray(s)){console.error("output-mode.json is not a JSON object; not overwriting it");process.exit(1)}s.adhd=m!=="off";s.stackCaveman=m==="stack";s.updatedAt=new Date().toISOString();fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(p,JSON.stringify(s,null,2)+"\n");console.log("adhd mode: "+(s.adhd?"on":"off")+(s.stackCaveman?" (stacked with caveman)":""))' on
+node -e 'const fs=require("fs"),path=require("path"),os=require("os");const m=process.argv[1];if(!["on","stack","off"].includes(m)){console.error("usage: on|stack|off");process.exit(2)}const dir=path.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||path.join(os.homedir(),".claude"),"commander"),p=path.join(dir,"output-mode.json"),legacy=path.join(os.homedir(),".claude","commander","output-mode.json");let s={};try{s=JSON.parse(fs.readFileSync(fs.existsSync(p)?p:legacy,"utf8"))}catch(e){if(e.code!=="ENOENT"){console.error("output-mode.json is unreadable ("+e.message+"); not overwriting it");process.exit(1)}}if(typeof s!=="object"||s===null||Array.isArray(s)){console.error("output-mode.json is not a JSON object; not overwriting it");process.exit(1)}s.adhd=m!=="off";s.stackCaveman=m==="stack";s.updatedAt=new Date().toISOString();fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(p,JSON.stringify(s,null,2)+"\n");console.log("adhd mode: "+(s.adhd?"on":"off")+(s.stackCaveman?" (stacked with caveman)":""))' on
 ```
 
 For `stack`, also apply caveman mode for the session (invoke `/caveman` if it is installed; otherwise compress prose yourself and say caveman is not installed). On a non-zero exit, report the error verbatim and do not claim the mode changed.

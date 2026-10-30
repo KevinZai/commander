@@ -781,7 +781,7 @@ const hash = await bcrypt.hash(password, 10);
 const valid = await bcrypt.compare(password, hash);
 
 // ✅ Parameterised Queries (PostgreSQL)
-const query = 'SELECT * FROM users WHERE id = $1';
+const query = 'SELECT * FROM users WHERE id = \$1';
 const result = await client.query(query, [userId]);
 
 // ✅ Input Validation

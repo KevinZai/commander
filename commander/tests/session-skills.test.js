@@ -44,8 +44,8 @@ test('ccc-save-session frontmatter has required fields', function() {
   assert.ok(fm.description, 'description should be present');
   assert.ok(fm.description.length > 0, 'description should not be empty');
   assert.ok(fm.description.length <= 500, 'description should be under 500 chars, got ' + fm.description.length);
-  assert.ok(fm.model, 'model should be present');
-  assert.ok(fm.effort, 'effort should be present');
+  assert.strictEqual(fm.model, undefined, 'no model pin: a skill keeps the session model (CC-2115)');
+  assert.strictEqual(fm.effort, undefined, 'no effort pin: a skill keeps the session effort (CC-2115)');
 });
 
 test('ccc-resume-session frontmatter has required fields', function() {
@@ -54,8 +54,8 @@ test('ccc-resume-session frontmatter has required fields', function() {
   assert.ok(fm.description, 'description should be present');
   assert.ok(fm.description.length > 0, 'description should not be empty');
   assert.ok(fm.description.length <= 500, 'description should be under 500 chars, got ' + fm.description.length);
-  assert.ok(fm.model, 'model should be present');
-  assert.ok(fm.effort, 'effort should be present');
+  assert.strictEqual(fm.model, undefined, 'no model pin: a skill keeps the session model (CC-2115)');
+  assert.strictEqual(fm.effort, undefined, 'no effort pin: a skill keeps the session effort (CC-2115)');
 });
 
 // ─── No XML Tags in Description ───────────────────────────────────────────────

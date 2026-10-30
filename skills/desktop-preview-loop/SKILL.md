@@ -177,7 +177,7 @@ No need to restart the server between iterations.
 | Max iterations | 10 |
 | Server start timeout | 30 seconds |
 | Page load timeout | 15 seconds |
-| Cost ceiling | $3.00 per session |
+| Cost ceiling | \$3.00 per session |
 | Port conflict | Auto-detects and suggests alternative port |
 | Zombie processes | Kills dev server on loop exit |
 
@@ -210,7 +210,7 @@ No need to restart the server between iterations.
 
 [preview-loop] COMPLETE — 4 iterations, 3 fixes applied
   Pages tested: /, /dashboard, /settings
-  Cost: $0.89
+  Cost: \$0.89
   Server stopped.
 ```
 

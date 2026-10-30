@@ -1,6 +1,6 @@
 ---
 name: ccc-start
-description: "First-run Commander onboarding: detects the setup live, offers new-project, import, tour or skip pickers, writes a start plan file and marks onboarding complete. Use when the user just installed Commander, types /ccc-start, or asks how to get started."
+description: "First-run Commander onboarding: detects the setup, offers new project, import, tour or skip, writes a start plan. Use just after install."
 allowed-tools:
   - Read
   - Write
@@ -9,8 +9,6 @@ allowed-tools:
   - AskUserQuestion
   - ExitPlanMode
 argument-hint: "[new | existing | tour | skip]"
-model: sonnet
-effort: low
 ---
 
 # /ccc-start — oriented in ninety seconds
@@ -73,7 +71,7 @@ Never render a numbered list or ask the user to type a number. Call AskUserQuest
 
 ```yaml
 question: "How do you want to start?"
-header: "CC Commander onboarding"
+header: "Onboarding"
 multiSelect: false
 options:
   - label: "🟢 🚀 Set up a new project"
@@ -119,7 +117,7 @@ Write the plan file (step 6), run step 7, then invoke the `ccc-build` skill with
 
 ```yaml
 question: "Want answer-first output? (optional — skip if you prefer)"
-header: "CC Commander — Output style"
+header: "Output style"
 multiSelect: false
 options:
   - label: "🟢 🎯 Answer-first output"
@@ -132,7 +130,7 @@ options:
     description: "Answer-first ordering and far fewer output tokens (stacks with caveman mode)."
     preview: "Writes {\"adhd\": true, \"stackCaveman\": true}."
   - label: "⏭️ Decide later"
-    description: "Run /ccc-adhd anytime to turn it on."
+    description: "Type /ccc-adhd anytime to turn it on."
     preview: "No change."
 ```
 
@@ -142,11 +140,11 @@ For either answer-first option, run the command in step "4. Write the state" of 
 
 ```yaml
 question: "Want to connect your stack? (optional — skip if you prefer)"
-header: "CC Commander — Connect your tools"
+header: "Connect"
 multiSelect: true
 options:
   - label: "🟢 ⏭️ Skip for now"
-    description: "Connect nothing now; run /ccc-connect whenever you are ready."
+    description: "Connect nothing now; type /ccc-connect whenever you are ready."
     preview: "No change."
   - label: "Supabase — managed Postgres and auth"
     description: "Database-as-a-service with built-in authentication and real-time."
@@ -171,12 +169,13 @@ Run this on every path, including skip and tour, before handing over to another 
 
 ```bash
 node -e "
-  const fs=require('fs'); const os=require('os');
-  const p=os.homedir()+'/.claude/commander/state.json';
-  let s={}; try{s=JSON.parse(fs.readFileSync(p,'utf8'));}catch(e){}
+  const fs=require('fs'); const os=require('os'); const path=require('path');
+  const dir=path.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||path.join(os.homedir(),'.claude'),'commander');
+  const p=path.join(dir,'state.json'); const legacy=path.join(os.homedir(),'.claude','commander','state.json');
+  let s={}; try{s=JSON.parse(fs.readFileSync(fs.existsSync(p)?p:legacy,'utf8'));}catch(e){}
   s.onboardingCompleted=true;
   s.completedAt=new Date().toISOString();
-  fs.mkdirSync(os.homedir()+'/.claude/commander',{recursive:true});
+  fs.mkdirSync(dir,{recursive:true});
   fs.writeFileSync(p,JSON.stringify(s,null,2));
   console.log('onboarding marked complete');
 "

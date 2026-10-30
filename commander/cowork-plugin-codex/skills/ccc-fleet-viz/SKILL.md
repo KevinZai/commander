@@ -1,12 +1,10 @@
 ---
 name: ccc-fleet-viz
-description: "Show a $ccc-fleet run as a live tree of workers (done, running, failed, waiting) with branches and a Mermaid diagram, refreshing until every worker finishes. Use when the user asks for fleet progress, types $ccc-fleet-viz, or a $ccc-fleet run completes."
+description: "Show a $ccc-fleet run as a live tree of workers with status, branches and a Mermaid diagram until all finish. Use for fleet progress."
 allowed-tools:
   - Read
   - Bash
   - Glob
-model: sonnet
-effort: low
 argument-hint: "[--watch | --state-dir=PATH]"
 ---
 

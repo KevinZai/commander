@@ -11,8 +11,7 @@ allowed-tools:
   - Agent
   - AskUserQuestion
 argument-hint: "[status | diagnose [run-id] | watch [run-id] | init [--port N] [--tunnel] [--rotate] | test <event>]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # $ccc-ci — CI failures, diagnosed in-session
@@ -54,7 +53,8 @@ Codex: ask the pickers below as plain-text questions, and run the step 4 delegat
 2. **Status** (`status`, or no argument).
    ```bash
    gh run list --limit 10 --json databaseId,name,status,conclusion,headBranch,event,createdAt,url
-   tail -n 20 ~/.claude/commander/ccc-ci-events.jsonl 2>/dev/null
+   CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
+   tail -n 20 "$CCC_STATE/ccc-ci-events.jsonl" 2>/dev/null
    ```
    The second line returns push-mode events only when `init` was set up. Show one line per run (name, branch, conclusion, age, URL). If any run failed, go to step 3 for the newest failure; otherwise ask the next-step picker.
 
@@ -128,7 +128,7 @@ Push-mode setup (`init`):
 - Root cause: the reproduction command ran in this turn and its output matches the hypothesis; otherwise report "not confirmed" and what was ruled out.
 - Applied fix: the local failing command reran after the edit and its result is reported.
 - Rerun: `gh run view "$RUN_ID" --json status,conclusion` was read after the rerun and reported (`in_progress` is a valid report).
-- Push mode: the signed test event returned status 204 and appears in `~/.claude/commander/ccc-ci-events.jsonl`.
+- Push mode: the signed test event returned status 204 and appears in `<config dir>/commander/ccc-ci-events.jsonl` (the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`).
 
 ## Guardrails
 

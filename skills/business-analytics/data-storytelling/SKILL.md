@@ -56,12 +56,12 @@ Resolution: Insights and recommendations
 
 ## The Hook
 
-"We're losing $2.4M annually to preventable churn."
+"We're losing \$2.4M annually to preventable churn."
 
 ## The Context
 
 - Current churn rate: 8.5% (industry average: 5%)
-- Average customer lifetime value: $4,800
+- Average customer lifetime value: \$4,800
 - 500 customers churned last quarter
 
 ## The Problem
@@ -87,12 +87,12 @@ are 4x more likely to churn.
 ## Expected Impact
 
 - Reduce early churn by 40%
-- Save $960K annually
+- Save \$960K annually
 - Payback period: 3 months
 
 ## Call to Action
 
-Approve $50K budget for onboarding automation.
+Approve \$50K budget for onboarding automation.
 ```
 
 ### Framework 2: The Trend Story
@@ -102,7 +102,7 @@ Approve $50K budget for onboarding automation.
 
 ## Where We Started
 
-Q3 ended with $1.2M MRR, 15% below target.
+Q3 ended with \$1.2M MRR, 15% below target.
 Team morale was low after missed goals.
 
 ## What Changed
@@ -131,7 +131,7 @@ have 3x higher expansion rate.
 ## Going Forward
 
 Double down on hybrid model.
-Target: $1.8M MRR by Q2.
+Target: \$1.8M MRR by Q2.
 ```
 
 ### Framework 3: The Comparison Story
@@ -149,7 +149,7 @@ Should we expand into EMEA or APAC first?
 
 ### EMEA
 
-- Market size: $4.2B
+- Market size: \$4.2B
 - Growth rate: 8%
 - Competition: High
 - Regulatory: Complex (GDPR)
@@ -157,7 +157,7 @@ Should we expand into EMEA or APAC first?
 
 ### APAC
 
-- Market size: $3.8B
+- Market size: \$3.8B
 - Growth rate: 15%
 - Competition: Moderate
 - Regulatory: Varied
@@ -211,7 +211,7 @@ Before/After:
 │ │ │
 │ Process: 5 days│ Process: 1 day │
 │ Errors: 15% │ Errors: 2% │
-│ Cost: $50/unit │ Cost: $20/unit │
+│ Cost: \$50/unit │ Cost: \$20/unit │
 └─────────────────┴─────────────────┘
 
 This/That (emphasize difference):
@@ -219,7 +219,7 @@ This/That (emphasize difference):
 │ CUSTOMER A vs B │
 │ ┌──────────┐ ┌──────────┐ │
 │ │ ████████ │ │ ██ │ │
-│ │ $45,000 │ │ $8,000 │ │
+│ │ \$45,000 │ │ \$8,000 │ │
 │ │ LTV │ │ LTV │ │
 │ └──────────┘ └──────────┘ │
 │ Onboarded No onboarding │
@@ -276,12 +276,12 @@ ax.legend()
 │  THE DATA            │  THE IMPLICATION                     │
 │                      │                                      │
 │  Week 1 completers:  │  ✓ Prioritize onboarding UX         │
-│  • LTV: $4,500       │  ✓ Add day-1 success milestones     │
+│  • LTV: \$4,500       │  ✓ Add day-1 success milestones     │
 │  • Retention: 85%    │  ✓ Proactive week-1 outreach        │
 │  • NPS: 72           │                                      │
-│                      │  Investment: $75K                    │
+│                      │  Investment: \$75K                    │
 │  Others:             │  Expected ROI: 8x                    │
-│  • LTV: $1,500       │                                      │
+│  • LTV: \$1,500       │                                      │
 │  • Retention: 45%    │                                      │
 │  • NPS: 34           │                                      │
 │                      │                                      │
@@ -338,7 +338,7 @@ Revenue up 15% but CAC increasing faster than LTV
 
 ┌────────┬────────┬────────┬────────┐
 │ MRR │ NRR │ CAC │ LTV │
-│ $125K │ 108% │ $450 │ $2,200 │
+│ \$125K │ 108% │ \$450 │ \$2,200 │
 │ ▲15% │ ▲3% │ ▲22% │ ▲8% │
 └────────┴────────┴────────┴────────┘
 
@@ -362,7 +362,7 @@ CPC up 35% while conversion flat.
 
 ## RECOMMENDATION
 
-1. Shift $20K/mo from paid to content
+1. Shift \$20K/mo from paid to content
 2. Launch SMB self-serve trial
 3. A/B test shorter onboarding
 
@@ -382,7 +382,7 @@ BAD: "Q4 Sales Analysis"
 GOOD: "Q4 Sales Beat Target by 23% - Here's Why"
 
 BAD: "Customer Churn Report"
-GOOD: "We're Losing $2.4M to Preventable Churn"
+GOOD: "We're Losing \$2.4M to Preventable Churn"
 
 BAD: "Marketing Performance"
 GOOD: "Content Marketing Delivers 4x ROI vs. Paid"
@@ -423,7 +423,7 @@ Acknowledge limitations:
 • "This trend holds for [segment], though [caveat]..."
 
 Present ranges:
-• "Impact estimate: $400K-$600K"
+• "Impact estimate: \$400K-\$600K"
 • "Confidence interval: 15-20% improvement"
 • "Best case: X, Conservative: Y"
 ```

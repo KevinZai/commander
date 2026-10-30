@@ -51,7 +51,7 @@ export async function checkUpdate(_args: CheckUpdateArgs, fetchImpl: typeof fetc
     checked,
     changelogUrl: "https://github.com/KevinZai/commander/blob/main/CHANGELOG.md",
     releaseNotes: checked
-      ? `Latest published version is ${latestVersion}. Commander 8.0.0: Claude 5.5-era models, every prompt rewritten, 30-event hooks, HUD mod, plugin workflows and evals, /ccc-codex.`
+      ? `Latest published version is ${latestVersion}. Commander 8.x: Claude 5.5-era models, every prompt rewritten, 30-event hooks, HUD mod, plugin workflows and evals, /ccc-codex.`
       : "Could not reach the repository to compare versions; the hosted server is reporting its own version only.",
   };
 }

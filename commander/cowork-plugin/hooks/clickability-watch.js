@@ -7,8 +7,12 @@
  * that should have used AskUserQuestion instead. Logs violations to JSONL —
  * DOES NOT block the user.
  *
- * Input: CLAUDE_LAST_ASSISTANT_MESSAGE env var (if set)
- *   OR   reads last entry from ~/.claude/projects/<id>/<session>.jsonl
+ * Input: the Stop payload on stdin: last_assistant_message, else the last
+ *        assistant entry of transcript_path (this session's own transcript).
+ *        CLAUDE_LAST_ASSISTANT_MESSAGE / CLAUDE_PROJECT_DIR+CLAUDE_SESSION_ID
+ *        env vars remain as fallbacks. No transcript is guessed: reading the
+ *        newest .jsonl under ~/.claude/projects/ picked up another parallel
+ *        session's reply (CC-1360 F22).
  *
  * Output: appends to ~/.claude/commander/clickability-violations.jsonl
  *
@@ -18,12 +22,12 @@
 
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
+import { readStdinJson } from './lib/session-key.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
-import os from 'node:os';
+import { stateDir } from '../lib/lane-state.js';
 
-const HOME = process.env.HOME || process.env.USERPROFILE || os.homedir();
-const CCC_DIR = path.join(HOME, '.claude', 'commander');
+const CCC_DIR = stateDir();
 const VIOLATIONS_FILE = path.join(CCC_DIR, 'clickability-violations.jsonl');
 
 // Hard timeout — never hang the hook chain
@@ -59,50 +63,26 @@ function appendViolation(entry) {
 }
 
 /**
- * Read the last assistant message from the session JSONL.
- * Looks for CLAUDE_SESSION_ID + CLAUDE_PROJECT_DIR env vars, then scans
- * ~/.claude/projects/ for the most recently modified .jsonl file as fallback.
+ * Read the last assistant message from this session's transcript JSONL:
+ * the payload's transcript_path, else CLAUDE_PROJECT_DIR/CLAUDE_SESSION_ID.
+ * Returns null when neither names an existing file.
  */
-function readLastAssistantMessageFromJsonl() {
+function readLastAssistantMessageFromJsonl(input = {}) {
   try {
-    // Prefer explicit session file
+    let jsonlPath = null;
+    if (typeof input.transcript_path === 'string' && input.transcript_path
+        && fs.existsSync(input.transcript_path)) {
+      jsonlPath = input.transcript_path;
+    }
+
     const projectDir = process.env.CLAUDE_PROJECT_DIR;
     const sessionId = process.env.CLAUDE_SESSION_ID;
-
-    let jsonlPath = null;
-
-    if (projectDir && sessionId) {
+    if (!jsonlPath && projectDir && sessionId) {
       const candidate = path.join(projectDir, `${sessionId}.jsonl`);
       if (fs.existsSync(candidate)) jsonlPath = candidate;
     }
 
-    // Fallback: find most recently modified .jsonl in ~/.claude/projects/
-    if (!jsonlPath) {
-      const projectsRoot = path.join(HOME, '.claude', 'projects');
-      if (!fs.existsSync(projectsRoot)) return null;
-
-      let newest = null;
-      let newestMtime = 0;
-
-      const subdirs = fs.readdirSync(projectsRoot, { withFileTypes: true });
-      for (const sub of subdirs) {
-        if (!sub.isDirectory()) continue;
-        const subDir = path.join(projectsRoot, sub.name);
-        let files;
-        try { files = fs.readdirSync(subDir); } catch { continue; }
-        for (const f of files) {
-          if (!f.endsWith('.jsonl')) continue;
-          const fp = path.join(subDir, f);
-          try {
-            const mtime = fs.statSync(fp).mtimeMs;
-            if (mtime > newestMtime) { newestMtime = mtime; newest = fp; }
-          } catch { /* skip */ }
-        }
-      }
-
-      if (!newest) return null;
-      jsonlPath = newest;
-    }
+    if (!jsonlPath) return null;
 
     // Read the file and find last assistant message
     const raw = fs.readFileSync(jsonlPath, 'utf8');
@@ -179,16 +159,17 @@ function detectViolations(content) {
 // Main
 // ---------------------------------------------------------------------------
 
-function main() {
+async function main() {
   // Disable check
   if (process.env.CCC_CLICKABILITY_WATCH_DISABLE === '1') {
     process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
     return;
   }
 
-  // Get last assistant message — prefer env var, fall back to JSONL scan
-  const content = process.env.CLAUDE_LAST_ASSISTANT_MESSAGE
-    || readLastAssistantMessageFromJsonl();
+  const input = await readStdinJson();
+  const content = (typeof input.last_assistant_message === 'string' && input.last_assistant_message)
+    || process.env.CLAUDE_LAST_ASSISTANT_MESSAGE
+    || readLastAssistantMessageFromJsonl(input);
 
   if (!content) {
     // Graceful no-op — no message available
@@ -203,7 +184,7 @@ function main() {
     return;
   }
 
-  const sessionId = process.env.CLAUDE_SESSION_ID || 'unknown';
+  const sessionId = input.session_id || process.env.CLAUDE_SESSION_ID || 'unknown';
   const ts = new Date().toISOString();
 
   for (const v of violations) {

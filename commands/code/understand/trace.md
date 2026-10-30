@@ -143,7 +143,7 @@ Trace the complete execution path:
 ### Database Queries
 1. **User Lookup** - `[authService.js:52]`
    ```sql
-   SELECT * FROM users WHERE email = $1
+   SELECT * FROM users WHERE email = \$1
    ```
 
 2. **Session Creation** - `[sessionService.js:23]`

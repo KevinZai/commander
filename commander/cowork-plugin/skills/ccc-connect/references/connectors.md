@@ -1,6 +1,9 @@
 # /ccc-connect connector reference
 
-Loaded by `../SKILL.md` after the user picks a specific connector. Commands marked "TBD" are unverified: link the vendor's official docs instead of guessing a command. `[aff]` marks an affiliate connector (see the disclosure in the skill). The canonical catalog with affiliate status is `commander/cowork-plugin/CONNECTORS.md`.
+💰 Some links below are affiliate — CCC may earn a commission at no cost to you.
+[Disclosure](https://docs.commanderplugin.com/affiliate-disclosure)
+
+Loaded by `../SKILL.md` after the user picks a specific connector. Commands marked "TBD" are unverified: link the vendor's official docs instead of guessing a command. `[aff]` marks an affiliate connector (disclosure above). Rows are alphabetical; affiliate status never sets order or a default. The canonical catalog with affiliate status is `commander/cowork-plugin/CONNECTORS.md`.
 
 ## CLI surface used here
 
@@ -12,31 +15,31 @@ Path P = Claude Code plugin (check `claude plugin list --available --json` for a
 
 | Connector | Credential | Preferred path | stdio fallback (Path S) and env |
 |-----------|-----------|----------------|----------------------------------|
-| GitHub | OAuth or token | S | `npx @modelcontextprotocol/server-github` · `GITHUB_TOKEN` |
-| Notion | OAuth | P if listed, else S | `npx @notionhq/mcp` · `NOTION_API_KEY` |
-| Linear | OAuth | P if listed, else S | `npx @linear/mcp-server` · `LINEAR_API_KEY` |
-| Supabase [aff] | API key | P if listed, else S | `npx -y @supabase/mcp-server-supabase` · `SUPABASE_URL`, `SUPABASE_KEY` |
-| Neon [aff] | API key | P if listed, else S | `npx -y @neondatabase/mcp-server-neon` · `NEON_API_KEY` |
-| Postgres | connection string | S | `npx -y @modelcontextprotocol/server-postgres` · `DATABASE_URL` |
-| Vercel [aff] | token | P if listed, else S | `npx @vercel/mcp` · `VERCEL_TOKEN` (verify before use) |
-| Fly.io [aff] | token | TBD | TBD — link the official docs |
-| Cloudflare [aff] | API token | P if listed, else S | `npx @cloudflare/mcp-server-cloudflare` · `CLOUDFLARE_API_TOKEN` |
-| Upstash [aff] | REST URL + token | S | `npx -y @upstash/mcp-server` · `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` |
-| Sentry [aff] | OAuth | P if listed, else H | `claude mcp add --transport http sentry https://mcp.sentry.dev/mcp` (the CLI's own example), then authenticate in `/mcp` |
-| Stripe | secret key | P if listed, else S | `npx @stripe/mcp-server` · `STRIPE_SECRET_KEY` (verify before use) |
-| Browserbase [aff] | API key | S | `npx -y @browserbasehq/mcp` · `BROWSERBASE_API_KEY` |
-| Resend [aff] | API key | TBD | TBD — link the official docs |
 | AgentMail | API key | TBD | TBD — link the official docs |
-| Figma | OAuth or token | P if listed, else S | `npx @figma/mcp` · `FIGMA_TOKEN` |
-| Slack | OAuth | P if listed | Official Slack MCP · `SLACK_BOT_TOKEN` (verify before use) |
-| Discord | bot token | TBD | Community MCP — verify before use |
-| Tavily | API key | S | `npx @tavily/mcp` · `TAVILY_API_KEY` |
-| Firecrawl | API key | S | `npx @firecrawl/mcp` · `FIRECRAWL_API_KEY` |
-| Exa | API key | S | `npx @exa/mcp` · `EXA_API_KEY` |
+| Browserbase [aff] | API key | S | `npx -y @browserbasehq/mcp` · `BROWSERBASE_API_KEY` |
+| Cloudflare [aff] | API token | P if listed, else S | `npx @cloudflare/mcp-server-cloudflare` · `CLOUDFLARE_API_TOKEN` |
 | Context7 | none | bundled | Already bundled with Commander (credential-free); nothing to wire |
-| Playwright | none | S | Local browser automation; no credential |
-| Zapier | API key | S | Vendor MCP — link the official docs |
+| Discord | bot token | TBD | Community MCP — verify before use |
+| Exa | API key | S | `npx @exa/mcp` · `EXA_API_KEY` |
+| Figma | OAuth or token | P if listed, else S | `npx @figma/mcp` · `FIGMA_TOKEN` |
+| Firecrawl | API key | S | `npx @firecrawl/mcp` · `FIRECRAWL_API_KEY` |
+| Fly.io [aff] | token | TBD | TBD — link the official docs |
+| GitHub | OAuth or token | S | `npx @modelcontextprotocol/server-github` · `GITHUB_TOKEN` |
+| Linear | OAuth | P if listed, else S | `npx @linear/mcp-server` · `LINEAR_API_KEY` |
 | n8n | API key | S | Self-hosted MCP — link the official docs |
+| Neon [aff] | API key | P if listed, else S | `npx -y @neondatabase/mcp-server-neon` · `NEON_API_KEY` |
+| Notion | OAuth | P if listed, else S | `npx @notionhq/mcp` · `NOTION_API_KEY` |
+| Playwright | none | S | Local browser automation; no credential |
+| Postgres | connection string | S | `npx -y @modelcontextprotocol/server-postgres` · `DATABASE_URL` |
+| Resend [aff] | API key | TBD | TBD — link the official docs |
+| Sentry [aff] | OAuth | P if listed, else H | `claude mcp add --transport http sentry https://mcp.sentry.dev/mcp` (the CLI's own example), then authenticate in `/mcp` |
+| Slack | OAuth | P if listed | Official Slack MCP · `SLACK_BOT_TOKEN` (verify before use) |
+| Stripe | secret key | P if listed, else S | `npx @stripe/mcp-server` · `STRIPE_SECRET_KEY` (verify before use) |
+| Supabase [aff] | API key | P if listed, else S | `npx -y @supabase/mcp-server-supabase` · `SUPABASE_URL`, `SUPABASE_KEY` |
+| Tavily | API key | S | `npx @tavily/mcp` · `TAVILY_API_KEY` |
+| Upstash [aff] | REST URL + token | S | `npx -y @upstash/mcp-server` · `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` |
+| Vercel [aff] | token | P if listed, else S | `npx @vercel/mcp` · `VERCEL_TOKEN` (verify before use) |
+| Zapier | API key | S | Vendor MCP — link the official docs |
 
 "P if listed" means: use the plugin when `claude plugin list --available --json` shows one in a marketplace the user has added; otherwise fall back to the command in the last column.
 
@@ -46,7 +49,7 @@ After the credential file exists (saved by the capture template in the skill), t
 
 ```bash
 claude mcp add <name> -s user \
-  -e <ENV_VAR>="$(node -p 'require(process.env.HOME + "/.claude/commander/connections/<name>.json").credential')" \
+  -e <ENV_VAR>="$(node -p 'const p=require("path"),o=require("os"),n="<name>.json",l=p.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||p.join(o.homedir(),".claude"),"commander","connections",n),g=p.join(o.homedir(),".claude","commander","connections",n);require(require("fs").existsSync(l)?l:g).credential')" \
   -- <command> <args>
 ```
 
@@ -92,4 +95,4 @@ acpx is a headless ACP (Agent Client Protocol) CLI that Commander shells out to 
 1. Check: `command -v acpx >/dev/null && acpx --version || echo "not installed"`.
 2. If missing, show `npm install -g acpx` for the user to run.
 3. Confirm by name and point to the `acpx` skill (prompt, exec, sessions) and `acpx-patterns` (background, parallel, crash-resilient recipes).
-4. Never write `~/.claude/commander/connections/acpx.json` and never add an MCP entry for it.
+4. Never write `<config dir>/commander/connections/acpx.json` (the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`) and never add an MCP entry for it.

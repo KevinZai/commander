@@ -124,11 +124,11 @@ Calculate return on ad spend:
 
 | Action | Value | Rationale |
 |--------|-------|-----------|
-| Like | $0.50 | Brand awareness |
-| Comment | $2.00 | Active engagement |
-| Share | $5.00 | Amplification |
-| Save | $3.00 | Intent signal |
-| Click | $1.50 | Traffic value |
+| Like | \$0.50 | Brand awareness |
+| Comment | \$2.00 | Active engagement |
+| Share | \$5.00 | Amplification |
+| Save | \$3.00 | Intent signal |
+| Click | \$1.50 | Traffic value |
 
 ### ROI Interpretation
 
@@ -167,10 +167,10 @@ Calculate return on ad spend:
 
 | Platform | Average | Good |
 |----------|---------|------|
-| Facebook | $0.97 | <$0.50 |
-| Instagram | $1.20 | <$0.70 |
-| LinkedIn | $5.26 | <$3.00 |
-| TikTok | $1.00 | <$0.50 |
+| Facebook | \$0.97 | <\$0.50 |
+| Instagram | \$1.20 | <\$0.70 |
+| LinkedIn | \$5.26 | <\$3.00 |
+| TikTok | \$1.00 | <\$0.50 |
 
 See `references/platform-benchmarks.md` for complete benchmark data.
 
@@ -261,7 +261,7 @@ See `assets/expected_output.json`:
 The sample campaign shows:
 - **Engagement rate 8.36%** vs 1.22% benchmark = Excellent (6.8x above average)
 - **CTR 1.55%** vs 0.22% benchmark = Excellent (7x above average)
-- **ROI 660%** = Outstanding return on $500 spend
+- **ROI 660%** = Outstanding return on \$500 spend
 - **Recommendation:** Scale budget, replicate successful elements
 
 ---

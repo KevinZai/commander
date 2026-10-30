@@ -185,6 +185,8 @@ Portable manifest: root `plugin.json` (`$schema` agent-plugins.org 1.0.0; `name`
 
 Marketplace: `<repo>/.agents/plugins/marketplace.json` (legacy-compatible `.claude-plugin/marketplace.json`), personal `~/.agents/plugins/marketplace.json`. Entry: `name`, `source` (`{source: "local", path}` | `url`/`git-subdir` with `ref`/`sha` | `npm`), `policy` (`installation`: `AVAILABLE` | `INSTALLED_BY_DEFAULT` | `NOT_AVAILABLE`; `authentication`: `ON_INSTALL` | on first use), `category` (required). Install cache: `~/.codex/plugins/cache/<marketplace>/<plugin>/<version>/`; on a live Codex 0.162.1 install `<version>` was the plugin's semver for most entries, a short git sha for one git-sourced entry, and `local` for one unversioned entry. Per-project enable: `[plugins."name@marketplace"] enabled = true` in `.codex/config.toml`.
 
+Skill metadata (source: learn.chatgpt.com/docs/build-skills, fetched 2026-10-27): an optional `skills/<name>/agents/openai.yaml` sets `interface` (`display_name`, `short_description`, `icon_small`, `icon_large`, `brand_color`, `default_prompt`: UI metadata in the ChatGPT desktop app), `policy.allow_implicit_invocation` (default `true`; `false` means Codex does not pick the skill from the prompt, while explicit `$skill` invocation still works) and `dependencies.tools` (tool dependencies such as an MCP server). Commander ships one for each tstack-derived skill with implicit invocation off, the Codex counterpart of `disable-model-invocation: true`.
+
 ---
 
 ## 4. Deprecations Commander must stop referencing as current

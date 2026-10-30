@@ -4,7 +4,8 @@ import { EMPTY_HUD, countActive, parseCost, parseFable, parseUpdate, parts, sess
 import type { Hud } from './hud'
 
 // Observe-only: no tool.call/prompt hooks, no model calls, no network. Every
-// read is a fixed file name under ~/.claude/commander/.
+// read is a fixed file name under the lane's state dir, <config dir>/commander
+// (CCC_CONFIG_DIR, then CLAUDE_CONFIG_DIR, then ~/.claude), where the hooks write.
 const REFRESH_MS = 30_000
 const HIDDEN_KEY = 'hidden'
 
@@ -14,27 +15,28 @@ const live: {
   hud: Hud
   isHidden: boolean
   root: string | null
+  legacyRoot: string | null
   seen: Map<string, { stamp: string; text: string | undefined }>
-} = { hud: EMPTY_HUD, isHidden: false, root: null, seen: new Map() }
+} = { hud: EMPTY_HUD, isHidden: false, root: null, legacyRoot: null, seen: new Map() }
 
 // Re-reads a file only when its size or mtime moved; a missing or unreadable
 // file (including one over the engine's 4 MiB read cap) reads as undefined.
-async function readCached($: EngineInterface, name: string): Promise<string | undefined> {
-  if (live.root === null) return undefined
-  const path = `${live.root}/${name}`
+async function readCached($: EngineInterface, name: string, root: string | null = live.root): Promise<string | undefined> {
+  if (root === null) return undefined
+  const path = `${root}/${name}`
   const stat = await $.fs.stat(path).catch(() => undefined)
   if (stat === undefined || stat.kind !== 'file') {
-    live.seen.delete(name)
+    live.seen.delete(path)
     return undefined
   }
   const stamp = `${stat.size}:${stat.mtimeMs}`
-  const hit = live.seen.get(name)
+  const hit = live.seen.get(path)
   if (hit !== undefined && hit.stamp === stamp) return hit.text
   const text = await $.fs.read(path).then(
     value => (typeof value === 'string' ? value : undefined),
     () => undefined,
   )
-  live.seen.set(name, { stamp, text })
+  live.seen.set(path, { stamp, text })
   return text
 }
 
@@ -43,11 +45,16 @@ async function refresh($: EngineInterface): Promise<void> {
     if (live.root === null) {
       const home = await $.env.get('HOME')
       if (home === undefined || home === '') return
-      live.root = `${home.replace(/\/+$/, '')}/.claude/commander`
+      const legacy = `${home.replace(/\/+$/, '')}/.claude`
+      const configDir = (await $.env.get('CCC_CONFIG_DIR')) || (await $.env.get('CLAUDE_CONFIG_DIR')) || legacy
+      live.root = `${configDir.replace(/\/+$/, '')}/commander`
+      live.legacyRoot = `${legacy}/commander`
     }
     const key = sessionKey(await $.env.get('CLAUDE_SESSION_ID'))
     const [state, starts, stops, cost, update, now] = await Promise.all([
-      readCached($, 'state.json'),
+      // state.json is user state: read the legacy copy until the lane has its own.
+      readCached($, 'state.json').then(text =>
+        text !== undefined || live.legacyRoot === live.root ? text : readCached($, 'state.json', live.legacyRoot)),
       readCached($, 'subagent-runs.jsonl'),
       readCached($, 'agent-runs.jsonl'),
       readCached($, `sessions/active-cost-${key}.json`),

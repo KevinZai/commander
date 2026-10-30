@@ -11,7 +11,7 @@ CC Commander can import your existing Claude Code setup — but ONLY when you as
 
 ## What Does NOT Get Modified
 - Nothing. CC Commander never writes to your .claude/ directory.
-- Commander state lives in ~/.claude/commander/ (separate).
+- Commander state lives in `<config dir>/commander/` (`~/.claude/commander/` by default; the config dir is `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`), separate.
 - Imported context is passed to dispatched sessions via --append-system-prompt.
 
 ## How to Import

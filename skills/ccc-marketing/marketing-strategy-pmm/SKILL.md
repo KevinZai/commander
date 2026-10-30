@@ -51,7 +51,7 @@ Define ideal customer profile for targeting:
 | Dimension | Target Range | Rationale |
 |-----------|--------------|-----------|
 | Employees | 50-5000 | Series A sweet spot |
-| Revenue | $5M-$500M | Budget available |
+| Revenue | \$5M-\$500M | Budget available |
 | Industry | SaaS, Tech, Services | Product fit |
 | Geography | US, UK, DACH | Market priority |
 | Funding | Seed to Growth | Willing to adopt |
@@ -196,9 +196,9 @@ Plan launches by tier:
 
 | Tier | Scope | Prep Time | Budget |
 |------|-------|-----------|--------|
-| 1 | New product, major feature | 6-8 weeks | $50-100k |
-| 2 | Significant feature, integration | 3-4 weeks | $10-25k |
-| 3 | Small improvement | 1 week | <$5k |
+| 1 | New product, major feature | 6-8 weeks | \$50-100k |
+| 2 | Significant feature, integration | 3-4 weeks | \$10-25k |
+| 3 | Small improvement | 1 week | <\$5k |
 
 ### Tier 1 Launch Workflow
 
@@ -295,11 +295,11 @@ Enter new markets systematically:
 
 | Market | Timeline | Budget % | Target ARR |
 |--------|----------|----------|------------|
-| US | Months 1-6 | 50% | $1M |
-| UK | Months 4-9 | 20% | $500k |
-| DACH | Months 7-12 | 15% | $300k |
-| France | Months 10-15 | 10% | $200k |
-| Canada | Months 7-12 | 5% | $100k |
+| US | Months 1-6 | 50% | \$1M |
+| UK | Months 4-9 | 20% | \$500k |
+| DACH | Months 7-12 | 15% | \$300k |
+| France | Months 10-15 | 10% | \$200k |
+| Canada | Months 7-12 | 5% | \$100k |
 
 ### Localization Checklist
 

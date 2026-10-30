@@ -10,8 +10,7 @@ allowed-tools:
   - Edit
   - AskUserQuestion
 argument-hint: "[spec | prd | pr | readme | runbook | doc] [topic or path]"
-model: sonnet
-effort: medium
+disable-model-invocation: true
 ---
 
 # /ccc-agent-writing — docs a reader can act on
@@ -86,7 +85,7 @@ Type (step 1):
 
 ```
 question: "What are we writing?"
-header: "Agent writing"
+header: "Writing"
 multiSelect: false
 options:
   - label: "🟢 📝 Spec or PRD"
