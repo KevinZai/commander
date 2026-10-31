@@ -134,9 +134,26 @@ To audit another machine, run the same command there with its own checkout: `ccc
 ```
 
 - **Skill:** `title`, `description` and `tags` are scored against the #188 routing registry (`hooks/lib/ccc-routes.json`) of the lane's installed plugin. If that plugin has no registry, the checkout's registry is used (`route_source: "checkout"`). Only skills the installed plugin actually has can be returned. With no medium or high match, the fallback is the first tag in the map, then the kind (`code`, `research`, `review`, `docs`, `other`), then `/ccc`.
-- **Timing:** `fleet-hold.json` in the lane state dir, or the legacy `~/.claude/commander/`, controls timing. `{"hold":true,"reason":…}` gives `action: "hold"`. `{"until":"<ISO>","reason":…}` gives `action: "defer"` with `when` set to that time. An unreadable or malformed hold file fails closed as a hold.
+- **Timing:** `fleet-hold.json` in the lane state dir, or the legacy `~/.claude/commander/`, controls timing. `{"hold":true,"reason":…}` gives `action: "hold"`. `{"until":"<ISO>","reason":…}` gives `action: "defer"` with `when` set to that time. An unreadable or malformed hold file fails closed as a hold. Write it only with `ccc hold` (next section).
 - **Exit codes:** 0 answered, 2 bad input (not a JSON object, or more than 64 KB), 3 no usable commander plugin on the lane.
 - **Read-only:** it never dispatches, writes or makes network calls.
+
+## Hold and defer (`ccc hold`)
+
+`ccc hold` is the one writer of `fleet-hold.json`. Fleet's board hold and resume actions call it instead of writing the file.
+
+| Command | Writes | `ccc next` then answers |
+|---|---|---|
+| `ccc hold set [--reason T]` | `{"hold":true,"reason":T,"set_at":<ISO>}` | `hold` / `now` until cleared |
+| `ccc hold set --until <ISO> [--reason T]` | `{"hold":false,"until":<ISO>,"reason":T,"set_at":<ISO>}` | `defer` / `<ISO>` until that time, then `proceed` |
+| `ccc hold clear` | `{"hold":false,"set_at":<ISO>}` | `proceed` |
+| `ccc hold show` | nothing | (reports the current state) |
+
+Schema 1 of `fleet-hold.json`: `hold` (boolean, required by `ccc hold`), `until` (ISO 8601 time with a zone, optional), `reason` (text, at most 160 characters, optional), `set_at` (ISO, informational). Unknown keys are ignored by `ccc next`.
+
+- **Lane:** every subcommand resolves the lane like the rest of CCC (`CCC_CONFIG_DIR` > `CLAUDE_CONFIG_DIR` > `~/.claude`) and writes `<config dir>/commander/fleet-hold.json`. `show` reads it the way `ccc next` does, falling back to the legacy `~/.claude/commander/` copy; `clear` writes `{"hold":false}` rather than removing the file, so it also overrides a legacy hold.
+- **Atomic and validated:** the record is checked against the same rules `ccc next` uses, then written to a temp file in the same dir, fsynced and renamed. A bad `--until` (no zone, not a time, or in the past), a reason over 160 characters or an unknown argument exits 2 and writes nothing, so `ccc hold` never leaves a file that `ccc next` would fail closed on.
+- **Output:** `--json` prints one line: `{schema:1, lane, file, source: lane|legacy|none, state: clear|hold|defer|invalid, action, when, reason, record}`; `action`, `when` and `reason` are what `ccc next` would return. Without `--json` it prints a short summary. Exit 0 done, 2 bad input, 1 write failed.
 
 ## Status line segment (Superfleet runs)
 
