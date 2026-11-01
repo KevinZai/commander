@@ -5,7 +5,7 @@ allowed-tools:
   - Read
   - Agent
   - Bash(command -v codex)
-  - Bash(git diff *)
+  - Bash(git diff origin/*)
   - Bash(git status *)
   - AskUserQuestion
 argument-hint: "[request] [--members a,b,c]"

@@ -5,6 +5,7 @@
 """pr-wait: watch one GitHub pull request and print one line per real event.
 
   pr-wait <pr> [--repo owner/name] [--until green|ready|any-change] [--interval 20]
+          [--max-minutes 120]
 
 <pr> is a PR number or PR URL. Without --repo, the repo comes from the URL or
 from the current checkout. Stdout carries only events, one line each, so a
@@ -22,8 +23,9 @@ Exit codes
   0  the --until condition is met, or the PR merged
   1  the condition cannot be met without action: a required check failed, the
      branch conflicts with its base, the PR closed, `ready` is blocked by
-     unresolved threads or a BEHIND branch, GitHub stayed unreachable, or no
-     CI check gates the PR at all (CCC safety: handed back after a few polls)
+     unresolved threads or a BEHIND branch, GitHub stayed unreachable, no
+     CI check gates the PR at all, `ready` is green but no Greptile or Macroscope
+     reviews the PR, or --max-minutes passed (CCC safety: every run ends on its own)
   2  bad arguments, unknown PR, or another pr-wait already watches this PR
 
 Events
@@ -59,6 +61,8 @@ import re
 import subprocess
 import sys
 import time
+import unicodedata
+import urllib.parse
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, NoReturn
@@ -73,6 +77,8 @@ GH_TIMEOUT = 60  # seconds per gh call; a hung call is retried like a network er
 STATUS_BOTS = ("github-actions", "vercel", "netlify", "railway", "cloudflare")
 STATE_DIR = Path.home() / ".local" / "state" / "pr-wait"
 NO_CHECKS_POLLS = 6  # CCC safety: polls with no gating check before handing back
+NO_BOT_POLLS = 6  # CCC safety: green polls with no gating review bot before `ready` hands back
+MAX_MINUTES = 120  # CCC safety: default wall-clock bound on one run
 # A state file older than this describes an old session. Start a fresh baseline
 # instead of replaying hours of comments as new events.
 STALE_STATE_SECONDS = 6 * 3600
@@ -173,6 +179,14 @@ def review_bot(node: Json) -> str | None:
     return BOT_LOGINS.get(login.lower()) if is_bot else None
 
 
+def clean(text: str | None, limit: int = 120) -> str:
+    """CCC safety: GitHub-supplied names (checks, logins, paths, links) printed on one line, with control and
+    format characters (newlines, escapes, bidi overrides) replaced, so a crafted name cannot fake an event line."""
+    out = "".join(" " if unicodedata.category(ch) in ("Cc", "Cf") else ch for ch in (text or ""))
+    out = re.sub(r"\s+", " ", out).strip()
+    return out if len(out) <= limit else out[: limit - 3] + "..."
+
+
 def plain(body: str) -> str:
     body = re.sub(r"<!--.*?-->", " ", body or "", flags=re.DOTALL)
     return html.unescape(re.sub(r"<[^>]+>", " ", body))
@@ -250,10 +264,13 @@ def required_checks(repo: str, base: str) -> set[str]:
     yet counts as pending, instead of green by omission."""
     sources = (
         (
-            f"repos/{repo}/rules/branches/{base}",
+            f"repos/{repo}/rules/branches/{urllib.parse.quote(base, safe='')}",
             '.[] | select(.type == "required_status_checks") | .parameters.required_status_checks[].context',
         ),
-        (f"repos/{repo}/branches/{base}/protection/required_status_checks", ".contexts[]?, .checks[]?.context"),
+        (
+            f"repos/{repo}/branches/{urllib.parse.quote(base, safe='')}/protection/required_status_checks",
+            ".contexts[]?, .checks[]?.context",
+        ),
     )
     names: set[str] = set()
     for path, jq in sources:
@@ -266,8 +283,10 @@ def required_checks(repo: str, base: str) -> set[str]:
 
 
 class Watcher:
-    def __init__(self, repo: str, pr: int, until: str, interval: int) -> None:
+    def __init__(self, repo: str, pr: int, until: str, interval: int, max_minutes: int = MAX_MINUTES) -> None:
         self.repo, self.pr, self.until, self.interval = repo, pr, until, interval
+        self.max_minutes = max_minutes
+        self.deadline = time.monotonic() + max_minutes * 60
         self.owner, self.name = repo.split("/")
         self.path = STATE_DIR / f"{repo.replace('/', '__')}__{pr}.json"
         state = self.load()
@@ -281,6 +300,7 @@ class Watcher:
         self.prev_snapshot: list[tuple[str, str]] | None = None
         self.pr_files: dict[str, set[str]] = {}
         self.empty_polls = 0
+        self.no_bot_polls = 0
 
     def load(self) -> Json | None:
         try:
@@ -369,9 +389,10 @@ class Watcher:
         if pr["state"] == "CLOSED":
             self.finish(1, [f"closed without merging: {pr['url']}"])
 
-        base = pr["baseRefName"]
+        # The real name for GitHub lookups; the cleaned one only for printed text.
+        base = clean(pr["baseRefName"])
         if self.required is None:
-            self.required = required_checks(self.repo, base)
+            self.required = required_checks(self.repo, pr["baseRefName"])
             gate = ", ".join(sorted(self.required)) or "none set, so every CI check gates"
             log(f"watching {self.repo}#{self.pr} until {self.until}; required checks: {gate}")
         checks = self.fetch_checks()
@@ -395,7 +416,7 @@ class Watcher:
         for name in sorted(gate):
             if bucket(name) in FAILED:
                 link = checks[name]["link"]
-                fail_lines.append(f"{label} failed: {name} {link}")
+                fail_lines.append(f"{label} failed: {clean(name)} {clean(link, 300)}")
                 self.emit(f"fail:{head}:{name}:{link}", fail_lines[-1])
         watched = {name: c for name, c in checks.items() if bot_name(name) not in ADVISORY_BOTS}
         gate_done = bool(gate) and all(bucket(n) != "pending" for n in gate)
@@ -416,26 +437,26 @@ class Watcher:
             login, is_bot = who(comment)
             if login in mine or review_bot(comment) or (is_bot and any(b in login for b in STATUS_BOTS)):
                 continue
-            self.emit(f"c:{comment['id']}", f"comment from {login}: {snippet(comment['body'])} {comment['url']}")
+            self.emit(f"c:{comment['id']}", f"comment from {clean(login)}: {snippet(comment['body'])} {clean(comment['url'], 300)}")
         for review in reviews:
             login, is_bot = who(review)
             if login in mine or is_bot:
                 continue
             if review["state"] in ("APPROVED", "CHANGES_REQUESTED") or review["body"].strip():
                 state = review["state"].lower().replace("_", " ")
-                self.emit(f"c:{review['id']}", f"review from {login} ({state}): {snippet(review['body'])} {review['url']}")
+                self.emit(f"c:{review['id']}", f"review from {clean(login)} ({state}): {snippet(review['body'])} {clean(review['url'], 300)}")
         unresolved: list[str] = []
         for thread in threads:
             nodes = thread["comments"]["nodes"]
             if not thread["isResolved"] and nodes:
-                unresolved.append(nodes[0]["url"])
-            where = f"{thread['path']}:{thread['line']}" if thread["line"] else thread["path"]
+                unresolved.append(clean(nodes[0]["url"], 300))
+            where = f"{clean(thread['path'])}:{thread['line']}" if thread["line"] else clean(thread["path"])
             for index, comment in enumerate(nodes):
                 login, _ = who(comment)
                 if login in mine:
                     continue
                 kind = "new thread" if index == 0 else "thread reply"
-                self.emit(f"c:{comment['id']}", f"{kind} from {login} on {where}: {snippet(comment['body'])} {comment['url']}")
+                self.emit(f"c:{comment['id']}", f"{kind} from {clean(login)} on {where}: {snippet(comment['body'])} {clean(comment['url'], 300)}")
 
         # Review bots on the current head. A bot with checks is done when they
         # finish. Otherwise it is done once it reviews the head commit or its
@@ -454,7 +475,7 @@ class Watcher:
             seen = bool(own_checks or summaries or own_reviews)
             if bot in ADVISORY_BOTS and own_checks:
                 desc = next(iter(own_checks.values()))
-                bot_status[bot] = f"{bot} {desc['description'] or desc['bucket']} (advisory)"
+                bot_status[bot] = f"{bot} {clean(desc['description']) or desc['bucket']} (advisory)"
             elif seen:
                 bot_status[bot] = f"{bot} {'done' if done else 'pending'}{' (advisory)' if bot in ADVISORY_BOTS else ''}"
             key = f"bot:{bot}:{head}"
@@ -462,7 +483,7 @@ class Watcher:
             if done:
                 if bot in GATING_BOTS:
                     reviewed.append(bot)
-                failed = [name for name, c in own_checks.items() if c["bucket"] in FAILED]
+                failed = [clean(name) for name, c in own_checks.items() if c["bucket"] in FAILED]
                 detail = "; ".join(filter(None, [
                     next((v for v in map(verdict, (s["body"] for s in summaries)) if v), ""),
                     f"failed: {', '.join(failed)}" if failed else "",
@@ -475,7 +496,7 @@ class Watcher:
                     self.state["summaries"][s["id"]] = new
                     if was_done and old and old != new:
                         text = verdict(s["body"]) or snippet(s["body"])
-                        self.emit(f"summary:{s['id']}:{new}", f"{bot} summary changed on {short}: {text} {s['url']}")
+                        self.emit(f"summary:{s['id']}:{new}", f"{bot} summary changed on {short}: {text} {clean(s['url'], 300)}")
 
         # Base branch and merge state.
         base_oid = ((pr.get("baseRef") or {}).get("target") or {}).get("oid")
@@ -504,7 +525,7 @@ class Watcher:
         counts: dict[str, int] = {}
         for c in watched.values():
             counts[c["bucket"]] = counts.get(c["bucket"], 0) + 1
-        failed_names = sorted(name for name, c in watched.items() if c["bucket"] in FAILED)
+        failed_names = sorted(clean(name) for name, c in watched.items() if c["bucket"] in FAILED)
         parts = [
             ", ".join(f"{n} {b}" for b, n in sorted(counts.items()))
             + (f" ({', '.join(failed_names)})" if failed_names else ""),
@@ -533,6 +554,12 @@ class Watcher:
                 self.reported.add(checks_key)
                 self.finish(0, [f"green on {short}: {summary}{self.behind(base, base_oid, head)}"])
             # ready waits for Greptile or Macroscope, never for CodeRabbit.
+            # CCC safety: when neither has shown up on a green PR, hand back instead of waiting forever.
+            seen_bot = any(bot in bot_status for bot in GATING_BOTS)
+            self.no_bot_polls = self.no_bot_polls + 1 if green and not seen_bot else 0
+            if self.until == "ready" and self.no_bot_polls >= NO_BOT_POLLS:
+                self.finish(1, [f"green on {short} but no Greptile or Macroscope reviewed it after {self.no_bot_polls} polls: "
+                                "nothing more to wait for; get an independent review"])
             if green and reviewed:
                 if unresolved:
                     self.finish(1, [f"blocked by {len(unresolved)} unresolved threads on {short}: {' '.join(unresolved)}"])
@@ -548,6 +575,10 @@ class Watcher:
     def run(self) -> NoReturn:
         failures = 0
         while True:
+            # Checked before every poll, and no sleep runs past it, so --max-minutes holds for any --interval.
+            if time.monotonic() >= self.deadline:
+                self.finish(1, [f"pr-wait stopped: --until {self.until} not reached after {self.max_minutes} min; "
+                                "check the PR, then start pr-wait again if it should keep waiting"])
             try:
                 self.poll()
                 failures = 0
@@ -563,7 +594,7 @@ class Watcher:
                 if self.baseline:
                     log(f"baseline recorded for {self.repo}#{self.pr}; reporting only new events")
                 self.baseline = False
-            time.sleep(self.interval)
+            time.sleep(max(0.0, min(self.interval, self.deadline - time.monotonic())))
 
 
 def main() -> None:
@@ -572,10 +603,11 @@ def main() -> None:
     parser.add_argument("--repo", help="owner/name (default: from the URL or the current checkout)")
     parser.add_argument("--until", choices=("green", "ready", "any-change"), default="ready")
     parser.add_argument("--interval", type=int, default=20, help="seconds between polls (default 20, min 5)")
+    parser.add_argument("--max-minutes", type=int, default=MAX_MINUTES, help=f"stop after this many minutes (default {MAX_MINUTES}, min 1)")
     args = parser.parse_args()
     repo, pr = parse_target(args.pr, args.repo)
     _lock = lock(repo, pr)
-    Watcher(repo, pr, args.until, max(args.interval, 5)).run()
+    Watcher(repo, pr, args.until, max(args.interval, 5), max(args.max_minutes, 1)).run()
 
 
 if __name__ == "__main__":

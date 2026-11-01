@@ -3,9 +3,9 @@ name: ccc-modernize
 description: "Bring an old PR up to date by merging its base into it, and judge honestly whether the idea still belongs: MODERNIZE, REWORK or CLOSE. Use when asked to update, rebase or \"modernize\" a stale pull request."
 allowed-tools:
   - Read
-  - Bash(git fetch *)
-  - Bash(git log *)
-  - Bash(git diff *)
+  - Bash(git fetch origin)
+  - Bash(git log --oneline origin/*)
+  - Bash(git log *..origin/*)
   - Bash(git status *)
   - Bash(git range-diff *)
   - Bash(gh pr view *)

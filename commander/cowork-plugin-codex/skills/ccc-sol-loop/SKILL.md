@@ -4,8 +4,9 @@ description: "Review a change in a bounded loop with an OpenAI reviewer through 
 allowed-tools:
   - Read
   - Bash(git status *)
-  - Bash(git diff *)
-  - Bash(git fetch *)
+  - Bash(git diff origin/*)
+  - Bash(git diff --shortstat origin/*)
+  - Bash(git fetch origin)
   - Bash(git merge-base *)
   - Bash(gh pr view *)
   - Bash(command -v codex)

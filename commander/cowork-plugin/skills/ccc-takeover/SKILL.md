@@ -5,8 +5,8 @@ allowed-tools:
   - Read
   - AskUserQuestion
   - Bash(git status *)
-  - Bash(git log *)
-  - Bash(git diff *)
+  - Bash(git log)
+  - Bash(git log --format=*)
   - Bash(gh pr view *)
 argument-hint: "[PR number | branch | thread]"
 disable-model-invocation: true

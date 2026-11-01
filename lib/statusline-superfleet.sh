@@ -58,9 +58,20 @@ ccc_sf_usage() {
   [ -f "$file" ] || { printf '5h:? 7d:?'; return; }
   out=$(jq -r --arg lane "$lane" --argjson now "$now" --argjson stale "$CCC_SF_STALE_SECS" '
     def pct: if . == null then "?" else "\(floor)%" end;
+    # ISO-8601 with Z or any +-HH:MM offset (ET writes -04:00 / -05:00), fractional seconds dropped; else null.
+    def epoch:
+      (tostring | sub("\\.[0-9]+"; "")) as $s
+      | if ($s | test("Z$")) then ($s | try fromdateiso8601 catch null)
+        else ([$s | capture("^(?<b>[0-9-]+T[0-9:]+)(?<sign>[+-])(?<h>[0-9]{2}):?(?<m>[0-9]{2})$")][0]) as $c
+        | if $c == null then null
+          else (($c.b + "Z") | try fromdateiso8601 catch null) as $u
+          | if $u == null then null
+            else $u - (if $c.sign == "+" then 1 else -1 end) * (($c.h | tonumber) * 3600 + ($c.m | tonumber) * 60) end
+          end
+        end;
     .[$lane] as $l
     | if ($l | type) != "object" then "5h:? 7d:?"
-      else (($l.fetchedAt // "") | sub("\\.[0-9]+"; "") | sub("\\+00:00$"; "Z") | (try fromdateiso8601 catch null)) as $t
+      else (($l.fetchedAt // "") | epoch) as $t
       | [$l.windows[]? | select(type == "object" and (.percent | type) == "number")] as $w
       | ([$w[] | select(.id == "session" or .kind == "session") | .percent][0]) as $p
       | ([$w[] | select((.id // "" | tostring | startswith("weekly")) or (.kind // "" | tostring | startswith("weekly"))) | .percent] | max) as $wk

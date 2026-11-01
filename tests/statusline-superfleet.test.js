@@ -96,6 +96,44 @@ test('stale or missing usage shows 5h:? 7d:?', { skip: !HAS_JQ }, (t) => {
   assert.match(segment(m, { SF_RUN_DIR: m.run, CCC_LANE_USAGE_FILE: m.usage }).seg, / 5h:\? 7d:\?$/);
 });
 
+// CC-2126: fetchedAt as written in ET (-04:00 / -05:00) or UTC (Z, +00:00, fractional seconds) is read at its real
+// instant, as commander/lib/lane-usage.js reads it.
+function isoWithOffset(ms, offsetMinutes) {
+  const wall = new Date(ms + offsetMinutes * 60 * 1000).toISOString().slice(0, 19);
+  const abs = Math.abs(offsetMinutes);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${wall}${offsetMinutes < 0 ? '-' : '+'}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`;
+}
+
+test('fetchedAt in ET or UTC: fresh shows the numbers, 31 minutes old shows ?', { skip: !HAS_JQ }, (t) => {
+  const now = Date.now();
+  const fresh = [
+    isoWithOffset(now - 60 * 1000, -240), // EDT
+    isoWithOffset(now - 60 * 1000, -300), // EST
+    new Date(now - 60 * 1000).toISOString(), // Z with milliseconds
+    new Date(now - 60 * 1000).toISOString().replace('Z', '+00:00'),
+    new Date(now - 60 * 1000).toISOString().replace(/\.\d+Z$/, '.123456+00:00'), // Python isoformat
+    isoWithOffset(now - 60 * 1000, 330), // +05:30
+  ];
+  for (const at of fresh) {
+    const f = fixture(t);
+    writeUsage(f, at, 12);
+    assert.match(segment(f, { SF_RUN_DIR: f.run, CCC_LANE_USAGE_FILE: f.usage }).seg, / 5h:12% 7d:21%$/, at);
+  }
+  const old = now - 31 * 60 * 1000;
+  for (const at of [isoWithOffset(old, -240), isoWithOffset(old, -300), new Date(old).toISOString()]) {
+    const f = fixture(t);
+    writeUsage(f, at, 12);
+    assert.match(segment(f, { SF_RUN_DIR: f.run, CCC_LANE_USAGE_FILE: f.usage }).seg, / 5h:\? 7d:\?$/, at);
+  }
+  // Read at face value, a fresh ET time 4 h in the past would be stale; and a time with no offset is unreadable.
+  for (const at of ['2026-11-01T12:00:00', 'not a date', isoWithOffset(now, -240).replace(/-04:00$/, '-4')]) {
+    const f = fixture(t);
+    writeUsage(f, at, 12);
+    assert.match(segment(f, { SF_RUN_DIR: f.run, CCC_LANE_USAGE_FILE: f.usage }).seg, / 5h:\? 7d:\?$/, at);
+  }
+});
+
 test('7d is the highest weekly window; a missing window alone shows ?', { skip: !HAS_JQ }, (t) => {
   const f = fixture(t);
   const fetchedAt = new Date().toISOString();

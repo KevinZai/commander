@@ -85,6 +85,7 @@ The `hooks` check (`health.checks[]`) is `warn` or `fail` to match. A `fail` add
 Fleet owns the writer (FLT-257): it writes the file atomically (a temp file, then a rename) every 5 minutes, and immediately after a lane hits a limit. Commander only reads it (`commander/lib/lane-usage.js`).
 
 - **File:** `$CCC_LANE_USAGE_FILE`, else `~/.commander/lane-usage.json`. `usage_file` is the path that was read.
+- **Known gap (CC-2126):** Fleet's usage poller does not write `~/.commander/lane-usage.json` yet; it keeps its readings in its own file. Until it does, a lane without `CCC_LANE_USAGE_FILE` reports `usage: null` with `usage_reason: "missing"`, and the status line hides the usage part. Point `CCC_LANE_USAGE_FILE` at Fleet's file to see the numbers; its shape matches the one below.
 - **Shape:** `{<lane>: {fetchedAt, windows: [{id, kind, percent, resets_at}]}}`. `resetsAt` is accepted for `resets_at`.
 - **Lane:** the check-in's resolved lane (`lane.name`), so `~/.claude-guestnetworks` reads the `ai5` entry.
 
