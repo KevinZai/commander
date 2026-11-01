@@ -5,7 +5,6 @@ allowed-tools:
   - Read
   - AskUserQuestion
   - Bash(git status *)
-  - Bash(git diff *)
   - Bash(gh pr view *)
   - Bash(gh pr checks *)
 argument-hint: "[goal | PR number]"

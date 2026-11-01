@@ -28,9 +28,9 @@ Many repos have AI review bots. They help, even when they are not always right. 
 1. **Handle what is already there.** Read current checks and comments first: `gh pr view <pr> --json state,mergeStateStatus,reviewDecision,statusCheckRollup`.
 2. **Wait with one watcher per PR.** Never write your own watcher, polling loop or `sleep` loop; every watcher on a GitHub account shares one rate limit. The watcher is read-only (`gh` polling, state in `~/.local/state/pr-wait/`):
    ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/skills/ccc-babysit-pr/scripts/pr-wait" <pr> [--repo owner/name] [--until ready|green|any-change]
+   python3 "${CLAUDE_PLUGIN_ROOT}/skills/ccc-babysit-pr/scripts/pr-wait" <pr> [--repo owner/name] [--until ready|green|any-change] [--max-minutes 120]
    ```
-   In Codex the plugin root differs: use the skill directory's `scripts/pr-wait`. In Claude Code run it with the Monitor tool (`timeout_ms: 3600000`) so each line wakes you; otherwise run it as one long Bash command. It ends on its own.
+   In Codex the plugin root differs: use the skill directory's `scripts/pr-wait`. In Claude Code run it with the Monitor tool (`timeout_ms: 3600000`) so each line wakes you; otherwise run it as one long Bash command. It ends on its own: when the condition is met or cannot be met, when `ready` is green but no Greptile or Macroscope reviews the PR, or after `--max-minutes` (default 120).
    - It prints one line per real event. Exit 0: the `--until` condition is met or the PR merged. Exit 1: it needs you (a required check failed, conflicts, unresolved threads, PR closed, or no CI check gates the PR at all, in which case the local suite and review are the whole gate). Exit 2: bad input.
    - `ready` (default): required checks green, Greptile or Macroscope reviewed the head, no unresolved threads. `green`: required checks only (repos without those bots). `any-change`: exit on the first event.
    - Start it again after you push, after an exit 1 is handled, and after a resume; it remembers what it already reported. If it says another pid already watches the PR, do not start a second one; kill the old one only if its events do not reach you.

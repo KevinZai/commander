@@ -21,7 +21,7 @@ For full license text and notices from upstream projects, see the LICENSE.txt fi
 
 ## MIT-Derived Skills (tstack)
 
-The following plugin skills are adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack), pinned at `92e38e2cf677a84a142e8df296861c588542135c`. MIT License, Copyright (c) 2026 Theo Browne. Each skill directory under `commander/cowork-plugin/skills/` contains the full upstream `LICENSE.txt`, and each SKILL.md names its upstream path. CC Commander changes are marked "CCC safety:" and listed in `docs/tstack/SAFETY.md`.
+The following plugin skills are adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack), pinned at `92e38e2cf677a84a142e8df296861c588542135c`. MIT License, Copyright (c) 2026 Theo Browne. Each skill directory under `commander/cowork-plugin/skills/` contains the full upstream `LICENSE.txt`, and each SKILL.md names its upstream path. The Codex plugin generated from it, `commander/cowork-plugin-codex/skills/`, ships the same nine skills with the same `LICENSE.txt` and attribution, under the same terms. CC Commander changes are marked "CCC safety:" and listed in `docs/tstack/SAFETY.md`.
 
 - ccc-babysit-pr — from `skills/babysit-pr` (including `scripts/pr-wait`)
 - ccc-council — from `skills/council`

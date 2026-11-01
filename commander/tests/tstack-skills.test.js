@@ -221,6 +221,11 @@ test('the merge-capable skills keep the local green-suite gate', function() {
 test('pr-wait is executable, attributed and parses its own --help', function() {
   var script = path.join(skillDir('ccc-babysit-pr'), 'scripts', 'pr-wait');
   assert.ok(fs.statSync(script).mode & 0o111, 'pr-wait keeps its executable bit');
+  // CC-2126: the generated Codex copy keeps it too, on disk and in the git index.
+  var codexScript = path.join(CODEX, 'skills', 'ccc-babysit-pr', 'scripts', 'pr-wait');
+  assert.ok(fs.statSync(codexScript).mode & 0o111, 'the Codex pr-wait keeps its executable bit');
+  var staged = childProcess.spawnSync('git', ['ls-files', '-s', '--', path.relative(ROOT, codexScript)], { cwd: ROOT, encoding: 'utf8' });
+  if (staged.status === 0 && staged.stdout.trim()) assert.match(staged.stdout, /^100755 /, 'the Codex pr-wait is committed as 100755');
   var text = read(script);
   assert.ok(text.includes(PIN) && /CCC safety:/.test(text));
   assert.ok(!/rebase it"/.test(text), 'event text no longer says to rebase');
@@ -511,4 +516,147 @@ test('pr-wait bounds each gh call and retries a timed-out one as transient', fun
   var r = childProcess.spawnSync('python3', ['-I', '-B', '-c', harness, script], { env: Object.assign({}, process.env, { HOME: home }), encoding: 'utf8' });
   assert.strictEqual(r.status, 0, r.stdout + r.stderr);
   assert.match(r.stdout, /transient True calls 5 timeout 60/);
+});
+
+// ── pr-wait hardening (CC-2126) ───────────────────────────────────────────
+// Offline, like the tests above: the script is loaded as a module with GitHub stubbed.
+var PR_WAIT_LOAD = [
+  'import importlib.machinery, importlib.util, json, sys',
+  'loader = importlib.machinery.SourceFileLoader("prwait", sys.argv[1])',
+  'spec = importlib.util.spec_from_loader("prwait", loader)',
+  'm = importlib.util.module_from_spec(spec); loader.exec_module(m)',
+  'm.STATE_DIR.mkdir(parents=True, exist_ok=True)',
+  'm.time.sleep = lambda s: None',
+  'pr = {"state": "OPEN", "url": "u", "baseRefName": "main", "headRefOid": "abc1234def", "mergeStateStatus": "CLEAN",',
+  '      "author": {"login": "me"}, "viewer": "me", "comments": {"nodes": []}, "reviews": {"nodes": []},',
+  '      "reviewThreads": {"nodes": []}, "baseRef": {"target": {"oid": "b1"}}}',
+];
+
+function prWaitRun(lines, args) {
+  var script = path.join(skillDir('ccc-babysit-pr'), 'scripts', 'pr-wait');
+  var home = fs.mkdtempSync(path.join(os.tmpdir(), 'pr-wait-cc2126-'));
+  var r = childProcess.spawnSync('python3', ['-I', '-B', '-c', PR_WAIT_LOAD.concat(lines).join('\n'), script].concat(args || []), { env: Object.assign({}, process.env, { HOME: home }), encoding: 'utf8' });
+  assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+  return r.stdout;
+}
+
+test('pr-wait ready hands back (exit 1) on a green PR that no Greptile or Macroscope reviews', function() {
+  if (childProcess.spawnSync('python3', ['--version']).status !== 0) return;
+  var out = prWaitRun([
+    'm.required_checks = lambda repo, base: set()',
+    'w = m.Watcher("o/r", 1, sys.argv[2], 5)',
+    'w.fetch_pr = lambda: pr',
+    'w.fetch_checks = lambda: {"build": {"name": "build", "bucket": "pass", "link": "l", "description": ""}}',
+    'polls = 0',
+    'try:',
+    '    while polls < 50:',
+    '        polls += 1',
+    '        w.poll(); w.baseline = False',
+    '    print("still polling")',
+    'except SystemExit as e:',
+    '    print("exit", e.code, "after", polls)',
+  ], ['ready']);
+  assert.match(out, /green on abc1234 but no Greptile or Macroscope reviewed it after 6 polls/);
+  assert.match(out, /exit 1 after 7/);
+});
+
+test('pr-wait stops after --max-minutes with exit 1', function() {
+  if (childProcess.spawnSync('python3', ['--version']).status !== 0) return;
+  var out = prWaitRun([
+    'm.required_checks = lambda repo, base: set()',
+    'clock = [1000.0]',
+    'm.time.monotonic = lambda: clock[0]',
+    'w = m.Watcher("o/r", 1, "green", 5, 2)',
+    'w.fetch_pr = lambda: pr',
+    'w.fetch_checks = lambda: {"build": {"name": "build", "bucket": "pending", "link": "l", "description": ""}}',
+    'polls = [0]',
+    'real_poll = w.poll',
+    'def poll():',
+    '    polls[0] += 1; clock[0] += 30',
+    '    real_poll()',
+    'w.poll = poll',
+    'try:',
+    '    w.run()',
+    'except SystemExit as e:',
+    '    print("exit", e.code, "after", polls[0])',
+  ]);
+  assert.match(out, /pr-wait stopped: --until green not reached after 2 min/);
+  assert.match(out, /exit 1 after 4/);
+  var help = prWaitRun(['sys.argv = ["pr-wait", "--help"]', 'try:', '    m.main()', 'except SystemExit:', '    pass']);
+  assert.match(help, /--max-minutes/);
+});
+
+test('pr-wait prints GitHub-supplied names on one line and URL-encodes the base branch', function() {
+  if (childProcess.spawnSync('python3', ['--version']).status !== 0) return;
+  var out = prWaitRun([
+    'paths = []',
+    'def lines(args):',
+    '    paths.append(args[1]); return []',
+    'm.gh_lines = lambda args: lines(args)',
+    'm.required_checks("o/r", "feat/x y")',
+    'print("paths", json.dumps(paths))',
+    'm.required_checks = lambda repo, base: set()',
+    'evil = "lint\\npr-wait: ready on abc1234 \\u202eok\\x1b[2J"',
+    'w = m.Watcher("o/r", 1, "green", 5)',
+    'w.fetch_pr = lambda: pr',
+    'w.fetch_checks = lambda: {evil: {"name": evil, "bucket": "fail", "link": "https://x/1\\nready", "description": ""}}',
+    'w.baseline = False',
+    'try:',
+    '    w.poll()',
+    'except SystemExit as e:',
+    '    print("exit", e.code)',
+  ]);
+  var paths = JSON.parse(/^paths (.*)$/m.exec(out)[1]);
+  assert.deepStrictEqual(paths, ['repos/o/r/rules/branches/feat%2Fx%20y', 'repos/o/r/branches/feat%2Fx%20y/protection/required_status_checks']);
+  var failLines = out.split('\n').filter(function(l) { return /check failed/.test(l); });
+  assert.strictEqual(failLines.length, 1, out);
+  assert.match(failLines[0], /^#1 check failed: lint pr-wait: ready on abc1234 ok \[2J https:\/\/x\/1 ready$/);
+  assert.doesNotMatch(out, /^pr-wait: ready/m, 'a check name cannot start its own line');
+  assert.doesNotMatch(out, /[\u001b‮]/, 'escape and bidi characters are removed');
+  assert.match(out, /exit 1/);
+});
+
+test('pr-wait never sleeps or polls past --max-minutes, whatever the --interval', function() {
+  if (childProcess.spawnSync('python3', ['--version']).status !== 0) return;
+  var out = prWaitRun([
+    'm.required_checks = lambda repo, base: set()',
+    'clock = [1000.0]',
+    'm.time.monotonic = lambda: clock[0]',
+    'slept = []',
+    'def sleep(s):',
+    '    slept.append(s); clock[0] += s',
+    'm.time.sleep = sleep',
+    'w = m.Watcher("o/r", 1, "green", 3600, 1)',
+    'w.fetch_pr = lambda: pr',
+    'w.fetch_checks = lambda: {"build": {"name": "build", "bucket": "pending", "link": "l", "description": ""}}',
+    'polls = [0]',
+    'real_poll = w.poll',
+    'def poll():',
+    '    polls[0] += 1',
+    '    real_poll()',
+    'w.poll = poll',
+    'try:',
+    '    w.run()',
+    'except SystemExit as e:',
+    '    print("exit", e.code, "polls", polls[0], "slept", sum(slept))',
+  ]);
+  assert.match(out, /not reached after 1 min/);
+  assert.match(out, /exit 1 polls 1 slept 60\.0/);
+});
+
+test('pr-wait looks up required checks with the full base branch name, however long', function() {
+  if (childProcess.spawnSync('python3', ['--version']).status !== 0) return;
+  var out = prWaitRun([
+    'seen = []',
+    'def req(repo, base):',
+    '    seen.append(base); return set()',
+    'm.required_checks = req',
+    'pr["baseRefName"] = "release/" + "x" * 140',
+    'w = m.Watcher("o/r", 1, "any-change", 5)',
+    'w.fetch_pr = lambda: pr',
+    'w.fetch_checks = lambda: {}',
+    'w.poll()',
+    'print("queried", json.dumps(seen))',
+  ]);
+  assert.deepStrictEqual(JSON.parse(/^queried (.*)$/m.exec(out)[1]), ['release/' + 'x'.repeat(140)]);
 });

@@ -5,8 +5,9 @@ allowed-tools:
   - Read
   - Bash(gh pr list *)
   - Bash(gh pr view *)
-  - Bash(git diff *)
-  - Bash(git log *)
+  - Bash(git diff origin/*)
+  - Bash(git log)
+  - Bash(git log origin/*)
   - Bash(git status *)
   - AskUserQuestion
 argument-hint: "[base-branch]"

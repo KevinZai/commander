@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -123,6 +123,15 @@ async function listFiles(baseDir) {
   return files;
 }
 
+// Copies a file with its permission bits, so an executable script (pr-wait)
+// stays executable in the Codex mirror (CC-2126).
+async function copyFileWithMode(inputPath, outputPath) {
+  const content = await readFile(inputPath);
+  await mkdir(path.dirname(outputPath), { recursive: true });
+  await writeFile(outputPath, content);
+  await chmod(outputPath, (await stat(inputPath)).mode & 0o777);
+}
+
 async function copyTree(sourceDir, targetDir, options = {}) {
   const files = await listFiles(sourceDir);
   let copied = 0;
@@ -132,9 +141,7 @@ async function copyTree(sourceDir, targetDir, options = {}) {
       continue;
     }
 
-    const content = await readFile(path.join(sourceDir, relativePath));
-    await mkdir(path.dirname(path.join(targetDir, relativePath)), { recursive: true });
-    await writeFile(path.join(targetDir, relativePath), content);
+    await copyFileWithMode(path.join(sourceDir, relativePath), path.join(targetDir, relativePath));
     copied += 1;
   }
 
@@ -175,9 +182,7 @@ async function buildSkills() {
       continue;
     }
 
-    const content = await readFile(inputPath);
-    await mkdir(path.dirname(outputPath), { recursive: true });
-    await writeFile(outputPath, content);
+    await copyFileWithMode(inputPath, outputPath);
     supportFileCount += 1;
   }
 
