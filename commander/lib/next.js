@@ -65,9 +65,14 @@ function readHold(env, now) {
   try { hold = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) {
     if (e.code === 'ENOENT') return null;
     // A damaged pause control must not authorize work: fail closed.
-    return { action: 'hold', when: 'now', reason: 'CCC hold: unreadable ' + path.basename(file) + ' (' + (e.code || 'invalid JSON') + ')' };
+    return { action: 'hold', when: 'now', reason: 'CCC hold: unreadable ' + path.basename(file) + ' (' + (e.code || 'invalid JSON') + ')', invalid: true };
   }
-  var invalid = function(why) { return { action: 'hold', when: 'now', reason: 'CCC hold: invalid fleet-hold.json (' + why + ')' }; };
+  return interpretHold(hold, now);
+}
+
+/** A parsed fleet-hold.json record -> {action, when, reason, invalid?} or null (no hold). */
+function interpretHold(hold, now) {
+  var invalid = function(why) { return { action: 'hold', when: 'now', reason: 'CCC hold: invalid fleet-hold.json (' + why + ')', invalid: true }; };
   if (!hold || typeof hold !== 'object' || Array.isArray(hold)) return invalid('not an object');
   if (hold.hold !== undefined && typeof hold.hold !== 'boolean') return invalid('hold must be true or false');
   if (hold.until !== undefined && (typeof hold.until !== 'string' || isNaN(Date.parse(hold.until)))) return invalid('until must be an ISO time');
@@ -146,5 +151,6 @@ module.exports = {
   normalizeJob: normalizeJob,
   parseJobJson: parseJobJson,
   readHold: readHold,
+  interpretHold: interpretHold,
   jobFromArgs: jobFromArgs,
 };
