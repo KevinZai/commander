@@ -3,7 +3,8 @@ export const meta = {
   description: 'Branch review: four weighted dimensions review the diff, every finding adversarially verified, severity-grouped verdict returned.',
   whenToUse: 'PR-quality review of the current branch against a base ref. Backs /ccc-review. Findings are refuted or confirmed before they are reported.',
   phases: [
-    { title: 'Review', detail: 'one read-only reviewer per dimension reads the diff' },
+    { title: 'Read', detail: 'opt-in (reader: true): one cheap read-only reader digests the diff once for every reviewer' },
+    { title: 'Review', detail: 'one read-only reviewer per dimension reads the diff, or the digest when the reader ran' },
     { title: 'Verify', detail: 'a fresh skeptic tries to refute each finding' },
   ],
 }
@@ -11,8 +12,12 @@ export const meta = {
 // args (optional):
 //   base?: string             base ref to diff against (default 'main')
 //   maxPerDimension?: number  findings verified per dimension (default 15, max 40); the rest return as unverified
+//   reader?: boolean          default false: every reviewer reads the diff itself. true: a haiku reader digests the diff
+//                             once and reviewers start from it (trial; off by default because one measured sample saved
+//                             only ~8% of session-model tokens while adding a serial read step, see KEV-55 in the PR)
 const BASE = (args && typeof args.base === 'string' && args.base) || 'main'
 const MAX_PER_DIMENSION = Math.max(1, Math.min(40, (args && args.maxPerDimension) || 15))
+const USE_READER = !!(args && args.reader === true)
 
 const DIMENSIONS = [
   { key: 'security', weight: 35, look: 'injection, authn/authz gaps, secret exposure, unsafe input handling, SSRF, insecure deserialization' },
@@ -42,6 +47,38 @@ const FINDINGS_SCHEMA = {
   },
 }
 
+const DIGEST_SCHEMA = {
+  type: 'object',
+  required: ['files'],
+  properties: {
+    files: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['path', 'status', 'hunks'],
+        properties: {
+          path: { type: 'string' },
+          status: { type: 'string', enum: ['added', 'modified', 'deleted', 'renamed'] },
+          hunks: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['lines', 'summary', 'excerpt'],
+              properties: {
+                lines: { type: 'string', description: 'new-side line range, e.g. 40-58' },
+                summary: { type: 'string', description: 'one line: what the hunk changes' },
+                excerpt: { type: 'string', description: 'the changed lines verbatim, at most 30 lines' },
+                truncated: { type: 'boolean', description: 'true when the hunk has more changed lines than the excerpt holds' },
+              },
+            },
+          },
+        },
+      },
+    },
+    omitted: { type: 'array', items: { type: 'string' }, description: 'files skipped (binary, generated, lockfiles)' },
+  },
+}
+
 const VERDICT_SCHEMA = {
   type: 'object',
   required: ['refuted', 'reason'],
@@ -57,10 +94,29 @@ const DIFF = `git diff ${BASE}...HEAD`
 
 log(`Reviewing ${DIFF} across ${DIMENSIONS.length} dimensions`)
 
+// Shopify pattern: the reading-heavy step runs once on a cheap model; reviewers spend their tokens on judgment.
+// A failed reader falls back to the pre-reader path rather than reviewing blind.
+let digest = null
+if (USE_READER) {
+  digest = await agent(
+    `Run \`${DIFF}\` and digest every changed file for code reviewers who will not run it themselves. ` +
+    'Per file: status, and per hunk the new-side line range, a one-line summary of the change, and the changed lines verbatim (at most 30 per hunk; set truncated=true when a hunk has more). ' +
+    'Record facts only: no judgments, no findings. List binary, generated and lockfiles under omitted instead of digesting them.',
+    { label: 'read:diff', phase: 'Read', schema: DIGEST_SCHEMA, agentType: 'Explore', model: 'haiku', effort: 'low' }
+  )
+  if (!digest) log('reader failed: reviewers read the diff themselves')
+  else log(`reader digested ${digest.files.length} files${digest.omitted && digest.omitted.length ? `, omitted ${digest.omitted.length}` : ''}`)
+}
+const reviewSource = digest
+  ? 'Start from this digest of the diff, made by a reader for you. Do not re-read the whole diff: open a file to confirm the exact lines of a finding, ' +
+    `and read every omitted file and every truncated hunk yourself with \`${DIFF} -- <path>\`, since the digest does not cover them.\n` +
+    `Digest: ${JSON.stringify(digest)}\n`
+  : `Run \`${DIFF}\` and `
+
 const reviewed = await pipeline(
   DIMENSIONS,
   (d) => agent(
-    `Run \`${DIFF}\` and review only the changed code for ${d.key}: ${d.look}. ` +
+    `${reviewSource}${digest ? 'Review' : 'review'} only the changed code for ${d.key}: ${d.look}. ` +
     'Cite path:line inside the diff, quote the changed lines as evidence, and give a one-line fix. Report nothing you cannot point at.',
     { label: `review:${d.key}`, phase: 'Review', schema: FINDINGS_SCHEMA, agentType: 'Explore', effort: 'medium' }
   ).then(r => {
@@ -92,4 +148,4 @@ const uncovered = dims.filter(d => !d.covered).map(d => d.key)
 const verdict = blockers > 0 ? 'request-changes' : (confirmed.length || uncovered.length ? 'comment' : 'approve')
 const unverified = dims.flatMap(d => d.unverified.map(f => ({ ...f, dimension: d.key })))
 
-return { base: BASE, verdict, blockers, total: confirmed.length, bySeverity: grouped, uncovered, unverified }
+return { base: BASE, reader: USE_READER ? (digest ? 'used' : 'failed') : 'off', verdict, blockers, total: confirmed.length, bySeverity: grouped, uncovered, unverified }

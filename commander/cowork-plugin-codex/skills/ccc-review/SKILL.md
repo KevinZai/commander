@@ -100,7 +100,7 @@ Workflow({
 })
 ```
 
-It reviews security 35%, correctness 25%, performance 25%, maintainability 15%, and returns only verified findings with a verdict.
+It reviews security 35%, correctness 25%, performance 25%, maintainability 15%, and returns only verified findings with a verdict. Pass `reader: true` to trial a cheap haiku reader that digests the diff once so the four reviewers start from its digest instead of each reading the diff; it is off by default.
 
 **Branch review, built-in engine.** Invoke the built-in review with the Skill tool: `skill: "code-review"`, `args: "--max-findings all"` (a number caps the list). Carry its verdicts into the report in step 7; a finding it returns without a verdict is PLAUSIBLE.
 
