@@ -1,5 +1,27 @@
 # Changelog
 
+## [8.1.6] - 2026-11-03
+
+Release for `ccc hold` (#270), the 8.1.5 release-review follow-ups (#272), the release-gate audit report (#273) and dependency bumps (#239, #202, #268, #269). Bumps the pinned plugin version so `claude plugin update` picks these up.
+
+### Added
+- **Fleet hold:** `ccc hold set [--until ISO] [--reason TEXT]`, `ccc hold clear` and `ccc hold show`, each with `--json`, are the one writer of the lane's `fleet-hold.json` (lane from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`). A record is checked with the same rules `ccc next` uses, then written to a temp file, fsynced and renamed. An `--until` without a zone, not a time or in the past, a reason over 160 characters or an unknown argument exits 2 and writes nothing. `clear` writes `{"hold": false}` rather than deleting, which also overrides a legacy `~/.claude/commander` hold. `ccc next` output is unchanged. Schema 1 is in `docs/FLEET-CHECKIN.md` (CC-2123).
+- **Docs:** the CCC release-gate audit report (CC-2068) and the CI process note in `AGENTS.md`.
+
+### Fixed
+- **`pr-wait`:** `--max-minutes` (default 120) bounds every run; it hands back `ready` when no Greptile or Macroscope review arrives on a green PR; names supplied by GitHub are printed without control or format characters; the base branch is URL-encoded in the required-checks paths (CC-2126).
+- **Codex build:** `build:codex` keeps file modes, so the Codex mirror's `pr-wait` and `tuneup-probes.sh` stay executable (CC-2126).
+- **Status line:** the Superfleet segment reads `fetchedAt` with any `+HH:MM`/`-HH:MM` offset, `Z` and fractional seconds (CC-2126).
+- **tstack skills:** each grants only the `git fetch`, `git diff` and `git log` forms it runs (`git fetch origin` exactly); NOTICE.md names the Codex mirror of the tstack skills (CC-2126).
+- **Docs:** the 8.1.5 changelog names the right `render-diff.mjs` path, and `docs/FLEET-CHECKIN.md` says Fleet does not write `~/.commander/lane-usage.json` yet (`usage_reason: missing`) (CC-2126).
+
+### Dependencies
+- Hosted MCP server (`apps/mcp-server-cloud`): `@hono/node-server` 2.1.5, `@modelcontextprotocol/sdk` 1.32.1, `qs` 6.17.0, `body-parser` 2.4.0, `proxy-addr` 2.0.8, `ip-address` 10.7.4. Site: `next` 16.4.1. Video: `fast-uri` 3.1.9.
+
+### Known gaps (Claude Code / Codex parity)
+- The Codex mirror carries all 93 skills and 22 agents, but its hooks cover 11 of the 30 Claude Code lifecycle events; the other events have no Codex equivalent and their handlers do not run in Codex.
+- The CLI/plugin parity checker (#271) is still a draft, so CLI-only and plugin-only surfaces are not yet compared automatically.
+
 ## [8.1.5] - 2026-10-28
 
 Release for the backfill batches (#249-#259), per-lane weekly usage (#260) and the tstack PR-workflow skills (#261). The permission gate now denies every force-push and remote-delete form, one context hook replaces two (51 handlers), and hook, telemetry and session fixes land. The Superfleet status line and `ccc checkin` now report each lane's 7-day usage window alongside the 5-hour one, and nine PR-workflow skills adapted from t3dotgg/tstack ship on demand with CCC's safety rules applied. Bumps the pinned plugin version so `claude plugin update` picks these up.

@@ -32,6 +32,7 @@
     { "file": "mintlify-docs/plugin/skills.mdx", "match": "introduced in v8.0.0", "what": "version", "reason": "Release that introduced the skill." },
     { "file": "mintlify-docs/plugin/upgrade.mdx", "match": "The 8.1.2 release", "what": "version", "reason": "Upgrade notes list each prior release." },
     { "file": "mintlify-docs/plugin/upgrade.mdx", "match": "23 lifecycle events / 44 handlers", "reason": "Before/after table for the 8.0.0 upgrade." },
+    { "file": "mintlify-docs/plugin/upgrade.mdx", "match": "new in v8.1.5: nine tstack PR workflows", "what": "version", "reason": "Names the release that added the tstack skills." },
     { "file": "mintlify-docs/quickstart.mdx", "match": "**v8.0.0:** Commander routes by model alias", "what": "version", "reason": "Release that introduced alias routing." },
     { "file": "mintlify-docs/quickstart.mdx", "match": "What's New in v8.0.0", "what": "version", "reason": "Card title linking the 8.0.0 release notes." },
 
