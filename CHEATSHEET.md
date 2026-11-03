@@ -1,6 +1,6 @@
 # CC Commander Cheatsheet
 > CC Commander v8.1.6 — by Kevin Zicherman — commands, workflows, and power user tips
-> Last updated: 2026-10-13 · See CHANGELOG.md for version history
+> Last updated: 2026-11-03 · See CHANGELOG.md for version history
 
 > **Which document?** BIBLE.md = learning guide (read once). **CHEATSHEET.md = daily reference (you are here).** SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
