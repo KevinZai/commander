@@ -174,7 +174,9 @@ function inferNextBetaVersion(previousVersion) {
 function checkVersion(opts) {
   const pkg = readJson(opts.packagePath, 'package.json');
   const changelog = readText(opts.changelogPath, 'CHANGELOG.md');
-  const latest = findChangelogVersions(changelog)[0] || null;
+  // Keep a Changelog: an [Unreleased] section above the latest release is allowed
+  // here; `scripts/release-gate.js --tag` requires it to be gone at tag time.
+  const latest = findChangelogVersions(changelog).filter(v => v.toLowerCase() !== 'unreleased')[0] || null;
   const packageVersion = normalizeVersion(pkg.version);
 
   if (!packageVersion) {

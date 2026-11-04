@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- **Release gate:** one gate list, `scripts/release-gate.js`, runs in the tag workflow, `prepublishOnly` and `npm run release:gate`: tag = `package.json` = top CHANGELOG entry, every check script, lint at one ceiling (`npm run lint`, 100 warnings, also used by CI), Codex mirror drift, `claude plugin validate` when the CLI is present, `test:ci`, smoke and the full `npm test` suite. `release.yml` and `ci.yml` pin actions by commit SHA and use `npm ci`; `release.yml` drops the unused `id-token`/`packages` scopes and npm registry setup. `/commander:ccc-release-audit` excludes the deliberate stale-model hits (eval detectors, pinning tests, dated specs and reports) and adds the lint and Fable-contract gates. New `RELEASE-CHECKLIST.md`; RUNBOOK.md hotfix and rollback steps describe the tag-only GitHub release instead of npm (CC-2068 G1-G9).
+
 ## [8.1.5] - 2026-10-28
 
 Release for the backfill batches (#249-#259), per-lane weekly usage (#260) and the tstack PR-workflow skills (#261). The permission gate now denies every force-push and remote-delete form, one context hook replaces two (51 handlers), and hook, telemetry and session fixes land. The Superfleet status line and `ccc checkin` now report each lane's 7-day usage window alongside the 5-hour one, and nine PR-workflow skills adapted from t3dotgg/tstack ship on demand with CCC's safety rules applied. Bumps the pinned plugin version so `claude plugin update` picks these up.

@@ -28,9 +28,12 @@ if (!/^https:\/\/[A-Za-z0-9.-]+(?::\d+)?\/?$/.test(SITE)) throw new Error(`args.
 // Built from parts so this file never matches its own stale-model grep. PCRE
 // lookaheads keep current names (claude-opus-5-5, "Opus 5.5") out of the match;
 // the registry, the model catalog's legacy table, dated history and the tests
-// that deliberately pin superseded ids are excluded on purpose.
+// that deliberately pin superseded ids are excluded on purpose: eval detector
+// regexes, the doctor/codex-models/evals tests, the PROMPT-STANDARD checklist,
+// the Codex model probe's legacy note, dated reports and specs, and the archived
+// dashboard (CC-2068 G1). scripts/release-gate.js holds the CI gate list.
 const STALE = ['claude-(fable|opus|sonnet)-' + '5(?![-\\d])', 'claude-haiku-4-' + '5', '\\b(Opus|Fable|Sonnet) ' + '5(?![.\\d])', 'Haiku 4\\' + '.5', 'gpt-5\\' + '.[0-9]', 'GPT-5\\' + '.[0-9]']
-const STALE_EXCLUDES = ["':!CHANGELOG.md'", "':!docs/reference'", "':!docs/compat'", "':!docs/archive'", "':!vendor'", "':!mintlify-docs/whats-new-v*'", "':!mintlify-docs/quickstart.mdx'", "':!site/releases'", "':!package-lock.json'", "':!commander/adapters/codex/models.js'", "':!skills/claude-api/shared/models.md'", "':!skills/advisor'", "':!scripts/prompt-lint.js'", "':!commander/cowork-plugin/workflows'", "':!commander/cowork-plugin-codex/skills/ccc-codex'", "':!commander/tests/agent-personas.test.js'", "':!**/*.pdf'", "':!**/*.png'", "':!**/*.ansi'"]
+const STALE_EXCLUDES = ["':!CHANGELOG.md'", "':!docs/reference'", "':!docs/compat'", "':!docs/archive'", "':!vendor'", "':!mintlify-docs/whats-new-v*'", "':!mintlify-docs/quickstart.mdx'", "':!site/releases'", "':!package-lock.json'", "':!commander/adapters/codex/models.js'", "':!skills/claude-api/shared/models.md'", "':!skills/advisor'", "':!scripts/prompt-lint.js'", "':!commander/cowork-plugin/workflows'", "':!commander/cowork-plugin-codex/skills/ccc-codex'", "':!commander/tests/agent-personas.test.js'", "':!**/*.pdf'", "':!**/*.png'", "':!**/*.ansi'", "':!commander/cowork-plugin/evals'", "':!commander/tests/ccc-doctor-diagnostics.test.js'", "':!commander/tests/codex-models.test.js'", "':!commander/tests/evals.test.js'", "':!dashboard/_archive'", "':!docs/PROMPT-STANDARD.md'", "':!docs/reports'", "':!scripts/check-codex-models.js'", "':!tasks/spec-*'"]
 const STALE_MODEL_GREP = "git grep -nP '" + STALE.join('|') + "' -- " + STALE_EXCLUDES.join(' ')
 
 // Read-only gates run concurrently. expect: 'exit0' | 'empty' (exit 0 or 1 with no output) | 'contains:<text>'.
@@ -44,6 +47,8 @@ const READ_ONLY_GATES = [
   { id: 'skill-doc-sync', command: 'node commander/cowork-plugin/skills/ccc-doc-sync/sync.js --check', expect: 'exit0' },
   { id: 'frontmatter', command: 'node scripts/audit-frontmatter.js --check', expect: 'exit0' },
   { id: 'compat', command: 'node scripts/check-compat.js', expect: 'exit0' },
+  { id: 'fable-contract', command: 'node scripts/add-fable-contract.js --check', expect: 'exit0' },
+  { id: 'lint', command: 'npm run lint', expect: 'exit0' },
   { id: 'changelog-version', command: 'node scripts/generate-changelog.js --check-version', expect: 'exit0' },
   { id: 'plugin-validate', command: 'claude plugin validate ./commander/cowork-plugin --strict', expect: 'contains:Validation passed' },
 ]

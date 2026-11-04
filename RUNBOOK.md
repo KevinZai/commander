@@ -3,52 +3,35 @@
 **Owner:** Kevin Zicherman — kevin@kevinz.ai  
 **Discord:** https://discord.gg/cc-commander  
 **Linear:** https://linear.app/cc/team/CC  
-**npm package:** cc-commander  
+**npm package:** cc-commander (historical; releases are tag-only GitHub releases)  
 **GitHub:** https://github.com/KevinZai/commander
 
 ---
 
-## Scenario 1 — npm rollback
+## Scenario 1 — bad GitHub release (tag-only, no npm)
 
-Use when a published version is broken and users are actively hitting it.
+CC Commander ships as a Claude Code plugin from this repository's tags plus a GitHub release; npm publish was removed (no-npm-publish policy). A pushed `v*` tag runs `.github/workflows/release.yml`: its `gate` job runs `node scripts/release-gate.js --tag <tag>` (every check script, lint, Codex mirror, `npm run test:ci`, smoke and the full `npm test` suite), and only then does the `release` job create the GitHub release. Before tagging, follow [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md).
 
-### Within 72 hours of publish (deprecate, not unpublish)
+Older `cc-commander` versions on npm are historical; do not publish, deprecate or unpublish there as part of a rollback. `scripts/rollback.sh --target npm` is legacy and not part of this procedure.
 
-```bash
-# Deprecate: package stays installable but users see a warning
-npm deprecate cc-commander@4.0.0 "Rolled back due to [ISSUE]. Pin to <previous-known-good> or wait for 4.0.1."
-
-# Verify the deprecation notice appears
-npm info cc-commander@4.0.0 deprecated
-```
-
-### Unpublish (only within 72h and only if deprecate is insufficient)
+### Pull a broken release
 
 ```bash
-# DESTRUCTIVE — breaks existing installs that didn't cache the package
-# Requires npm login with publish rights
-npm unpublish cc-commander@4.0.0
+# Mark it as a prerelease so it stops being "latest" (keeps the tag for users pinned to it)
+gh release edit v<bad-version> --prerelease
 
-# Verify removal
-npm info cc-commander@4.0.0 2>&1 | grep -i "not found"
+# Confirm which release is now latest
+gh release view --json tagName,isPrerelease
 ```
 
-### Via rollback script (dry-run default)
-
-```bash
-# Preview
-bash scripts/rollback.sh --target npm --version 4.0.0 --reason "crash on startup"
-
-# Execute (requires --yes)
-bash scripts/rollback.sh --target npm --version 4.0.0 --reason "crash on startup" --yes
-```
+Do not delete or move a pushed tag; ship a hotfix with a new version instead.
 
 ### Ship a hotfix
 
-1. Fix the bug on `main` (or a hotfix branch off the bad tag)
-2. `npm version patch` — bumps `4.0.0` → `4.0.1`
-3. `git push --follow-tags` — triggers `release.yml`
-4. The release workflow gates on full test suite before publishing
+1. Fix the bug on a branch from `main` and merge it through the normal PR gate.
+2. Bump the version with `node scripts/bump-version.js <new-version>` (it writes every manifest), add the `CHANGELOG.md` entry, and commit only the files you changed. Do not use `npm version`: its `version` lifecycle script runs `git add -A`, which stages unrelated files.
+3. Run the release checklist (`node scripts/release-gate.js --tag v<new-version>`) on the exact commit you will tag.
+4. Tag and push: `git tag v<new-version> && git push origin v<new-version>`. The release workflow gates again and creates the GitHub release.
 
 ---
 
@@ -145,14 +128,13 @@ Fast-forward only a clean checkout on `main` (`git status --short` empty, `git f
 | 1 | Check `#incidents` in Discord — may already be triaged |
 | 2 | Open a Linear issue: `CC / Infra & Tooling` with `[INCIDENT]` prefix |
 | 3 | Email kevin@kevinz.ai with subject `[CC Commander INCIDENT] <short description>` |
-| 4 | For npm-auth issues: check `op://<vault>/npm-publish-token` in 1Password |
-| 5 | For Fly.io auth: `fly auth login` or `op://<vault>/fly-io-token` |
+| 4 | For Fly.io auth: `fly auth login` or `op://<vault>/fly-io-token` |
 
 ---
 
 ## Verification checklist (post-rollback)
 
-- [ ] `npm info cc-commander dist-tags` shows correct `latest` and `beta` versions
+- [ ] `gh release view --json tagName` shows the expected latest release
 - [ ] `ccc --version` (after the installer one-liner) returns the expected version
 - [ ] GitHub Release page shows correct release
 - [ ] Discord `#announcements` notified
