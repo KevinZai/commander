@@ -5,10 +5,10 @@ on:
     tags:
       - 'v*'
 
+# Least privilege (CC-2068 G7): npm publish is gone, so no id-token or packages scope.
+# Only the release job writes (contents: write, to create the GitHub release).
 permissions:
-  contents: write
-  id-token: write
-  packages: write
+  contents: read
 
 jobs:
   gate:
@@ -17,36 +17,29 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      # Actions are pinned to full commit SHAs (CC-2068 G5); the comment names the tag.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
 
+      # npm ci installs exactly the lockfile the gate was tested with (CC-2068 G6).
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Run CI test suite (curated green set; full `npm test` carries pre-existing non-CI test rot)
-        run: npm run test:ci
-
-      - name: Run smoke tests
-        run: bash tests/smoke.sh
-
-      - name: Verify version parity
-        run: node scripts/check-version-parity.js --check
-
-      - name: Cross-surface manifest compatibility (Claude / Codex / ChatGPT)
-        run: node scripts/check-compat.js
-
-      - name: Audit frontmatter
-        run: node scripts/audit-frontmatter.js --check
-
-      - name: Audit counts
-        run: node scripts/audit-counts.js --check
+      # One gate list for the tag, prepublishOnly and RELEASE-CHECKLIST.md (CC-2068 G2/G3/G4/G9):
+      # tag == package.json == top CHANGELOG entry, every check script, lint at the single
+      # ceiling in package.json, Codex mirror drift, test:ci, smoke and the full npm test suite.
+      # plugin validate needs the claude CLI, which this runner does not have: it is logged as
+      # SKIP here and run locally per RELEASE-CHECKLIST.md.
+      - name: Release gate
+        env:
+          TAG: ${{ github.ref_name }}
+        run: node scripts/release-gate.js --tag "$TAG"
 
   release:
     name: GitHub release (npm publish disabled — CC Commander no-npm-publish policy)
@@ -54,21 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
     steps:
-      - uses: actions/checkout@v4
+      # This job only reads CHANGELOG.md and calls gh, so it installs no dependencies.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: true
           fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: npm install
 
       - name: Determine dist-tag
         id: tag
