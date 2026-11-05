@@ -318,8 +318,9 @@ function scanFilesystemFacts(root, contract) {
 
   var mcpPackagePath = path.join(root, 'apps/mcp-server-cloud/package.json');
   if (exists(mcpPackagePath)) {
-    var mcpPackage = readJson(mcpPackagePath);
-    compareDirect(findings, '[filesystem]', 'version', contract.version, mcpPackage.version);
+    // Version intentionally not compared: mcp-server-cloud versions independently
+    // (a bump auto-deploys to Fly); check-version-parity.js keeps it <= root.
+    readJson(mcpPackagePath);
   }
 
   var pluginSkillCount = countFilesNamed(path.join(root, 'commander/cowork-plugin/skills'), 'SKILL.md');
@@ -826,7 +827,10 @@ function scanJsonSurface(rel, content, contract) {
     compareDirect(findings, rel, 'version', contract.version, marketplacePlugin && marketplacePlugin.version);
     compareDirect(findings, rel, 'license', contract.license, marketplacePlugin && marketplacePlugin.license);
   } else if (rel === 'apps/mcp-server-cloud/package.json') {
-    compareDirect(findings, rel, 'version', contract.version, json.version);
+    // Independent version (see check-version-parity.js), so neither the
+    // version field nor dependency ranges are product surfaces; only the
+    // description's counts are, as with the root manifest below.
+    return findings.concat(scanTextSurface(String(json.description || ''), rel, contract));
   } else if (rel === 'package.json') {
     // The root manifest carries engine ranges and dependency versions that are
     // not product versions; only its own version and description are surfaces.
@@ -876,12 +880,17 @@ function patchText(content, contract) {
   return patched;
 }
 
-function patchJsonSurface(content, contract) {
+// Manifests whose version is independent of the plugin contract (see
+// check-version-parity.js): --patch fixes their description counts only.
+var INDEPENDENT_VERSION_SURFACES = ['apps/mcp-server-cloud/package.json'];
+
+function patchJsonSurface(content, contract, rel) {
   var json = JSON.parse(content);
+  var keepVersion = INDEPENDENT_VERSION_SURFACES.indexOf(rel) !== -1;
   // Whitelist product fields instead of running prose regexes across the
   // manifest. In particular, engines and dependency maps must stay intact.
   function patchProduct(product) {
-    if (typeof product.version === 'string' && /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(product.version)) {
+    if (!keepVersion && typeof product.version === 'string' && /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(product.version)) {
       product.version = contract.version;
     }
     if (typeof product.description === 'string') {
@@ -922,7 +931,7 @@ function applyPatches(root, contract) {
     var full = path.join(root, rel);
     var before = readFile(full);
     var after = JSON_SURFACES.indexOf(rel) !== -1
-      ? patchJsonSurface(before, contract)
+      ? patchJsonSurface(before, contract, rel)
       : patchText(before, contract);
     if (after !== before) {
       fs.writeFileSync(full, after);

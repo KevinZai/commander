@@ -208,6 +208,24 @@ test('--patch fixes simple count and version mismatches', function() {
   assert.strictEqual(check.status, 0, check.stdout + check.stderr);
 });
 
+test('mcp-server-cloud keeps its own version: --check accepts it and --patch leaves it, fixing only description counts (CC-2126)', function() {
+  var contract = readJson(CONTRACT_PATH);
+  var root = makeFixture({
+    'apps/mcp-server-cloud/package.json': JSON.stringify({
+      name: 'cc-commander-mcp-cloud',
+      version: '0.0.1',
+      description: '50 plugin skills.',
+    }, null, 2) + '\n',
+  });
+  var patch = spawnCheck(['--root', root, '--patch']);
+  assert.strictEqual(patch.status, 0, patch.stdout + patch.stderr);
+  var cloud = readJson(path.join(root, 'apps/mcp-server-cloud/package.json'));
+  assert.strictEqual(cloud.version, '0.0.1', '--patch must not bump the independent cloud version');
+  assert.strictEqual(cloud.description, contract.plugin_skills + ' plugin skills.');
+  var check = spawnCheck(['--root', root, '--check']);
+  assert.strictEqual(check.status, 0, check.stdout + check.stderr);
+});
+
 test('--patch leaves non-trivial mismatches alone', function() {
   var root = makeFixture({
     'README.md': 'CC Commander is free forever. No paid tier ever.\n',

@@ -1,9 +1,36 @@
 # Changelog
 
-## [Unreleased]
+## [8.1.6] - 2026-11-03
+
+Release for `ccc hold` (#270), the 8.1.5 release-review follow-ups (#272), the release-gate audit report (#273) and dependency bumps (#239, #202, #268, #269). Bumps the pinned plugin version so `claude plugin update` picks these up.
 
 ### Added
-- CLI: review-inbox adventure. The main menu shows "Review inbox (N pending)" when the ingestion inbox has pending packages; accept updates `commander/plugins.js`, `SKILLS-INDEX.md` and `CHANGELOG.md` idempotently with per-file error reporting, reject edits nothing (CC-36).
+- **Fleet hold:** `ccc hold set [--until ISO] [--reason TEXT]`, `ccc hold clear` and `ccc hold show`, each with `--json`, are the one writer of the lane's `fleet-hold.json` (lane from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`). A record is checked with the same rules `ccc next` uses, then written to a temp file, fsynced and renamed. An `--until` without a zone, not a time or in the past, a reason over 160 characters or an unknown argument exits 2 and writes nothing. `clear` writes `{"hold": false}` rather than deleting, which also overrides a legacy `~/.claude/commander` hold. `ccc next` output is unchanged. Schema 1 is in `docs/FLEET-CHECKIN.md` (CC-2123).
+- **Docs:** the CCC release-gate audit report (CC-2068) and the CI process note in `AGENTS.md`.
+- CLI: review-inbox adventure. The main menu shows "Review inbox (N pending)" when the ingestion inbox has pending packages; accept updates `commander/plugins.js`, `SKILLS-INDEX.md` and `CHANGELOG.md` idempotently with per-file error reporting, reject edits nothing (CC-36 / #266).
+
+### Changed
+- **Hosted MCP server version:** `apps/mcp-server-cloud` stays at 8.1.5, because this release changes nothing in the hosted server and any change under it redeploys to Fly. `check:version`, the product-contract check and `version-parity.test.js` now version it on its own: its `package.json` must match its lockfile and never be ahead of root, and `check-product-contract.js --patch` fixes its description counts but leaves its version alone (CC-2126).
+
+### Fixed
+- **`pr-wait`:** `--max-minutes` (default 120) bounds every run; it hands back `ready` when no Greptile or Macroscope review arrives on a green PR; names supplied by GitHub are printed without control or format characters; the base branch is URL-encoded in the required-checks paths (CC-2126).
+- **Codex build:** `build:codex` keeps file modes, so the Codex mirror's `pr-wait` and `tuneup-probes.sh` stay executable (CC-2126).
+- **Status line:** the Superfleet segment reads `fetchedAt` with any `+HH:MM`/`-HH:MM` offset, `Z` and fractional seconds (CC-2126).
+- **tstack skills:** the pre-approved `git diff` and `git log` grants are narrowed from `git diff *` to `origin/`-based forms, and `git fetch origin` is granted exactly where it is granted; other forms prompt. NOTICE.md names the Codex mirror of the tstack skills (CC-2126).
+- **Docs:** the 8.1.5 changelog names the right `render-diff.mjs` path, and `docs/FLEET-CHECKIN.md` says Fleet does not write `~/.commander/lane-usage.json` yet (`usage_reason: missing`) (CC-2126).
+
+### Dependencies
+- Hosted MCP server (`apps/mcp-server-cloud`): `@hono/node-server` 2.1.5, `@modelcontextprotocol/sdk` 1.32.1, `qs` 6.17.0, `body-parser` 2.4.0, `proxy-addr` 2.0.8, `ip-address` 10.7.4. Site: `next` 16.4.1. Video: `fast-uri` 3.1.9.
+
+### Known gaps (Claude Code / Codex parity)
+- The Codex mirror carries all 93 skills and 22 agents, but its hooks cover 11 of the 30 Claude Code lifecycle events; the other events have no Codex equivalent and their handlers do not run in Codex.
+- The CLI/plugin parity checker (#271) is still a draft, so CLI-only and plugin-only surfaces are not yet compared automatically.
+
+### Known issues (follow-ups for 8.1.7, found in the 8.1.6 release review)
+- `pr-wait` cleans control and format characters from names but not from comment, review and thread bodies; newlines are still collapsed, so a body cannot fake an event line.
+- `pr-wait`'s no-reviewer `ready` hand-back counts six green polls (about 100 s at the default interval), which can hand back before a slow Greptile review posts.
+- `/ccc-sol-loop` diffs against a merge-base SHA, which its `origin/`-based `git diff` grants do not match, so those two commands prompt. `/ccc-file-pr`, `/ccc-full-send`, `/ccc-full-stop` and `/ccc-takeover` run `git fetch origin` without a grant, so it prompts.
+- A `*` in a Bash permission rule matches any text, so the narrowed `origin/*` grants still match trailing options such as `--output=<file>`; they are narrower than 8.1.5, not argument-tight.
 
 ## [8.1.5] - 2026-10-28
 
