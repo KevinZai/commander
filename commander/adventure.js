@@ -27,8 +27,13 @@ function evaluateCondition(condition, state) {
     case 'isAssisted': return state.user && state.user.level === 'assisted';
     case 'isPower': return state.user && state.user.level === 'power';
     case 'hasLinear': return Boolean(process.env.LINEAR_API_KEY_PERSONAL || process.env.LINEAR_API_KEY);
+    case 'hasInbox': return inboxPending() > 0;
     default: return true;
   }
+}
+
+function inboxPending() {
+  try { return require('./ingestion/inbox').pendingCount(); } catch (_e) { return 0; }
 }
 
 function filterChoices(choices, state) {
@@ -82,6 +87,7 @@ function buildContext(state, stats) {
     gitLastCommit: git.gitLastCommit,
     totalCost: stats.totalCost ? '$' + stats.totalCost.toFixed(2) : '$0.00',
     achievementCount: achievements.length,
+    inboxPending: inboxPending(),
     sessionCount: stats.totalSessions || user.sessionsCompleted || 0,
   };
 }
