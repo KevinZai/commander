@@ -83,7 +83,7 @@
     "version": "node scripts/bump-version.js $npm_package_version && git add -A",
     "check:version": "node scripts/check-version-parity.js --check",
     "check:contract": "node scripts/check-product-contract.js --check",
-    "check:parity": "node scripts/check-parity.js",
+    "check:parity": "node scripts/check-parity.js && node scripts/check-cli-plugin-parity.js --check",
     "check:registry": "node scripts/build-from-registry.js --check",
     "check:frontmatter": "node scripts/audit-frontmatter.js --check",
     "changelog": "node scripts/generate-changelog.js",
