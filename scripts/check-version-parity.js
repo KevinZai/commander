@@ -28,15 +28,6 @@ var MANIFESTS = {
     path: path.join(ROOT, 'package-lock.json'),
     extract: function (obj) { return (obj.packages && obj.packages[''] && obj.packages[''].version) || null; },
   },
-  // bump-version.js writes this one too, so check it for the same reason.
-  'apps/mcp-server-cloud/package-lock.json': {
-    path: path.join(ROOT, 'apps', 'mcp-server-cloud', 'package-lock.json'),
-    extract: function (obj) { return obj.version || null; },
-  },
-  'apps/mcp-server-cloud/package-lock.json (packages[""])': {
-    path: path.join(ROOT, 'apps', 'mcp-server-cloud', 'package-lock.json'),
-    extract: function (obj) { return (obj.packages && obj.packages[''] && obj.packages[''].version) || null; },
-  },
   'commander/cowork-plugin/.claude-plugin/plugin.json': {
     path: path.join(ROOT, 'commander', 'cowork-plugin', '.claude-plugin', 'plugin.json'),
     extract: function (obj) { return obj.version || null; },
@@ -71,11 +62,38 @@ var MANIFESTS = {
     path: path.join(ROOT, 'commander', 'cowork-plugin-codex', '.codex-plugin', 'plugin.json'),
     extract: function (obj) { return obj.version || null; },
   },
+};
+
+// apps/mcp-server-cloud versions independently of the plugin: any change under
+// it auto-deploys to Fly (deploy-mcp.yml / deploy.yml path triggers), so a
+// plugin release may ship without bumping it (CC-2126, 8.1.6). Its manifests
+// must agree with EACH OTHER (bump-version.js still writes all three) and may
+// lag root but never run ahead of it.
+var CLOUD_MANIFESTS = {
   'apps/mcp-server-cloud/package.json': {
     path: path.join(ROOT, 'apps', 'mcp-server-cloud', 'package.json'),
     extract: function (obj) { return obj.version || null; },
   },
+  'apps/mcp-server-cloud/package-lock.json': {
+    path: path.join(ROOT, 'apps', 'mcp-server-cloud', 'package-lock.json'),
+    extract: function (obj) { return obj.version || null; },
+  },
+  'apps/mcp-server-cloud/package-lock.json (packages[""])': {
+    path: path.join(ROOT, 'apps', 'mcp-server-cloud', 'package-lock.json'),
+    extract: function (obj) { return (obj.packages && obj.packages[''] && obj.packages[''].version) || null; },
+  },
 };
+
+// Numeric x.y.z compare; prerelease suffixes are ignored (cloud never ships one).
+function semverCompare(a, b) {
+  var pa = String(a).split('-')[0].split('.').map(Number);
+  var pb = String(b).split('-')[0].split('.').map(Number);
+  for (var i = 0; i < 3; i++) {
+    var d = (pa[i] || 0) - (pb[i] || 0);
+    if (d !== 0) return d;
+  }
+  return 0;
+}
 
 function readVersion(entry) {
   try {
@@ -103,11 +121,21 @@ for (var label in MANIFESTS) {
   if (!ok) drifted.push({ label: label, version: v });
 }
 
+var cloudVersion = readVersion(CLOUD_MANIFESTS['apps/mcp-server-cloud/package.json']);
+for (var cloudLabel in CLOUD_MANIFESTS) {
+  var cv = readVersion(CLOUD_MANIFESTS[cloudLabel]);
+  var cloudOk = !!cv && cv === cloudVersion && semverCompare(cv, rootVersion) <= 0;
+  results.push({ label: cloudLabel + ' (independent, <= root)', version: cv, ok: cloudOk });
+  if (!cloudOk) drifted.push({ label: cloudLabel + ' (must match cloud package.json ' + cloudVersion + ' and be <= root)', version: cv });
+}
+
 var isCheck = process.argv.includes('--check');
 
 if (isCheck) {
   if (drifted.length === 0) {
-    process.stdout.write('PASS: All ' + results.length + ' manifests at ' + rootVersion + '\n');
+    var cloudCount = Object.keys(CLOUD_MANIFESTS).length;
+    process.stdout.write('PASS: All ' + (results.length - cloudCount) + ' manifests at ' + rootVersion +
+      '; ' + cloudCount + ' mcp-server-cloud manifests at ' + cloudVersion + ' (independent, <= root)\n');
     process.exit(0);
   } else {
     process.stderr.write('FAIL: Version drift detected (root is ' + rootVersion + ')\n');

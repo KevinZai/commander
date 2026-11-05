@@ -21,8 +21,12 @@ var MANIFESTS = {
   'package.json': path.join(ROOT, 'package.json'),
   'plugin.json': path.join(ROOT, 'commander', 'cowork-plugin', '.claude-plugin', 'plugin.json'),
   'marketplace.json': path.join(ROOT, '.claude-plugin', 'marketplace.json'),
-  'apps/mcp-server-cloud/package.json': path.join(ROOT, 'apps', 'mcp-server-cloud', 'package.json'),
 };
+
+// apps/mcp-server-cloud versions independently (a bump auto-deploys to Fly;
+// CC-2126): it must match its own lockfile and never run ahead of root.
+var CLOUD_PACKAGE = path.join(ROOT, 'apps', 'mcp-server-cloud', 'package.json');
+var CLOUD_LOCK = path.join(ROOT, 'apps', 'mcp-server-cloud', 'package-lock.json');
 
 // v7.3.0 W12: check-version-parity.js expanded from 4 to 9 checked surfaces
 // (marketplace.json's top-level version was previously unchecked alongside
@@ -34,7 +38,8 @@ var EXPANDED_MANIFESTS = {
   'commander/cowork-plugin-codex/.codex-plugin/plugin.json': path.join(ROOT, 'commander', 'cowork-plugin-codex', '.codex-plugin', 'plugin.json'),
 };
 
-test('all 4 original version manifests exist', function() {
+test('the 3 root-parity original manifests and the mcp-server-cloud package exist', function() {
+  assert.ok(fs.existsSync(CLOUD_PACKAGE), 'Manifest file missing: apps/mcp-server-cloud/package.json');
   for (var label in MANIFESTS) {
     assert.ok(
       fs.existsSync(MANIFESTS[label]),
@@ -43,7 +48,7 @@ test('all 4 original version manifests exist', function() {
   }
 });
 
-test('all 4 original version manifests agree with root package.json', function() {
+test('the 3 root-parity original manifests agree with root package.json', function() {
   var rootVersion = readVersion(MANIFESTS['package.json']);
   assert.ok(rootVersion, 'Root package.json must have a version field');
 
@@ -55,6 +60,18 @@ test('all 4 original version manifests agree with root package.json', function()
       label + ' has version "' + v + '" but root is "' + rootVersion + '"'
     );
   }
+});
+
+test('mcp-server-cloud package.json matches its lockfile and is not ahead of root', function() {
+  var rootVersion = readVersion(MANIFESTS['package.json']);
+  var cloud = readVersion(CLOUD_PACKAGE);
+  var lock = JSON.parse(fs.readFileSync(CLOUD_LOCK, 'utf8'));
+  assert.strictEqual(lock.version, cloud, 'cloud lockfile top-level version drifted from cloud package.json');
+  assert.strictEqual(lock.packages[''].version, cloud, 'cloud lockfile packages[""] version drifted from cloud package.json');
+  var a = cloud.split('-')[0].split('.').map(Number);
+  var b = rootVersion.split('-')[0].split('.').map(Number);
+  var cmp = (a[0] - b[0]) || (a[1] - b[1]) || (a[2] - b[2]);
+  assert.ok(cmp <= 0, 'mcp-server-cloud ' + cloud + ' must not be ahead of root ' + rootVersion);
 });
 
 test('marketplace.json TOP-LEVEL version (not just plugins[0]) agrees with root', function() {

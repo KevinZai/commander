@@ -8,6 +8,9 @@ Release for `ccc hold` (#270), the 8.1.5 release-review follow-ups (#272), the r
 - **Fleet hold:** `ccc hold set [--until ISO] [--reason TEXT]`, `ccc hold clear` and `ccc hold show`, each with `--json`, are the one writer of the lane's `fleet-hold.json` (lane from `CCC_CONFIG_DIR`, then `CLAUDE_CONFIG_DIR`, then `~/.claude`). A record is checked with the same rules `ccc next` uses, then written to a temp file, fsynced and renamed. An `--until` without a zone, not a time or in the past, a reason over 160 characters or an unknown argument exits 2 and writes nothing. `clear` writes `{"hold": false}` rather than deleting, which also overrides a legacy `~/.claude/commander` hold. `ccc next` output is unchanged. Schema 1 is in `docs/FLEET-CHECKIN.md` (CC-2123).
 - **Docs:** the CCC release-gate audit report (CC-2068) and the CI process note in `AGENTS.md`.
 
+### Changed
+- **Hosted MCP server version:** `apps/mcp-server-cloud` stays at 8.1.5, because this release changes nothing in the hosted server and any change under it redeploys to Fly. `check:version`, the product-contract check and `version-parity.test.js` now version it on its own: its `package.json` must match its lockfile and never be ahead of root, and `check-product-contract.js --patch` fixes its description counts but leaves its version alone (CC-2126).
+
 ### Fixed
 - **`pr-wait`:** `--max-minutes` (default 120) bounds every run; it hands back `ready` when no Greptile or Macroscope review arrives on a green PR; names supplied by GitHub are printed without control or format characters; the base branch is URL-encoded in the required-checks paths (CC-2126).
 - **Codex build:** `build:codex` keeps file modes, so the Codex mirror's `pr-wait` and `tuneup-probes.sh` stay executable (CC-2126).
