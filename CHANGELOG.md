@@ -5,6 +5,9 @@
 ### Changed
 - **Release gate:** one gate list, `scripts/release-gate.js`, runs in the tag workflow, `prepublishOnly` and `npm run release:gate`: tag = `package.json` = top CHANGELOG entry, every check script, lint at one ceiling (`npm run lint`, 100 warnings, also used by CI), Codex mirror drift, `claude plugin validate` when the CLI is present, `test:ci`, smoke and the full `npm test` suite. `release.yml` and `ci.yml` pin actions by commit SHA and use `npm ci`; `release.yml` drops the unused `id-token`/`packages` scopes and npm registry setup. `/commander:ccc-release-audit` excludes the deliberate stale-model hits (eval detectors, pinning tests, dated specs and reports) and adds the lint and Fable-contract gates. New `RELEASE-CHECKLIST.md`; RUNBOOK.md hotfix and rollback steps describe the tag-only GitHub release instead of npm (CC-2068 G1-G9).
 
+### Fixed
+- **CloudCLI dashboard:** removed leftover stash conflict markers from the `SERVICES` array in `extensions/cloudcli/index.html`, which stopped the page script from parsing. Kept one copy of the Agent HQ, Synapse and CloudCLI entries (Agent HQ placeholder URL `your-hq.example.com`), so the array has its 6 services again (CC-2130).
+
 ## [8.1.6] - 2026-11-03
 
 Release for `ccc hold` (#270), the 8.1.5 release-review follow-ups (#272), the release-gate audit report (#273) and dependency bumps (#239, #202, #268, #269). Bumps the pinned plugin version so `claude plugin update` picks these up.
