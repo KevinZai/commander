@@ -1,0 +1,25 @@
+{
+  "id": "review-inbox",
+  "version": 1,
+  "screen": {
+    "title": "Review Inbox",
+    "subtitle": "{inboxPending} discovered packages waiting for review."
+  },
+  "action": "show_review_inbox",
+  "afterAction": {
+    "prompt": "What would you like to do?",
+    "choices": [
+      {
+        "key": "r",
+        "label": "Review a package",
+        "description": "Evaluate, then accept or reject",
+        "action": "inbox_review_package"
+      },
+      {
+        "key": "q",
+        "label": "Back to main menu",
+        "next": "main-menu"
+      }
+    ]
+  }
+}
