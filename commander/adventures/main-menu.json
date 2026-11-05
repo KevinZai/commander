@@ -78,6 +78,13 @@
       "next": "linear-board"
     },
     {
+      "key": "i",
+      "label": "Review inbox ({inboxPending} pending)",
+      "description": "Accept or reject discovered packages",
+      "condition": "hasInbox",
+      "next": "review-inbox"
+    },
+    {
       "key": "n",
       "label": "Night Mode",
       "description": "8-hour autonomous build",
