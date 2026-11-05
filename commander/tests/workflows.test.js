@@ -139,7 +139,12 @@ for (const file of FILES) {
     for (const m of src.matchAll(/\beffort:\s*'([^']+)'/g)) assert.ok(EFFORTS.has(m[1]), `bad effort ${m[1]}`);
     assert.ok(/\beffort:\s*'/.test(src), 'stages set effort');
     for (const m of src.matchAll(/\bisolation:\s*'([^']+)'/g)) assert.strictEqual(m[1], 'worktree');
-    for (const m of src.matchAll(/\bmodel:\s*'([^']+)'/g)) assert.strictEqual(m[1], 'fable', 'only the fable alias may be pinned');
+    // fable may be pinned anywhere; haiku only on a read-only Read-phase stage (the cheap reader pattern)
+    for (const m of src.matchAll(/\{[^{}]*\bmodel:\s*'([^']+)'[^{}]*\}/g)) {
+      if (m[1] === 'fable') continue;
+      assert.strictEqual(m[1], 'haiku', `model "${m[1]}" may not be pinned`);
+      assert.ok(/\bphase:\s*'Read'/.test(m[0]) && /\bagentType:\s*'Explore'/.test(m[0]), 'haiku is pinned only on read-only Read-phase Explore stages');
+    }
     assert.ok(/^\/\/ args/m.test(src), 'args contract documented at the top');
     assert.ok(/refut/i.test(src), 'verifiers are prompted to refute');
   });
@@ -147,7 +152,7 @@ for (const file of FILES) {
 
 const STUB_ARGS = {
   'ccc-audit': [undefined, { target: 'src', dimensions: ['security', 'docs'] }],
-  'ccc-deep-review': [undefined, { base: 'origin/main' }],
+  'ccc-deep-review': [undefined, { base: 'origin/main' }, { reader: true }],
   'ccc-fleet-run': [
     { mode: 'fanout', tasks: ['a', 'b'] },
     { mode: 'pipeline', tasks: ['a', 'b'] },
@@ -172,6 +177,54 @@ for (const [name, argSets] of Object.entries(STUB_ARGS)) {
     });
   });
 }
+
+test('ccc-deep-review: reader:true runs one haiku reader that feeds every reviewer; the default and a failed reader keep the old path', async () => {
+  const src = fs.readFileSync(path.join(WF_DIR, 'ccc-deep-review.workflow.js'), 'utf8');
+  const fn = new AsyncFunction(...HOOKS, bodyOf(src));
+  const parallel = (thunks) => Promise.all(thunks.map(t => Promise.resolve().then(t).catch(() => null)));
+  const pipeline = (items, ...stages) => Promise.all(items.map(async (item, index) => {
+    let prev = item;
+    for (const stage of stages) prev = await stage(prev, item, index);
+    return prev;
+  }));
+  const run = async (args, readerFails) => {
+    const calls = [];
+    const agent = async (prompt, opts = {}) => {
+      calls.push({ prompt, opts });
+      if (opts.phase === 'Read' && readerFails) return null;
+      return fill(opts.schema);
+    };
+    const res = await fn(agent, parallel, pipeline, () => {}, () => {}, args, {}, async () => null);
+    return { res, calls };
+  };
+
+  const on = await run({ reader: true }, false);
+  const reads = on.calls.filter(c => c.opts.phase === 'Read');
+  assert.strictEqual(reads.length, 1, 'exactly one reader per run');
+  assert.strictEqual(reads[0].opts.model, 'haiku');
+  assert.strictEqual(reads[0].opts.agentType, 'Explore');
+  const reviews = on.calls.filter(c => c.opts.phase === 'Review');
+  assert.strictEqual(reviews.length, 4);
+  for (const r of reviews) {
+    assert.ok(r.prompt.includes('Digest: {'), 'reviewer gets the digest');
+    assert.ok(r.prompt.includes('read every omitted file and every truncated hunk yourself with `git diff main...HEAD -- <path>`'), 'reviewer covers what the digest leaves out');
+    assert.ok(!r.prompt.startsWith('Run `git diff'), 'reviewer does not re-read the diff');
+  }
+  for (const v of on.calls.filter(c => c.opts.phase === 'Verify')) {
+    assert.ok(!v.prompt.includes('Digest:'), 'verifiers check the real diff, not the digest');
+    assert.ok(!v.opts.model, 'verifiers keep the session model');
+  }
+  assert.strictEqual(on.res.reader, 'used');
+
+  for (const [args, fails, label] of [[undefined, false, 'off'], [{ reader: false }, false, 'off'], [{ reader: true }, true, 'failed']]) {
+    const { res, calls } = await run(args, fails);
+    assert.strictEqual(res.reader, label);
+    const rv = calls.filter(c => c.opts.phase === 'Review');
+    assert.strictEqual(rv.length, 4);
+    for (const r of rv) assert.ok(r.prompt.startsWith('Run `git diff main...HEAD` and review only'), `${label}: reviewer reads the diff itself`);
+  }
+  assert.strictEqual((await run(undefined, false)).calls.filter(c => c.opts.phase === 'Read').length, 0, 'the default spawns no reader');
+});
 
 test('ccc-fleet-run and ccc-migrate reject missing args', async () => {
   for (const name of ['ccc-fleet-run', 'ccc-migrate']) {
