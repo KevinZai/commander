@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Tests
+- **CLI paths:** `commander/tests/cli-undocumented-paths.test.js` pins exit code and output shape for 15 `ccc` paths the docs never mention (`-h`, `--doctor`, `--tuneup`, `--template`, `--ingest`, `--queue --priority`, `--daemon` tuning flags, `--next`, `--skills available`, unknown `--skills` subcommand, `CCC_SIMPLE`, `CCC_TMUX_SESSION`, `bin/ccc.js`, `bin/count-skills.js`, `bin/doc-sync.js`), each in a temp HOME (FLT-675).
+
 ### Changed
 - **Release gate:** one gate list, `scripts/release-gate.js`, runs in the tag workflow, `prepublishOnly` and `npm run release:gate`: tag = `package.json` = top CHANGELOG entry, every check script, lint at one ceiling (`npm run lint`, 100 warnings, also used by CI), Codex mirror drift, `claude plugin validate` when the CLI is present, `test:ci`, smoke and the full `npm test` suite. `release.yml` and `ci.yml` pin actions by commit SHA and use `npm ci`; `release.yml` drops the unused `id-token`/`packages` scopes and npm registry setup. `/commander:ccc-release-audit` excludes the deliberate stale-model hits (eval detectors, pinning tests, dated specs and reports) and adds the lint and Fable-contract gates. New `RELEASE-CHECKLIST.md`; RUNBOOK.md hotfix and rollback steps describe the tag-only GitHub release instead of npm (CC-2068 G1-G9).
 
