@@ -113,7 +113,7 @@ function buildGoodFixture() {
     );
   }
   agent('architect', 'fable');
-  agent('security-auditor', 'claude-fable-5-1');
+  agent('security-auditor', 'claude-fable-5-2');
   agent('debugger', 'opus');
   agent('product-manager', 'opus');
   agent('designer', 'claude-opus-5-5');
@@ -485,6 +485,18 @@ test('checkAgentModels: warn for a superseded pinned model id', function () {
   var r = diag.checkAgentModels(root);
   assert.strictEqual(r.status, 'warn');
   assert.ok(r.message.includes('builder'));
+});
+
+test('checkAgentModels: warn when a fable agent is still pinned to claude-fable-5-1', function () {
+  var root = buildGoodFixture();
+  writeFile(
+    root,
+    'commander/cowork-plugin/agents/security-auditor.md',
+    ['---', 'name: security-auditor', 'description: Test', 'model: claude-fable-5-1', '---'].join('\n')
+  );
+  var r = diag.checkAgentModels(root);
+  assert.strictEqual(r.status, 'warn', r.message);
+  assert.ok(r.message.includes('security-auditor'));
 });
 
 // --- 5. test-suite health ---------------------------------------------------

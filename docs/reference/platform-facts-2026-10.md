@@ -1,4 +1,4 @@
-# Platform facts — verified 2026-10-13
+# Platform facts — verified 2026-10-13 (Fable 5.2 update 2026-11-09)
 
 Single source of truth for the v8.0.0 revamp. Every model id, event name and
 field below was checked on 2026-10-13 against the primary source named in the
@@ -13,23 +13,24 @@ first with its source.
 
 ## 1. Anthropic models (Claude API)
 
-Source: platform.claude.com/docs/en/about-claude/models/overview (fetched 2026-10-13).
+Source: platform.claude.com/docs/en/about-claude/models/overview (fetched 2026-10-13; Fable 5.2 row re-fetched 2026-11-09 together with /about-claude/model-deprecations).
 
 | Model | API id (also the alias) | Role | Context / max out | Price in/out per MTok | Default effort |
 |---|---|---|---|---|---|
-| Claude Fable 5.1 | `claude-fable-5-1` | Demanding reasoning, long-horizon agentic work | 1M / 128K | $10 / $50 | high |
+| Claude Fable 5.2 | `claude-fable-5-2` | Demanding reasoning, long-horizon agentic work | 1M / 128K | $8 / $40 | high |
 | Claude Opus 5.5 | `claude-opus-5-5` | Long-running agentic coding and knowledge work; recommended default | 1M / 128K | $4 / $20 | medium |
 | Claude Sonnet 5.5 | `claude-sonnet-5-5` | Best speed/intelligence balance | 1M / 128K | $2 / $10 | high |
 | Claude Haiku 5.5 | `claude-haiku-5-5` | High-volume, latency-sensitive: classification, extraction, routing | 1M / 128K | from $0.10 / $0.50 | medium |
 
-- Thinking is **adaptive and always on** for Fable 5.1 and Opus 5.5; adaptive for Sonnet/Haiku 5.5. `thinking: {type: "disabled"}` is not accepted at `xhigh`/`max`.
+- Thinking is **adaptive and always on** for Fable 5.2 and Opus 5.5; adaptive for Sonnet/Haiku 5.5. `thinking: {type: "disabled"}` is not accepted at `xhigh`/`max`.
 - Effort levels: `low`, `medium`, `high`, `xhigh`, `max`. Max is session-scoped in Claude Code (not saved as default).
-- Prompt-cache reads: 2.5% of input price on Fable 5.1; 5% on Opus 5.5 and Sonnet 5.5; 10% elsewhere. Sonnet 5.5 cache reads were cut to $0.10/MTok in Claude Code 2.1.296.
-- Retirement commitments: Fable 5.1 not before 2027-09-01; Opus 5.5 2027-09-22; Sonnet 5.5 2027-09-28; Haiku 5.5 2027-10-07.
+- Prompt-cache reads: 2.5% of input price on Fable 5.2 ($0.20/MTok); 5% on Opus 5.5 and Sonnet 5.5; 10% elsewhere. Sonnet 5.5 cache reads were cut to $0.10/MTok in Claude Code 2.1.296.
+- Retirement commitments: Fable 5.2 not before 2027-11-09; Fable 5.1 not before 2027-09-01; Opus 5.5 2027-09-22; Sonnet 5.5 2027-09-28; Haiku 5.5 2027-10-07.
 - Dateless ids are pinned snapshots from the 4.6 generation on; there is no `-latest` alias to use.
-- Claude Mythos 5.1 shares the underlying model with Fable 5.1 and is available only to approved organizations. Never default to it.
+- Claude Mythos 5.2 (`claude-mythos-5-2`) has the same capabilities, pricing and API surface as Fable 5.2 and is available only to approved organizations. Never default to it.
+- Fable 5.2 vs 5.1 (GA 2026-11-09): preserved thinking's history-editing check is enforced on every account; no earlier model reads Fable 5.2 thinking blocks; `computer_20251124` returns 400 except on Amazon Bedrock (use `computer_toolset_20260801`); a Fable 5.2 executor accepts only `claude-fable-5-2` or `claude-mythos-5-2` as advisor. Forced `tool_choice` `any`/`tool` and assistant prefill still return 400. Start effort at `high`; use `xhigh` only where a gain is measured.
 
-**Legacy, still served (do not recommend as defaults):** Claude Fable 5 (`claude-fable-5`), Opus 5 (`claude-opus-5`), Sonnet 5 (`claude-sonnet-5`), Haiku 4.5 (`claude-haiku-4-5`), Opus 4.8 / 4.7 / 4.6 / 4.5, Sonnet 4.6.
+**Legacy, still served (do not recommend as defaults):** Claude Fable 5.1 (`claude-fable-5-1`), Claude Fable 5 (`claude-fable-5`), Opus 5 (`claude-opus-5`), Sonnet 5 (`claude-sonnet-5`), Haiku 4.5 (`claude-haiku-4-5`), Opus 4.8 / 4.7 / 4.6 / 4.5, Sonnet 4.6.
 
 **Claude Code model aliases** (subagent `model:` frontmatter, `/model`, Agent tool): `fable`, `opus`, `sonnet`, `haiku`, `inherit`, or a full id such as `claude-opus-5-5`. Aliases track the newest model in that line, so prefer aliases in plugin frontmatter and name the full id only in prose that is about a specific model.
 
@@ -37,7 +38,7 @@ Source: platform.claude.com/docs/en/about-claude/models/overview (fetched 2026-1
 
 | Tier | Claude | Use |
 |---|---|---|
-| Deep | `fable` (Fable 5.1) | architecture, migrations, threat models, verification of load-bearing claims |
+| Deep | `fable` (Fable 5.2) | architecture, migrations, threat models, verification of load-bearing claims |
 | Default | `opus` (Opus 5.5) | implementation, review, orchestration |
 | Fast | `sonnet` (Sonnet 5.5) | bounded edits, docs, routers, focused reviews |
 | Bulk | `haiku` (Haiku 5.5) | classification, routing, extraction, hook-side summaries |
@@ -193,7 +194,7 @@ Skill metadata (source: learn.chatgpt.com/docs/build-skills, fetched 2026-10-27)
 
 | Was | Now |
 |---|---|
-| Claude Fable 5 (`claude-fable-5`) as deep tier | Fable 5.1 (`claude-fable-5-1`, alias `fable`) |
+| Claude Fable 5 (`claude-fable-5`) or Fable 5.1 (`claude-fable-5-1`) as deep tier | Fable 5.2 (`claude-fable-5-2`, alias `fable`) |
 | Claude Opus 5 as default | Opus 5.5 (`claude-opus-5-5`, alias `opus`) |
 | Claude Sonnet 5 / 4.6 as fast tier | Sonnet 5.5 (alias `sonnet`) |
 | Claude Haiku 4.5 as bulk tier | Haiku 5.5 (alias `haiku`) |

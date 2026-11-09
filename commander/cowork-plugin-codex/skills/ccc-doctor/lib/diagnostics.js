@@ -620,11 +620,11 @@ function checkBundledMcpServers(root) {
 var EXPECTED_FABLE_AGENTS = ['architect', 'security-auditor'];
 var EXPECTED_SONNET_AGENTS = ['technical-writer', 'content-strategist', 'fleet-worker'];
 var ACCEPTED_MODELS = {
-  fable: ['fable', 'claude-fable-5-1'],
+  fable: ['fable', 'claude-fable-5-2'],
   opus: ['opus', 'claude-opus-5-5'],
   sonnet: ['sonnet', 'claude-sonnet-5-5'],
 };
-var LEGACY_MODEL_IDS = /^claude-(fable-5|opus-5|sonnet-5|haiku-4-5|opus-4-\d|sonnet-4-\d)$/;
+var LEGACY_MODEL_IDS = /^claude-(fable-5|fable-5-1|opus-5|sonnet-5|haiku-4-5|opus-4-\d|sonnet-4-\d)$/;
 
 function expectedTierFor(name) {
   if (EXPECTED_FABLE_AGENTS.indexOf(name) >= 0) return 'fable';

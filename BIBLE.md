@@ -61,7 +61,7 @@ claude plugin eval ./commander/cowork-plugin --case ccc-plan --runs 3
 
 | Tier | Claude alias | Codex | Use |
 |---|---|---|---|
-| Deep | `fable` (Fable 5.1) | `gpt-6-astra` | architecture, migrations, threat models, verification |
+| Deep | `fable` (Fable 5.2) | `gpt-6-astra` | architecture, migrations, threat models, verification |
 | Default | `opus` (Opus 5.5) | `gpt-6.1-sol` | implementation, review, orchestration |
 | Fast | `sonnet` (Sonnet 5.5) | `gpt-6-sol` | bounded edits, docs, routers |
 | Bulk | `haiku` (Haiku 5.5) | `gpt-6-luna` | classification, extraction, hook-side summaries |
@@ -138,7 +138,7 @@ Before touching ANY code, answer one question: **What kind of build is this?**
 | **DEEP** | 1-5 days | Spec-first, TDD, subagents | Opus | mega-{domain} + ccc-testing |
 | **SAAS** | 1-4 weeks | Full lifecycle: scaffold→auth→billing→ship | Opus | ccc-saas + ccc-seo + ccc-testing + ccc-devops |
 | **OVERNIGHT** | 6-12h autonomous | Checkpoints, error recovery | Opus | overnight-runner + domain skills |
-| **ARCHITECTURE / THREAT-MODEL / MIGRATION** | Any | Deep reasoning, multi-angle analysis | Fable 5.1 | `/model fable` — escalation tier only |
+| **ARCHITECTURE / THREAT-MODEL / MIGRATION** | Any | Deep reasoning, multi-angle analysis | Fable 5.2 | `/model fable` — escalation tier only |
 
 ### Orchestrator / Executor Model
 
@@ -148,7 +148,7 @@ Use a high-reasoning orchestrator for ambiguity, judgment, and acceptance criter
 
 | Role | Job | Default Tool |
 |------|-----|--------------|
-| **Orchestrator** | Compress fuzzy intent into a Skill.md-style goal file with concrete done-when checks. It does not write production code. | Claude Fable 5.1 `effort: high`, or Opus 5.5 |
+| **Orchestrator** | Compress fuzzy intent into a Skill.md-style goal file with concrete done-when checks. It does not write production code. | Claude Fable 5.2 `effort: high`, or Opus 5.5 |
 | **Executor** | Implements the goal file exactly, runs its own tests as a first gate, and reports evidence — the orchestrator (or a fresh verifier) independently confirms. It does not re-plan. | The Codex CLI executor (GPT-6.1 Sol, or GPT-6 Astra for deep work) via `codex`, or a Sonnet subagent |
 | **Verifier** | Re-reads the goal file and checks every acceptance criterion before calling the work done. | Same Fable/Opus orchestrator |
 
@@ -731,7 +731,7 @@ These failure modes come from reverse-engineering Claude Code's internal behavio
 ### Rate Limit Management (Cowork)
 
 - Track usage: `/usage` or check Settings → Usage
-- If hitting limits: switch to Haiku for bulk tasks, Sonnet for general work, Opus for judgment calls, Fable 5.1 only when deep reasoning is the bottleneck (architecture / threat-model / migration)
+- If hitting limits: switch to Haiku for bulk tasks, Sonnet for general work, Opus for judgment calls, Fable 5.2 only when deep reasoning is the bottleneck (architecture / threat-model / migration)
 - Rate limits reset: check `/usage` for exact timing
 - Max plan ($200/month) has higher Cowork limits than Pro ($20/month)
 
@@ -2112,7 +2112,7 @@ Spawn a [Implementer/Researcher/Reviewer/Batch/Explorer] subagent.
 
 Task: [specific, scoped task]
 Context they need: [paste all relevant context — subagents don't share memory]
-Model: [Sonnet for execution / Haiku for bulk / Opus for judgment / Fable 5.1 for architecture·threat-model·migration]
+Model: [Sonnet for execution / Haiku for bulk / Opus for judgment / Fable 5.2 for architecture·threat-model·migration]
 Report format:
 - What was done
 - What files were changed
@@ -2557,9 +2557,9 @@ Verification: [how you'll know it's done]
 | **Haiku 5.5** (`haiku`) | Classification, routing, extraction, bulk ops | $ | Hook-side summaries, high-volume worker agents. From $0.10 / $0.50 per MTok. |
 | **Sonnet 5.5** (`sonnet`) | Bounded edits, docs, routers, focused reviews | $$ | Writers, fleet workers, quick passes. $2 / $10 per MTok. |
 | **Opus 5.5** (`opus`) | Implementation, review, orchestration | $$$ | **Everyday session default** and most specialist agents. Default effort is `medium`; step up to `high` or `xhigh` for demanding agentic work. $4 / $20 per MTok. |
-| **Fable 5.1** (`fable`) | Deep multi-angle reasoning | $$$$ | **Escalation tier.** Architecture, migrations, threat models and verification of load-bearing claims; the architect and security-auditor agents run on it. Activate with `/model fable`. $10 / $50 per MTok. Motto: *pay for Fable on the thinking, not the typing.* |
+| **Fable 5.2** (`fable`) | Deep multi-angle reasoning | $$$$ | **Escalation tier.** Architecture, migrations, threat models and verification of load-bearing claims; the architect and security-auditor agents run on it. Activate with `/model fable`. $10 / $50 per MTok. Motto: *pay for Fable on the thinking, not the typing.* |
 
-**Adaptive thinking:** thinking is adaptive and always on for Fable 5.1 and Opus 5.5, and adaptive for Sonnet 5.5 and Haiku 5.5. Effort levels are `low`, `medium`, `high`, `xhigh` and `max`; `max` lasts only for the current session in Claude Code. `thinking: {type: "disabled"}` is not accepted at `xhigh` or `max`. Do not use `budget_tokens`.
+**Adaptive thinking:** thinking is adaptive and always on for Fable 5.2 and Opus 5.5, and adaptive for Sonnet 5.5 and Haiku 5.5. Effort levels are `low`, `medium`, `high`, `xhigh` and `max`; `max` lasts only for the current session in Claude Code. `thinking: {type: "disabled"}` is not accepted at `xhigh` or `max`. Do not use `budget_tokens`.
 
 **Aliases over ids:** plugin agents and skills name `fable`, `opus`, `sonnet`, `haiku` or `inherit`; aliases track the newest model in each line. Name a full id such as `claude-opus-5-5` only when the text is about that specific model.
 
@@ -2613,7 +2613,7 @@ graph TD
     B -->|0-29 Simple/Bulk| C[Haiku 5.5 - $]
     B -->|30-65 Standard Dev| D[Sonnet 5.5 - $$]
     B -->|66-85 Architecture/Research| E[Opus 5.5 - $$$]
-    B -->|86-100 Deep Reasoning| F[Fable 5.1 - $$$$]
+    B -->|86-100 Deep Reasoning| F[Fable 5.2 - $$$$]
     C --> G{Subagent?}
     D --> G
     E --> G
@@ -2622,7 +2622,7 @@ graph TD
     G -->|No| I[Use current session model]
 ```
 
-**Rule:** Never change models mid-session. Spawn a subagent with the desired model instead. Fable 5.1 is the escalation tier — use Opus 5.5 for everything else.
+**Rule:** Never change models mid-session. Spawn a subagent with the desired model instead. Fable 5.2 is the escalation tier — use Opus 5.5 for everything else.
 
 ---
 
@@ -2723,7 +2723,7 @@ Each persona has a fixed model tier, voice system, and tool allowlist:
 | 21 | `kotlin-reviewer` | `opus` | Idiomatic Kotlin, coroutines, Android patterns, null safety |
 | 22 | `csharp-reviewer` | `opus` | .NET patterns, async/await, LINQ, IDisposable compliance |
 
-Models are aliases: `fable` (Fable 5.1) for `architect` and `security-auditor`, where deep multi-angle reasoning is the bottleneck; `sonnet` (Sonnet 5.5) for `content-strategist`, `technical-writer` and `fleet-worker`, where the work is bounded and well specified; `opus` (Opus 5.5) for everything else. Read-only reviewers carry `disallowedTools` so they cannot edit. The routing follows the Commander Method's Pillar 11 (effort calibration).
+Models are aliases: `fable` (Fable 5.2) for `architect` and `security-auditor`, where deep multi-angle reasoning is the bottleneck; `sonnet` (Sonnet 5.5) for `content-strategist`, `technical-writer` and `fleet-worker`, where the work is bounded and well specified; `opus` (Opus 5.5) for everything else. Read-only reviewers carry `disallowedTools` so they cannot edit. The routing follows the Commander Method's Pillar 11 (effort calibration).
 
 ### What This Means for Users
 
@@ -3133,7 +3133,7 @@ One hour of active use can exhaust a Pro daily allocation.
 | Session resets | Prevents bloat | Start fresh after completing logical tasks. Context grows exponentially. |
 | Subagent delegation | Fresh context | Each subagent starts clean. No accumulated history. |
 | Batch dispatch | 50% cost | Use `--stream false` for non-urgent tasks (future: Batch API). |
-| Model routing | 3-10x savings | Haiku for simple tasks, Sonnet for standard, Opus for complex, Fable 5.1 for deep-reasoning escalation. CCC auto-selects via complexity score. |
+| Model routing | 3-10x savings | Haiku for simple tasks, Sonnet for standard, Opus for complex, Fable 5.2 for deep-reasoning escalation. CCC auto-selects via complexity score. |
 
 ### Cache-Friendly CLAUDE.md Structure
 1. Static rules and standards (top) — cached across sessions

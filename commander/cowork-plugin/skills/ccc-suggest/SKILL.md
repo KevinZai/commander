@@ -169,7 +169,7 @@ The loop passes the should-loop gate: it recurs every turn, its verifier is dete
 
 ### Deep-reasoning nudge
 
-When the session is strongly deep-reasoning (two or more of: architecture, redesign, migration, threat model, system design, entire refactor, roadmap; or a prompt over ~800 characters with planning verbs), add once: "🧠 Deep-reasoning session detected — consider `/model fable` (Fable 5.1, 1M context). Commander routes subagents cost-efficiently either way." The `intent-classifier.js` hook already does this automatically at most once per day (marker `<config dir>/commander/fable-nudge-<date>`); in an explicit run, skip it if that marker exists for today. Never block or delay the answer for it.
+When the session is strongly deep-reasoning (two or more of: architecture, redesign, migration, threat model, system design, entire refactor, roadmap; or a prompt over ~800 characters with planning verbs), add once: "🧠 Deep-reasoning session detected — consider `/model fable` (Fable 5.2, 1M context). Commander routes subagents cost-efficiently either way." The `intent-classifier.js` hook already does this automatically at most once per day (marker `<config dir>/commander/fable-nudge-<date>`); in an explicit run, skip it if that marker exists for today. Never block or delay the answer for it.
 
 ## Done when
 

@@ -21,7 +21,7 @@ CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plug
 | Plugin workflows | `/commander:ccc-audit` · `/commander:ccc-deep-review` · `/commander:ccc-fleet-run` · `/commander:ccc-migrate` · `/commander:ccc-prompt-audit` · `/commander:ccc-release-audit` |
 | Plugin evals | `claude plugin eval ./commander/cowork-plugin --case ccc-plan --runs 3` (cases: hub, plan, review, doctor, fable, update, suggest, codex) |
 | New hook events | PermissionDenied · PreModelSwitch · PostModelSwitch · TeammateIdle · CwdChanged · DirectoryAdded · FileChanged (`CLAUDE.md`). WorktreeCreate/WorktreeRemove deliberately unregistered — a hook there replaces git worktree handling |
-| Routing | `fable` (Fable 5.1) deep · `opus` (Opus 5.5) default · `sonnet` (Sonnet 5.5) fast · `haiku` (Haiku 5.5) bulk; Codex: `gpt-6-astra` · `gpt-6.1-sol` · `gpt-6-sol` · `gpt-6-luna` |
+| Routing | `fable` (Fable 5.2) deep · `opus` (Opus 5.5) default · `sonnet` (Sonnet 5.5) fast · `haiku` (Haiku 5.5) bulk; Codex: `gpt-6-astra` · `gpt-6.1-sol` · `gpt-6-sol` · `gpt-6-luna` |
 
 ### Plugin Installation
 
@@ -773,7 +773,7 @@ You can always load an on-demand skill mid-session: `"use the skill-name skill"`
 
 | Model | Best for | Cost |
 |-------|---------|------|
-| `fable` (`claude-fable-5-1`) | Architecture, migrations, threat models, verification | $$$$ |
+| `fable` (`claude-fable-5-2`) | Architecture, migrations, threat models, verification | $$$$ |
 | `opus` (`claude-opus-5-5`) | Implementation, review, orchestration — the default | $$$ |
 | `sonnet` (`claude-sonnet-5-5`) | Bounded edits, docs, routers, focused reviews | $$ |
 | `haiku` (`claude-haiku-5-5`) | Classification, routing, extraction, bulk ops | $ |
@@ -962,7 +962,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 | Model | Role | Input | Output | Use |
 |-------|------|-------|--------|-----|
-| **Fable 5.1** (`fable`) | Deep reasoning escalation | $10/MTok | $50/MTok | `/model fable` for architecture, migrations, threat models; architect + security-auditor agents |
+| **Fable 5.2** (`fable`) | Deep reasoning escalation | $8/MTok | $40/MTok | `/model fable` for architecture, migrations, threat models; architect + security-auditor agents |
 | **Opus 5.5** (`opus`) | Everyday session default | $4/MTok | $20/MTok | Main thread, implementation, review, most specialist agents |
 | **Sonnet 5.5** (`sonnet`) | Fast tier | $2/MTok | $10/MTok | Writers, fleet workers, routers, bounded edits |
 | **Haiku 5.5** (`haiku`) | Bulk tier | from $0.10/MTok | $0.50/MTok | Classification, extraction, hook-side summaries |
@@ -996,7 +996,7 @@ See `claude-api` skill for full patterns including tool use, streaming, vision.
 
 | Model | Input (per 1M) | Output (per 1M) | Best Use |
 |-------|---------------|-----------------|---------|
-| claude-fable-5-1 | $10 | $50 | Architecture, deep reasoning |
+| claude-fable-5-2 | $8 | $40 | Architecture, deep reasoning |
 | claude-opus-5-5 | $4 | $20 | Default — implementation, review |
 | claude-sonnet-5-5 | $2 | $10 | Fast tier — bounded edits, docs |
 | claude-haiku-5-5 | from $0.10 | $0.50 | Bulk — classification, extraction |

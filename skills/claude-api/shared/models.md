@@ -2,7 +2,7 @@
 
 **Only use exact model IDs listed in this file.** Never guess or construct model IDs — incorrect IDs will cause API errors. For the latest information, WebFetch the Models Overview URL in `shared/live-sources.md`.
 
-Verified 2026-10-13 against platform.claude.com/docs/en/about-claude/models/overview.
+Verified 2026-10-13 against platform.claude.com/docs/en/about-claude/models/overview; Fable 5.2 rows re-verified 2026-11-09 against the same page and /about-claude/model-deprecations.
 
 ## Current Models (recommended)
 
@@ -10,21 +10,22 @@ Dateless IDs are pinned snapshots (from the 4.6 generation on) and double as the
 
 | Friendly Name      | Model ID (also the alias) | Context | Max Output | Pricing (in/out per MTok) | Default effort | Role |
 |--------------------|---------------------------|---------|------------|---------------------------|----------------|------|
-| Claude Fable 5.1   | `claude-fable-5-1`        | 1M      | 128K       | $10 / $50                 | high           | Demanding reasoning, long-horizon agentic work |
+| Claude Fable 5.2   | `claude-fable-5-2`        | 1M      | 128K       | $8 / $40                  | high           | Demanding reasoning, long-horizon agentic work |
 | Claude Opus 5.5    | `claude-opus-5-5`         | 1M      | 128K       | $4 / $20                  | medium         | Long-running agentic coding and knowledge work — **recommended default** |
 | Claude Sonnet 5.5  | `claude-sonnet-5-5`       | 1M      | 128K       | $2 / $10                  | high           | Best speed/intelligence balance |
 | Claude Haiku 5.5   | `claude-haiku-5-5`        | 1M      | 128K       | from $0.10 / $0.50        | medium         | High-volume, latency-sensitive: classification, extraction, routing |
 
-> **Approved organizations only:** Claude Mythos 5.1 shares the underlying model with Fable 5.1 and is available only to approved organizations. **Never default to it** — suggest `claude-fable-5-1` unless the user confirms access.
+> **Approved organizations only:** Claude Mythos 5.2 (`claude-mythos-5-2`) has the same capabilities, pricing and API surface as Fable 5.2 and is available only to approved organizations. **Never default to it** — suggest `claude-fable-5-2` unless the user confirms access.
 
 ### Model notes
 
-- **Thinking.** Adaptive and always on for Fable 5.1 and Opus 5.5; adaptive for Sonnet 5.5 and Haiku 5.5. `thinking: {type: "disabled"}` is not accepted at `xhigh` or `max` effort.
+- **Thinking.** Adaptive and always on for Fable 5.2 and Opus 5.5 (on Fable 5.2, omit `thinking` or send `{type: "adaptive"}`; `disabled` and `budget_tokens` return 400); adaptive for Sonnet 5.5 and Haiku 5.5. `thinking: {type: "disabled"}` is not accepted at `xhigh` or `max` effort.
 - **Effort levels.** `low`, `medium`, `high`, `xhigh`, `max`. Defaults per model are in the table above.
-- **Prompt-cache reads.** 2.5% of the input price on Fable 5.1; 5% on Opus 5.5 and Sonnet 5.5; 10% on other models.
-- **Retirement commitments.** Fable 5.1 not before 2027-09-01; Opus 5.5 2027-09-22; Sonnet 5.5 2027-09-28; Haiku 5.5 2027-10-07.
-- **Choosing.** Start with `claude-opus-5-5`. Move up to `claude-fable-5-1` for the hardest reasoning or long-horizon work (2.5× the Opus 5.5 price); move down to `claude-sonnet-5-5` for speed or `claude-haiku-5-5` for volume.
+- **Prompt-cache reads.** 2.5% of the input price on Fable 5.2 ($0.20/MTok); 5% on Opus 5.5 and Sonnet 5.5; 10% on other models.
+- **Retirement commitments.** Fable 5.2 not before 2027-11-09; Fable 5.1 not before 2027-09-01; Opus 5.5 2027-09-22; Sonnet 5.5 2027-09-28; Haiku 5.5 2027-10-07.
+- **Choosing.** Start with `claude-opus-5-5`. Move up to `claude-fable-5-2` for the hardest reasoning or long-horizon work (2× the Opus 5.5 price); move down to `claude-sonnet-5-5` for speed or `claude-haiku-5-5` for volume.
 - **Max output.** Large outputs (toward 128K) require streaming.
+- **Fable 5.2 breaking changes vs Fable 5.1.** Preserved thinking's history-editing check is enforced on every account (harnesses must append, not rewrite, history); no earlier model, Fable 5.1 included, reads Fable 5.2 thinking blocks; `computer_20251124` returns 400 except on Amazon Bedrock (use `computer_toolset_20260801`); a Fable 5.2 executor accepts only `claude-fable-5-2` or `claude-mythos-5-2` as its advisor. Forced `tool_choice` `any`/`tool` still returns 400; no assistant prefill.
 
 ## Legacy Models (still served — do not recommend as defaults)
 
@@ -32,7 +33,8 @@ Use a legacy model only when the user explicitly asks for it; otherwise use the 
 
 | Friendly Name     | Model ID                                         | Current replacement  |
 |-------------------|--------------------------------------------------|----------------------|
-| Claude Fable 5    | `claude-fable-5`                                 | `claude-fable-5-1`   |
+| Claude Fable 5.1  | `claude-fable-5-1`                               | `claude-fable-5-2`   |
+| Claude Fable 5    | `claude-fable-5`                                 | `claude-fable-5-2`   |
 | Claude Opus 5     | `claude-opus-5`                                  | `claude-opus-5-5`    |
 | Claude Opus 4.8   | `claude-opus-4-8`                                | `claude-opus-5-5`    |
 | Claude Opus 4.7   | `claude-opus-4-7`                                | `claude-opus-5-5`    |
@@ -56,8 +58,8 @@ Any model ID not in the tables above is retired or unverified. Do not send it. E
 
 | User says...                                                  | Use this model ID                                                     |
 |---------------------------------------------------------------|-----------------------------------------------------------------------|
-| "fable", "most capable", "most powerful"                      | `claude-fable-5-1`                                                    |
-| "mythos"                                                      | Approved organizations only — suggest `claude-fable-5-1` unless the user has access |
+| "fable", "most capable", "most powerful"                      | `claude-fable-5-2`                                                    |
+| "mythos"                                                      | Approved organizations only — suggest `claude-fable-5-2` unless the user has access |
 | "opus", "default", or no preference                           | `claude-opus-5-5`                                                     |
 | "sonnet", "balanced"                                          | `claude-sonnet-5-5`                                                   |
 | "haiku", "fast", "cheap"                                      | `claude-haiku-5-5`                                                    |

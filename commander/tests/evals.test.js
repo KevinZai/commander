@@ -88,7 +88,7 @@ for (const name of CASES) {
     test(`${name}: no-stale-model-names passes current model names and catches stale ones`, () => {
       const re = new RegExp(staleGrader.pattern, staleGrader.flags || '');
       // "-" and "." are word boundaries, so a bare `opus-5\b` also matches claude-opus-5-5.
-      for (const s of ['claude-opus-5-5', 'Claude Opus 5.5', 'claude-fable-5-1', 'Fable 5.1', 'claude-sonnet-5-5', 'Sonnet 5.5', 'claude-haiku-5-5', 'Haiku 5.5', 'gpt-6.1-sol']) {
+      for (const s of ['claude-opus-5-5', 'Claude Opus 5.5', 'claude-fable-5-2', 'Fable 5.2', 'claude-sonnet-5-5', 'Sonnet 5.5', 'claude-haiku-5-5', 'Haiku 5.5', 'gpt-6.1-sol']) {
         assert.ok(!re.test(s), `current name flagged as stale: ${s}`);
       }
       for (const s of ['claude-opus-5', 'claude-fable-5 is', 'Opus 5.', 'Sonnet 5, Haiku', 'claude-haiku-4-5', 'Haiku 4.5', 'gpt-5.6-sol']) {
