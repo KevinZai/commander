@@ -32,7 +32,7 @@ if (!/^https:\/\/[A-Za-z0-9.-]+(?::\d+)?\/?$/.test(SITE)) throw new Error(`args.
 // regexes, the doctor/codex-models/evals tests, the PROMPT-STANDARD checklist,
 // the Codex model probe's legacy note, dated reports and specs, and the archived
 // dashboard (CC-2068 G1). scripts/release-gate.js holds the CI gate list.
-const STALE = ['claude-(fable|opus|sonnet)-' + '5(?![-\\d])', 'claude-haiku-4-' + '5', '\\b(Opus|Fable|Sonnet) ' + '5(?![.\\d])', 'Haiku 4\\' + '.5', 'gpt-5\\' + '.[0-9]', 'GPT-5\\' + '.[0-9]']
+const STALE = ['claude-(fable|opus|sonnet)-' + '5(?![-\\d])', 'claude-fable-5-' + '1(?!\\d)', '\\bFable 5\\' + '.1(?!\\d)', 'claude-haiku-4-' + '5', '\\b(Opus|Fable|Sonnet) ' + '5(?![.\\d])', 'Haiku 4\\' + '.5', 'gpt-5\\' + '.[0-9]', 'GPT-5\\' + '.[0-9]']
 const STALE_EXCLUDES = ["':!CHANGELOG.md'", "':!docs/reference'", "':!docs/compat'", "':!docs/archive'", "':!vendor'", "':!mintlify-docs/whats-new-v*'", "':!mintlify-docs/quickstart.mdx'", "':!site/releases'", "':!package-lock.json'", "':!commander/adapters/codex/models.js'", "':!skills/claude-api/shared/models.md'", "':!skills/advisor'", "':!scripts/prompt-lint.js'", "':!commander/cowork-plugin/workflows'", "':!commander/cowork-plugin-codex/skills/ccc-codex'", "':!commander/tests/agent-personas.test.js'", "':!**/*.pdf'", "':!**/*.png'", "':!**/*.ansi'", "':!commander/cowork-plugin/evals'", "':!commander/tests/ccc-doctor-diagnostics.test.js'", "':!commander/tests/codex-models.test.js'", "':!commander/tests/evals.test.js'", "':!dashboard/_archive'", "':!docs/PROMPT-STANDARD.md'", "':!docs/reports'", "':!scripts/check-codex-models.js'", "':!tasks/spec-*'"]
 const STALE_MODEL_GREP = "git grep -nP '" + STALE.join('|') + "' -- " + STALE_EXCLUDES.join(' ')
 

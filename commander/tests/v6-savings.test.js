@@ -68,11 +68,19 @@ var savings = require('../lib/savings');
 // module internals. Instead, we test the math directly by computing expected values.
 
 var PRICING = {
-  fable:  { input: 10, output: 50 },
-  opus:   { input: 5,  output: 25 },
-  sonnet: { input: 3,  output: 15 },
-  haiku:  { input: 1,  output: 5  },
+  fable:  { input: 8,   output: 40  },
+  opus:   { input: 4,   output: 20  },
+  sonnet: { input: 2,   output: 10  },
+  haiku:  { input: 0.1, output: 0.5 },
 };
+
+test('savings PRICING matches dispatcher MODEL_PRICING and this test table', function () {
+  var dispatcherPricing = require('../dispatcher').MODEL_PRICING;
+  Object.keys(savings.PRICING).forEach(function (k) {
+    assert.deepStrictEqual(savings.PRICING[k], dispatcherPricing[k], 'savings vs dispatcher: ' + k);
+    assert.deepStrictEqual(savings.PRICING[k], PRICING[k], 'savings vs test table: ' + k);
+  });
+});
 
 function expectedUsd(modelKey, inputTok, outputTok) {
   var p = PRICING[modelKey];
@@ -92,11 +100,11 @@ test('savings math: sonnet dispatch → positive savedUsd vs opus baseline', fun
   assert.ok(actualUsd < baselineUsd, 'sonnet actual < opus baseline');
 
   // Spot-check values:
-  // sonnet: (10000*3 + 5000*15)/1e6 = (30000+75000)/1e6 = 0.105
-  // opus:   (10000*5 + 5000*25)/1e6 = (50000+125000)/1e6 = 0.175
-  assert.ok(Math.abs(actualUsd - 0.105) < 1e-9, 'sonnet actual expected 0.105, got ' + actualUsd);
-  assert.ok(Math.abs(baselineUsd - 0.175) < 1e-9, 'opus baseline expected 0.175, got ' + baselineUsd);
-  assert.ok(Math.abs(savedUsd - 0.070) < 1e-9, 'saved expected 0.070, got ' + savedUsd);
+  // sonnet: (10000*2 + 5000*10)/1e6 = (20000+50000)/1e6 = 0.07
+  // opus:   (10000*4 + 5000*20)/1e6 = (40000+100000)/1e6 = 0.14
+  assert.ok(Math.abs(actualUsd - 0.07) < 1e-9, 'sonnet actual expected 0.07, got ' + actualUsd);
+  assert.ok(Math.abs(baselineUsd - 0.14) < 1e-9, 'opus baseline expected 0.14, got ' + baselineUsd);
+  assert.ok(Math.abs(savedUsd - 0.07) < 1e-9, 'saved expected 0.07, got ' + savedUsd);
 });
 
 test('savings math: haiku dispatch → larger positive savedUsd vs opus baseline', function() {
@@ -107,10 +115,10 @@ test('savings math: haiku dispatch → larger positive savedUsd vs opus baseline
   var savedUsd = baselineUsd - actualUsd;
 
   assert.ok(savedUsd > 0, 'haiku vs opus should yield positive savings');
-  // haiku: (10000*1 + 5000*5)/1e6 = (10000+25000)/1e6 = 0.035
-  assert.ok(Math.abs(actualUsd - 0.035) < 1e-9, 'haiku actual expected 0.035, got ' + actualUsd);
-  // savedUsd = 0.175 - 0.035 = 0.140
-  assert.ok(Math.abs(savedUsd - 0.140) < 1e-9, 'saved expected 0.140, got ' + savedUsd);
+  // haiku: (10000*0.1 + 5000*0.5)/1e6 = (1000+2500)/1e6 = 0.0035
+  assert.ok(Math.abs(actualUsd - 0.0035) < 1e-9, 'haiku actual expected 0.0035, got ' + actualUsd);
+  // savedUsd = 0.14 - 0.0035 = 0.1365
+  assert.ok(Math.abs(savedUsd - 0.1365) < 1e-9, 'saved expected 0.1365, got ' + savedUsd);
 });
 
 test('savings math: fable dispatch → NEGATIVE savedUsd (recorded honestly)', function() {
@@ -122,10 +130,10 @@ test('savings math: fable dispatch → NEGATIVE savedUsd (recorded honestly)', f
 
   // fable costs more than opus → savedUsd is negative (that's honest)
   assert.ok(savedUsd < 0, 'fable vs opus should yield negative savings (it costs more), got ' + savedUsd);
-  // fable: (10000*10 + 5000*50)/1e6 = (100000+250000)/1e6 = 0.350
-  assert.ok(Math.abs(actualUsd - 0.350) < 1e-9, 'fable actual expected 0.350, got ' + actualUsd);
-  // savedUsd = 0.175 - 0.350 = -0.175
-  assert.ok(Math.abs(savedUsd - (-0.175)) < 1e-9, 'saved expected -0.175, got ' + savedUsd);
+  // fable (Claude Fable 5.2): (10000*8 + 5000*40)/1e6 = (80000+200000)/1e6 = 0.28
+  assert.ok(Math.abs(actualUsd - 0.28) < 1e-9, 'fable actual expected 0.28, got ' + actualUsd);
+  // savedUsd = 0.14 - 0.28 = -0.14
+  assert.ok(Math.abs(savedUsd - (-0.14)) < 1e-9, 'saved expected -0.14, got ' + savedUsd);
 });
 
 test('savings math: opus dispatch → zero savedUsd (same as baseline)', function() {

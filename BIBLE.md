@@ -2557,7 +2557,7 @@ Verification: [how you'll know it's done]
 | **Haiku 5.5** (`haiku`) | Classification, routing, extraction, bulk ops | $ | Hook-side summaries, high-volume worker agents. From $0.10 / $0.50 per MTok. |
 | **Sonnet 5.5** (`sonnet`) | Bounded edits, docs, routers, focused reviews | $$ | Writers, fleet workers, quick passes. $2 / $10 per MTok. |
 | **Opus 5.5** (`opus`) | Implementation, review, orchestration | $$$ | **Everyday session default** and most specialist agents. Default effort is `medium`; step up to `high` or `xhigh` for demanding agentic work. $4 / $20 per MTok. |
-| **Fable 5.2** (`fable`) | Deep multi-angle reasoning | $$$$ | **Escalation tier.** Architecture, migrations, threat models and verification of load-bearing claims; the architect and security-auditor agents run on it. Activate with `/model fable`. $10 / $50 per MTok. Motto: *pay for Fable on the thinking, not the typing.* |
+| **Fable 5.2** (`fable`) | Deep multi-angle reasoning | $$$$ | **Escalation tier.** Architecture, migrations, threat models and verification of load-bearing claims; the architect and security-auditor agents run on it. Activate with `/model fable`. $8 / $40 per MTok. Motto: *pay for Fable on the thinking, not the typing.* |
 
 **Adaptive thinking:** thinking is adaptive and always on for Fable 5.2 and Opus 5.5, and adaptive for Sonnet 5.5 and Haiku 5.5. Effort levels are `low`, `medium`, `high`, `xhigh` and `max`; `max` lasts only for the current session in Claude Code. `thinking: {type: "disabled"}` is not accepted at `xhigh` or `max`. Do not use `budget_tokens`.
 

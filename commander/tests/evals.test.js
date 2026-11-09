@@ -91,7 +91,7 @@ for (const name of CASES) {
       for (const s of ['claude-opus-5-5', 'Claude Opus 5.5', 'claude-fable-5-2', 'Fable 5.2', 'claude-sonnet-5-5', 'Sonnet 5.5', 'claude-haiku-5-5', 'Haiku 5.5', 'gpt-6.1-sol']) {
         assert.ok(!re.test(s), `current name flagged as stale: ${s}`);
       }
-      for (const s of ['claude-opus-5', 'claude-fable-5 is', 'Opus 5.', 'Sonnet 5, Haiku', 'claude-haiku-4-5', 'Haiku 4.5', 'gpt-5.6-sol']) {
+      for (const s of ['claude-opus-5', 'claude-fable-5 is', 'Opus 5.', 'Sonnet 5, Haiku', 'claude-haiku-4-5', 'Haiku 4.5', 'gpt-5.6-sol', 'claude-fable-5-1', 'Fable 5.1 deep']) {
         assert.ok(re.test(s), `stale name not caught: ${s}`);
       }
     });
