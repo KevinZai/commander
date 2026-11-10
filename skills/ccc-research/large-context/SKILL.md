@@ -14,7 +14,7 @@ disable-model-invocation: true
 
 Handles work whose input is too big to reason about in one pass — whole codebases, large document sets, long transcripts.
 
-**This replaced `gemini-fallback` in v7.3.2.** That skill existed to escape "Claude's 200K limit" by routing to a third-party 1M-context model. Both halves of that premise are gone: **every current Claude model (Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 5.5) has a 1M-token context window** (it is the default *and* the maximum — no `[1m]` suffix needed), and CC Commander routes to Anthropic models and the Codex CLI only. There is no Gemini path and no local-LLM path.
+**This replaced `gemini-fallback` in v7.3.2.** That skill existed to escape "Claude's 200K limit" by routing to a third-party 1M-context model. Both halves of that premise are gone: **every current Claude model (Fable 5.2, Opus 5.5, Sonnet 5.5, Haiku 5.5) has a 1M-token context window** (it is the default *and* the maximum — no `[1m]` suffix needed), and CC Commander routes to Anthropic models and the Codex CLI only. There is no Gemini path and no local-LLM path.
 
 ## Instructions
 

@@ -6,7 +6,7 @@ The user's selected model and effort are preserved. The tiers below say where de
 
 | Tier | Claude alias | Use |
 |---|---|---|
-| Deep | `fable` (Claude Fable 5.1) | Architecture, migrations, threat models, verification of load-bearing claims |
+| Deep | `fable` (Claude Fable 5.2) | Architecture, migrations, threat models, verification of load-bearing claims |
 | Default | `opus` (Claude Opus 5.5) | Implementation, review, orchestration |
 | Fast | `sonnet` (Claude Sonnet 5.5) | Bounded edits, docs, routers, focused reviews |
 | Bulk | `haiku` (Claude Haiku 5.5) | Classification, routing, extraction, hook-side summaries |

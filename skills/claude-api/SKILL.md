@@ -134,7 +134,7 @@ Everything goes through `POST /v1/messages`. Tools and output constraints are fe
 
 | Model             | Model ID            | Context | Input $/1M | Output $/1M |
 | ----------------- | ------------------- | ------- | ---------- | ----------- |
-| Claude Fable 5.1  | `claude-fable-5-1`  | 1M      | \$10.00     | \$50.00      |
+| Claude Fable 5.2  | `claude-fable-5-2`  | 1M      | \$8.00      | \$40.00      |
 | Claude Opus 5.5   | `claude-opus-5-5`   | 1M      | \$4.00      | \$20.00      |
 | Claude Sonnet 5.5 | `claude-sonnet-5-5` | 1M      | \$2.00      | \$10.00      |
 | Claude Haiku 5.5  | `claude-haiku-5-5`  | 1M      | from \$0.10 | from \$0.50  |
@@ -149,11 +149,11 @@ A note: if any of the model strings above look unfamiliar to you, that's to be e
 
 ## Thinking & Effort (Quick Reference)
 
-**Opus 5.5 and Fable 5.1 — Adaptive thinking, always on:** Use `thinking: {type: "adaptive"}`. Claude dynamically decides when and how much to think. Do not use `budget_tokens`. Adaptive thinking also enables interleaved thinking (no beta header needed). **When the user asks for "extended thinking", a "thinking budget", or `budget_tokens`: use Opus 5.5 with `thinking: {type: "adaptive"}` — adaptive thinking replaces fixed thinking budgets. Do NOT switch to an older model to get `budget_tokens`.**
+**Opus 5.5 and Fable 5.2 — Adaptive thinking, always on:** Use `thinking: {type: "adaptive"}`. Claude dynamically decides when and how much to think. Do not use `budget_tokens`. Adaptive thinking also enables interleaved thinking (no beta header needed). **When the user asks for "extended thinking", a "thinking budget", or `budget_tokens`: use Opus 5.5 with `thinking: {type: "adaptive"}` — adaptive thinking replaces fixed thinking budgets. Do NOT switch to an older model to get `budget_tokens`.**
 
 **Sonnet 5.5 and Haiku 5.5:** Thinking is adaptive (`thinking: {type: "adaptive"}`).
 
-**Effort parameter (GA, no beta header):** Controls thinking depth and overall token spend via `output_config: {effort: "low"|"medium"|"high"|"xhigh"|"max"}` (inside `output_config`, not top-level). Defaults: `high` on Fable 5.1 and Sonnet 5.5, `medium` on Opus 5.5 and Haiku 5.5. `thinking: {type: "disabled"}` is not accepted at `xhigh` or `max`. Use `low` for subagents or simple tasks; `xhigh`/`max` for the deepest reasoning.
+**Effort parameter (GA, no beta header):** Controls thinking depth and overall token spend via `output_config: {effort: "low"|"medium"|"high"|"xhigh"|"max"}` (inside `output_config`, not top-level). Defaults: `high` on Fable 5.2 and Sonnet 5.5, `medium` on Opus 5.5 and Haiku 5.5. `thinking: {type: "disabled"}` is not accepted at `xhigh` or `max`. Use `low` for subagents or simple tasks; `xhigh`/`max` for the deepest reasoning.
 
 **Older models (only if explicitly requested):** If the user specifically asks for an older model that predates adaptive thinking, use `thinking: {type: "enabled", budget_tokens: N}`. `budget_tokens` must be less than `max_tokens` (minimum 1024). Never choose an older model just because the user mentions `budget_tokens` — use Opus 5.5 with adaptive thinking instead.
 
@@ -234,7 +234,7 @@ Live documentation URLs are in `shared/live-sources.md`.
 ## Common Pitfalls
 
 - Don't truncate inputs when passing files or content to the API. If the content is too long to fit in the context window, notify the user and discuss options (chunking, summarization, etc.) rather than silently truncating.
-- **Current-model thinking:** Use `thinking: {type: "adaptive"}` on Fable 5.1, Opus 5.5, Sonnet 5.5 and Haiku 5.5 — do NOT use `budget_tokens`. For older models, `budget_tokens` must be less than `max_tokens` (minimum 1024). This will throw an error if you get it wrong.
+- **Current-model thinking:** Use `thinking: {type: "adaptive"}` on Fable 5.2, Opus 5.5, Sonnet 5.5 and Haiku 5.5 — do NOT use `budget_tokens`. For older models, `budget_tokens` must be less than `max_tokens` (minimum 1024). This will throw an error if you get it wrong.
 - **Sampling parameters removed:** Don't send `temperature`, `top_p` or `top_k`. API version `2026-10-21` returns a 400 for any of them on every model, and earlier versions reject non-default values on Claude 4.7 and later. Steer output with prompting instead.
 - **Prefill removed:** Assistant message prefills (last-assistant-turn prefills) return a 400 error on recent Opus models, including Opus 5.5. Use structured outputs (`output_config.format`) or system prompt instructions to control response format instead.
 - **128K output tokens:** Every current model supports up to 128K `max_tokens`, but the SDKs require streaming for large `max_tokens` to avoid HTTP timeouts. Use `.stream()` with `.get_final_message()` / `.finalMessage()`.

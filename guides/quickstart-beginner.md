@@ -193,7 +193,7 @@ A: Yes, Claude Code requires an Anthropic API key or a Claude Pro/Max subscripti
 A: No. The installer backs up your existing files before making changes. You can restore from backup at any time with the uninstaller.
 
 **Q: Which model should I use?**
-A: Start with **Opus** (Opus 5.5, the default). Switch to **Fable** (Fable 5.1) for hard architecture and migration decisions. Use **Sonnet** for fast, bounded edits and **Haiku** for simple, repetitive tasks to save cost. Commander routes its own agents to the right tier by alias.
+A: Start with **Opus** (Opus 5.5, the default). Switch to **Fable** (Fable 5.2) for hard architecture and migration decisions. Use **Sonnet** for fast, bounded edits and **Haiku** for simple, repetitive tasks to save cost. Commander routes its own agents to the right tier by alias.
 
 **Q: How do I update CC Commander?**
 A: Re-run the installer. It detects the existing installation and updates only changed files.

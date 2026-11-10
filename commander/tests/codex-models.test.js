@@ -100,7 +100,7 @@ test('models: resolveClaudeTier maps Claude aliases and ids to Codex roles', asy
   const { resolveClaudeTier } = await import(adapterUrl('models.js'));
 
   assert.equal(resolveClaudeTier('fable'), 'gpt-6-astra');
-  assert.equal(resolveClaudeTier('claude-fable-5-1'), 'gpt-6-astra');
+  assert.equal(resolveClaudeTier('claude-fable-5-2'), 'gpt-6-astra');
   assert.equal(resolveClaudeTier('opus'), 'gpt-6.1-sol');
   assert.equal(resolveClaudeTier('claude-opus-5-5'), 'gpt-6.1-sol');
   assert.equal(resolveClaudeTier('sonnet'), 'gpt-6-sol');
@@ -157,7 +157,7 @@ test('models: remapModel (translate.js) emits only registry ids and passes unkno
   const { remapModel } = await import(adapterUrl('translate.js'));
   const { getModelEntry } = await import(adapterUrl('models.js'));
 
-  for (const claude of ['fable', 'claude-fable-5-1', 'opus', 'claude-opus-5-5', 'sonnet', 'haiku', '', undefined]) {
+  for (const claude of ['fable', 'claude-fable-5-2', 'opus', 'claude-opus-5-5', 'sonnet', 'haiku', '', undefined]) {
     const codexId = remapModel(claude);
     assert.ok(getModelEntry(codexId), `remapModel(${claude}) -> ${codexId} is a registry id`);
   }

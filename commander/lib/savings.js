@@ -24,7 +24,7 @@ var path = require('path');
 
 // Pricing mirrors dispatcher.js MODEL_PRICING (keep in sync manually — both ±30% estimates)
 var PRICING = {
-  fable:  { input: 10,  output: 50  },
+  fable:  { input: 8,   output: 40  },
   opus:   { input: 4,   output: 20  },
   sonnet: { input: 2,   output: 10  },
   haiku:  { input: 0.1, output: 0.5 },
@@ -155,4 +155,4 @@ function getSavings() {
   };
 }
 
-module.exports = { recordDispatch: recordDispatch, getSavings: getSavings };
+module.exports = { recordDispatch: recordDispatch, getSavings: getSavings, PRICING: PRICING };

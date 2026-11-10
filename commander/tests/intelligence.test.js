@@ -103,15 +103,20 @@ test('getDefaultsForLevel: guided tier model is sonnet (cost right-sized from op
   assert.strictEqual(r.model, 'sonnet', 'guided tier should use sonnet, got ' + r.model);
 });
 
-test('estimateDispatchCost: modelKey is fable for claude-fable-5-1', function() {
-  var r = dispatcher.estimateDispatchCost('build a saas app', { model: 'claude-fable-5-1', maxTurns: 30 });
+test('estimateDispatchCost: modelKey is fable for claude-fable-5-2', function() {
+  var r = dispatcher.estimateDispatchCost('build a saas app', { model: 'claude-fable-5-2', maxTurns: 30 });
   assert.strictEqual(r.modelKey, 'fable', 'expected modelKey fable, got ' + r.modelKey);
 });
 
-test('estimateDispatchCost: fable pricing is higher than opus (10/50 vs 4/20 $/MTok)', function() {
-  var fable = dispatcher.estimateDispatchCost('build an auth system', { model: 'claude-fable-5-1', maxTurns: 30 });
+test('estimateDispatchCost: fable pricing is higher than opus (8/40 vs 4/20 $/MTok)', function() {
+  var fable = dispatcher.estimateDispatchCost('build an auth system', { model: 'claude-fable-5-2', maxTurns: 30 });
   var opus = dispatcher.estimateDispatchCost('build an auth system', { model: 'claude-opus-5-5', maxTurns: 30 });
   assert.ok(fable.estimateHigh > opus.estimateHigh, 'fable cost should exceed opus at same turns');
+});
+
+test('MODEL_PRICING: fable is Claude Fable 5.2 list price ($8/$40 per MTok, 2x Opus 5.5)', function() {
+  assert.deepStrictEqual(dispatcher.MODEL_PRICING.fable, { input: 8, output: 40 });
+  assert.strictEqual(dispatcher.MODEL_PRICING.fable.input / dispatcher.MODEL_PRICING.opus.input, 2);
 });
 
 test('estimateDispatchCost: haiku 5.5 pricing is $0.10/$0.50 per MTok (40x cheaper than opus 5.5)', function() {

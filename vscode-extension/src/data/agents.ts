@@ -13,7 +13,7 @@ export const agents: Agent[] = [
     id: "architect",
     name: "Architect",
     description: "System design, trade-offs, migrations and technology choices grounded in the codebase",
-    model: "claude-fable-5-1",
+    model: "claude-fable-5-2",
     effort: "xhigh"
   },
   {
@@ -146,7 +146,7 @@ export const agents: Agent[] = [
     id: "security-auditor",
     name: "Security Auditor",
     description: "Read-only security audit: OWASP/CWE-mapped findings with exploit path, fix and verification",
-    model: "claude-fable-5-1",
+    model: "claude-fable-5-2",
     effort: "xhigh"
   },
   {

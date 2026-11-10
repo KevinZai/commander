@@ -68,7 +68,7 @@ Codex runs the generated mirror in `commander/cowork-plugin-codex/`; review its 
 - **Plugin workflows** — `ccc-audit`, `ccc-deep-review`, `ccc-fleet-run`, `ccc-migrate`, `ccc-prompt-audit`, `ccc-release-audit`.
 - **Plugin evals** — `claude plugin eval ./commander/cowork-plugin --case ccc-plan --runs 3`; cases: hub, plan, review, doctor, fable, update, suggest, codex.
 - **Seven new hook events** — PermissionDenied, PreModelSwitch, PostModelSwitch, TeammateIdle, CwdChanged, DirectoryAdded, FileChanged. WorktreeCreate and WorktreeRemove are deliberately not registered.
-- **Models by alias** — `fable` (Fable 5.1), `opus` (Opus 5.5), `sonnet` (Sonnet 5.5), `haiku` (Haiku 5.5); Codex on `gpt-6-astra`, `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-luna`.
+- **Models by alias** — `fable` (the alias tracks the newest Fable; now Fable 5.2), `opus` (Opus 5.5), `sonnet` (Sonnet 5.5), `haiku` (Haiku 5.5); Codex on `gpt-6-astra`, `gpt-6.1-sol`, `gpt-6-sol`, `gpt-6-luna`.
 
 ## Core skills
 
@@ -98,7 +98,7 @@ Claude sees 32 skills: the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `cc
 
 | Model alias | Agents |
 |---|---|
-| `fable` (Fable 5.1) | architect, security-auditor |
+| `fable` (Fable 5.2) | architect, security-auditor |
 | `opus` (Opus 5.5) | builder, reviewer, debugger, designer, qa-engineer, devops-engineer, data-analyst, product-manager, performance-engineer, researcher, and the typescript, python, go, rust, java, kotlin and csharp reviewers |
 | `sonnet` (Sonnet 5.5) | content-strategist, technical-writer, fleet-worker |
 

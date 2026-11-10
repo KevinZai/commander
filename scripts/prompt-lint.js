@@ -60,6 +60,8 @@ var LIMITS = { skill: 400, agent: 120, router: 200, command: 400, prompt: 300, o
 var FAM = ['fable', 'opus', 'sonnet'];
 var STALE = new RegExp([
   'claude-(' + FAM.join('|') + ')-5(?![-\\d])',
+  'claude-fable-5-' + '1(?!\\d)',
+  '\\bFable 5\\' + '.1(?!\\d)',
   'claude-haiku-4-5',
   'claude-(opus|sonnet)-4-\\d',
   '\\b(Opus|Fable|Sonnet) ' + '5(?![.\\d])',

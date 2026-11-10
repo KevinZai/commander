@@ -39,7 +39,9 @@ Both conditions must hold:
 
 ⚠️ **An older Opus (for example `claude-opus-4-8`) is NOT a valid advisor for a `claude-opus-5-5` executor** — it fails the "at least as capable" rule. When you move the executor to a newer model, move the advisor too.
 
-📝 Current advisors (Opus 5.5, Fable 5.1, Mythos 5.1) and their 5.x predecessors return an encrypted `advisor_redacted_result` instead of a plaintext `advisor_result` — round-trip it verbatim, do not attempt to parse it.
+⚠️ **A `claude-fable-5-2` executor accepts only `claude-fable-5-2` or `claude-mythos-5-2` as its advisor** (Fable 5.1 is rejected).
+
+📝 Current advisors (Opus 5.5, Fable 5.2, Mythos 5.2) and their 5.x predecessors return an encrypted `advisor_redacted_result` instead of a plaintext `advisor_result` — round-trip it verbatim, do not attempt to parse it.
 
 ---
 

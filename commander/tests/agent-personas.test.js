@@ -21,7 +21,7 @@ var EXPECTED_AGENT_COUNT = 22;
 
 // Claude Code subagent aliases plus the current full ids
 // (docs/reference/platform-facts-2026-10.md §1). Legacy ids (claude-opus-5,
-// claude-sonnet-5, claude-fable-5, claude-haiku-4-5) are deliberately absent
+// claude-sonnet-5, claude-fable-5, claude-fable-5-1, claude-haiku-4-5) are deliberately absent
 // so a stale pin fails here instead of passing silently.
 var ALLOWED_MODELS = [
   'fable',
@@ -29,7 +29,7 @@ var ALLOWED_MODELS = [
   'sonnet',
   'haiku',
   'inherit',
-  'claude-fable-5-1',
+  'claude-fable-5-2',
   'claude-opus-5-5',
   'claude-sonnet-5-5',
   'claude-haiku-5-5',
@@ -305,6 +305,8 @@ agentFiles.forEach(function (agentFile) {
 
 var STALE_MODEL_PATTERNS = [
   /\bFable 5\b(?!\.)/,
+  /\bFable 5\.1\b/,
+  /\bclaude-fable-5-1\b/,
   /\bOpus 5\b(?!\.)/,
   /\bSonnet 5\b(?!\.)/,
   /\bHaiku 4\.5\b/,
