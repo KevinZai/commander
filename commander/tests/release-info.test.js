@@ -157,3 +157,64 @@ test('a stale record whose cache dir is gone is reported, not treated as install
   assert.strictEqual(vr.line, 'P v8.1.1 (plugin record v9.0.0, cache missing)');
   assert.deepStrictEqual(vr.warnings, ['warning: installed_plugins.json lists commander 9.0.0 but its cache dir is missing. Update: claude plugin install commander@commander-hub']);
 });
+
+test('readGitSha accepts a detached HEAD with a trailing newline', function() {
+  var root = tmp('ccc rel detached ');
+  var sha = 'd'.repeat(40);
+  fs.mkdirSync(path.join(root, '.git'));
+  fs.writeFileSync(path.join(root, '.git', 'HEAD'), sha + '\n');
+  assert.strictEqual(rel.readGitSha(root), sha);
+});
+
+test('readGitSha returns null for malformed or missing HEAD metadata', function() {
+  var root = tmp('ccc rel invalid head ');
+  fs.mkdirSync(path.join(root, '.git'));
+  assert.strictEqual(rel.readGitSha(root), null);
+  ['not-a-head\n', 'a'.repeat(39), 'z'.repeat(40), 'ref: refs/heads/missing\n'].forEach(function(head) {
+    fs.writeFileSync(path.join(root, '.git', 'HEAD'), head);
+    assert.strictEqual(rel.readGitSha(root), null, head);
+  });
+});
+
+test('readGitSha resolves a relative gitdir pointer containing spaces', function() {
+  var root = tmp('ccc rel relative ');
+  var gitDir = path.join(root, 'metadata with spaces');
+  var sha = 'e'.repeat(40);
+  fs.mkdirSync(gitDir);
+  fs.writeFileSync(path.join(root, '.git'), 'gitdir: metadata with spaces\n');
+  fs.writeFileSync(path.join(gitDir, 'HEAD'), sha + '\n');
+  assert.strictEqual(rel.readGitSha(root), sha);
+});
+
+test('readGitSha returns null for malformed or dangling gitdir pointers', function() {
+  var root = tmp('ccc rel bad pointer ');
+  ['not a gitdir pointer\n', 'gitdir: missing directory\n'].forEach(function(pointer) {
+    fs.writeFileSync(path.join(root, '.git'), pointer);
+    assert.strictEqual(rel.readGitSha(root), null, pointer);
+  });
+});
+
+test('readGitSha falls back from an invalid loose ref to the exact packed ref', function() {
+  var root = tmp('ccc rel packed fallback ');
+  var sha = 'f'.repeat(40);
+  fs.mkdirSync(path.join(root, '.git', 'refs', 'heads'), { recursive: true });
+  fs.writeFileSync(path.join(root, '.git', 'HEAD'), 'ref: refs/heads/main\n');
+  fs.writeFileSync(path.join(root, '.git', 'refs', 'heads', 'main'), 'invalid\n');
+  fs.writeFileSync(path.join(root, '.git', 'packed-refs'),
+    '# pack-refs with: peeled\n' + 'a'.repeat(40) + ' refs/heads/main-old\n' +
+    'invalid refs/heads/main\n' + sha + ' refs/heads/main\n');
+  assert.strictEqual(rel.readGitSha(root), sha);
+});
+
+test('readGitSha reads packed refs from a linked worktree common directory', function() {
+  var root = tmp('ccc rel common packed ');
+  var common = path.join(root, 'common');
+  var gitDir = path.join(common, 'worktrees', 'linked');
+  var sha = 'a'.repeat(40);
+  fs.mkdirSync(gitDir, { recursive: true });
+  fs.writeFileSync(path.join(root, '.git'), 'gitdir: common/worktrees/linked\n');
+  fs.writeFileSync(path.join(gitDir, 'HEAD'), 'ref: refs/heads/topic\n');
+  fs.writeFileSync(path.join(gitDir, 'commondir'), '../..\n');
+  fs.writeFileSync(path.join(common, 'packed-refs'), sha + ' refs/heads/topic\n');
+  assert.strictEqual(rel.readGitSha(root), sha);
+});
