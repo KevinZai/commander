@@ -123,7 +123,7 @@ Do deep design work.
 
   assert.match(toml, /name = "architect"/);
   // opus -> default Codex tier (models.js CODEX_ROUTING.default)
-  assert.match(toml, /model = "gpt-6\.1-sol"/);
+  assert.match(toml, /model = "gpt-6\.2-sol"/);
   assert.match(toml, /model_reasoning_effort = "xhigh"/);
   // Read + Bash only: no write tool, so the Codex agent runs read-only.
   assert.match(toml, /sandbox_mode = "read-only"/);
