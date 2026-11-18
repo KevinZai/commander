@@ -38,13 +38,13 @@ Install steps to name:
 | Domains | `andrej-karpathy-skills` | LLM coding guidance | opt-in |
 | Visibility | `claude-hud` | Status bar and tool tracking | vendored (`vendor/claude-hud`) |
 | Visibility | `visual-explainer` | Rich HTML or slide diagrams; pairs with `/ccc-cheatsheet` | opt-in |
-| Design | `taste-skill` | Art-directed marketing sites with real photos and a browser check; overlaps `ui-ux-pro-max-skill` and `/ccc-design`, so name it only for a site that must not look generic. Needs Node 22 and Chrome | opt-in (`/plugin marketplace add Leonxlnx/taste-skill`) |
-| Domains | `claude-seo` | A full technical SEO and AI-search audit with specialist agents; overlaps `skills/ccc-seo`, so name it for a one-shot site audit | opt-in (`/plugin marketplace add AgriciDaniel/claude-seo`) |
+| Design | `taste-skill` | Art-directed marketing sites with real photos and a browser check; overlaps `ui-ux-pro-max-skill` and `/ccc-design`, so name it only for a site that must not look generic. Needs Node 22 and Chrome | opt-in (`/plugin marketplace add Leonxlnx/taste-skill`, then `/plugin install taste-skill@taste-skill`) |
+| Domains | `claude-seo` | A full technical SEO and AI-search audit with specialist agents; overlaps `skills/ccc-seo`, so name it for a one-shot site audit | opt-in (`/plugin marketplace add AgriciDaniel/claude-seo`, then `/plugin install claude-seo@agricidaniel-claude-seo`) |
 | Planning | `spec-kit` | Spec-driven development with a `specify` CLI; overlaps `/ccc-plan`, so name it when a team already writes specs | opt-in (`uv tool install specify-cli`) |
-| Orchestration | `ruflo` | Swarm harness with its own MCP server; overlaps `/ccc-fleet` and `/ccc-orchestrate`, so name it only when the user asks for ruflo or claude-flow | opt-in (`/plugin marketplace add ruvnet/ruflo`) |
+| Orchestration | `ruflo` | Swarm harness with its own MCP server; overlaps `/ccc-fleet` and `/ccc-orchestrate`, so name it only when the user asks for ruflo or claude-flow | opt-in (`/plugin marketplace add ruvnet/ruflo`, then `/plugin install ruflo-core@ruflo`) |
 | Catalogs | `claude-code-templates` | Browse and install single agents, commands, hooks or MCPs from a large catalog; install one item at a time, never the whole registry | opt-in (`npx claude-code-templates@latest`) |
 | Catalogs | `agentic-awesome-skills` | Search a 2,900+ skill index for one niche skill; never install wholesale | opt-in, index only |
 | Authoring | `book-to-skill` | Turn a PDF book into a skill; a one-off authoring tool, not a runtime skill | opt-in (`npx skills add virgiliojr94/book-to-skill`) |
 | Cost | `ccusage` | Token and cost reports from local Claude Code logs, per day, session or block; complements `/ccc-usage`, which estimates routing savings | opt-in (`npx ccusage@latest`) |
 | Routing | `claude-code-router` | Route Claude Code requests to other model providers; infra, so name it only when the user asks for multi-provider routing | opt-in (`npm install -g @musistudio/claude-code-router`) |
-| Media | `slopcore` | Music-video generation; niche | opt-in (`/plugin marketplace add obie/slopcore`) |
+| Media | `slopcore` | Music-video generation; niche | opt-in (`/plugin marketplace add obie/slopcore`, then `/plugin install slopcore@slopcore`) |

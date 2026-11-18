@@ -3,7 +3,7 @@
  * The Commander Console's Memory section (v7.4.0 Phase 2) — a read-only
  * view of the user's OWN claude-mem store at ~/.claude-mem/claude-mem.db.
  *
- * claude-mem is AGPL-3.0 and Commander is MIT, so it is deliberately NOT
+ * claude-mem is a separate Apache-2.0 project (earlier releases were AGPL-3.0), so it is deliberately NOT
  * bundled and NOT vendored. This file never installs it, never writes to it,
  * and never assumes it exists: **"not installed" is the NORMAL case**, and it
  * resolves to `{available: false, unavailableReason}` — a card, never an error,
