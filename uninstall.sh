@@ -21,7 +21,28 @@ set -euo pipefail
 
 # Claude Code's config dir: CLAUDE_CONFIG_DIR when set, else ~/.claude.
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+# Trailing slashes would let "$HOME/" slip past the string checks below.
+while [[ "$CLAUDE_DIR" == */ && "$CLAUDE_DIR" != "/" ]]; do CLAUDE_DIR="${CLAUDE_DIR%/}"; done
 [[ -n "${CLAUDE_DIR:-}" && "$CLAUDE_DIR" != "/" && "$CLAUDE_DIR" != "$HOME" ]] || { echo "ERROR: Invalid CLAUDE_DIR ($CLAUDE_DIR)"; exit 1; }
+# Compare resolved paths too, so a symlink, ../ or (on a case-insensitive Mac volume) a different
+# capitalization that lands on /, the home directory or one of its ancestors is refused. A path that does not
+# exist yet is resolved through its nearest existing ancestor.
+if command -v node &>/dev/null; then
+  if ! guard_err="$(node -e '
+    var fs = require("fs"), path = require("path");
+    function resolve(p) {
+      p = path.resolve(p); var rest = [];
+      while (true) { try { return path.join.apply(null, [fs.realpathSync(p)].concat(rest)); } catch (_e) {}
+        var up = path.dirname(p); if (up === p) return path.join.apply(null, [p].concat(rest)); rest.unshift(path.basename(p)); p = up; }
+    }
+    var norm = process.platform === "darwin" || process.platform === "win32" ? function(s) { return s.toLowerCase(); } : function(s) { return s; };
+    var dir = norm(resolve(process.argv[1])), home = norm(resolve(process.argv[2]));
+    if (dir === path.parse(dir).root || dir === home || (home + path.sep).indexOf(dir + path.sep) === 0) {
+      console.error(process.argv[1] + " resolves to " + dir); process.exit(1);
+    }' "$CLAUDE_DIR" "$HOME" 2>&1)"; then
+    echo "ERROR: CLAUDE_DIR must not be /, the home directory or one of its parents: $guard_err"; exit 1
+  fi
+fi
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 MANIFEST="$CLAUDE_DIR/commander/install-manifest.json"
 FORCE=false
@@ -81,7 +102,10 @@ var mst = null; try { mst = fs.lstatSync(manifest); } catch (_e) { /* first inst
 if (mst && !mst.isFile()) { console.error(manifest + ' is not a regular file'); process.exit(1); }
 if (mst) {
   var m = null; try { m = JSON.parse(fs.readFileSync(manifest, 'utf8')); } catch (_e) { /* unreadable: treated as absent elsewhere */ }
-  if (m && m.claude_dir) {
+  if (m && !m.claude_dir) {
+    console.error(manifest + ' does not record which profile it belongs to. Move it aside and run again.'); process.exit(1);
+  }
+  if (m) {
     var rec = path.resolve(String(m.claude_dir));
     if (rec !== root && (real(rec) || rec) !== realRoot) {
       console.error('the manifest was written for ' + rec + ', not ' + root + ' (copied profile?). Move it aside and run again.');
@@ -154,8 +178,29 @@ function report() {
 }
 
 // ── Manifest install ──
+// Re-checked where the manifest is used, not only in the shell preflight: commander/ must be a real directory
+// directly under the resolved config dir, and a manifest must name this profile (Codex #298).
+function manifestHome(manifestPath, ROOT, REAL_ROOT) {
+  var dir = path.dirname(path.resolve(manifestPath));
+  if (path.dirname(dir) !== ROOT) return 'manifest is not in <config dir>/commander';
+  var st = null; try { st = fs.lstatSync(dir); } catch (_e) { return null; }
+  if (st.isSymbolicLink() || !st.isDirectory()) return dir + ' is a symlink or not a directory';
+  try { if (fs.realpathSync(dir) !== path.join(REAL_ROOT, 'commander')) return dir + ' resolves outside the config dir'; } catch (_e) { return dir + ' cannot be resolved'; }
+  return null;
+}
+function manifestOwnerOk(m, ROOT, REAL_ROOT) {
+  if (!m || !m.claude_dir) return false;
+  var rec = path.resolve(String(m.claude_dir)), real = rec;
+  try { real = fs.realpathSync(rec); } catch (_e) { /* compare as recorded */ }
+  return rec === ROOT || real === REAL_ROOT;
+}
+var homeErr = manifestHome(manifestPath, ROOT, REAL_ROOT);
+if (homeErr) { console.error('  ✗ ' + homeErr + '. Nothing was removed.'); process.exitCode = 1; return; }
 var manifest = null;
 try { manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); } catch (_e) { manifest = null; }
+if (manifest && !manifestOwnerOk(manifest, ROOT, REAL_ROOT)) {
+  console.error('  ✗ the install manifest does not belong to ' + ROOT + '. Nothing was removed.'); process.exitCode = 1; return;
+}
 
 if (manifest) {
   console.log('  Using the install manifest (CC Commander v' + manifest.version + ', ' + (manifest.entries || []).length + ' entries).');

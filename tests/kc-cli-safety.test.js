@@ -106,7 +106,7 @@ test('--skills follows CLAUDE_CONFIG_DIR and records links in an existing instal
     const cfg = join(home, 'claude-work');
     mkdirSync(join(cfg, 'commander'), { recursive: true });
     const manifest = join(cfg, 'commander', 'install-manifest.json');
-    writeFileSync(manifest, JSON.stringify({ schema: 1, entries: [], dirs: [] }));
+    writeFileSync(manifest, JSON.stringify({ schema: 1, claude_dir: cfg, entries: [], dirs: [] }));
     let r = kc(home, ['--skills', 'install', 'ccc-seo'], { CLAUDE_CONFIG_DIR: cfg });
     assert.strictEqual(r.status, 0, r.stderr);
     assert.ok(isLink(join(cfg, 'skills', 'ccc-seo')));
@@ -134,7 +134,7 @@ test('--skills remove and tier restore or carry the displaced original', () => {
     symlinkSync(join(SKILLS_SRC, 'ccc-seo'), join(skills, 'ccc-seo'));
     symlinkSync(join(SKILLS_SRC, 'ab-test-setup'), join(skills, 'ab-test-setup'));
     const manifest = join(claude, 'commander', 'install-manifest.json');
-    writeFileSync(manifest, JSON.stringify({ schema: 1, dirs: [], entries: [
+    writeFileSync(manifest, JSON.stringify({ schema: 1, claude_dir: claude, dirs: [], entries: [
       { group: 'skills', path: 'skills/ccc-seo', type: 'symlink', target: join(SKILLS_SRC, 'ccc-seo'), backup: join(backupDir, 'ccc-seo') },
       { group: 'skills', path: 'skills/ab-test-setup', type: 'symlink', target: join(SKILLS_SRC, 'ab-test-setup'), backup: join(backupDir, 'ab-test-setup') },
     ] }));
@@ -197,11 +197,33 @@ test('--skills tier keeps a renamed alias into the checkout and records the tier
     mkdirSync(skills, { recursive: true });
     mkdirSync(join(claude, 'commander'), { recursive: true });
     const manifest = join(claude, 'commander', 'install-manifest.json');
-    writeFileSync(manifest, JSON.stringify({ schema: 1, tier: 'essential', entries: [], dirs: [] }));
+    writeFileSync(manifest, JSON.stringify({ schema: 1, claude_dir: claude, tier: 'essential', entries: [], dirs: [] }));
     symlinkSync(join(SKILLS_SRC, 'ccc-seo'), join(skills, 'my-seo'));
     const r = kc(home, ['--skills', 'tier', 'recommended']);
     assert.strictEqual(r.status, 0, r.stderr);
     assert.ok(isLink(join(skills, 'my-seo')), 'alias kept');
     assert.strictEqual(JSON.parse(readFileSync(manifest, 'utf8')).tier, 'recommended');
+  });
+});
+
+// Codex review of #298: --skills install checks containment before it links, and a copied manifest is not updated.
+test('--skills install refuses a symlinked skills dir and leaves a foreign manifest unchanged', () => {
+  withHome((home) => {
+    const claude = join(home, '.claude');
+    const shared = join(home, 'shared-skills');
+    mkdirSync(shared, { recursive: true });
+    mkdirSync(join(claude, 'commander'), { recursive: true });
+    symlinkSync(shared, join(claude, 'skills'));
+    let r = kc(home, ['--skills', 'install', 'ccc-seo']);
+    assert.notStrictEqual(r.status, 0, 'must refuse');
+    assert.deepStrictEqual(readdirSync(shared), [], 'nothing linked into the shared dir');
+
+    rmSync(join(claude, 'skills'));
+    const manifest = join(claude, 'commander', 'install-manifest.json');
+    const foreign = JSON.stringify({ schema: 1, claude_dir: join(home, 'other'), entries: [], dirs: [] });
+    writeFileSync(manifest, foreign);
+    r = kc(home, ['--skills', 'install', 'ccc-seo']);
+    assert.strictEqual(r.status, 0, r.stderr);
+    assert.strictEqual(readFileSync(manifest, 'utf8'), foreign, 'foreign manifest untouched');
   });
 });

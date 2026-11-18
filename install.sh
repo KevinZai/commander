@@ -32,11 +32,24 @@ CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 # Trailing slashes would let "$HOME/" slip past the string checks below.
 while [[ "$CLAUDE_DIR" == */ && "$CLAUDE_DIR" != "/" ]]; do CLAUDE_DIR="${CLAUDE_DIR%/}"; done
 [[ -n "${CLAUDE_DIR:-}" && "$CLAUDE_DIR" != "/" && "$CLAUDE_DIR" != "$HOME" ]] || { echo "ERROR: Invalid CLAUDE_DIR ($CLAUDE_DIR)"; exit 1; }
-# Compare resolved paths too, so a symlink or ../ that lands on / or the home directory is refused.
-if [[ -d "$CLAUDE_DIR" ]]; then
-  CLAUDE_DIR_REAL="$(cd -P "$CLAUDE_DIR" && pwd)"
-  HOME_REAL="$(cd -P "$HOME" 2>/dev/null && pwd || echo "$HOME")"
-  [[ "$CLAUDE_DIR_REAL" != "/" && "$CLAUDE_DIR_REAL" != "$HOME_REAL" ]] || { echo "ERROR: CLAUDE_DIR resolves to / or the home directory ($CLAUDE_DIR -> $CLAUDE_DIR_REAL)"; exit 1; }
+# Compare resolved paths too, so a symlink, ../ or (on a case-insensitive Mac volume) a different
+# capitalization that lands on /, the home directory or one of its ancestors is refused. A path that does not
+# exist yet is resolved through its nearest existing ancestor.
+if command -v node &>/dev/null; then
+  if ! guard_err="$(node -e '
+    var fs = require("fs"), path = require("path");
+    function resolve(p) {
+      p = path.resolve(p); var rest = [];
+      while (true) { try { return path.join.apply(null, [fs.realpathSync(p)].concat(rest)); } catch (_e) {}
+        var up = path.dirname(p); if (up === p) return path.join.apply(null, [p].concat(rest)); rest.unshift(path.basename(p)); p = up; }
+    }
+    var norm = process.platform === "darwin" || process.platform === "win32" ? function(s) { return s.toLowerCase(); } : function(s) { return s; };
+    var dir = norm(resolve(process.argv[1])), home = norm(resolve(process.argv[2]));
+    if (dir === path.parse(dir).root || dir === home || (home + path.sep).indexOf(dir + path.sep) === 0) {
+      console.error(process.argv[1] + " resolves to " + dir); process.exit(1);
+    }' "$CLAUDE_DIR" "$HOME" 2>&1)"; then
+    echo "ERROR: CLAUDE_DIR must not be /, the home directory or one of its parents: $guard_err"; exit 1
+  fi
 fi
 # The install plan is tab-separated, so a path containing a tab or newline cannot be represented in it.
 case "$CLAUDE_DIR$SCRIPT_DIR" in
@@ -67,7 +80,10 @@ while [[ $# -gt 0 ]]; do
     --clean)    CLEAN=true; shift ;;
     --install-cli) INSTALL_CLI=true; shift ;;
     --skip-deps) SKIP_DEPS=true; shift ;;
-    --mode=*)   INSTALL_MODE="${1#*=}"; shift ;;
+    --mode=*)   INSTALL_MODE="${1#*=}"
+                case "$INSTALL_MODE" in full|essentials|scripts|dashboard|config) ;;
+                  *) echo "ERROR: unknown --mode=$INSTALL_MODE (full|essentials|scripts|dashboard|config)"; exit 1 ;; esac
+                shift ;;
     --skills=*) SKILLS_TIER="${1#*=}"; shift ;;
     --help|-h)
       cc_mini_banner
@@ -318,6 +334,7 @@ should_install() {
     scripts) [[ "$component" == "lib" ]] ;;
     dashboard) [[ "$component" == "dashboard" ]] ;;
     config) [[ "$component" =~ ^(claude-md|settings)$ ]] ;;
+    *) return 1 ;;   # an unknown mode installs (and --clean clears) nothing
   esac
 }
 
@@ -356,7 +373,10 @@ var mst = null; try { mst = fs.lstatSync(manifest); } catch (_e) { /* first inst
 if (mst && !mst.isFile()) { console.error(manifest + ' is not a regular file'); process.exit(1); }
 if (mst) {
   var m = null; try { m = JSON.parse(fs.readFileSync(manifest, 'utf8')); } catch (_e) { /* unreadable: treated as absent elsewhere */ }
-  if (m && m.claude_dir) {
+  if (m && !m.claude_dir) {
+    console.error(manifest + ' does not record which profile it belongs to. Move it aside and run again.'); process.exit(1);
+  }
+  if (m) {
     var rec = path.resolve(String(m.claude_dir));
     if (rec !== root && (real(rec) || rec) !== realRoot) {
       console.error('the manifest was written for ' + rec + ', not ' + root + ' (copied profile?). Move it aside and run again.');
@@ -408,7 +428,8 @@ fi
 
 assert_inside_config() {
   # Defensive: never rm -rf outside a .claude dir or an explicit CLAUDE_CONFIG_DIR
-  if [[ "$1" != *"/.claude"* && ( -z "${CLAUDE_CONFIG_DIR:-}" || "$1" != "${CLAUDE_CONFIG_DIR}/"* ) ]]; then
+  # Compared with the normalized CLAUDE_DIR, so CLAUDE_CONFIG_DIR=/srv/work/ (trailing slash) still works.
+  if [[ "$1" != *"/.claude"* && ( -z "${CLAUDE_CONFIG_DIR:-}" || "$1" != "${CLAUDE_DIR}/"* ) ]]; then
     echo "❌ Refusing to rm -rf outside a .claude config dir — got: $1"
     exit 1
   fi
@@ -636,8 +657,30 @@ function parentsInside(abs) {
 }
 function inRoot(e) { return !!e.abs || e.type === 'mcp-server' || parentsInside(absOf(e)); }
 
+// Re-checked where the manifest is used, not only in the shell preflight: commander/ must be a real directory
+// directly under the resolved config dir, and a manifest must name this profile (Codex #298).
+function manifestHome(manifestPath, ROOT, REAL_ROOT) {
+  var dir = path.dirname(path.resolve(manifestPath));
+  if (path.dirname(dir) !== ROOT) return 'manifest is not in <config dir>/commander';
+  var st = null; try { st = fs.lstatSync(dir); } catch (_e) { return null; }
+  if (st.isSymbolicLink() || !st.isDirectory()) return dir + ' is a symlink or not a directory';
+  try { if (fs.realpathSync(dir) !== path.join(REAL_ROOT, 'commander')) return dir + ' resolves outside the config dir'; } catch (_e) { return dir + ' cannot be resolved'; }
+  return null;
+}
+function manifestOwnerOk(m, ROOT, REAL_ROOT) {
+  if (!m || !m.claude_dir) return false;
+  var rec = path.resolve(String(m.claude_dir)), real = rec;
+  try { real = fs.realpathSync(rec); } catch (_e) { /* compare as recorded */ }
+  return rec === ROOT || real === REAL_ROOT;
+}
+var homeErr = manifestHome(manifestPath, ROOT, REAL_ROOT);
+if (homeErr) { console.error('  ✗ ' + homeErr + '. Nothing was changed.'); process.exit(1); }
 var prev = { entries: [], dirs: [], backups: [] };
-try { prev = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); } catch (_e) { /* first install */ }
+var prevRead = false;
+try { prev = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); prevRead = true; } catch (_e) { /* first install */ }
+if (prevRead && !manifestOwnerOk(prev, ROOT, REAL_ROOT)) {
+  console.error('  ✗ the install manifest belongs to another profile. Nothing was changed.'); process.exit(1);
+}
 var prevByKey = new Map((prev.entries || []).map(function(e) { return [keyOf(e), e]; }));
 var dirs = new Set((prev.dirs || []).filter(function(d) { var s = lst(path.join(ROOT, d)); return s && s.isDirectory(); }));
 var stats = { written: 0, unchanged: 0, replaced: 0, pruned: 0, restored: 0, keptModified: 0, notAdopted: 0, conflicts: [] };
@@ -881,7 +924,9 @@ ops.forEach(function(op) {
       // A link into this checkout is unambiguously CC Commander's, even from an install that predates the manifest.
       var intoSource = false;
       try { intoSource = within(fs.realpathSync(srcRoot), fs.realpathSync(abs)); } catch (_e) { intoSource = false; }
-      if (!priorOwned && !intoSource) { stats.notAdopted++; return; }
+      // The global ccc link is shared by every profile: adopt it only when this profile's manifest already owned it,
+      // so uninstalling a second profile never removes the command the first one installed (Codex #298).
+      if (!priorOwned && (op.abs || !intoSource)) { stats.notAdopted++; return; }
       if (carried) entry.backup = carried;
       entries.push(entry); stats.unchanged++;
       return;
@@ -923,6 +968,8 @@ var manifest = {
     .sort(function(x, y) { return keyOf(x) < keyOf(y) ? -1 : keyOf(x) > keyOf(y) ? 1 : 0; }),
 };
 fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+homeErr = manifestHome(manifestPath, ROOT, REAL_ROOT);
+if (homeErr) { console.error('  ✗ ' + homeErr + '; the manifest was not written.'); process.exit(1); }
 writeAtomic(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 0o644);
 
 console.log('  ✓ ' + stats.written + ' written, ' + stats.unchanged + ' unchanged, ' + stats.replaced + ' replaced (backed up)' +

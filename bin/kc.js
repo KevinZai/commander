@@ -366,7 +366,23 @@ if (args.includes('--skills')) {
   function readInstallManifest() {
     try { return JSON.parse(fs.readFileSync(installManifestPath, 'utf8')); } catch (_e) { return null; }
   }
+  // The manifest is written only when commander/ is a real directory in this profile and the manifest names this
+  // profile; a shared or copied manifest is left alone (Codex #298).
+  function installManifestOwned(m) {
+    var dir = path.dirname(installManifestPath);
+    try {
+      var st = fs.lstatSync(dir);
+      if (st.isSymbolicLink() || !st.isDirectory()) return false;
+      if (fs.realpathSync(dir) !== path.join(fs.realpathSync(claudeConfigDir), 'commander')) return false;
+    } catch (_e) { return false; }
+    if (!m || !m.claude_dir) return false;
+    var rec = path.resolve(String(m.claude_dir));
+    var real = rec;
+    try { real = fs.realpathSync(rec); } catch (_e) { /* compare as recorded */ }
+    return rec === path.resolve(claudeConfigDir) || real === fs.realpathSync(claudeConfigDir);
+  }
   function writeInstallManifest(m) {
+    if (!installManifestOwned(m)) throw new Error('the install manifest is shared, copied or unowned; not updated');
     var tmp = installManifestPath + '.tmp-' + process.pid;
     fs.writeFileSync(tmp, JSON.stringify(m, null, 2) + '\n');
     fs.renameSync(tmp, installManifestPath);
@@ -421,7 +437,9 @@ if (args.includes('--skills')) {
     if (!st.isSymbolicLink()) return false;
     var target = fs.readlinkSync(p);
     var resolvedTarget = path.resolve(path.dirname(p), target);
+    try { resolvedTarget = fs.realpathSync(p); } catch (_e) { /* dangling: compare lexically */ }
     var src = path.resolve(skillsSourceDir);
+    try { src = fs.realpathSync(skillsSourceDir); } catch (_e) { /* keep lexical */ }
     // A link into this checkout's skills/ is ours only under its own name; skills/alias -> <src>/other is the user's.
     if (path.dirname(resolvedTarget) === src && path.basename(resolvedTarget) === name) return true;
     var m = readInstallManifest();
@@ -563,6 +581,10 @@ if (args.includes('--skills')) {
       console.log('Already installed: ' + installName);
       process.exit(0);
     }
+    if (!skillsDirInside()) {
+      console.error(skillsInstallDir + ' is a symlink or resolves outside ' + claudeConfigDir + ' — refusing to install through it.');
+      process.exit(1);
+    }
     try {
       if (!fs.existsSync(skillsInstallDir)) fs.mkdirSync(skillsInstallDir, { recursive: true });
       fs.symlinkSync(installSrc, installDst);
@@ -681,7 +703,11 @@ if (args.includes('--skills')) {
       if (!m || !Array.isArray(m.entries)) return;
       m.tier = tierName;
       m.updated_at = new Date().toISOString();
-      try { writeInstallManifest(m); } catch (_e) { /* the links are what matter */ }
+      try { writeInstallManifest(m); } catch (e) {
+        console.error('Warning: the tier was switched, but the install manifest was not updated (' + e.message + '). ' +
+          'Run install.sh --skills=' + tierName + ' so the next update keeps this tier.');
+        process.exitCode = 1;
+      }
     })();
     console.log('Switched to tier: ' + tierName);
     console.log('  Removed: ' + removed + ' skill(s)' + (keptForeign > 0 ? ' (' + keptForeign + ' link(s) not made by CC Commander kept)' : '') +

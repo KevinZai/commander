@@ -295,12 +295,26 @@ describe('permission-gate: missing payload → fail open', () => {
 describe('permission-gate: dangerous operations → always reject', () => {
   it('denies rm -rf on the filesystem root or home (exit 0 + deny decision)', () => {
     for (const command of ['rm -rf /', 'rm -rf ~', 'sudo rm -rf / --no-preserve-root', 'rm -rf "$HOME"', 'rm -rf /*',
-      '/bin/rm -rf /', '/usr/bin/rm -rf ~', 'rm -rf build ~', 'rm -rf ./tmp "$HOME"', 'rm -r -f -- node_modules /']) {
+      '/bin/rm -rf /', '/usr/bin/rm -rf ~', 'rm -rf build ~', 'rm -rf ./tmp "$HOME"', 'rm -r -f -- node_modules /',
+      'cd x && rm -rf ~', 'bash -c "rm -rf /"', 'FOO=1 sudo -E rm -rf /', 'echo hi | xargs rm -rf ~', 'x=$(rm -rf /)']) {
       const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'test-session-dangerous-001' });
       assert.equal(r.exitCode, 0, `Deny must exit 0 (stdout on exit 1 is discarded), got ${r.exitCode}`);
       const decision = r.parsed?.hookSpecificOutput?.decision;
       assert.equal(decision?.behavior, 'deny', `${command} must be denied`);
       assert.match(decision?.message || '', /[Dd]angerous/);
+    }
+  });
+
+  it('denies rm on the home directory written out in full, but not on a folder inside it', () => {
+    const home = '/home/gate-test.user';
+    for (const command of [`rm -rf ${home}`, `rm -rf ${home}/`, `/bin/rm -r build ${home}/*`]) {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'home-literal' }, { HOME: home });
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny', `${command} must be denied`);
+    }
+    for (const command of [`rm -rf ${home}/project`, `rm -rf ${home}x`, 'rm -rf /home/gate-testXuser',
+      'grep -rn "rm -rf" ~', 'rg "rm -rf" ~/', 'git commit -m "rm unused helpers from /"', 'rm -rf x && cd ~', 'rm -rf x; cd /']) {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'home-literal' }, { HOME: home });
+      assert.notEqual(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny', `${command} must not be hard-denied`);
     }
   });
 

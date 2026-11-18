@@ -37,6 +37,7 @@
 import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { homedir } from 'node:os';
 import { stateDir } from '../lib/lane-state.js';
 
 function denyDecision(message) {
@@ -56,13 +57,21 @@ const READ_ONLY_TOOLS = new Set([
   'TodoRead', 'NotebookRead',
 ]);
 
+// The home directory as a literal operand, e.g. `rm -rf /Users/me` (escaped for a RegExp; empty when unknown or /).
+const HOME_LITERAL = (() => { try { return (process.env.HOME || homedir() || '').replace(/\/+$/, ''); } catch { return ''; } })();
+const HOME_ALT = HOME_LITERAL ? '|' + HOME_LITERAL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\/?\\*?' : '';
+
 // Bash command patterns considered always-dangerous — always reject.
 // Ordinary deletes (rm -rf node_modules, rm -f build/tmp.log), git reset --hard and git clean are NOT here:
 // they go to REVIEW_PATTERNS, which return no decision so the user's own approval prompt decides (audit P0, 2026-11-18).
 // rm stays a hard deny only when it targets the filesystem root or the home directory.
 const DANGEROUS_PATTERNS = [
-  // rm by name or by path (/bin/rm), with the root or home as any operand, not only the first.
-  /(?<![\w./-])(?:\/(?:[\w.-]+\/)*)?rm\s+(?:[^;&|\n]*\s)?["']?(?:\/\*?|~\/?\*?|\$\{?HOME\}?\/?\*?)["']?(?=\s|$|[;&|)])/,
+  // rm by name or by path (/bin/rm), with the root or home as any operand, not only the first. Only rm's own
+  // unquoted words are skipped, and rm must be in command position (start, after ; & | ( { ` $( or sudo/xargs/env
+  // and assignments), so `grep -rn "rm -rf" ~` and `git commit -m "rm ... /"` are not denied, in any shell view. Home also
+  // matches written out in full (/Users/me, /home/me), from the HOME this hook runs under.
+  new RegExp(String.raw`(?=(?:\/(?:[\w.-]+\/)*)?rm\s)(?<=(?:^|[;&|(\x60{]|\$\()\s*(?:\w+=\S*\s+)*(?:(?:sudo|doas|xargs|env|command|exec|nice|nohup|time|builtin|sh|bash|zsh|dash)\s+(?:-\S+\s+)*(?:\w+=\S*\s+)*)*)(?:\/(?:[\w.-]+\/)*)?rm\s+(?:[^\s;&|'"]+\s+)*["']?(?:\/\*?|~\/?\*?|\$\{?HOME\}?\/?\*?` +
+    HOME_ALT + String.raw`)["']?(?=\s|$|[;&|)])`),
   /git\s+push\s+--force/,   // kept as-is so nothing denied before CC-654 is allowed now
   // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
   // `git` starts a word (a path like /usr/bin/git or a quoted `sh -c "git ..."` counts) and only global options

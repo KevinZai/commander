@@ -641,7 +641,7 @@ test('install.sh refuses a CLAUDE_CONFIG_DIR that resolves to the home directory
     for (const dir of [home + '/', join(home, 'alias')]) {
       const res = run(INSTALL_SH, home, ['--force', '--mode=config', '--skip-deps', '--clean'], { CLAUDE_CONFIG_DIR: dir });
       assert.notStrictEqual(res.status, 0, 'must refuse ' + dir);
-      assert.match(res.stdout + res.stderr, /Invalid CLAUDE_DIR|resolves to \/ or the home directory/);
+      assert.match(res.stdout + res.stderr, /Invalid CLAUDE_DIR|must not be \/, the home directory/);
     }
   });
 });
@@ -671,5 +671,50 @@ test('install.sh and uninstall.sh refuse a shared or copied install manifest and
       assert.match(res.stdout + res.stderr, /symlink or not a directory/);
     }
     assert.strictEqual(readFileSync(join(other, 'commander', 'install-manifest.json'), 'utf8'), otherManifest, 'other profile untouched');
+  });
+});
+
+// Codex review of #298, second round.
+test('install.sh refuses an unknown --mode before touching anything', () => {
+  withHome('ccc-install-badmode-', (home) => {
+    const claude = join(home, '.claude');
+    mkdirSync(join(claude, 'skills'), { recursive: true });
+    writeFileSync(join(claude, 'skills', 'mine.txt'), 'mine');
+    const res = run(INSTALL_SH, home, ['--force', '--mode=confg', '--skip-deps', '--clean']);
+    assert.notStrictEqual(res.status, 0);
+    assert.match(res.stdout + res.stderr, /unknown --mode=confg/);
+    assert.strictEqual(readFileSync(join(claude, 'skills', 'mine.txt'), 'utf8'), 'mine');
+  });
+});
+
+test('install.sh refuses a not-yet-existing CLAUDE_CONFIG_DIR that resolves to home or a parent of it', () => {
+  withHome('ccc-install-dotdot-', (home) => {
+    for (const dir of [join(home, 'new', '..'), join(home, 'a', 'b', '..', '..', '..')]) {
+      const res = run(INSTALL_SH, home, ['--force', '--mode=config', '--skip-deps'], { CLAUDE_CONFIG_DIR: dir });
+      assert.notStrictEqual(res.status, 0, 'must refuse ' + dir);
+    }
+  });
+});
+
+test('install.sh --clean works with a trailing slash on a custom CLAUDE_CONFIG_DIR', () => {
+  withHome('ccc-install-trailing-', (home) => {
+    const cfg = join(home, 'profiles', 'work');
+    mkdirSync(join(cfg, 'commands'), { recursive: true });
+    writeFileSync(join(cfg, 'commands', 'old.md'), 'old');
+    ok(run(INSTALL_SH, home, ['--force', '--mode=essentials', '--skip-deps', '--clean'], { CLAUDE_CONFIG_DIR: cfg + '/' }), 'clean install');
+    assert.ok(!existsSync(join(cfg, 'commands', 'old.md')), 'old command cleared (and backed up)');
+  });
+});
+
+test('install.sh and uninstall.sh refuse a manifest that does not name its profile', () => {
+  withHome('ccc-install-noowner-', (home) => {
+    const claude = join(home, '.claude');
+    mkdirSync(join(claude, 'commander'), { recursive: true });
+    const m = JSON.stringify({ schema: 1, entries: [], dirs: [] });
+    writeFileSync(join(claude, 'commander', 'install-manifest.json'), m);
+    for (const res of [install(home), uninstall(home)]) {
+      assert.notStrictEqual(res.status, 0);
+      assert.match(res.stdout + res.stderr, /does not record which profile/);
+    }
   });
 });
