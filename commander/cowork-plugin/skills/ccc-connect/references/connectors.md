@@ -18,7 +18,7 @@ Path P = Claude Code plugin (check `claude plugin list --available --json` for a
 | AgentMail | API key | TBD | TBD — link the official docs |
 | Browserbase [aff] | API key | S | `npx -y @browserbasehq/mcp` · `BROWSERBASE_API_KEY` |
 | Cloudflare [aff] | API token | P if listed, else S | `npx @cloudflare/mcp-server-cloudflare` · `CLOUDFLARE_API_TOKEN` |
-| codebase-memory-mcp | none | L | `curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh \| bash -s -- --skip-config` (show the script URL first), then `codebase-memory-mcp install --no-hooks`; local, no key |
+| codebase-memory-mcp | none | L | download the pinned installer `https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/v0.9.0/install.sh` to a file and show it, run it with `CBM_DOWNLOAD_URL=https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.9.0` and `--skip-config` (it checks the archive's SHA-256), then `codebase-memory-mcp install --no-hooks`; local, no key |
 | Context7 | none | bundled | Already bundled with Commander (credential-free); nothing to wire |
 | Discord | bot token | TBD | Community MCP — verify before use |
 | Exa | API key | S | `npx @exa/mcp` · `EXA_API_KEY` |
@@ -27,7 +27,7 @@ Path P = Claude Code plugin (check `claude plugin list --available --json` for a
 | Fly.io [aff] | token | TBD | TBD — link the official docs |
 | GitHub | OAuth or token | S | `npx @modelcontextprotocol/server-github` · `GITHUB_TOKEN` |
 | Linear | OAuth | P if listed, else S | `npx @linear/mcp-server` · `LINEAR_API_KEY` |
-| MemPalace | none | P if listed, else L | `uv tool install mempalace`, then `claude mcp add mempalace -- mempalace-mcp`; local, no key. Plugin: `/plugin marketplace add MemPalace/mempalace` |
+| MemPalace | none | P if listed, else L | Before the install picker, say that the plugin also adds auto-save hooks that store conversations verbatim on the device, and offer the MCP-only path without hooks. MCP-only: `uv tool install mempalace`, then `claude mcp add mempalace -- mempalace-mcp`; local, no key. Plugin: `/plugin marketplace add MemPalace/mempalace` |
 | n8n | API key | S | Self-hosted MCP — link the official docs |
 | Neon [aff] | API key | P if listed, else S | `npx -y @neondatabase/mcp-server-neon` · `NEON_API_KEY` |
 | Notion | OAuth | P if listed, else S | `npx @notionhq/mcp` · `NOTION_API_KEY` |

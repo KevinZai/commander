@@ -16,7 +16,7 @@ Offer one memory backend, not both. If `claude-mem` is already installed, say so
 
 ## Install
 
-Claude Code plugin (MCP server, auto-save hooks and a guided setup skill):
+Claude Code plugin (MCP server, auto-save hooks and a guided setup skill). CCC safety: the plugin's hooks save every conversation verbatim on the device. Say so before installing it, and offer the CLI-and-MCP path below, which adds no hooks:
 
 ```text
 /plugin marketplace add MemPalace/mempalace
