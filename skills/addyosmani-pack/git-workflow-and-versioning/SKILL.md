@@ -218,9 +218,15 @@ Before every commit:
 # CCC safety: one errexit subshell, run on its own. Any failed step (git, the scanner,
 # tests, lint or the typecheck) stops the whole check with a nonzero exit.
 ( set -euo pipefail
-  pkg_dir=$PWD                                   # the package whose tests and lint run below
   repo_root=$(git rev-parse --show-toplevel)     # its own statement: fails outside a repository
   [ -n "$repo_root" ]
+  # The package whose tests and lint run below: the nearest package.json at or above
+  # the current directory, without leaving the repository.
+  pkg_dir=$PWD
+  while [ ! -f "$pkg_dir/package.json" ]; do
+    [ "$pkg_dir" != "$repo_root" ] && [ "$pkg_dir" != / ] || { echo "stop: no package.json between here and $repo_root"; exit 1; }
+    pkg_dir=$(dirname "$pkg_dir")
+  done
   cd "$repo_root"
 
   # 1. Secrets first, before anything prints the patch. A git error stops here
