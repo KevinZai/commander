@@ -13,9 +13,13 @@ Opt-in add-on, and Commander's preferred code mapper. [DeusData/codebase-memory-
 macOS and Linux:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash -s -- --skip-config
+# Pinned installer (v0.9.0). Download it, show it to the user, then run it with the release pinned too.
+f=$(mktemp) && curl -fsSLo "$f" https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/v0.9.0/install.sh
+CBM_DOWNLOAD_URL=https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.9.0 bash "$f" --skip-config && rm -f "$f"
 codebase-memory-mcp install --no-hooks   # registers the MCP server without CBM hooks
 ```
+
+The script checks the release archive against the release's `checksums.txt` (SHA-256) before installing. To move to a newer release, review that tag's `install.sh` first and change both `v0.9.0` values together.
 
 Windows: use `install.ps1` from the upstream README. Show the user the script URL before running it; do not pipe it to a shell without their go-ahead.
 

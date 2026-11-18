@@ -41,7 +41,7 @@ All other connectors below are **opt-in** via `/ccc-connect` — enable each wit
 | AgentMail | Email | Agent-native inbox (new) | No | AgentMail MCP |
 | Browserbase | Automation | Remote headless browsers beyond Playwright | ✅ | `npx -y @browserbasehq/mcp` |
 | Cloudflare | Edge | Workers + R2 + D1 | ✅ | Cloudflare MCP |
-| codebase-memory-mcp | Code map | Local code graph: callers, impact, test selection; Commander's preferred code mapper | No | `codebase-memory-mcp install` (see `skills/codebase-memory-mcp`) |
+| codebase-memory-mcp | Code map | Local code graph: callers, impact, test selection; Commander's preferred code mapper | No | pinned v0.9.0 installer, then `codebase-memory-mcp install --no-hooks` (see `/ccc-connect`) |
 | Discord | Comms | Pro community lives here | No | Community MCP |
 | Fly.io | Hosting | Services + Docker; matches `/ccc-devops` | ✅ | Unverified — `/ccc-connect` links the official docs |
 | Linear | Tasks | First-class CC Commander integration (`/ccc-linear`, `/ccc-linear-board`) | No | Official Linear MCP |
