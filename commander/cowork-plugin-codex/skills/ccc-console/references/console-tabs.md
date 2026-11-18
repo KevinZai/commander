@@ -15,7 +15,7 @@ All paths above are under `<config dir>/commander/` (the config dir is `CCC_CONF
 
 ## Memory
 
-- Optional. Most machines have no claude-mem store; the tab then shows one quiet "claude-mem not detected" card with install notes and why it is not bundled (AGPL-3.0 versus Commander's MIT).
+- Optional. Most machines have no claude-mem store; the tab then shows one quiet "claude-mem not detected" card with install notes and why it is not bundled (a separate install Commander does not ship).
 - Reads only `id`, `project`, `type`, `title`, `created_at_epoch`. Never `text`, `facts` or `narrative`.
 - Titles are redacted (secret patterns; home paths become `<home>`) and capped before rendering.
 

@@ -10,7 +10,7 @@ Opt-in add-on. [MemPalace/mempalace](https://github.com/MemPalace/mempalace) (MI
 
 ## Why it is offered
 
-`/ccc-memory` keeps durable facts in files, with no search index. `claude-mem` adds search but is AGPL, so Commander never bundles it. MemPalace is the MIT option for users who want search over everything that was said.
+`/ccc-memory` keeps durable facts in files, with no search index. `claude-mem` adds search but stays an external install that Commander does not bundle. MemPalace is the MIT option for users who want search over everything that was said.
 
 Offer one memory backend, not both. If `claude-mem` is already installed, say so and let the user choose.
 

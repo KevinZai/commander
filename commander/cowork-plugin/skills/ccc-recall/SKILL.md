@@ -16,7 +16,7 @@ disable-model-invocation: true
 
 On Codex, AskUserQuestion becomes a plain-text question and skills are invoked as `$ccc-memory`.
 
-> **Optional integration:** claude-mem is a separate AGPL-licensed tool by @thedotmack. CC Commander does not bundle it; it is absent by default. The built-in grep layers below work without it.
+> **Optional integration:** claude-mem is a separate tool by @thedotmack (Apache-2.0 since 2026; earlier releases were AGPL-3.0). CC Commander does not bundle it; it is absent by default. The built-in grep layers below work without it.
 
 ## When to use / when not to
 
@@ -106,7 +106,7 @@ User: "What did we decide about bundling MCP servers?"
 
 ---
 
-*Adapted from [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) (MIT license). Attribution required per MIT terms.*
+*The layered-search idea is credited to [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) (Apache-2.0 since 2026; earlier releases AGPL-3.0). No claude-mem code or text is copied: this skill is original CC Commander work under Commander's MIT license.*
 
 ---
 

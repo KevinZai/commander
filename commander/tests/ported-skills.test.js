@@ -5,7 +5,7 @@
 // Ported skills (per BLITZ B scan, 2026-04-23):
 //   ccc-memory   — adapted from knowledge-work-plugins/productivity (Apache-2.0)
 //   ccc-tasks    — adapted from knowledge-work-plugins/productivity (Apache-2.0)
-//   ccc-recall   — adapted from thedotmack/claude-mem (MIT)
+//   ccc-recall   — original work; credits thedotmack/claude-mem for the idea, no code or text copied
 
 const test = require('node:test');
 const assert = require('node:assert');
@@ -24,7 +24,7 @@ const PLUGIN_SKILLS = path.join(
 const PORTED_SKILLS = [
   { name: 'ccc-memory', license: /Apache-2\.0/i, source: /knowledge-work-plugins/ },
   { name: 'ccc-tasks',  license: /Apache-2\.0/i, source: /knowledge-work-plugins/ },
-  { name: 'ccc-recall', license: /MIT/i,         source: /thedotmack\/claude-mem|claude-mem/ },
+  { name: 'ccc-recall', license: /No claude-mem code or text is copied/, source: /thedotmack\/claude-mem/ },
 ];
 
 for (const skill of PORTED_SKILLS) {
