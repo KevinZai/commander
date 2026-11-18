@@ -61,7 +61,8 @@ const READ_ONLY_TOOLS = new Set([
 // they go to REVIEW_PATTERNS, which return no decision so the user's own approval prompt decides (audit P0, 2026-11-18).
 // rm stays a hard deny only when it targets the filesystem root or the home directory.
 const DANGEROUS_PATTERNS = [
-  /(?<![\w./-])rm\s+(?:-[a-zA-Z]*\s+|--[a-z-]+\s+)*(?:--\s+)?["']?(?:\/\*?|~\/?\*?|\$\{?HOME\}?\/?\*?)["']?(?=\s|$|[;&|)])/,
+  // rm by name or by path (/bin/rm), with the root or home as any operand, not only the first.
+  /(?<![\w./-])(?:\/(?:[\w.-]+\/)*)?rm\s+(?:[^;&|\n]*\s)?["']?(?:\/\*?|~\/?\*?|\$\{?HOME\}?\/?\*?)["']?(?=\s|$|[;&|)])/,
   /git\s+push\s+--force/,   // kept as-is so nothing denied before CC-654 is allowed now
   // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
   // `git` starts a word (a path like /usr/bin/git or a quoted `sh -c "git ..."` counts) and only global options

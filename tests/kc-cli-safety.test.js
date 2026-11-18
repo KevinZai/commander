@@ -187,3 +187,21 @@ test('--update exits non-zero when npm update fails', () => {
     assert.match(r.stderr, /npm update failed/);
   });
 });
+
+// Codex review of #298: an alias into the checkout under another name is the user's link, and a tier switch
+// records the new tier so the next install keeps it.
+test('--skills tier keeps a renamed alias into the checkout and records the tier in the manifest', () => {
+  withHome((home) => {
+    const claude = join(home, '.claude');
+    const skills = join(claude, 'skills');
+    mkdirSync(skills, { recursive: true });
+    mkdirSync(join(claude, 'commander'), { recursive: true });
+    const manifest = join(claude, 'commander', 'install-manifest.json');
+    writeFileSync(manifest, JSON.stringify({ schema: 1, tier: 'essential', entries: [], dirs: [] }));
+    symlinkSync(join(SKILLS_SRC, 'ccc-seo'), join(skills, 'my-seo'));
+    const r = kc(home, ['--skills', 'tier', 'recommended']);
+    assert.strictEqual(r.status, 0, r.stderr);
+    assert.ok(isLink(join(skills, 'my-seo')), 'alias kept');
+    assert.strictEqual(JSON.parse(readFileSync(manifest, 'utf8')).tier, 'recommended');
+  });
+});

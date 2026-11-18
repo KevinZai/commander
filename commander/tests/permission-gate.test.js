@@ -294,7 +294,8 @@ describe('permission-gate: missing payload → fail open', () => {
 // ============================================================================
 describe('permission-gate: dangerous operations → always reject', () => {
   it('denies rm -rf on the filesystem root or home (exit 0 + deny decision)', () => {
-    for (const command of ['rm -rf /', 'rm -rf ~', 'sudo rm -rf / --no-preserve-root', 'rm -rf "$HOME"', 'rm -rf /*']) {
+    for (const command of ['rm -rf /', 'rm -rf ~', 'sudo rm -rf / --no-preserve-root', 'rm -rf "$HOME"', 'rm -rf /*',
+      '/bin/rm -rf /', '/usr/bin/rm -rf ~', 'rm -rf build ~', 'rm -rf ./tmp "$HOME"', 'rm -r -f -- node_modules /']) {
       const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'test-session-dangerous-001' });
       assert.equal(r.exitCode, 0, `Deny must exit 0 (stdout on exit 1 is discarded), got ${r.exitCode}`);
       const decision = r.parsed?.hookSpecificOutput?.decision;

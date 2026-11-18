@@ -200,6 +200,8 @@ function getSurfacePaths(root) {
   return rels.filter(function(rel) {
     if (seen[rel]) return false;
     seen[rel] = true;
+    // Deploy-triggering paths are never scanned or patched, whatever a surface list says.
+    if (NO_COUNT_SURFACE_PREFIXES.some(function(prefix) { return rel.indexOf(prefix) === 0; })) return false;
     return exists(path.join(root, rel));
   });
 }
@@ -319,13 +321,6 @@ function scanFilesystemFacts(root, contract) {
     compareDirect(findings, '[filesystem]', 'plugin_displayName', contract.plugin_displayName, marketplacePlugin && marketplacePlugin.displayName);
     compareDirect(findings, '[filesystem]', 'version', contract.version, marketplacePlugin && marketplacePlugin.version);
     compareDirect(findings, '[filesystem]', 'license', contract.license, marketplacePlugin && marketplacePlugin.license);
-  }
-
-  var mcpPackagePath = path.join(root, 'apps/mcp-server-cloud/package.json');
-  if (exists(mcpPackagePath)) {
-    // Version intentionally not compared: mcp-server-cloud versions independently
-    // (a bump auto-deploys to Fly); check-version-parity.js keeps it <= root.
-    readJson(mcpPackagePath);
   }
 
   var pluginSkillCount = countFilesNamed(path.join(root, 'commander/cowork-plugin/skills'), 'SKILL.md');
@@ -831,11 +826,6 @@ function scanJsonSurface(rel, content, contract) {
     compareDirect(findings, rel, 'plugin_displayName', contract.plugin_displayName, marketplacePlugin && marketplacePlugin.displayName);
     compareDirect(findings, rel, 'version', contract.version, marketplacePlugin && marketplacePlugin.version);
     compareDirect(findings, rel, 'license', contract.license, marketplacePlugin && marketplacePlugin.license);
-  } else if (rel === 'apps/mcp-server-cloud/package.json') {
-    // Independent version (see check-version-parity.js), so neither the
-    // version field nor dependency ranges are product surfaces; only the
-    // description's counts are, as with the root manifest below.
-    return findings.concat(scanTextSurface(String(json.description || ''), rel, contract));
   } else if (rel === 'package.json') {
     // The root manifest carries engine ranges and dependency versions that are
     // not product versions; only its own version and description are surfaces.
@@ -886,8 +876,9 @@ function patchText(content, contract) {
 }
 
 // Manifests whose version is independent of the plugin contract (see
-// check-version-parity.js): --patch fixes their description counts only.
-var INDEPENDENT_VERSION_SURFACES = ['apps/mcp-server-cloud/package.json'];
+// check-version-parity.js): --patch would fix their description counts only. Empty since the hosted
+// server left the count surfaces; kept so a future independent manifest has one place to go.
+var INDEPENDENT_VERSION_SURFACES = [];
 
 function patchJsonSurface(content, contract, rel) {
   var json = JSON.parse(content);

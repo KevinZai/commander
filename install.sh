@@ -29,7 +29,15 @@ VERSION="$(grep '"version"' "$SCRIPT_DIR/package.json" | head -1 | sed 's/.*"ver
 # Install where Claude Code reads its config: CLAUDE_CONFIG_DIR when set,
 # else ~/.claude. XDG_CONFIG_HOME is the shared ~/.config root, not Claude's dir.
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+# Trailing slashes would let "$HOME/" slip past the string checks below.
+while [[ "$CLAUDE_DIR" == */ && "$CLAUDE_DIR" != "/" ]]; do CLAUDE_DIR="${CLAUDE_DIR%/}"; done
 [[ -n "${CLAUDE_DIR:-}" && "$CLAUDE_DIR" != "/" && "$CLAUDE_DIR" != "$HOME" ]] || { echo "ERROR: Invalid CLAUDE_DIR ($CLAUDE_DIR)"; exit 1; }
+# Compare resolved paths too, so a symlink or ../ that lands on / or the home directory is refused.
+if [[ -d "$CLAUDE_DIR" ]]; then
+  CLAUDE_DIR_REAL="$(cd -P "$CLAUDE_DIR" && pwd)"
+  HOME_REAL="$(cd -P "$HOME" 2>/dev/null && pwd || echo "$HOME")"
+  [[ "$CLAUDE_DIR_REAL" != "/" && "$CLAUDE_DIR_REAL" != "$HOME_REAL" ]] || { echo "ERROR: CLAUDE_DIR resolves to / or the home directory ($CLAUDE_DIR -> $CLAUDE_DIR_REAL)"; exit 1; }
+fi
 # The install plan is tab-separated, so a path containing a tab or newline cannot be represented in it.
 case "$CLAUDE_DIR$SCRIPT_DIR" in
   *$'\t'*|*$'\n'*) echo "ERROR: install paths must not contain tabs or newlines"; exit 1 ;;
@@ -328,6 +336,40 @@ if ! command -v node &>/dev/null; then
   install_fail "Node.js 20.19+ is required (the installer records what it writes with node)."
 fi
 
+# The install manifest must live in this profile's own commander/ directory (no symlinked parent) and, when it
+# exists, record this profile as its claude_dir. A manifest reached through shared state, or copied from another
+# profile, is refused before anything is changed, so one profile can never prune another's entries (Codex #298).
+check_manifest_owner() {
+  node - "$CLAUDE_DIR" "$MANIFEST" <<'OWNER'
+'use strict';
+var fs = require('fs'), path = require('path');
+var root = path.resolve(process.argv[2]), manifest = path.resolve(process.argv[3]);
+function real(p) { try { return fs.realpathSync(p); } catch (_e) { return null; } }
+var realRoot = real(root) || root;
+var dir = path.dirname(manifest);
+if (path.dirname(dir) !== root) { console.error('manifest is not in <config dir>/commander: ' + manifest); process.exit(1); }
+var st = null; try { st = fs.lstatSync(dir); } catch (_e) { /* not created yet */ }
+if (st && (st.isSymbolicLink() || !st.isDirectory() || real(dir) !== path.join(realRoot, 'commander'))) {
+  console.error(dir + ' is a symlink or not a directory inside the config dir'); process.exit(1);
+}
+var mst = null; try { mst = fs.lstatSync(manifest); } catch (_e) { /* first install */ }
+if (mst && !mst.isFile()) { console.error(manifest + ' is not a regular file'); process.exit(1); }
+if (mst) {
+  var m = null; try { m = JSON.parse(fs.readFileSync(manifest, 'utf8')); } catch (_e) { /* unreadable: treated as absent elsewhere */ }
+  if (m && m.claude_dir) {
+    var rec = path.resolve(String(m.claude_dir));
+    if (rec !== root && (real(rec) || rec) !== realRoot) {
+      console.error('the manifest was written for ' + rec + ', not ' + root + ' (copied profile?). Move it aside and run again.');
+      process.exit(1);
+    }
+  }
+}
+OWNER
+}
+if ! owner_err="$(check_manifest_owner 2>&1)"; then
+  install_fail "Install manifest check failed: $owner_err"
+fi
+
 tier=""
 tiers_file="$SCRIPT_DIR/skills/_tiers.json"
 if should_install "skills"; then
@@ -382,7 +424,9 @@ if [ -d "$CLAUDE_DIR" ] && $CLEAN; then
   cc_section_header "ARCHIVING OLD SETUP"
   mkdir -p "$BACKUP_DIR"
   for item in skills commands hooks; do
-    if [ -e "$CLAUDE_DIR/$item" ]; then
+    # Clear only what this mode reinstalls; --clean --mode=config must not empty skills/commands/hooks.
+    should_install "$item" || continue
+    if [ -e "$CLAUDE_DIR/$item" ] || [ -L "$CLAUDE_DIR/$item" ]; then
       cp -R "$CLAUDE_DIR/$item" "$BACKUP_DIR/"
       assert_inside_config "$CLAUDE_DIR/$item"
       rm -rf "${CLAUDE_DIR:?}/$item"

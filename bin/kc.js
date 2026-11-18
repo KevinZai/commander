@@ -422,7 +422,8 @@ if (args.includes('--skills')) {
     var target = fs.readlinkSync(p);
     var resolvedTarget = path.resolve(path.dirname(p), target);
     var src = path.resolve(skillsSourceDir);
-    if (path.dirname(resolvedTarget) === src) return true;
+    // A link into this checkout's skills/ is ours only under its own name; skills/alias -> <src>/other is the user's.
+    if (path.dirname(resolvedTarget) === src && path.basename(resolvedTarget) === name) return true;
     var m = readInstallManifest();
     var rel = path.join('skills', name);
     return !!(m && Array.isArray(m.entries) && m.entries.some(function(e) { return e.path === rel && e.type === 'symlink' && e.target === target; }));
@@ -674,6 +675,14 @@ if (args.includes('--skills')) {
       try { if (fs.lstatSync(dst)) return; } catch (_e) { /* not present: link it */ }
       try { fs.symlinkSync(src, dst); recordSkillLink(s, src, carriedBackups[s]); added++; } catch (_e) { skipped++; }
     });
+    // Record the chosen tier so the next install.sh --force keeps it instead of pruning back to the old one.
+    (function() {
+      var m = readInstallManifest();
+      if (!m || !Array.isArray(m.entries)) return;
+      m.tier = tierName;
+      m.updated_at = new Date().toISOString();
+      try { writeInstallManifest(m); } catch (_e) { /* the links are what matter */ }
+    })();
     console.log('Switched to tier: ' + tierName);
     console.log('  Removed: ' + removed + ' skill(s)' + (keptForeign > 0 ? ' (' + keptForeign + ' link(s) not made by CC Commander kept)' : '') +
       (restoredOriginals > 0 ? ' (' + restoredOriginals + ' original(s) restored from backup)' : ''));

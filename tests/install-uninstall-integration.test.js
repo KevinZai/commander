@@ -618,3 +618,58 @@ test('install-remote.sh refuses a checkout whose origin is not the expected repo
     assert.match(bad.stdout, /CCC_REF must be a tag or commit/);
   });
 });
+
+// Codex review of #298: --clean clears only what the chosen mode reinstalls.
+test('install.sh --clean --mode=config leaves skills, commands and hooks in place', () => {
+  withHome('ccc-install-clean-config-', (home) => {
+    const claude = join(home, '.claude');
+    for (const d of ['skills', 'commands', 'hooks']) {
+      mkdirSync(join(claude, d), { recursive: true });
+      writeFileSync(join(claude, d, 'mine.txt'), 'mine');
+    }
+    ok(run(INSTALL_SH, home, ['--force', '--mode=config', '--skip-deps', '--clean']), 'clean config install');
+    for (const d of ['skills', 'commands', 'hooks']) {
+      assert.strictEqual(readFileSync(join(claude, d, 'mine.txt'), 'utf8'), 'mine', d + ' kept');
+    }
+  });
+});
+
+// Codex review of #298: a profile path that resolves to the home directory is refused.
+test('install.sh refuses a CLAUDE_CONFIG_DIR that resolves to the home directory', () => {
+  withHome('ccc-install-home-alias-', (home) => {
+    symlinkSync(home, join(home, 'alias'));
+    for (const dir of [home + '/', join(home, 'alias')]) {
+      const res = run(INSTALL_SH, home, ['--force', '--mode=config', '--skip-deps', '--clean'], { CLAUDE_CONFIG_DIR: dir });
+      assert.notStrictEqual(res.status, 0, 'must refuse ' + dir);
+      assert.match(res.stdout + res.stderr, /Invalid CLAUDE_DIR|resolves to \/ or the home directory/);
+    }
+  });
+});
+
+// Codex review of #298: a manifest reached through a symlink, or copied from another profile, is refused.
+test('install.sh and uninstall.sh refuse a shared or copied install manifest and change nothing', () => {
+  withHome('ccc-install-manifest-owner-', (home) => {
+    const claude = join(home, '.claude');
+    const other = join(home, 'other-profile');
+    ok(install(home, [], { CLAUDE_CONFIG_DIR: other }), 'install into the other profile');
+    const otherManifest = readFileSync(join(other, 'commander', 'install-manifest.json'), 'utf8');
+
+    // Copied profile: the manifest still names the other profile.
+    mkdirSync(join(claude, 'commander'), { recursive: true });
+    writeFileSync(join(claude, 'commander', 'install-manifest.json'), otherManifest);
+    for (const res of [install(home), uninstall(home)]) {
+      assert.notStrictEqual(res.status, 0, 'copied manifest must be refused');
+      assert.match(res.stdout + res.stderr, /written for .*other-profile/);
+    }
+    assert.strictEqual(readFileSync(join(claude, 'commander', 'install-manifest.json'), 'utf8'), otherManifest);
+
+    // Shared state: commander/ is a symlink to the other profile's directory.
+    rmSync(join(claude, 'commander'), { recursive: true, force: true });
+    symlinkSync(join(other, 'commander'), join(claude, 'commander'));
+    for (const res of [install(home), uninstall(home)]) {
+      assert.notStrictEqual(res.status, 0, 'symlinked commander dir must be refused');
+      assert.match(res.stdout + res.stderr, /symlink or not a directory/);
+    }
+    assert.strictEqual(readFileSync(join(other, 'commander', 'install-manifest.json'), 'utf8'), otherManifest, 'other profile untouched');
+  });
+});

@@ -61,6 +61,37 @@ fi
 # The ccc link locations checked for a pre-manifest install. CCC_BIN_DIR, when set, is the only one.
 if [[ -n "${CCC_BIN_DIR:-}" ]]; then BIN_DIRS="$CCC_BIN_DIR"; else BIN_DIRS="/usr/local/bin:$HOME/.local/bin"; fi
 
+# The install manifest must live in this profile's own commander/ directory (no symlinked parent) and, when it
+# exists, record this profile as its claude_dir. A manifest reached through shared state, or copied from another
+# profile, is refused before anything is changed, so one profile can never prune another's entries (Codex #298).
+check_manifest_owner() {
+  node - "$CLAUDE_DIR" "$MANIFEST" <<'OWNER'
+'use strict';
+var fs = require('fs'), path = require('path');
+var root = path.resolve(process.argv[2]), manifest = path.resolve(process.argv[3]);
+function real(p) { try { return fs.realpathSync(p); } catch (_e) { return null; } }
+var realRoot = real(root) || root;
+var dir = path.dirname(manifest);
+if (path.dirname(dir) !== root) { console.error('manifest is not in <config dir>/commander: ' + manifest); process.exit(1); }
+var st = null; try { st = fs.lstatSync(dir); } catch (_e) { /* not created yet */ }
+if (st && (st.isSymbolicLink() || !st.isDirectory() || real(dir) !== path.join(realRoot, 'commander'))) {
+  console.error(dir + ' is a symlink or not a directory inside the config dir'); process.exit(1);
+}
+var mst = null; try { mst = fs.lstatSync(manifest); } catch (_e) { /* first install */ }
+if (mst && !mst.isFile()) { console.error(manifest + ' is not a regular file'); process.exit(1); }
+if (mst) {
+  var m = null; try { m = JSON.parse(fs.readFileSync(manifest, 'utf8')); } catch (_e) { /* unreadable: treated as absent elsewhere */ }
+  if (m && m.claude_dir) {
+    var rec = path.resolve(String(m.claude_dir));
+    if (rec !== root && (real(rec) || rec) !== realRoot) {
+      console.error('the manifest was written for ' + rec + ', not ' + root + ' (copied profile?). Move it aside and run again.');
+      process.exit(1);
+    }
+  }
+}
+OWNER
+}
+
 # One node program plans (mode "plan") and then performs (mode "apply") the removal.
 run_uninstall() {
   node - "$1" "$CLAUDE_DIR" "$MANIFEST" "$SCRIPT_DIR" "$BIN_DIRS" <<'UNINSTALL'
@@ -246,6 +277,11 @@ UNINSTALL
 # ── Show what will be removed ────────────────────────────────────────────
 echo "  Planned changes in $CLAUDE_DIR:"
 plan_status=0
+if ! owner_err="$(check_manifest_owner 2>&1)"; then
+  echo "  ✗ Install manifest check failed: $owner_err"
+  echo "  Nothing was removed."
+  exit 1
+fi
 run_uninstall plan || plan_status=$?
 if [ "$plan_status" -eq 3 ]; then
   echo ""
