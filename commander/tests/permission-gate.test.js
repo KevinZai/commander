@@ -338,6 +338,20 @@ describe('permission-gate: dangerous operations → always reject', () => {
     assert.ok(Date.now() - t < 4000, 'long input decided well inside the 5 s hook timeout, took ' + (Date.now() - t) + ' ms');
   });
 
+  it('stays fast on many .. segments followed by an unclosed quote or backslash', () => {
+    for (const command of [
+      'rm -rf ' + '/..'.repeat(60000) + '"x',
+      'rm -rf ' + '/..'.repeat(60000) + '\\',
+      'rm -rf "' + '/..'.repeat(60000),
+      "rm -rf '/x'" + '/..'.repeat(60000) + "'x",
+    ]) {
+      const t = Date.now();
+      const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'dotdot-long' });
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+      assert.ok(Date.now() - t < 2000, 'decided quickly, took ' + (Date.now() - t) + ' ms');
+    }
+  });
+
   // Audit #27: neither the denial reason nor the log may carry the command text.
   it('logs the rule id, tool and program name only, and never echoes the command', () => {
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-gate-secret-'));
