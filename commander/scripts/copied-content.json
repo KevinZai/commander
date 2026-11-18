@@ -85,6 +85,18 @@
       "vendor": "claude-mem",
       "license": "LicenseRef-Informational-Wrapper",
       "notes": "NOT a code copy — purely a usage wrapper pointing to the AGPL vendor submodule. Body explicitly states 'no code derivation'. Excluded from FAIL logic."
+    },
+    {
+      "file": "skills/ponytail/SKILL.md",
+      "vendor": "ponytail",
+      "license": "MIT",
+      "notes": "Copied from DietrichGebert/ponytail skills/ponytail/SKILL.md at 96608e078b2d5ea607c5c3b8b5a54d1c1fba6846; MIT notice embedded in the Source section and in LICENSE.txt beside it."
+    },
+    {
+      "file": "skills/mode-switcher/modes/ponytail.md",
+      "vendor": "ponytail",
+      "license": "MIT",
+      "notes": "Summarizes DietrichGebert/ponytail rules (96608e078b2d5ea607c5c3b8b5a54d1c1fba6846) as a Commander mode; MIT, attribution in NOTICE.md."
     }
   ],
   "_vendor_license_index": {

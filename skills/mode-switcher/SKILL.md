@@ -1,6 +1,6 @@
 ---
 name: mode-switcher
-description: Switch between optimized workflow modes — design, saas, marketing, research, writing, night, yolo, unhinged, caveman, adhd, normal
+description: Switch between optimized workflow modes — design, saas, marketing, research, writing, night, yolo, unhinged, caveman, adhd, ponytail, normal
 tags: [mode, workflow, configuration]
 ---
 
@@ -46,6 +46,7 @@ Or reference naturally in conversation: "switch to design mode", "go yolo", "ent
 | 9 | **unhinged** | all CCC domains | autoAccept | YOLO + max creativity. Bold architecture. Aggressive refactoring. Comprehensive testing. |
 | 10 | **caveman** | — | acceptEdits | Token-saving mode. ~75% less output tokens. Three levels: lite/full/ultra. Code stays normal. |
 | 11 | **adhd** | — | acceptEdits | Answer-first output. Fix, then command, then file:line — context last. Based on ayghri/i-have-adhd (MIT). Stacks with caveman. |
+| 12 | **ponytail** | — | acceptEdits | Smallest complete change. Reuse before writing, no unasked-for abstractions, never cut validation or security. Based on DietrichGebert/ponytail (MIT). Levels: lite/full/ultra. |
 
 ---
 
@@ -106,6 +107,12 @@ Ultra-compressed output mode. Strips articles, filler, pleasantries, and hedging
 Reorders every response so the fix leads and the reasoning follows: answer/command/file:line first, context last. This is a **priority reorder**, not a compression mode — full accuracy stays, only the order changes. Based on `ayghri/i-have-adhd` (MIT). Stacks with caveman: caveman governs length, adhd governs order — together the fix comes first, in the fewest words. Full contract: `commander/cowork-plugin/skills/ccc-adhd/SKILL.md`. Toggle with `/ccc-adhd on|off|status`, or say "stop adhd mode".
 
 **When to use:** You want the fix first, every time, without asking — beginners especially benefit since the answer is always the first line. Debugging loops where "what do I run right now" matters more than narrative.
+
+### ponytail (smallest complete change)
+
+Governs how much code gets written, not how replies read. Before writing, reuse what the codebase, standard library or installed dependencies already have; skip features nobody asked for and name them in one line; finish every caller, test and fixture the change touches. Never cuts validation at trust boundaries, error handling that prevents data loss, security or accessibility. Based on `DietrichGebert/ponytail` (MIT). Full rules: `skills/ponytail/SKILL.md`. Levels: lite (build what was asked, name the smaller option), full (default), ultra (also push back on unjustified parts of the request). Stacks with caveman and adhd. Deactivate with "stop ponytail" or "normal mode".
+
+**When to use:** A codebase that keeps growing wrappers and options nobody uses, greenfield work prone to over-engineering, or reviews where "do we need this?" is the main question.
 
 ---
 

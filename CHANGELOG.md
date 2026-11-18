@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- **Six MIT add-ons.** `ponytail` (DietrichGebert/ponytail, copied with its LICENSE) is a toolkit skill and a new mode in `mode-switcher`: the smallest complete change, never cutting validation or security. Five opt-in skills install from upstream without copying source: `diagram-design` (50 diagram types as HTML+SVG), `claude-video` (`/watch`, Code sessions only), `mempalace` (searchable local memory, an MIT alternative to AGPL claude-mem), `qmd` (on-device search over notes and docs) and `codebase-memory-mcp` (local code graph, now the preferred code mapper with graphify as the fallback). `/ccc-connect` gains a Code map category and lists codebase-memory-mcp, MemPalace and qmd (opt-in MCP servers 16 to 19); `/ccc-suggest` names all six. Ecosystem skills 467 to 473. NOTICE.md lists the sources.
+
 ### Changed
 - **Codex deep-reasoning nudge:** the intent-classifier hook on Codex now recommends `/model gpt-6.2-astra` (was `gpt-6-astra`), and a test keeps it equal to `CODEX_ROUTING.deep` (FLT-892 second-audit fix).
 - **Models: Codex GPT-6.2.** The Codex registry (`commander/adapters/codex/models.js`) routes deep/verify to `gpt-6.2-astra` and the default executor to `gpt-6.2-sol` (family `6.2`, verified on Codex 0.166.0 with ChatGPT OAuth 2026-11-17). `gpt-6-astra` and `gpt-6.1-sol` move to legacy fallbacks; `gpt-6-sol` and `gpt-6-luna` are unchanged (no 6.2 Luna). The Codex mirror is rebuilt with `npm run build:codex` (19 agent TOMLs). Docs and skills that still name the 6.1/6.0 ids are a follow-up (FLT-892, parent FLT-887).

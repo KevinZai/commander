@@ -18,6 +18,7 @@ Path P = Claude Code plugin (check `claude plugin list --available --json` for a
 | AgentMail | API key | TBD | TBD — link the official docs |
 | Browserbase [aff] | API key | S | `npx -y @browserbasehq/mcp` · `BROWSERBASE_API_KEY` |
 | Cloudflare [aff] | API token | P if listed, else S | `npx @cloudflare/mcp-server-cloudflare` · `CLOUDFLARE_API_TOKEN` |
+| codebase-memory-mcp | none | L | in one fail-closed block (`set -euo pipefail`): download `https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/v0.9.0/install.sh` to a mktemp file, verify its SHA-256 is `90ef82a3da3336ddc2c3851ad56822067b161856f24cd88cbd405fe423af6a66`, run it with `CBM_DOWNLOAD_URL=https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.9.0`, `--skip-config` and `--dir="$HOME/.local/bin"` (it verifies the archive), then run `"$HOME/.local/bin/codebase-memory-mcp" install --no-hooks` by that absolute path. Stop at the first failure. Windows: no pinned route; point the user to the upstream README at tag v0.9.0. Local, no key |
 | Context7 | none | bundled | Already bundled with Commander (credential-free); nothing to wire |
 | Discord | bot token | TBD | Community MCP — verify before use |
 | Exa | API key | S | `npx @exa/mcp` · `EXA_API_KEY` |
@@ -26,11 +27,13 @@ Path P = Claude Code plugin (check `claude plugin list --available --json` for a
 | Fly.io [aff] | token | TBD | TBD — link the official docs |
 | GitHub | OAuth or token | S | `npx @modelcontextprotocol/server-github` · `GITHUB_TOKEN` |
 | Linear | OAuth | P if listed, else S | `npx @linear/mcp-server` · `LINEAR_API_KEY` |
+| MemPalace | none | P if listed, else L | Before the install picker, say that the plugin also adds auto-save hooks that store conversations verbatim on the device, and offer the MCP-only path without hooks. MCP-only, macOS and Linux (native Windows: follow the upstream README), in one `set -euo pipefail` subshell that stops at the first failure: `uv tool install mempalace==3.12.0`; then `bin="$(uv tool dir --bin)"` as its own statement; stop unless `$bin` is an absolute path other than `/` (the `case "$bin" in /?*)` test in the skill) and `$bin/mempalace-mcp` is executable; then `claude mcp add mempalace -- "$bin/mempalace-mcp"`; local, no key. Plugin: only from the `github.com/MemPalace/mempalace` marketplace itself, never a same-named plugin from another publisher; follow its README (reviewed at `fec575b`) and tell the user the marketplace serves the current revision |
 | n8n | API key | S | Self-hosted MCP — link the official docs |
 | Neon [aff] | API key | P if listed, else S | `npx -y @neondatabase/mcp-server-neon` · `NEON_API_KEY` |
 | Notion | OAuth | P if listed, else S | `npx @notionhq/mcp` · `NOTION_API_KEY` |
 | Playwright | none | S | Local browser automation; no credential |
 | Postgres | connection string | S | `npx -y @modelcontextprotocol/server-postgres` · `DATABASE_URL` |
+| qmd | none | P if listed, else L | macOS and Linux (on native Windows the global bin layout differs; follow the upstream README): in one `set -euo pipefail` subshell that stops at the first failure: `npm install -g @tobilu/qmd@2.9.0`; then `prefix="$(npm prefix -g)"` as its own statement; stop unless `$prefix` is an absolute path other than `/` (the `case "$prefix" in /?*)` test in the skill); then `qmd="$prefix/bin/qmd"` and stop unless it is executable; then `claude mcp add qmd -- "$qmd" mcp`; local, no key; first query downloads GGUF models. If the qmd config points embeddings or re-ranking at a remote endpoint, document chunks and queries leave the machine: say so and ask first. Plugin: only from the `github.com/tobi/qmd` marketplace itself; follow its README (reviewed at `aa247d0`) and tell the user the marketplace serves the current revision |
 | Resend [aff] | API key | TBD | TBD — link the official docs |
 | Sentry [aff] | OAuth | P if listed, else H | `claude mcp add --transport http sentry https://mcp.sentry.dev/mcp` (the CLI's own example), then authenticate in `/mcp` |
 | Slack | OAuth | P if listed | Official Slack MCP · `SLACK_BOT_TOKEN` (verify before use) |

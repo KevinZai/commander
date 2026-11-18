@@ -38,3 +38,17 @@ The following plugin skills are adapted from [t3dotgg/tstack](https://github.com
 Vendor packages under `vendor/` are git submodules, each under its own license; the full table is in `vendor/LICENSE`.
 
 - claude-code-playground (`vendor/claude-code-playground`, https://github.com/anthropics/claude-code-playground) — owned by Anthropic, PBC — Apache License 2.0. Upstream describes it as an Anthropic DevRel playground, provided as-is and not an official Anthropic product.
+
+## MIT-Derived Skills (ponytail)
+
+`skills/ponytail/SKILL.md` is copied from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail), pinned at `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846`, unchanged except for an added Source section. MIT License, Copyright (c) 2026 DietrichGebert; the full text is in `skills/ponytail/LICENSE.txt`. `skills/mode-switcher/modes/ponytail.md` summarizes the same rules as a CC Commander mode.
+
+## Opt-in MIT add-ons (installed from upstream, not redistributed)
+
+These toolkit skills only describe how to install and route to upstream projects. No upstream source is copied into this distribution.
+
+- `skills/diagram-design` — [cathrynlavery/diagram-design](https://github.com/cathrynlavery/diagram-design), MIT; license and install steps reviewed at `f6db0decea96de66b901331a0f79a8d4b147ebae` ([LICENSE](https://github.com/cathrynlavery/diagram-design/blob/f6db0decea96de66b901331a0f79a8d4b147ebae/LICENSE))
+- `skills/claude-video` — [bradautomates/claude-video](https://github.com/bradautomates/claude-video), MIT; license and install steps reviewed at `03ceb42f7fa2c4439aca01752118044baabffb8f` ([LICENSE](https://github.com/bradautomates/claude-video/blob/03ceb42f7fa2c4439aca01752118044baabffb8f/LICENSE))
+- `skills/mempalace` — [MemPalace/mempalace](https://github.com/MemPalace/mempalace), MIT; license and install steps reviewed at `fec575bb4be04d4db244c2f724fa75ee6b9667ca` ([LICENSE](https://github.com/MemPalace/mempalace/blob/fec575bb4be04d4db244c2f724fa75ee6b9667ca/LICENSE))
+- `skills/qmd` — [tobi/qmd](https://github.com/tobi/qmd), MIT; license and install steps reviewed at `aa247d0ee2e5dc3b83e1270714c0f06ca94e2514` ([LICENSE](https://github.com/tobi/qmd/blob/aa247d0ee2e5dc3b83e1270714c0f06ca94e2514/LICENSE))
+- `skills/codebase-memory-mcp` — [DeusData/codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp), MIT; license and install steps reviewed at `08a7a586a41587c62079a4c3482d5a6068523480` ([LICENSE](https://github.com/DeusData/codebase-memory-mcp/blob/08a7a586a41587c62079a4c3482d5a6068523480/LICENSE)); installer pinned to release `v0.9.0`
