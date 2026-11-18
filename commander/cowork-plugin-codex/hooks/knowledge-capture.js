@@ -3,20 +3,24 @@
 //
 // Two capture duties on PostToolUse:
 //   1. Write/Edit → append to knowledge/auto-captures.jsonl (session learning)
-//   2. Bash test/lint/audit commands → cache the outcome in
-//      ~/.claude/commander/last-test-result.json so suggest-ticker.js has a
-//      REAL testsStatus/lintStatus/securityAlerts signal without ever running
-//      anything itself.
+//   2. Bash test/lint/audit commands → record the outcome for the workspace
+//      and git revision the command ran in (hooks/lib/test-results.mjs), so
+//      suggest-ticker.js has a REAL testsStatus/lintStatus/securityAlerts
+//      signal for THAT project without ever running anything itself.
+//
+// Registered on PostToolUse only. PostToolBatch delivers `tool_calls[]` with
+// no top-level tool_name, so this handler recorded nothing there and only
+// spent a process (Fable audit P2); that registration was removed.
 import { track } from '../lib/telemetry.mjs';
-import { appendFile, readFile, writeFile, mkdir } from 'node:fs/promises';
+import { appendFile, mkdir } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
 import { existsSync } from 'node:fs';
+import { recordResult } from './lib/test-results.mjs';
 
 const CCC_DIR = stateDir();
 const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
 const CAPTURES_FILE = join(KNOWLEDGE_DIR, 'auto-captures.jsonl');
-const TEST_CACHE_FILE = join(CCC_DIR, 'last-test-result.json');
 
 const SKIP_PATTERNS = ['node_modules', '.git', '.next', 'dist', 'build', '.cache'];
 
@@ -56,13 +60,9 @@ function deriveStatus(response) {
   return 'unknown';
 }
 
-async function cacheToolOutcome(kind, status) {
+async function cacheToolOutcome(kind, status, cwd) {
   if (status === 'unknown') return;
-  let cache = {};
-  try { cache = JSON.parse(await readFile(TEST_CACHE_FILE, 'utf8')); } catch {}
-  cache[kind] = { status, ts: new Date().toISOString() };
-  await mkdir(CCC_DIR, { recursive: true });
-  await writeFile(TEST_CACHE_FILE, JSON.stringify(cache, null, 2));
+  await recordResult(CCC_DIR, cwd, kind, status);
 }
 
 async function main() {
@@ -80,7 +80,8 @@ async function main() {
       const kind = classifyCommand(toolInput.command || toolInput.cmd || '');
       if (kind) {
         const status = deriveStatus(data.tool_response ?? data.tool_result ?? data.tool_output);
-        await cacheToolOutcome(kind, status);
+        const cwd = typeof data.cwd === 'string' && data.cwd ? data.cwd : process.cwd();
+        await cacheToolOutcome(kind, status, cwd);
       }
       console.log(JSON.stringify({ continue: true, suppressOutput: true }));
       return;

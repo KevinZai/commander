@@ -227,13 +227,13 @@ body{margin:0;background:var(--sf-bg);color:var(--sf-fg);}
 .safety .hero-stat .lbl{color:var(--sf-muted);font-size:.82rem;margin-top:4px;}
 .safety .hero-stat.blocked .num{color:var(--sf-err);}
 .safety .hero-stat.autofixed .num{color:var(--sf-warn);}
-.safety .hero-stat.approved .num{color:var(--sf-ok);}
+.safety .hero-stat.requested .num{color:var(--sf-ok);}
 .safety .hero-headline{font-size:1.06rem;margin:0 0 14px;}
 .safety .badge{display:inline-block;border-radius:999px;padding:1px 9px;
   font-size:.78rem;font-weight:600;white-space:nowrap;}
 .safety .bd-blocked{color:var(--sf-err);background:var(--sf-err-bg);}
 .safety .bd-autofixed{color:var(--sf-warn);background:var(--sf-warn-bg);}
-.safety .bd-approved{color:var(--sf-ok);background:var(--sf-ok-bg);}
+.safety .bd-requested{color:var(--sf-ok);background:var(--sf-ok-bg);}
 .safety .bd-other{color:var(--sf-muted);background:var(--sf-line);}
 .safety .bar-row{display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center;
   padding:5px 0;font-size:.86rem;}
@@ -273,11 +273,11 @@ body{margin:0;background:var(--sf-bg);color:var(--sf-fg);}
 
 <section aria-label="Safety overview">
 <h2>🛡️ Safety overview</h2>
-<p class="hero-headline">Commander blocked <strong>2</strong> actions. <strong>3</strong> tool calls approved without intervention.</p>
+<p class="hero-headline">Commander blocked <strong>2</strong> actions. <strong>3</strong> permission requests passed to the normal approval flow.</p>
 <div class="hero-grid">
 <div class="hero-stat blocked"><div class="num">2</div><div class="lbl">blocked</div></div>
 <div class="hero-stat autofixed"><div class="num">0</div><div class="lbl">auto-fixed</div></div>
-<div class="hero-stat approved"><div class="num">3</div><div class="lbl">approved</div></div>
+<div class="hero-stat requested"><div class="num">3</div><div class="lbl">requested</div></div>
 </div>
 </section>
 <section aria-label="Tool failure hotspots">
@@ -310,7 +310,7 @@ body{margin:0;background:var(--sf-bg);color:var(--sf-fg);}
 <div class="scroll"><table class="decision-table">
 <thead><tr><th>Category</th><th>Raw decision</th><th>Count</th><th>Share</th></tr></thead>
 <tbody><tr>
-<td><span class="badge bd-approved">approved</span></td>
+<td><span class="badge bd-requested">requested</span></td>
 <td class="mono">approved</td>
 <td class="mono">3</td>
 <td class="mono">60%</td>

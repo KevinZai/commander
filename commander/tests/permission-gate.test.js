@@ -164,12 +164,12 @@ describe('permission-gate: reject autofix write without CCC_AUTOFIX_APPROVED', (
 });
 
 // ============================================================================
-// Case 2b (v7.3.0, W2+/codex 13): CCC_AUTOFIX_APPROVED=1 logs a distinct
-// 'approved-autofix' decision — not the generic 'approved' — so Safety's
-// "auto-fixed" bucket (safety-snapshot.js's classifyDecision) has a real
-// signal. Uses an isolated HOME so the log file is deterministic to read.
+// Case 2b: PermissionRequest is not the final decision, so a request the gate
+// lets through is logged as 'requested' / 'requested-autofix', never as an
+// approval or an applied fix (Codex audit #26). Uses an isolated HOME so the
+// log file is deterministic to read.
 // ============================================================================
-describe('permission-gate: approved-autofix telemetry (v7.3.0)', () => {
+describe('permission-gate: requested (not approved) telemetry', () => {
   function makeHome() {
     return fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-permission-gate-'));
   }
@@ -183,7 +183,7 @@ describe('permission-gate: approved-autofix telemetry (v7.3.0)', () => {
       .map((line) => JSON.parse(line));
   }
 
-  it('logs decision:"approved-autofix" (not "approved") when CCC_AUTOFIX_APPROVED=1 allows an autofix write', () => {
+  it('logs decision:"requested-autofix" when CCC_AUTOFIX_APPROVED=1 lets an autofix write through', () => {
     const home = makeHome();
     const r = runGate(
       {
@@ -199,7 +199,7 @@ describe('permission-gate: approved-autofix telemetry (v7.3.0)', () => {
 
     const entries = readGateLog(home);
     assert.equal(entries.length, 1);
-    assert.equal(entries[0].decision, 'approved-autofix');
+    assert.equal(entries[0].decision, 'requested-autofix');
     assert.equal(entries[0].toolName, 'Write');
     assert.equal(entries[0].sessionId, 'test-session-autofix-log');
   });
@@ -220,7 +220,7 @@ describe('permission-gate: approved-autofix telemetry (v7.3.0)', () => {
     assert.equal(entries[0].decision, 'rejected-autofix');
   });
 
-  it('a normal (non-autofix) approval still logs the generic "approved" decision, unchanged', () => {
+  it('a normal (non-autofix) pass-through logs "requested", never "approved"', () => {
     const home = makeHome();
     runGate(
       {
@@ -233,7 +233,7 @@ describe('permission-gate: approved-autofix telemetry (v7.3.0)', () => {
 
     const entries = readGateLog(home);
     assert.equal(entries.length, 1);
-    assert.equal(entries[0].decision, 'approved');
+    assert.equal(entries[0].decision, 'requested');
   });
 });
 

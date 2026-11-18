@@ -317,15 +317,14 @@ async function main() {
       )) + '\n');
       return;
     }
-    // CCC_AUTOFIX_APPROVED=1 — the autofix write is allowed. Log a distinct
-    // `approved-autofix` decision (not the generic 'approved' below) so
-    // Safety's "auto-fixed" bucket (safety-snapshot.js's classifyDecision)
-    // has a real signal to count instead of being permanently empty (v7.3.0,
-    // W2+/codex 13).
+    // CCC_AUTOFIX_APPROVED=1 — the gate lets the autofix write through to the
+    // normal permission flow. PermissionRequest is not the final decision (the
+    // user or a later rule can still deny it), so this is logged as
+    // `requested-autofix`, not as an applied fix (Codex audit #26).
     await logDecision({
       timestamp: new Date().toISOString(),
       sessionId,
-      decision: 'approved-autofix',
+      decision: 'requested-autofix',
       toolName,
       skill: context.skill || '/ccc-review',
       phase: context.phase || 'autofix',
@@ -334,11 +333,13 @@ async function main() {
     return;
   }
 
-  // Default: approve
+  // Default: no objection from the gate. The request continues to the normal
+  // permission flow, whose outcome this hook never sees, so it is logged as
+  // `requested`, not `approved` (Codex audit #26).
   await logDecision({
     timestamp: new Date().toISOString(),
     sessionId,
-    decision: 'approved',
+    decision: 'requested',
     toolName,
   });
   process.stdout.write(JSON.stringify({ continue: true }) + '\n');

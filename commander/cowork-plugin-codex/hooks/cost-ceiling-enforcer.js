@@ -22,7 +22,8 @@
 import { track } from '../lib/telemetry.mjs';
 import { emitDeny, emitUser } from './lib/emit.mjs';
 import { sessionKey } from './lib/session-key.mjs';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { updateJson } from './lib/atomic-json.mjs';
 import { join } from 'node:path';
 import { readablePath, stateDir } from '../lib/lane-state.js';
 import { isMainModule } from './lib/code-mode.mjs';
@@ -82,9 +83,19 @@ export async function run(input = {}) {
 
       // Warn-then-block: first crossing emits a visible warning and lets the
       // call through; every subsequent call blocks until override/raise.
+      // Compare-and-set under the counter's lock: of two concurrent calls that
+      // cross together, exactly one claims the warning and the other is denied.
+      let claimedWarning = false;
       if (costData && !costData.ceilingWarnedAt) {
-        costData.ceilingWarnedAt = new Date().toISOString();
-        try { await writeFile(COST_FILE, JSON.stringify(costData, null, 2)); } catch {}
+        try {
+          await updateJson(COST_FILE, (current) => {
+            if (current.ceilingWarnedAt) return undefined;
+            claimedWarning = true;
+            return { ...current, ceilingWarnedAt: new Date().toISOString() };
+          });
+        } catch {}
+      }
+      if (claimedWarning) {
         return emitUser(
           `⚠️ CCC tool-call budget ceiling reached: ${costData.toolCalls} calls >= ${ceilingCalls}-call limit ` +
           `(budget unit $${ceiling.toFixed(2)}, not real spend). The NEXT tool call will be blocked — ` +

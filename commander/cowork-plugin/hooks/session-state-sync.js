@@ -3,18 +3,22 @@
  * session-state-sync.js
  * Hooks: CwdChanged + DirectoryAdded
  *
- * Keeps ~/.claude/commander/sessions/active-session.json (seeded by the
- * SessionStart orchestrator, post-compact-recovery.js,
- * session-save.js and session-end.js) current:
+ * Keeps this session's live record, sessions/active-session-<session_id>.json
+ * (seeded by the SessionStart orchestrator, read by post-compact-recovery.js,
+ * archived by session-save.js and session-end.js), current:
  *   CwdChanged     -> cwd = new_cwd, previousCwd = old_cwd, cwdChangedAt
  *   DirectoryAdded -> directories[] gains { path, source, addedAt } (deduped, capped)
  *
  * Prints nothing (both events are side-effect only) and always exits 0.
- * Writes atomically (tmp + rename) and only under ~/.claude/commander/.
+ * Writes atomically (tmp + rename) and only under the lane's commander/ dir.
+ * Keyed by the stdin session_id so one session never edits another's record
+ * (Codex audit #25).
  */
 import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
 import { join, isAbsolute } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
+import { sessionKey } from './lib/session-key.mjs';
+import { activeSessionFile } from './lib/active-session.mjs';
 
 const MAX_DIRECTORIES = 50;
 const clip = (v, n) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, n);
@@ -31,13 +35,18 @@ async function main() {
   if (event !== 'CwdChanged' && event !== 'DirectoryAdded') return;
 
   const dir = join(stateDir(), 'sessions');
-  const file = join(dir, 'active-session.json');
+  const key = sessionKey(input);
+  const file = activeSessionFile(dir, key);
   let state = {};
   try {
     const parsed = JSON.parse(await readFile(file, 'utf8'));
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) state = parsed;
   } catch {
     state = { status: 'active' };
+  }
+  if (key !== 'default') {
+    if (state.sessionId && state.sessionId !== key) return; // not ours: never edit another session's record
+    state.sessionId = key;
   }
   const now = new Date().toISOString();
 

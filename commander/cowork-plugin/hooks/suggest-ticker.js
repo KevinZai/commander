@@ -20,9 +20,10 @@
 //                  background process, cache ≤10 min (never blocks the hook).
 //                  Opt-in: only with CCC_CI_TICKER=1 and not CCC_OFFLINE=1;
 //                  otherwise 'unknown' and no `gh` process is spawned.
-//   testsStatus  — last test-command outcome cached by knowledge-capture.js
-//                  (PostToolUse) in ~/.claude/commander/last-test-result.json
-//   lintStatus / securityAlerts — same PostToolUse cache (lint/audit kinds)
+//   testsStatus  — last test-command outcome recorded by knowledge-capture.js
+//                  (PostToolUse) for THIS workspace at its CURRENT git
+//                  revision (hooks/lib/test-results.mjs)
+//   lintStatus / securityAlerts — same PostToolUse record (lint/audit kinds)
 //
 // Environment overrides:
 //   CCC_SUGGEST_DISABLE=1   — fully disable ambient mode
@@ -40,14 +41,13 @@ import path from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
 import { isCiTickerEnabled } from '../lib/network-mode.js';
 import os from 'node:os';
-import crypto from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { isCodeModePoll, POLL_PASS } from './lib/code-mode.mjs';
+import { projectSlug as slugFor, readResults } from './lib/test-results.mjs';
 
 const STATE_DIR = stateDir();
 const LOG_FILE = path.join(STATE_DIR, 'suggest-log.jsonl');
-const TEST_CACHE_FILE = path.join(STATE_DIR, 'last-test-result.json');
 const VIOLATIONS_FILE = path.join(STATE_DIR, 'clickability-violations.jsonl');
 const VIOLATIONS_SEEN_FILE = path.join(STATE_DIR, 'clickability-last-seen.json');
 
@@ -69,12 +69,10 @@ const VIOLATIONS_SEEN_FILE = path.join(STATE_DIR, 'clickability-last-seen.json')
 // legacy path (pre-compact.js, ccc-suggest/SKILL.md, ccc-claudemd/SKILL.md)
 // are outside this hook's ownership — flagged separately, not fixed here.
 //
-// TEST/lint/audit caches (last-test-result.json) and the cross-hook JSONL
-// feeds (subagent-runs / agent-runs / tasks / tool-failures / violations)
-// are written by OTHER hooks this file doesn't own — moving only the READ
-// side here would silently break those signals (the writer would keep
-// writing the global path forever), which is worse than today's leak. Left
-// global; a matching fix belongs with whichever hook owns each writer.
+// Test/lint/audit outcomes are per workspace and git revision too
+// (hooks/lib/test-results.mjs, shared with their writer knowledge-capture.js;
+// Codex audit #25). The cross-hook JSONL feeds (subagent-runs / agent-runs /
+// tasks / tool-failures / violations) are still lane-wide.
 const PROJECTS_DIR = path.join(STATE_DIR, 'projects');
 
 /** cwd per the hook contract: payload.cwd first, process.cwd() fallback. */
@@ -87,11 +85,7 @@ export function resolveCwd(payload) {
 
 /** basename(cwd) + '-' + 8-char sha256(cwd) — stable, filesystem-safe. */
 export function projectSlug(cwd) {
-  const safeCwd = typeof cwd === 'string' && cwd ? cwd : process.cwd();
-  const rawBase = path.basename(safeCwd) || 'root';
-  const base = rawBase.replace(/[^a-zA-Z0-9_.-]/g, '_').slice(0, 60) || 'root';
-  const hash = crypto.createHash('sha256').update(safeCwd).digest('hex').slice(0, 8);
-  return `${base}-${hash}`;
+  return slugFor(typeof cwd === 'string' && cwd ? cwd : process.cwd());
 }
 
 /** ~/.claude/commander/projects/<slug>/ for the given cwd. */
@@ -200,21 +194,10 @@ export function ciStatusCached(cacheFile, { env = process.env, spawnFn = spawn }
   return status;
 }
 
-/** Test/lint/audit outcomes cached by knowledge-capture.js (PostToolUse). */
-function toolResultCache() {
-  const out = { testsStatus: 'unknown', lintStatus: 'unknown', securityAlerts: 0 };
-  try {
-    const cache = JSON.parse(fs.readFileSync(TEST_CACHE_FILE, 'utf8'));
-    const now = Date.now();
-    for (const kind of ['test', 'lint', 'audit']) {
-      const entry = cache[kind];
-      if (!entry || !entry.ts || now - new Date(entry.ts).getTime() > TEST_CACHE_MAX_AGE_MS) continue;
-      if (kind === 'test') out.testsStatus = entry.status;
-      if (kind === 'lint') out.lintStatus = entry.status;
-      if (kind === 'audit' && entry.status === 'failing') out.securityAlerts = 1;
-    }
-  } catch {}
-  return out;
+/** Test/lint/audit outcomes knowledge-capture.js recorded for this workspace at its current revision. */
+function toolResultCache(cwd) {
+  const r = readResults(STATE_DIR, cwd, { maxAgeMs: TEST_CACHE_MAX_AGE_MS });
+  return { testsStatus: r.test, lintStatus: r.lint, securityAlerts: r.audit === 'failing' ? 1 : 0 };
 }
 
 export function computeState(promptText = '', cwd = process.cwd()) {
@@ -229,7 +212,7 @@ export function computeState(promptText = '', cwd = process.cwd()) {
 
   // Real, cached signals (see header) — never a blocking network call.
   const ciStatus = ciStatusCached(projectCiCacheFile(cwd));
-  const { testsStatus, lintStatus, securityAlerts } = toolResultCache();
+  const { testsStatus, lintStatus, securityAlerts } = toolResultCache(cwd);
   const lintErrors = lintStatus === 'failing' ? 1 : 0;
 
   // CLAUDE.md age (days) — consumed by /ccc-suggest + suggest-lightweight.

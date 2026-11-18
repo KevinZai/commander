@@ -93,7 +93,10 @@ test('readSafetyModel classifies decisions: a DENIED autofix is blocked, not aut
   const model = await readSafetyModel({ baseDir, now: NOW });
 
   assert.equal(model.decisions.total, 5);
-  assert.equal(model.decisions.approved, 3);
+  // Legacy `approved` rows were never final decisions (PermissionRequest
+  // cannot see the outcome): they count as requested (Codex audit #26).
+  assert.equal(model.decisions.requested, 3);
+  assert.equal(model.decisions.approved, undefined);
   // rejected-dangerous AND rejected-autofix are both BLOCKS — the gate logs
   // `rejected-autofix` when it DENIES the write (permission-gate.js:160), so
   // it must never be counted as an applied auto-fix.
@@ -103,22 +106,26 @@ test('readSafetyModel classifies decisions: a DENIED autofix is blocked, not aut
 
   const byDecision = Object.fromEntries(model.decisions.counts.map((c) => [c.decision, c]));
   assert.equal(byDecision.approved.count, 3);
-  assert.equal(byDecision.approved.kind, 'approved');
+  assert.equal(byDecision.approved.kind, 'requested');
   assert.equal(byDecision['rejected-dangerous'].count, 1);
   assert.equal(byDecision['rejected-dangerous'].kind, 'blocked');
   assert.equal(byDecision['rejected-autofix'].count, 1);
   assert.equal(byDecision['rejected-autofix'].kind, 'blocked');
 });
 
-test('readSafetyModel counts a GENUINE applied auto-fix as auto-fixed (forward-compat)', async () => {
+test('readSafetyModel counts only a GENUINE applied auto-fix as auto-fixed; a let-through autofix is requested', async () => {
   const baseDir = await makeBase({
     gate: [
       { timestamp: '2026-07-20T06:00:00.000Z', sessionId: 's2', decision: 'auto-fixed', toolName: 'Edit' },
       { timestamp: '2026-07-20T06:00:01.000Z', sessionId: 's2', decision: 'approved-autofix', toolName: 'Edit' },
+      { timestamp: '2026-07-20T06:00:02.000Z', sessionId: 's2', decision: 'requested-autofix', toolName: 'Edit' },
+      { timestamp: '2026-07-20T06:00:03.000Z', sessionId: 's2', decision: 'requested', toolName: 'Bash' },
+      { timestamp: '2026-07-20T06:00:04.000Z', sessionId: 's2', decision: 'deferred-to-user', toolName: 'Bash' },
     ],
   });
   const model = await readSafetyModel({ baseDir, now: NOW });
-  assert.equal(model.decisions.autofixed, 2);
+  assert.equal(model.decisions.autofixed, 1);
+  assert.equal(model.decisions.requested, 4);
   assert.equal(model.decisions.blocked, 0);
 });
 
@@ -127,7 +134,7 @@ test('readSafetyModel counts a GENUINE applied auto-fix as auto-fixed (forward-c
 // its actual jsonl output straight into readSafetyModel/buildSafetyHtml.
 // This is what proves the "auto-fixed" bucket is wired end-to-end, not just
 // that classifyDecision() recognizes the string in isolation.
-test('end-to-end: permission-gate.js CCC_AUTOFIX_APPROVED=1 write feeds readSafetyModel\'s "auto-fixed" bucket', async () => {
+test('end-to-end: permission-gate.js CCC_AUTOFIX_APPROVED=1 write is counted as requested, not auto-fixed', async () => {
   const home = await fs.mkdtemp(path.join(tmpRoot, 'e2e-home-'));
   const payload = JSON.stringify({
     tool_name: 'Write',
@@ -147,12 +154,14 @@ test('end-to-end: permission-gate.js CCC_AUTOFIX_APPROVED=1 write feeds readSafe
 
   const baseDir = path.join(home, '.claude', 'commander');
   const model = await readSafetyModel({ baseDir, now: NOW });
-  assert.equal(model.decisions.autofixed, 1);
+  assert.equal(model.decisions.autofixed, 0);
+  assert.equal(model.decisions.requested, 1);
   assert.equal(model.decisions.blocked, 0);
   assert.equal(model.decisions.total, 1);
 
   const html = buildSafetyHtml(model, { now: NOW });
-  assert.match(html, /auto-fixed <strong>1<\/strong> for you/);
+  assert.doesNotMatch(html, /auto-fixed <strong>1<\/strong> for you/);
+  assert.match(html, /<strong>1<\/strong> permission request passed to the normal approval flow/);
 });
 
 test('readSafetyModel aggregates top-failing tools by count', async () => {
@@ -289,7 +298,7 @@ test('buildSafetyHtml never shows the raw secret, even end-to-end through the re
   assert.ok(!html.includes(SECRET), 'raw secret leaked into rendered HTML');
 });
 
-test('buildSafetyHtml renders the hero headline with real blocked/auto-fixed/approved counts', async () => {
+test('buildSafetyHtml renders the hero headline with real blocked/auto-fixed/requested counts', async () => {
   const baseDir = await makeBase({ gate: GATE_ROWS });
   const model = await readSafetyModel({ baseDir, now: NOW });
   const html = buildSafetyHtml(model, { now: NOW });
@@ -299,7 +308,8 @@ test('buildSafetyHtml renders the hero headline with real blocked/auto-fixed/app
   assert.ok(html.includes('blocked <strong>2</strong> action'));
   assert.ok(!/blocked <strong>\d+<\/strong> dangerous action/.test(html), 'headline must not claim all blocks are dangerous');
   assert.ok(!html.includes('auto-fixed <strong>0</strong>'), 'must not render "auto-fixed 0 for you"');
-  assert.ok(html.includes('<strong>3</strong> tool call'));
+  assert.ok(html.includes('<strong>3</strong> permission requests passed to the normal approval flow'));
+  assert.ok(!/approved without intervention/.test(html), 'a PermissionRequest hook never sees the final approval');
 });
 
 test('buildSafetyHtml with no data anywhere renders an honest zero-state, not fabricated numbers', async () => {
