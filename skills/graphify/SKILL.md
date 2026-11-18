@@ -46,6 +46,6 @@ graphify update                      # refresh after changes
 
 ## Links
 
-- **GitHub:** https://github.com/safishamsi/graphify
+- **GitHub:** https://github.com/Graphify-Labs/graphify
 - **License:** Apache-2.0 (relicensed; earlier MIT contributions keep `LICENSE-MIT`)
 - **Vendored at:** `vendor/graphify` (branch `v8`)

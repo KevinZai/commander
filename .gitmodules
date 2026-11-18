@@ -46,7 +46,7 @@
 	url = https://github.com/repowise-dev/claude-code-prompts.git
 [submodule "vendor/graphify"]
 	path = vendor/graphify
-	url = https://github.com/safishamsi/graphify.git
+	url = https://github.com/Graphify-Labs/graphify.git
 	branch = v8
 [submodule "vendor/ui-ux-pro-max-skill"]
 	path = vendor/ui-ux-pro-max-skill
