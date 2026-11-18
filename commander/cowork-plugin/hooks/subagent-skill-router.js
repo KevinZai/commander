@@ -11,15 +11,15 @@
  * the conversation (deploy, push, publish, tracker writes) are never offered.
  *
  * Task text comes from the payload when the host provides it, else from the
- * parent transcript's matching Agent/Task call (see claimTask). Workers that a
- * Workflow script or Code Mode program spawns have no such call and get none.
+ * Agent/Task call queued by the PreToolUse dispatcher (see recordAgentCall).
+ * Workers a Workflow script spawns make no such call and get no block.
  *
  * Follows the lane's route mode (CCC_ROUTE_MODE, then config.json routeMode):
  * off and suggest stay silent; auto and always inject. CCC_SUBAGENT_ROUTE=off
  * turns off only this hook. Never blocks: any error is silent. Task text is
  * scored in memory and never logged.
  */
-import { readFileSync, writeFileSync, mkdirSync, renameSync, openSync, readSync, fstatSync, closeSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, renameSync, readdirSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { emitModel, emitSilent } from './lib/emit.mjs';
 import { readStdinJson } from './lib/session-key.mjs';
@@ -28,70 +28,68 @@ import { loadRoutes, scoreRoutes, routeMode, detectHost, renderSubagentContext }
 import { readablePath, stateDir } from '../lib/lane-state.js';
 
 // Claude Code's SubagentStart payload carries no task text (only session_id,
-// transcript_path, cwd, agent_id, agent_type), so the task is recovered from
-// the parent's transcript: the newest Agent/Task tool_use for this agent type
-// that no earlier SubagentStart in this session has claimed.
-const TAIL_BYTES = 512 * 1024;
+// transcript_path, cwd, agent_id, agent_type), and the parent transcript can
+// lag behind the hook. So the PreToolUse dispatcher calls recordAgentCall()
+// for every Agent/Task call (it runs before the subagent starts, also for
+// calls made from Code Mode programs), queueing the task as one file per call.
+// SubagentStart then claims the oldest queued call for its agent type with an
+// atomic rename, so parallel workers each get their own task, in spawn order.
 const AGENT_TOOLS = new Set(['Agent', 'Task']);
+const QUEUE_TTL_MS = 10 * 60 * 1000;
+const TEXT_MAX = 2000;
 
-function readTail(file) {
-  let fd;
+function slug(value, fallback) {
+  return String(value || '').replace(/[^\w-]/g, '').slice(0, 80) || fallback;
+}
+
+function queueDir(sessionId) {
+  return join(stateDir(), 'route-state', `${slug(sessionId, 'default')}-agents`);
+}
+
+let seq = 0;
+
+/** PreToolUse handler: queue an Agent/Task call's task text. Never blocks. */
+export function recordAgentCall(input = {}) {
   try {
-    fd = openSync(file, 'r');
-    const size = fstatSync(fd).size;
-    const length = Math.min(size, TAIL_BYTES);
-    const buf = Buffer.alloc(length);
-    readSync(fd, buf, 0, length, size - length);
-    return buf.toString('utf8');
+    const tool = input.tool_name || input.toolName || '';
+    const ti = input.tool_input && typeof input.tool_input === 'object' ? input.tool_input : null;
+    if (!AGENT_TOOLS.has(tool) || !ti) return emitSilent();
+    const text = [ti.description, ti.prompt].filter((v) => typeof v === 'string' && v.trim()).join('\n').slice(0, TEXT_MAX);
+    if (!text) return emitSilent();
+    const dir = queueDir(input.session_id);
+    mkdirSync(dir, { recursive: true });
+    const name = `${String(Date.now()).padStart(15, '0')}-${process.pid}-${seq++}-${slug(input.tool_use_id, 'call')}.json`;
+    const tmp = join(dir, `.${name}.tmp`);
+    writeFileSync(tmp, JSON.stringify({ type: String(ti.subagent_type || ''), text }));
+    renameSync(tmp, join(dir, name));
   } catch {
-    return '';
-  } finally {
-    if (fd !== undefined) try { closeSync(fd); } catch {}
+    // routing state is best-effort
   }
+  return emitSilent();
 }
 
-/** Agent/Task tool_use blocks in transcript order: [{ id, type, text }]. */
-export function agentCalls(transcriptText) {
-  const calls = [];
-  for (const line of String(transcriptText || '').split('\n')) {
-    if (!line.includes('tool_use') || !/"(Agent|Task)"/.test(line)) continue;
-    let entry;
-    try { entry = JSON.parse(line); } catch { continue; }
-    const content = entry && entry.message && Array.isArray(entry.message.content) ? entry.message.content : [];
-    for (const block of content) {
-      if (!block || block.type !== 'tool_use' || !AGENT_TOOLS.has(block.name) || !block.input) continue;
-      const text = [block.input.description, block.input.prompt].filter((v) => typeof v === 'string' && v.trim()).join('\n');
-      if (text) calls.push({ id: String(block.id || ''), type: String(block.input.subagent_type || ''), text });
-    }
-  }
-  return calls;
-}
-
-function claimsFile(sessionId) {
-  const slug = String(sessionId || 'default').replace(/[^\w-]/g, '').slice(0, 80) || 'default';
-  return join(stateDir(), 'route-state', `${slug}-subagents.json`);
-}
-
-/** Pick the newest unclaimed call for this agent type and record the claim. */
+/** SubagentStart: claim the oldest queued call for this agent type, or ''. */
 export function claimTask(input = {}) {
-  if (typeof input.transcript_path !== 'string' || !input.transcript_path) return '';
-  const calls = agentCalls(readTail(input.transcript_path));
-  if (!calls.length) return '';
-  const file = claimsFile(input.session_id);
-  let claimed = [];
-  try { claimed = JSON.parse(readFileSync(file, 'utf8')); } catch {}
-  if (!Array.isArray(claimed)) claimed = [];
+  const dir = queueDir(input.session_id);
+  let names;
+  try { names = readdirSync(dir).filter((n) => n.endsWith('.json')).sort(); } catch { return ''; }
   const type = String(input.agent_type || input.subagent_type || '');
-  const open = calls.filter((c) => c.id && !claimed.includes(c.id));
-  const pick = [...open].reverse().find((c) => !type || !c.type || c.type === type) || null;
-  if (!pick) return '';
-  try {
-    mkdirSync(join(file, '..'), { recursive: true });
-    const tmp = `${file}.${process.pid}.tmp`;
-    writeFileSync(tmp, JSON.stringify([...claimed, pick.id].slice(-200)));
-    renameSync(tmp, file);
-  } catch {}
-  return pick.text;
+  const now = Date.now();
+  for (const name of names) {
+    const file = join(dir, name);
+    if (now - Number(name.split('-')[0]) > QUEUE_TTL_MS) {
+      try { unlinkSync(file); } catch {}
+      continue;
+    }
+    let entry;
+    try { entry = JSON.parse(readFileSync(file, 'utf8')); } catch { continue; }
+    if (type && entry.type && entry.type !== type) continue;
+    // The rename is the claim: only one concurrent SubagentStart wins it.
+    try { renameSync(file, `${file}.claimed`); } catch { continue; }
+    try { unlinkSync(`${file}.claimed`); } catch {}
+    return typeof entry.text === 'string' ? entry.text : '';
+  }
+  return '';
 }
 
 function savedRouteMode() {

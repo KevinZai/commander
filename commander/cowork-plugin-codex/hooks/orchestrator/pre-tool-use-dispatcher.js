@@ -19,11 +19,13 @@ import { emitSilent, emitUser } from '../lib/emit.mjs';
 import { run as costTracker } from '../cost-tracker.js';
 import { run as costCeiling } from '../cost-ceiling-enforcer.js';
 import { run as secretGuard } from '../secret-leak-guard.js';
+import { recordAgentCall } from '../subagent-skill-router.js';
 
 export const HANDLERS = Object.freeze([
   ['cost-tracker', costTracker],
   ['cost-ceiling-enforcer', costCeiling],
   ['secret-leak-guard', secretGuard],
+  ['subagent-skill-router', recordAgentCall],
 ]);
 
 export function mergeOutputs(outputs) {

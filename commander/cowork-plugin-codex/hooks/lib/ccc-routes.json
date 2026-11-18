@@ -1635,7 +1635,8 @@
       "patterns": [
         "\\breview\\s+(my|this|the|our)\\s+(code|changes|diff|pr|pull request|branch|commit|commits)\\b",
         "\\b(do|run|perform|i need|i want)\\s+(a|an|the)\\s+(code|pr|pull request)\\s+review\\b(?!\\s+(bot|feedback|comment|process|guide))",
-        "\\bgive\\s+(my|this|the|our)\\s+(code|changes|diff|pr|branch)\\s+a\\s+(code\\s+)?review\\b"
+        "\\bgive\\s+(my|this|the|our)\\s+(code|changes|diff|pr|branch)\\s+a\\s+(code\\s+)?review\\b",
+        "\\breview\\s+(the\\s+)?(last|latest|recent|previous)\\s+(\\d+\\s+)?(commit|commits|change|changes)\\b"
       ],
       "negatives": [
         "\\bpreview\\b",

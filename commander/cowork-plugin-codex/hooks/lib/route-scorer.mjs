@@ -161,6 +161,8 @@ export function tierFor(candidates, mode = 'auto') {
   // Topic scores alone cannot authorize an auto-run. Curated patterns must
   // express a request to do this skill's job, not merely name its subject.
   // Manual (disable-model-invocation) skills and agents never auto-run.
+  // always mode never auto-runs a side-effect skill, even on a clear match.
+  if (mode === 'always' && SIDE_EFFECT_SKILLS.has(top.route.id)) return 'medium';
   if (clearWinner && top.patternHits > 0 && (mode === 'auto' || mode === 'always') && top.route.kind === 'skill' && !top.route.manual) return 'high';
   return 'medium';
 }
@@ -300,18 +302,18 @@ export function renderNextContext(fromRoute, nextRoutes, host) {
  * use the right skills too. Same gates as the parent router: only a high-tier
  * match (score, margin and an intent pattern) is a directive; otherwise the
  * matches are listed as options (from MEDIUM_THRESHOLD in auto mode, from
- * HINT_THRESHOLD in always mode). Side-effect skills, hidden skills (except
- * followable ones in always mode) and agents are never listed. Null when
+ * HINT_THRESHOLD in always mode). Side-effect skills, hidden skills (some
+ * fan out further agents) and agents are never listed. Null when
  * nothing qualifies.
  */
 export function renderSubagentContext(candidates, host, mode = 'auto') {
   const floor = mode === 'always' ? HINT_THRESHOLD : MEDIUM_THRESHOLD;
   const usable = candidates
-    .filter((c) => c.score >= floor && autoFollowable(c.route) && (!c.route.manual || mode === 'always'))
+    .filter((c) => c.score >= floor && autoFollowable(c.route) && !c.route.manual)
     .slice(0, 3);
   if (!usable.length) return null;
   const [top] = usable;
-  const opts = usable.map((c) => `${c.route.manual ? c.route.id : invokeText(c.route, host)}: ${c.route.label}`).join('; ');
+  const opts = usable.map((c) => `${invokeText(c.route, host)}: ${c.route.label}`).join('; ');
   const directive = candidates[0] === top && tierFor(candidates, mode) === 'high';
   const lead = directive
     ? `Before starting, ${skillCall(top.route, host)} and follow it for this task: ${top.route.label}.`

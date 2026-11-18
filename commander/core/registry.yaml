@@ -4426,10 +4426,10 @@ vendors:
     note: RTK token-kill CLI; Apache-2.0 with NOTICE.md. No user-facing mapping. Consider drop in v4.2.
   - id: "vendor:claude-mem"
     name: claude-mem
-    license: AGPL-3.0
-    path: vendor/claude-mem
-    status: pinned
-    note: AGPL-3.0 — submodule reference only, no code copy. DO NOT bump without re-audit.
+    license: Apache-2.0
+    path: null
+    status: external
+    note: External opt-in (upstream relicensed to Apache-2.0); not a bundled submodule. Install separately.
   - id: "vendor:claude-code-ultimate-guide"
     name: claude-code-ultimate-guide
     license: CC-BY-SA-4.0
