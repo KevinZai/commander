@@ -52,9 +52,10 @@ Fixed: `floor-guard` prints only rule and file for every finding, `git-workflow-
 Every added line was checked for unpinned `npx`, package installs without exact versions, `:latest` images, download-and-execute, moving manifest URLs, dotenv loading and secrets in argv. Each hit was pinned or turned into a project-owned command:
 
 - `browser-testing-with-devtools`: `chrome-devtools-mcp@1.13.0` is installed once as an exact dev dependency and launched with `npx --no-install`, which stops instead of fetching.
-- `context-engineering` and `git-workflow-and-versioning`: `npx --no-install tsc`. `deprecation-and-migration`: the project's own checked-in migration check instead of `npx migrate-check`.
+- `context-engineering` and `git-workflow-and-versioning`: the project's locked `./node_modules/.bin/tsc`. `deprecation-and-migration`: the project's own checked-in migration check instead of `npx migrate-check`.
 - `constraint-driven-development`: Python tools at exact versions; Semgrep reads a checked-in ruleset, not the moving `p/default`; scanner reports go to a private temp file. The adapted floor guard keeps an MIT header and ships the license beside it.
-- `git-workflow-and-versioning`: the secret check stops the recipe on a match and adds a redacting `gitleaks` scan of the staged tree.
+- `git-workflow-and-versioning`: the pre-commit block is one errexit subshell: a git error, a secret-pattern match, a gitleaks finding, or failed tests, lint or typecheck all stop it.
+- `doubt-driven-development`: the artifact goes only to the one reviewer the user picked (a `case` on `REVIEWER`).
 - `documentation-and-adrs`: `.env` is created only when absent; the drift check reports "can't tell" when either file has no history.
 - `doubt-driven-development`: the prompt file is written with the file tool, not `echo` or a heredoc, and an empty prompt stops the run.
 - `code-simplification`: the Anthropic link is pinned to `e6143c98`.

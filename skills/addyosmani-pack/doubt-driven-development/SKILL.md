@@ -146,12 +146,15 @@ PROMPT_FILE=$(mktemp) && chmod 600 "$PROMPT_FILE" && trap 'rm -f "$PROMPT_FILE"'
 # Fill "$PROMPT_FILE" with the file-writing tool, then refuse to send an empty prompt:
 [ -s "$PROMPT_FILE" ] || { echo "stop: prompt file is empty"; exit 1; }
 
-# Codex (read-only sandbox keeps the CLI from writing to your workspace):
-codex exec --sandbox read-only -C <repo-path> - < "$PROMPT_FILE"
-
-# Gemini ('--approval-mode plan' is read-only; '-p ""' triggers non-interactive
-# mode and the prompt is read from stdin):
-gemini --approval-mode plan -p "" < "$PROMPT_FILE"
+# CCC safety: send the artifact only to the one reviewer the user picked in Step 1.
+REVIEWER=<codex or gemini, as the user chose>
+case "$REVIEWER" in
+  codex)  # read-only sandbox keeps the CLI from writing to your workspace
+    codex exec --sandbox read-only -C <repo-path> - < "$PROMPT_FILE" ;;
+  gemini) # '--approval-mode plan' is read-only; '-p ""' reads the prompt from stdin
+    gemini --approval-mode plan -p "" < "$PROMPT_FILE" ;;
+  *) echo "stop: no reviewer chosen"; exit 1 ;;
+esac
 ```
 
 A read-only sandbox is the load-bearing detail: a doubt artifact may itself contain instructions (intentional or accidental prompt injection) that the cross-model CLI would otherwise execute against your workspace.
