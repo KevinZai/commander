@@ -8,6 +8,7 @@ description: >
   over-engineering or bloat. Levels: lite, full (default), ultra.
 argument-hint: "[lite|full|ultra|off]"
 license: MIT
+disable-model-invocation: true
 ---
 
 # Ponytail
@@ -51,9 +52,16 @@ Never cut: validation at trust boundaries, error handling that prevents data los
 | **full** | The rules above. Default. |
 | **ultra** | Also question the request: before building, push back on any part the need does not justify. |
 
+## Next step
+
+- 🟢 Apply it: makes the smallest complete change for the task in front of you, keeping tests and validation
+- Switch mode: `/mode-switcher ponytail` keeps these rules for the whole session
+- Review: runs `/ccc-review` on the change
+- Done: you continue manually
+
 ## Source
 
-Copied unchanged from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) `skills/ponytail/SKILL.md`, pinned at `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846`. In CC Commander it is also a mode: see `skills/mode-switcher/modes/ponytail.md`. The upstream plugin adds `ponytail-review`, `ponytail-audit` and `ponytail-debt`; install from the upstream README, reviewed at [`96608e0`](https://github.com/DietrichGebert/ponytail/tree/96608e078b2d5ea607c5c3b8b5a54d1c1fba6846#readme). CCC safety: the plugin marketplace serves the current upstream revision, not the reviewed one. Before installing, confirm the marketplace source is `github.com/DietrichGebert/ponytail` itself and not a same-named plugin from another publisher, and tell the user if upstream has changed since `96608e0`.
+Copied from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) `skills/ponytail/SKILL.md`, pinned at `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846`. CC Commander changes two things: it adds `disable-model-invocation: true`, so ponytail runs only when you call `/ponytail` or switch to the mode (it is not applied to every coding task, where it would fight test-first defaults), and it adds this Source section. In CC Commander it is also a mode: see `skills/mode-switcher/modes/ponytail.md`. The upstream plugin adds `ponytail-review`, `ponytail-audit` and `ponytail-debt`; install from the upstream README, reviewed at [`96608e0`](https://github.com/DietrichGebert/ponytail/tree/96608e078b2d5ea607c5c3b8b5a54d1c1fba6846#readme). CCC safety: the plugin marketplace serves the current upstream revision, not the reviewed one. Before installing, confirm the marketplace source is `github.com/DietrichGebert/ponytail` itself and not a same-named plugin from another publisher, and tell the user if upstream has changed since `96608e0`.
 
 ### License
 

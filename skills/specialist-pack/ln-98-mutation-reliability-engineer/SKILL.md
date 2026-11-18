@@ -86,6 +86,13 @@ Report in the user's language, in this order; label all five fields and state ea
 
 **Skill-specific evidence:** Invariant, effect/acknowledgement boundaries, execution model, transaction/idempotency/retry owners, interruption/concurrency evidence, unresolved effects and recovery authority.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another specialist skill: back to the `specialist-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repo: https://github.com/levnikolaevich/claude-code-skills

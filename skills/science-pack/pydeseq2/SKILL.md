@@ -179,6 +179,13 @@ http://export.arxiv.org/api/query?id_list=2609.00065) before writing the referen
 the author list, year, and version from that record. If the record lists a journal reference
 or publisher DOI, cite the published version instead.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

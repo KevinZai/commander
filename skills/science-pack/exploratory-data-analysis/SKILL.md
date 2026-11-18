@@ -271,6 +271,13 @@ raw values, paths, and sensitive metadata out of the report.
   QC.
 - Sequence prefix aggregates are not complete read QC.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source basis
 
 Current parser APIs and format guidance were checked 2026-09-30. Detailed links are in

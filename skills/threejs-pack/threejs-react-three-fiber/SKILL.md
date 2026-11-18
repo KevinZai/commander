@@ -487,6 +487,13 @@ Not WebGPU-safe: `Text` draws one untextured quad instead of glyphs (troika inje
 - `threejs-performance` - profiling and optimization beyond fiber's adaptive tools
 - `threejs-asset-pipeline` - gltfjsx components, and compressing models before useGLTF loads them
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another Three.js skill: back to the `threejs-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: https://github.com/CloudAI-X/threejs-skills

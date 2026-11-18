@@ -159,6 +159,13 @@ the local `pyco2.sys` Python API; it has no HTTP endpoints or authentication. Te
 software behavior, not independent field-data validation; upstream's validation page also
 contains historical examples, including a removed `pyco2.test` interface.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

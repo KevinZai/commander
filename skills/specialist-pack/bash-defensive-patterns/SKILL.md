@@ -39,6 +39,13 @@ Detailed pattern documentation lives in `references/details.md`. Read that file 
 13. **Use `command -v`** - Safer than `which` for checking executables
 14. **Prefer printf over echo** - More predictable across systems
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another specialist skill: back to the `specialist-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repo: https://github.com/wshobson/agents

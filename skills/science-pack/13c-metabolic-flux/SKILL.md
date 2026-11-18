@@ -217,6 +217,13 @@ user's model or a measured advantage over any particular language model.
 - The TCA network is adapted from mfapy's MIT-licensed example files; the attribution
   and full notice are in [assets/mfapy-license.txt](assets/mfapy-license.txt).
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

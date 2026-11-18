@@ -237,6 +237,13 @@ After instrumenting a feature, confirm:
 
 For the at-a-glance version of this list, including the pre-launch instrumentation gate, see [observability-checklist.md](https://github.com/addyosmani/agent-skills/blob/39b723ceebf81474d0557c1fecd01eddab585563/references/observability-checklist.md) (upstream only, not copied).
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another addyosmani engineering skill: back to the `addyosmani-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), path `skills/observability-and-instrumentation/`

@@ -377,7 +377,8 @@
       ],
       "triggers": [],
       "patterns": [
-        "\\b(connect|wire up|hook up)\\s+(my\\s+|the\\s+)?(linear|supabase|vercel|sentry|notion|slack|stripe)\\s+(to|with|into)\\s+(commander|claude|codex|this session)\\b"
+        "\\b(connect|wire up|hook up)\\s+(my\\s+|the\\s+)?(linear|supabase|vercel|sentry|notion|slack|stripe)\\s+(to|with|into)\\s+(commander|claude|codex|this session)\\b",
+        "\\b(add|set up|install|connect)\\s+(a\\s+|the\\s+)?(code[- ]?map|codebase[- ]memory|codebase graph)\\b"
       ],
       "negatives": [],
       "paths": [],
@@ -604,10 +605,15 @@
       "triggers": [
         "design system",
         "component system",
-        "ui"
+        "ui",
+        "three.js",
+        "threejs",
+        "webgl",
+        "react three fiber"
       ],
       "patterns": [
-        "\\b(design|restyle|polish|redesign|animate)\\s+(the\\s+|my\\s+|a\\s+|this\\s+)?([\\w-]+\\s+){0,2}(ui|landing page|homepage|page|component|screen)\\b"
+        "\\b(design|restyle|polish|redesign|animate)\\s+(the\\s+|my\\s+|a\\s+|this\\s+)?([\\w-]+\\s+){0,2}(ui|landing page|homepage|page|component|screen)\\b",
+        "\\b(three\\.?js|webgl|react three fiber|r3f)\\b.{0,40}\\b(scene|shader|viewer|model|animation|post-processing|material)s?\\b|\\b(scene|shader|viewer|model)s?\\b.{0,40}\\b(three\\.?js|webgl|react three fiber|r3f)\\b"
       ],
       "negatives": [
         "\\bsystem design\\b",

@@ -494,6 +494,13 @@ renderer.setAnimationLoop(animate);
 - `threejs-performance` — measuring frame cost and cutting draw calls, memory and fill rate.
 - `threejs-react-three-fiber` — the same scene graph written as React components.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another Three.js skill: back to the `threejs-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: https://github.com/CloudAI-X/threejs-skills

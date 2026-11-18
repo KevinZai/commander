@@ -33,6 +33,13 @@ On first use in a project the upstream skill asks whether to customize its defau
 - Output is a static HTML file kept on the device. CCC safety: publish it as an Artifact or share it anywhere only when the user asks.
 - Its `PRIVACY.md` lists what it sends over the network (brand onboarding fetches the URL the user gives).
 
+## Next step
+
+- 🟢 Install: walks through the reviewed install steps above, with your OK
+- Draw now: sketches the diagram in Mermaid without installing anything
+- Pick another skill: `/ccc-suggest` recommends one
+- Done: you continue manually
+
 ## License
 
 MIT, Copyright (c) Cathryn Lavery. It bundles Tabler Icons (MIT), Simple Icons (CC0) and others, listed in the upstream `THIRD_PARTY_LICENSES.md`.

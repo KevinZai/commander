@@ -127,6 +127,13 @@ Every script in this skill sets the `x-exa-integration` request header to `k-den
 - `scripts/exa_search.py` — CLI wrapper around `client.search`
 - `scripts/exa_extract.py` — CLI wrapper around `client.get_contents`
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

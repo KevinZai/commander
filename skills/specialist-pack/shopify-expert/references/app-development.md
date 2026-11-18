@@ -36,7 +36,7 @@
 
 ```bash
 # Create new Shopify app with Remix template
-npm create @shopify/app@latest
+npm create @shopify/app@5.0.2
 
 # Project structure
 shopify-app/
