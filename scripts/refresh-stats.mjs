@@ -5,10 +5,13 @@
 // Without the key it writes a zero-state file. Every figure is an aggregate
 // count; no device id, prompt, path or code ever lands in the file.
 //
-// Activation (the 90-day leading signal): `first_result` is sent once per
-// install, when a flagship skill finishes its first result (plugin
-// lib/activation.mjs). activation.rate = installs with a first_result /
-// installs seen, over the same 30-day window. The north-star figure,
+// Activation (the 90-day leading signal) is reported as UNAVAILABLE. The
+// plugin sends its once-per-install `first_result` event (lib/activation.mjs)
+// to the hosted /v1/events endpoint, which only bumps a process-local counter
+// and discards the event (apps/mcp-server-cloud/src/routes/events.ts). Nothing
+// reaches PostHog, so a query here would always read zero. activation carries
+// null figures and a reason until a retained, privacy-compatible aggregate
+// exists (an open decision for Kevin). The north-star figure,
 // weekly_active_installs, is distinct installs with any session start in the
 // last 7 days, computed from the session events the clients already send.
 
@@ -33,11 +36,11 @@ export const METRICS = {
 };
 
 export const ACTIVATION_METRICS = {
-  installs_30d: 'SELECT count(DISTINCT distinct_id) FROM events WHERE timestamp >= now() - INTERVAL 30 DAY',
-  first_results_30d: "SELECT count(DISTINCT distinct_id) FROM events WHERE event = 'first_result' AND timestamp >= now() - INTERVAL 30 DAY",
-  median_seconds_to_first_result: "SELECT quantile(0.5)(toFloat(properties.seconds_since_first_run)) FROM events WHERE event = 'first_result' AND properties.seconds_since_first_run IS NOT NULL AND timestamp >= now() - INTERVAL 30 DAY",
   weekly_active_installs: `SELECT count(DISTINCT distinct_id) FROM events WHERE ${SESSION_WHERE} AND timestamp >= now() - INTERVAL 7 DAY`,
 };
+
+export const ACTIVATION_UNAVAILABLE_REASON =
+  'first_result goes to the hosted /v1/events endpoint, which keeps only a process-local counter and discards the event; no retained aggregate exists for this report to read.';
 
 function posthogQuery(apiKey) {
   return async function query(hql) {
@@ -85,11 +88,10 @@ function mergeTopItems(...lists) {
   return [...map.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
 }
 
-async function getTopItems(query, events, propertyKey, limit = 5, distinct = false) {
+async function getTopItems(query, events, propertyKey, limit = 5) {
   const eventList = Array.isArray(events) ? events : [events];
   const eventClause = eventList.map((e) => `'${e}'`).join(', ');
-  const measure = distinct ? 'count(DISTINCT distinct_id)' : 'count()';
-  const hql = `SELECT ${propertyKey} as name, ${measure} as count FROM events WHERE event IN (${eventClause}) AND ${propertyKey} IS NOT NULL AND timestamp >= now() - INTERVAL 30 DAY GROUP BY ${propertyKey} ORDER BY count DESC LIMIT ${limit}`;
+  const hql = `SELECT ${propertyKey} as name, count() as count FROM events WHERE event IN (${eventClause}) AND ${propertyKey} IS NOT NULL AND timestamp >= now() - INTERVAL 30 DAY GROUP BY ${propertyKey} ORDER BY count DESC LIMIT ${limit}`;
   try {
     const result = await query(hql);
     if (result && result.results && result.results.length > 0) {
@@ -101,17 +103,21 @@ async function getTopItems(query, events, propertyKey, limit = 5, distinct = fal
   return [];
 }
 
-/** Activation block from raw counts. rate is null when there is no denominator. */
-export function buildActivation({ installs_30d = 0, first_results_30d = 0, median_seconds_to_first_result = null, by_skill = [] } = {}) {
-  const installs = Math.max(0, Math.floor(installs_30d || 0));
-  const activated = Math.min(installs || Infinity, Math.max(0, Math.floor(first_results_30d || 0)));
+/**
+ * Activation block. Every figure is null and `reason` says why: there is no
+ * retained first_result aggregate to read (see the header). A zero here would
+ * read as "nobody activated", which the data cannot support.
+ */
+export function buildActivation() {
   return {
+    available: false,
+    reason: ACTIVATION_UNAVAILABLE_REASON,
     window_days: 30,
-    installs,
-    first_results: Number.isFinite(activated) ? activated : 0,
-    rate: installs > 0 ? Math.round((activated / installs) * 1000) / 1000 : null,
-    median_seconds_to_first_result: median_seconds_to_first_result === null ? null : Math.round(median_seconds_to_first_result),
-    by_skill,
+    installs: null,
+    first_results: null,
+    rate: null,
+    median_seconds_to_first_result: null,
+    by_skill: null,
   };
 }
 
@@ -136,25 +142,26 @@ export async function collectStats(query) {
   for (const [key, hql] of Object.entries(ACTIVATION_METRICS)) raw[key] = await scalar(query, hql);
   const topSkillsById = await getTopItems(query, ['skill_invoked', 'cli_skill_invoked'], 'properties.skill_id');
   const topSkillsByName = await getTopItems(query, ['skill_invoked', 'cli_skill_invoked'], 'properties.skill_name');
-  const firstResultBySkill = await getTopItems(query, 'first_result', 'properties.skill', 6, true);
   return {
     generated_at: new Date().toISOString(),
     totals,
     weekly_active_installs: raw.weekly_active_installs === null ? 0 : Math.floor(raw.weekly_active_installs),
-    activation: buildActivation({ ...raw, by_skill: firstResultBySkill }),
+    activation: buildActivation(),
     top_skills: mergeTopItems(topSkillsById, topSkillsByName).slice(0, 5),
     top_agents: await getTopItems(query, ['agent_dispatched', 'cli_agent_dispatched'], 'properties.agent_id'),
     top_hooks: await getTopItems(query, 'hook_fired', 'properties.hook'),
     sessions_last_7d: totals.sessions, // For now, use 30d as proxy
-    note: 'Aggregate opt-in telemetry updated daily. Zero prompts, zero code, zero secrets — just event counts. Activation = installs with a first finished flagship result / installs seen (30 days).',
+    note: 'Aggregate opt-in telemetry updated daily. Zero prompts, zero code, zero secrets — just event counts. Activation is not reported yet: no retained first_result aggregate exists.',
   };
 }
 
 /** One-line summary for the job log. */
 export function summarize(stats) {
   const a = stats.activation;
-  const rate = a.rate === null ? 'n/a' : `${(a.rate * 100).toFixed(1)}%`;
-  return `weekly active installs ${stats.weekly_active_installs} · activation ${a.first_results}/${a.installs} installs (${rate}) · hook fires ${stats.totals.hook_fires} · skill invocations ${stats.totals.skill_invocations}`;
+  const activation = a && a.available !== false && a.rate !== null
+    ? `${a.first_results}/${a.installs} installs (${(a.rate * 100).toFixed(1)}%)`
+    : 'unavailable';
+  return `weekly active installs ${stats.weekly_active_installs} · activation ${activation} · hook fires ${stats.totals.hook_fires} · skill invocations ${stats.totals.skill_invocations}`;
 }
 
 async function main() {
