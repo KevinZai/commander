@@ -84,6 +84,7 @@ function handleInvokeSkill(args) {
   return {
     skill: args.name,
     content: skill.content,
+    ...(skill.license ? { license: skill.license } : {}),
     context: args.context || '',
     confidence: 0.85,
     note: 'Local mode: skill content returned. Claude Code handles execution.',

@@ -1,4 +1,4 @@
-import { getSkills, getSkillContent } from "../lib/registry.js";
+import { getSkills, getSkillContent, getSkillLicense, getCatalogCommit } from "../lib/registry.js";
 import { skillNotFound, invalidParam } from "../lib/errors.js";
 
 export type GetSkillArgs = { name: string };
@@ -17,7 +17,12 @@ export async function getSkill(args: GetSkillArgs): Promise<Record<string, unkno
     return skillNotFound(args.name);
   }
 
-  const content = await getSkillContent(skill.id);
+  const [content, license] = await Promise.all([getSkillContent(skill.id), getSkillLicense(skill.id)]);
+  // Link the exact revision the catalog was built from, never a moving branch.
+  const commit = getCatalogCommit();
+  const ref = commit && /^[0-9a-f]{7,40}$/.test(commit) ? commit : null;
+  const skillDir = skill.path.replace(/\/SKILL\.md$/, "");
+  const localName = skillDir.split("/").pop() || skill.id;
 
   return {
     name: skill.name,
@@ -25,8 +30,10 @@ export async function getSkill(args: GetSkillArgs): Promise<Record<string, unkno
     tier: skill.tier,
     description: skill.description,
     path: skill.path,
-    content: content ?? `# ${skill.name}\n\nSkill file unavailable. Install via:\nnpx skills@latest add KevinZai/commander/${skill.path.replace("/SKILL.md", "")}`,
-    installHint: `npx skills@latest add KevinZai/commander/${skill.path.replace("/SKILL.md", "")}`,
-    githubUrl: `https://github.com/KevinZai/commander/blob/main/${skill.path}`,
+    // No executable fallback: a missing body is reported, not replaced by an install command.
+    content: content ?? `# ${skill.name}\n\nSkill file unavailable on this server. Do not install it from another source; read it at the linked revision instead.`,
+    ...(license ? { license } : {}),
+    installHint: `With the Commander CLI installed: ccc --skills install ${localName}. If \`ccc\` is not available, stop; do not substitute another installer.`,
+    githubUrl: `https://github.com/KevinZai/commander/blob/${ref ?? "main"}/${skill.path}`,
   };
 }

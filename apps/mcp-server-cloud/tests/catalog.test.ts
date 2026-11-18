@@ -313,3 +313,57 @@ describe("registry loading and /health", () => {
     assert.equal(res.status, 200);
   });
 });
+
+describe("license notices travel with served skills", () => {
+  const MIT = "MIT License\n\nCopyright (c) 2026 Upstream Author\n\nPermission is hereby granted...\n";
+  const longBody = "---\nname: ab-test-setup\n---\n# A/B\n" + "x".repeat(5000) + "\n\n## License\n\nEMBEDDED-NOTICE-TAIL\n";
+
+  it("bundles a skill's own LICENSE and a pack-level LICENSE, hash-verified", async () => {
+    const repo = makeRepo();
+    tempDirs.push(repo);
+    writeFile(repo, "skills/ab-test-setup/SKILL.md", longBody);
+    writeFile(repo, "skills/ab-test-setup/LICENSE.txt", MIT);
+    writeFile(repo, "skills/ccc-devops/LICENSE", "PACK LICENSE\n");
+    const dataDir = tmp("ccc-catalog-lic-");
+    const manifest = bundler.bundleCatalog({ repoRoot: repo, dataDir }) as Manifest & { skills: Array<{ id: string; licenseBundled?: string }> };
+    const ab = manifest.skills.find((s) => s.id === "ecosystem/ab-test-setup")!;
+    const perf = manifest.skills.find((s) => s.id === "ecosystem/ccc-devops/performance-monitoring")!;
+    assert.equal(ab.licenseBundled, "skills/ecosystem/ab-test-setup/LICENSE.txt");
+    assert.equal(perf.licenseBundled, "skills/ecosystem/ccc-devops/performance-monitoring/LICENSE.txt");
+    assert.equal(manifest.skills.find((s) => s.id === "plugin/ccc-data")!.licenseBundled, undefined);
+    bundler.verifyCatalog({ dataDir });
+    writeFileSync(path.join(dataDir, ab.licenseBundled!), "tampered");
+    assert.throws(() => bundler.verifyCatalog({ dataDir }), /LICENSE\.txt hash mismatch/);
+    writeFileSync(path.join(dataDir, ab.licenseBundled!), MIT);
+
+    process.env.COMMANDER_CATALOG_DIR = dataDir;
+    await registry.reloadRegistry();
+    const { getSkill } = await import("../src/tools/get-skill.js");
+    const { invokeSkill } = await import("../src/tools/invoke-skill.js");
+    const got = await getSkill({ name: "ecosystem/ab-test-setup" });
+    assert.equal(got.license, MIT);
+    assert.doesNotMatch(String(got.installHint), /npx|@latest/);
+    assert.match(String(got.installHint), /ccc --skills install ab-test-setup/);
+    assert.match(String(got.githubUrl), /^https:\/\/github.com\/KevinZai\/commander\/blob\//);
+    const inv = (await invokeSkill({ name: "ecosystem/ab-test-setup" })) as Record<string, unknown>;
+    assert.equal(inv.license, MIT);
+    assert.match(String(inv.invocationGuide), /EMBEDDED-NOTICE-TAIL/, "no length cut drops an embedded notice");
+    assert.match(String(inv.invocationGuide), /Permission is hereby granted/);
+    const plain = await getSkill({ name: "plugin/ccc-data" });
+    assert.equal(plain.license, undefined);
+  });
+
+  it("never turns a missing body into install instructions", async () => {
+    const repo = makeRepo();
+    tempDirs.push(repo);
+    const dataDir = tmp("ccc-catalog-nobody-");
+    const manifest = bundler.bundleCatalog({ repoRoot: repo, dataDir });
+    rmSync(path.join(dataDir, manifest.skills.find((s) => s.id === "plugin/ccc-data")!.bundled));
+    process.env.COMMANDER_CATALOG_DIR = dataDir;
+    await registry.reloadRegistry();
+    const { getSkill } = await import("../src/tools/get-skill.js");
+    const got = await getSkill({ name: "plugin/ccc-data" });
+    assert.match(String(got.content), /unavailable/);
+    assert.doesNotMatch(String(got.content), /npx|install via/i);
+  });
+});

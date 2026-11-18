@@ -15,6 +15,8 @@
  *   data/manifest.json             release, source commit, counts, sha256 per file
  *   data/registry.yaml             the registry the bundle was built from
  *   data/skills/<id>/SKILL.md      every skill body listed under `skills:`
+ *   data/skills/<id>/LICENSE.txt   the skill's license notice, when its source
+ *                                  dir (or its pack dir) carries one
  *   data/agents/<name>.md          every agent listed under `agents:`
  *
  * Registry paths are resolved against the real source roots: the repository
@@ -41,6 +43,27 @@ const PLUGIN_ROOT_REL = "commander/cowork-plugin";
 export class CatalogError extends Error {}
 
 const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");
+
+const LICENSE_NAMES = ["LICENSE.txt", "LICENSE", "LICENSE.md"];
+
+/**
+ * The license notice that travels with a copied skill: a LICENSE file beside
+ * its SKILL.md, else one in its pack dir (the parent, when that is not a
+ * top-level skills root). Repo-relative path, or null.
+ */
+export function findSkillLicense(repoRoot, source) {
+  const dir = path.dirname(source);
+  const dirs = [dir];
+  const parent = path.dirname(dir);
+  if (!/(^|\/)skills$/.test(parent) && parent !== "." && parent !== dir) dirs.push(parent);
+  for (const d of dirs) {
+    for (const name of LICENSE_NAMES) {
+      const rel = path.join(d, name);
+      if (existsSync(path.join(repoRoot, rel))) return rel;
+    }
+  }
+  return null;
+}
 
 function unquote(value) {
   const v = value.trim();
@@ -193,6 +216,8 @@ export function bundleCatalog({ repoRoot = DEFAULT_REPO_ROOT, dataDir = DEFAULT_
       continue;
     }
     const registryDescription = s.description.startsWith("name:") ? "" : s.description;
+    const licenseSource = findSkillLicense(repoRoot, source);
+    const licenseBody = licenseSource ? readFileSync(path.join(repoRoot, licenseSource)) : null;
     skills.push({
       id: s.id,
       name: s.name || s.id,
@@ -205,7 +230,9 @@ export function bundleCatalog({ repoRoot = DEFAULT_REPO_ROOT, dataDir = DEFAULT_
       bundled: `skills/${s.id}/SKILL.md`,
       bytes: body.length,
       sha256: sha256(body),
+      ...(licenseBody ? { licenseSource, licenseBundled: `skills/${s.id}/LICENSE.txt`, licenseSha256: sha256(licenseBody) } : {}),
       body,
+      licenseBody,
     });
   }
 
@@ -241,9 +268,10 @@ export function bundleCatalog({ repoRoot = DEFAULT_REPO_ROOT, dataDir = DEFAULT_
     const dest = path.join(dataDir, entry.bundled);
     mkdirSync(path.dirname(dest), { recursive: true });
     writeFileSync(dest, entry.body);
+    if (entry.licenseBody) writeFileSync(path.join(dataDir, entry.licenseBundled), entry.licenseBody);
   }
 
-  const strip = ({ body, ...rest }) => rest;
+  const strip = ({ body, licenseBody, ...rest }) => rest;
   const manifest = {
     schema: MANIFEST_SCHEMA,
     release: registry.version,
@@ -292,6 +320,12 @@ export function verifyCatalog({ dataDir = DEFAULT_DATA_DIR } = {}) {
     const file = path.join(dataDir, entry.bundled);
     if (!existsSync(file)) problems.push(`${entry.bundled} missing`);
     else if (sha256(readFileSync(file)) !== entry.sha256) problems.push(`${entry.bundled} hash mismatch`);
+    if (entry.licenseBundled) {
+      const lic = isSafeRelative(entry.licenseBundled) ? path.join(dataDir, entry.licenseBundled) : null;
+      if (!lic) problems.push(`unsafe bundled path ${entry.licenseBundled}`);
+      else if (!existsSync(lic)) problems.push(`${entry.licenseBundled} missing`);
+      else if (sha256(readFileSync(lic)) !== entry.licenseSha256) problems.push(`${entry.licenseBundled} hash mismatch`);
+    }
   }
   if (problems.length > 0) {
     throw new CatalogError(`catalog bundle failed verification:\n  ${problems.slice(0, 20).join("\n  ")}`);

@@ -87,3 +87,13 @@ test('translator.translateError returns isError response', function() {
   var text = result.content[0].text;
   assert.ok(text.includes('error'), 'Error text should mention error');
 });
+
+test('skills-loader getSkill returns the adjacent LICENSE text for copied skills', function() {
+  var loader = require('../mcp-server/skills-loader.js');
+  var fs = require('fs');
+  var path = require('path');
+  var skill = loader.getSkill('claude-api');
+  assert.ok(skill, 'claude-api skill present');
+  var expected = fs.readFileSync(path.join(__dirname, '..', '..', 'skills', 'claude-api', 'LICENSE.txt'), 'utf8');
+  assert.equal(skill.license, expected);
+});

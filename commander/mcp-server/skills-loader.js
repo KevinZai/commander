@@ -96,10 +96,30 @@ function getSkill(name) {
 
   try {
     var content = fs.readFileSync(skill.path, 'utf8');
-    return { id: skill.id, name: skill.name, domain: skill.domain, tier: skill.tier, content: content };
+    var out = { id: skill.id, name: skill.name, domain: skill.domain, tier: skill.tier, content: content };
+    var license = readSkillLicense(skill.path);
+    if (license) out.license = license;
+    return out;
   } catch (_) {
     return null;
   }
+}
+
+var LICENSE_NAMES = ['LICENSE.txt', 'LICENSE', 'LICENSE.md'];
+
+// The notice that travels with a copied skill: a LICENSE beside SKILL.md, else
+// one in its pack dir (the parent, unless that is a top-level skills root).
+function readSkillLicense(skillFile) {
+  var dir = path.dirname(skillFile);
+  var dirs = [dir];
+  var parent = path.dirname(dir);
+  if (path.basename(parent) !== 'skills' && parent !== dir) dirs.push(parent);
+  for (var i = 0; i < dirs.length; i++) {
+    for (var j = 0; j < LICENSE_NAMES.length; j++) {
+      try { return fs.readFileSync(path.join(dirs[i], LICENSE_NAMES[j]), 'utf8'); } catch (_) {}
+    }
+  }
+  return null;
 }
 
 function searchSkills(query, limit) {

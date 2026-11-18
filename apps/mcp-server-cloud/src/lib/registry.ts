@@ -47,7 +47,24 @@ export type AgentEntry = {
 export type CatalogSource = "repo" | "bundle" | "none";
 export type SkillOrigin = "plugin" | "ecosystem";
 
-type InternalSkill = SkillEntry & { contentFile: string; origin: SkillOrigin };
+type InternalSkill = SkillEntry & { contentFile: string; licenseFile: string | null; origin: SkillOrigin };
+
+const LICENSE_NAMES = ["LICENSE.txt", "LICENSE", "LICENSE.md"];
+
+/** A LICENSE beside the skill's SKILL.md, else in its pack dir; absolute path or null. */
+function findLicenseFile(contentFile: string): string | null {
+  const dir = path.dirname(contentFile);
+  const dirs = [dir];
+  const parent = path.dirname(dir);
+  if (path.basename(parent) !== "skills" && parent !== dir) dirs.push(parent);
+  for (const d of dirs) {
+    for (const name of LICENSE_NAMES) {
+      const file = path.join(d, name);
+      if (existsSync(file)) return file;
+    }
+  }
+  return null;
+}
 type InternalAgent = AgentEntry & { contentFile: string };
 
 type RegistryState = {
@@ -196,6 +213,7 @@ async function loadFromRepo(repoRoot: string): Promise<Loaded> {
       description: description || entry.name || entry.id,
       path: source,
       contentFile,
+      licenseFile: findLicenseFile(contentFile),
       origin: originOf(entry.source, source),
     });
   }
@@ -236,6 +254,7 @@ type ManifestEntry = {
   source: string;
   origin?: string;
   bundled: string;
+  licenseBundled?: string;
 };
 
 async function loadFromBundle(dataDir: string): Promise<Loaded> {
@@ -257,6 +276,7 @@ async function loadFromBundle(dataDir: string): Promise<Loaded> {
     description: s.description || String(s.id),
     path: s.source,
     contentFile: safeFile(s.bundled),
+    licenseFile: s.licenseBundled ? safeFile(s.licenseBundled) : null,
     origin: originOf(s.origin, s.source),
   }));
   const agents: InternalAgent[] = (manifest.agents ?? []).map((a) => ({
@@ -330,7 +350,7 @@ export async function reloadRegistry(): Promise<void> {
   await buildIndex();
 }
 
-const publicSkill = ({ contentFile: _c, origin: _o, ...rest }: InternalSkill): SkillEntry => rest;
+const publicSkill = ({ contentFile: _c, licenseFile: _l, origin: _o, ...rest }: InternalSkill): SkillEntry => rest;
 const publicAgent = ({ contentFile: _c, ...rest }: InternalAgent): AgentEntry => rest;
 
 export function getSkills(): SkillEntry[] {
@@ -411,6 +431,22 @@ export async function getSkillContent(skillId: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+/** The license notice shipped with a copied skill, or null when it has none. */
+export async function getSkillLicense(skillId: string): Promise<string | null> {
+  const skill = findInternalSkill(skillId);
+  if (!skill?.licenseFile) return null;
+  try {
+    return await readFile(skill.licenseFile, "utf8");
+  } catch {
+    return null;
+  }
+}
+
+/** Source commit of the served catalog, when known (bundle builds record it). */
+export function getCatalogCommit(): string | null {
+  return state.gitCommit;
 }
 
 export async function getAgentContent(agentName: string): Promise<string | null> {
