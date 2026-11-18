@@ -404,8 +404,18 @@ export function codexSkillPolicyYaml(skillName) {
 }
 
 // .mcp.json - Codex accepts the same shape.
+// Claude Code-only MCP server keys. `alwaysLoad: false` keeps a server's tools behind Claude Code's
+// tool search (code.claude.com/docs/en/mcp#defer-a-servers-tools, v2.1.287+); Codex documents no such
+// key (platform facts §3.5), so the mirror drops it rather than hand Codex an unknown field.
+const CLAUDE_ONLY_MCP_KEYS = Object.freeze(['alwaysLoad']);
+
 export function translateMcp(claudeMcp) {
-  return claudeMcp;
+  const translated = JSON.parse(JSON.stringify(claudeMcp ?? {}));
+  for (const cfg of Object.values(translated.mcpServers ?? {})) {
+    if (!cfg || typeof cfg !== 'object') continue;
+    for (const key of CLAUDE_ONLY_MCP_KEYS) delete cfg[key];
+  }
+  return translated;
 }
 
 export function mcpToToml(claudeMcp, options = {}) {

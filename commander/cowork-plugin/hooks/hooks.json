@@ -53,22 +53,26 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/suggest-ticker.js\"",
-            "timeout": 2
+            "timeout": 2,
+            "onFailure": "continue"
           },
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/intent-classifier.js\"",
-            "timeout": 5
+            "timeout": 5,
+            "onFailure": "continue"
           },
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-guard.js\"",
-            "timeout": 3
+            "timeout": 3,
+            "onFailure": "continue"
           },
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit.js\"",
-            "timeout": 5
+            "timeout": 5,
+            "onFailure": "continue"
           },
           {
             "type": "command",
@@ -117,7 +121,8 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/doc-file-warning.js\"",
-            "timeout": 3
+            "timeout": 3,
+            "onFailure": "continue"
           }
         ]
       },
@@ -127,7 +132,8 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/git-push-reminder.js\"",
-            "timeout": 3
+            "timeout": 3,
+            "onFailure": "continue"
           }
         ]
       }

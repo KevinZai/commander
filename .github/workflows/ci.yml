@@ -106,6 +106,17 @@ jobs:
       - name: Codex mirror matches build:codex
         run: node --test commander/tests/codex-mirror-drift.test.js
 
+      # Code Mode needs an interactive, signed-in session, so CI cannot start it without secrets. These run
+      # the plugin's real hooks against Code Mode's rules (poll_event, REPL, compound commands, fail-open
+      # advisory PreToolUse hooks); scripts/code-mode-smoke.js --launch is the manual end-to-end check.
+      - name: Code Mode hook contract
+        run: |
+          node --test commander/tests/code-mode-contract.test.js commander/tests/compound-commands.test.js
+          node scripts/code-mode-smoke.js
+
+      - name: Context budget
+        run: node scripts/context-budget.js --check
+
       - name: Verify no secrets
         run: |
           if grep -rn 'sk-[a-zA-Z0-9]\{20\}\|ghp_[a-zA-Z0-9]\{36\}' --include='*.js' --include='*.json' --include='*.md' --exclude-dir=vendor --exclude-dir=node_modules .; then

@@ -9,6 +9,8 @@
  *
  * OFF BY DEFAULT. It runs only when a ceiling is set explicitly:
  *   CCC_COST_CEILING=<units>  (wins; 0 or "off" disables a configured ceiling)
+ *   the plugin's `cost_ceiling` userConfig option (same values; used when the
+ *                             variable is unset, lib/plugin-options.js)
  *   "costCeiling": <units>    in <lane config dir>/commander/config.json
  * Budget units: 5.00 == 500 tool calls.
  *
@@ -26,6 +28,7 @@ import { readFile } from 'node:fs/promises';
 import { updateJson } from './lib/atomic-json.mjs';
 import { join } from 'node:path';
 import { readablePath, stateDir } from '../lib/lane-state.js';
+import { setting, settingSource } from '../lib/plugin-options.js';
 import { isMainModule } from './lib/code-mode.mjs';
 import { readStdinJson } from './lib/session-key.mjs';
 
@@ -53,8 +56,9 @@ export async function run(input = {}) {
     }
 
     // Explicit ceiling only: env first, then the lane config. Unset == off.
-    let ceiling = envCeiling(process.env.CCC_COST_CEILING);
-    const source = ceiling === undefined ? `"costCeiling" in ${CONFIG_FILE}` : 'CCC_COST_CEILING';
+    let ceiling = envCeiling(setting('cost_ceiling'));
+    const from = settingSource('cost_ceiling');
+    const source = ceiling === undefined ? `"costCeiling" in ${CONFIG_FILE}` : from === 'userConfig' ? 'the cost_ceiling plugin option' : 'CCC_COST_CEILING';
     if (ceiling === undefined) {
       try {
         const config = JSON.parse(await readFile(CONFIG_FILE, 'utf8'));

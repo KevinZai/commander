@@ -11,3 +11,10 @@ delete process.env.CCC_LANE_USAGE_FILE;
 delete process.env.CCC_OFFLINE;
 delete process.env.CCC_TELEMETRY;
 delete process.env.CCC_CI_TICKER;
+// A suite run from a plugin hook or Claude Code session would inherit the host's plugin data dir and the
+// user's saved plugin options (8.2); tests that need them set them in the child env.
+delete process.env.CLAUDE_PLUGIN_DATA;
+delete process.env.PLUGIN_DATA;
+for (const key of Object.keys(process.env)) {
+  if (key.startsWith('CLAUDE_PLUGIN_OPTION_')) delete process.env[key];
+}

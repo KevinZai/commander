@@ -62,8 +62,49 @@ function readableStateDir(env) {
   return preferLane(stateDir(env), legacyStateDir(env));
 }
 
+/**
+ * The per-plugin data dir the host exports to hook processes: Claude Code's
+ * ${CLAUDE_PLUGIN_DATA} (~/.claude/plugins/data/<id>/, kept across plugin
+ * updates, removed on uninstall) or Codex's PLUGIN_DATA. '' when neither is
+ * set (tests, the CLI, older hosts).
+ */
+function pluginDataDir(env) {
+  env = envOf(env);
+  var dir = env.CLAUDE_PLUGIN_DATA || env.PLUGIN_DATA || '';
+  return dir ? path.resolve(dir) : '';
+}
+
+/**
+ * Where hooks write hook-private state that no other Commander surface reads
+ * (once-per-day nudge markers, routing state, the CI ticker cache): the plugin
+ * data dir when the host provides one, else the lane state dir as before.
+ * Shared state (session records, analytics logs, config.json) stays in
+ * stateDir() because the CLI, the HUD mod and skills read it from there.
+ */
+function hookDataDir(env) {
+  return pluginDataDir(env) || stateDir(env);
+}
+
+/**
+ * Path to read a hook-private file from: the plugin data copy when it exists;
+ * otherwise the copy an earlier release wrote to the lane (or legacy
+ * ~/.claude/commander) dir; otherwise the plugin data path (a fresh install).
+ * Nothing is moved or deleted.
+ */
+function readableHookDataPath(rel, env) {
+  var dir = pluginDataDir(env);
+  if (!dir) return readablePath(rel, env);
+  var own = path.join(dir, rel);
+  try { fs.statSync(own); return own; } catch (e) { if (e.code !== 'ENOENT') return own; }
+  var earlier = readablePath(rel, env);
+  return fs.existsSync(earlier) ? earlier : own;
+}
+
 exports.configDir = configDir;
 exports.stateDir = stateDir;
 exports.legacyStateDir = legacyStateDir;
 exports.readablePath = readablePath;
 exports.readableStateDir = readableStateDir;
+exports.pluginDataDir = pluginDataDir;
+exports.hookDataDir = hookDataDir;
+exports.readableHookDataPath = readableHookDataPath;
