@@ -13,13 +13,18 @@ Opt-in add-on, and Commander's preferred code mapper. [DeusData/codebase-memory-
 macOS and Linux:
 
 ```bash
-# Pinned installer (v0.9.0). Download it, show it to the user, then run it with the release pinned too.
-f=$(mktemp) && curl -fsSLo "$f" https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/v0.9.0/install.sh
-CBM_DOWNLOAD_URL=https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.9.0 bash "$f" --skip-config && rm -f "$f"
-codebase-memory-mcp install --no-hooks   # registers the MCP server without CBM hooks
+# Pinned installer (v0.9.0). Every step must succeed or the whole block stops.
+( set -euo pipefail
+  f=$(mktemp); trap 'rm -f "$f"' EXIT
+  curl -fsSL --proto '=https' -o "$f" https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/v0.9.0/install.sh
+  # SHA-256 of that installer, reviewed 2026-11-18 (macOS: shasum -a 256 -c -)
+  echo "90ef82a3da3336ddc2c3851ad56822067b161856f24cd88cbd405fe423af6a66  $f" | sha256sum -c -
+  CBM_DOWNLOAD_URL=https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.9.0 bash "$f" --skip-config
+  codebase-memory-mcp install --no-hooks   # registers the MCP server without CBM hooks
+)
 ```
 
-The script checks the release archive against the release's `checksums.txt` (SHA-256) before installing. To move to a newer release, review that tag's `install.sh` first and change both `v0.9.0` values together.
+The installer itself is checked against the digest above, and it then checks the release archive against that release's `checksums.txt` (SHA-256). Show the user the block before running it. To move to a newer release, review that tag's `install.sh`, then update both `v0.9.0` values and the digest together.
 
 Windows: use `install.ps1` from the upstream README. Show the user the script URL before running it; do not pipe it to a shell without their go-ahead.
 
