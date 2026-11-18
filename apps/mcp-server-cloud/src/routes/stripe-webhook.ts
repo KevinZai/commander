@@ -36,7 +36,8 @@
 // from env — no Stripe products are created by this code. Config is read from
 // process.env at request time (testability + parity with lib/paywall.ts).
 // Schema: supabase/migrations/20261118000000_reconcile_hosted_schema.sql and
-// 20261119000000_quota_reserve_and_stripe_claims.sql (the claim and apply RPCs).
+// 20261119000000_quota_reserve_and_stripe_claims.sql (the apply RPCs) and
+// 20261120000000_stripe_claim_tokens.sql (the token-bound claim RPCs).
 // Setup steps: PAYWALL.md.
 
 import { Hono } from "hono";
