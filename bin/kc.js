@@ -105,27 +105,59 @@ if (args[0] === 'statusline') {
 }
 if (args.includes('--simple')) { /* handled below — skip split, go to engine */ }
 if (args.includes('--update')) {
-  var { execSync } = require('child_process');
+  // Commands run with argument arrays (execFileSync), never a shell string built from paths (audit #13).
+  var cpUpd = require('child_process');
+  var runUpd = function(cmd, argv) { cpUpd.execFileSync(cmd, argv, { stdio: 'inherit' }); };
+  var outUpd = function(cmd, argv) { return String(cpUpd.execFileSync(cmd, argv, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })).trim(); };
   var repoDir = path.resolve(__dirname, '..');
   var gitDir = path.join(repoDir, '.git');
   console.log('\n  CC Commander — Update\n');
   if (!fs.existsSync(gitDir)) {
     console.log('  Updating via npm...');
     try {
-      execSync('npm update -g cc-commander', { stdio: 'inherit' });
+      // Windows needs the npm.cmd shim, which Node only spawns through a shell; the arguments are fixed.
+      if (process.platform === 'win32') cpUpd.execFileSync('npm.cmd', ['update', '-g', 'cc-commander'], { stdio: 'inherit', shell: true });
+      else runUpd('npm', ['update', '-g', 'cc-commander']);
       console.log('\n  Updated via npm.\n');
     } catch (e) {
       console.error('  npm update failed: ' + e.message);
       console.log('  Try: curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash\n');
+      process.exit(1);
     }
     process.exit(0);
   }
   console.log('  Source: ' + repoDir);
   try {
-    console.log('  Pulling latest...');
-    execSync('git -C ' + JSON.stringify(repoDir) + ' pull --recurse-submodules', { stdio: 'inherit' });
+    var branchUpd = '';
+    try { branchUpd = outUpd('git', ['-C', repoDir, 'symbolic-ref', '-q', '--short', 'HEAD']); } catch (_e) { branchUpd = ''; }
+    if (branchUpd) {
+      console.log('  Pulling latest ' + branchUpd + '...');
+      runUpd('git', ['-C', repoDir, 'pull', '--ff-only', '--recurse-submodules']);
+    } else {
+      // A pinned checkout (install-remote.sh checks out a release tag): move to CCC_REF, or the newest vX.Y.Z tag.
+      runUpd('git', ['-C', repoDir, 'fetch', '--quiet', '--tags', 'origin']);
+      var refUpd = process.env.CCC_REF || '';
+      if (!refUpd) {
+        var bestUpd = null;
+        outUpd('git', ['-C', repoDir, 'tag', '-l', 'v*']).split('\n').forEach(function(t) {
+          var m = /^v(\d+)\.(\d+)\.(\d+)$/.exec(t);
+          if (!m) return;
+          var v = [+m[1], +m[2], +m[3]];
+          if (!bestUpd || (v[0] - bestUpd.v[0] || v[1] - bestUpd.v[1] || v[2] - bestUpd.v[2]) > 0) bestUpd = { t: t, v: v };
+        });
+        refUpd = bestUpd ? bestUpd.t : '';
+      }
+      if (!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$/.test(refUpd)) {
+        console.error('  No release tag found to update to (set CCC_REF=<tag or commit>).\n');
+        process.exit(1);
+      }
+      console.log('  Checking out ' + refUpd + '...');
+      runUpd('git', ['-C', repoDir, 'checkout', '--quiet', '--detach', refUpd]);
+      runUpd('git', ['-C', repoDir, 'submodule', 'update', '--init', '--recursive']);
+    }
+    console.log('  Commit: ' + outUpd('git', ['-C', repoDir, 'rev-parse', 'HEAD']));
     console.log('  Reinstalling...');
-    execSync('bash ' + JSON.stringify(path.join(repoDir, 'install.sh')) + ' --force', { stdio: 'inherit' });
+    runUpd('bash', [path.join(repoDir, 'install.sh'), '--force']);
     console.log('\n  CC Commander updated.\n');
   } catch (e) {
     console.error('  Update failed: ' + e.message + '\n');
@@ -256,11 +288,57 @@ if (args.includes('--list-skills')) {
 // Agent API: --skills
 if (args.includes('--skills')) {
   var os = require('os');
-  var skillsInstallDir = path.join(os.homedir(), '.claude', 'skills');
+  // The config dir Claude Code reads (same rule as install.sh): CLAUDE_CONFIG_DIR, else ~/.claude.
+  var claudeConfigDir = process.env.CLAUDE_CONFIG_DIR ? path.resolve(process.env.CLAUDE_CONFIG_DIR) : path.join(os.homedir(), '.claude');
+  var skillsInstallDir = path.join(claudeConfigDir, 'skills');
   var skillsSourceDir = path.join(__dirname, '..', 'skills');
+  var installManifestPath = path.join(claudeConfigDir, 'commander', 'install-manifest.json');
   var tiersFilePath = path.join(skillsSourceDir, '_tiers.json');
   var tiers = {};
   try { tiers = JSON.parse(fs.readFileSync(tiersFilePath, 'utf8')); } catch (_e) {}
+
+  // CWE-22 path traversal + CWE-73 argv injection hardening, shared by install and remove (audit #21):
+  // a skill name is lowercase alphanumeric with hyphens, max 64 chars, and resolves directly inside its dir.
+  function skillPathIn(dir, name) {
+    if (typeof name !== 'string' || !/^[a-z0-9-]{1,64}$/.test(name)) return null;
+    var base = path.resolve(dir);
+    var p = path.resolve(base, name);
+    return path.dirname(p) === base ? p : null;
+  }
+  function readInstallManifest() {
+    try { return JSON.parse(fs.readFileSync(installManifestPath, 'utf8')); } catch (_e) { return null; }
+  }
+  function writeInstallManifest(m) {
+    var tmp = installManifestPath + '.tmp-' + process.pid;
+    fs.writeFileSync(tmp, JSON.stringify(m, null, 2) + '\n');
+    fs.renameSync(tmp, installManifestPath);
+  }
+  // Keep install.sh's manifest in step so uninstall.sh sees links made here (only when a manifest exists).
+  function recordSkillLink(name, target) {
+    var m = readInstallManifest();
+    if (!m || !Array.isArray(m.entries)) return;
+    var rel = path.join('skills', name);
+    m.entries = m.entries.filter(function(e) { return e.path !== rel; });
+    if (target) m.entries.push({ group: 'skills', path: rel, type: 'symlink', target: target });
+    m.updated_at = new Date().toISOString();
+    try { writeInstallManifest(m); } catch (_e) { /* the link itself is what matters */ }
+  }
+  // A skill entry is CC Commander's to remove only when it is a symlink into this checkout's skills/, or a link
+  // the install manifest recorded with exactly this target. Directories, files and foreign links are never removed.
+  function ownedSkillLink(name) {
+    var p = skillPathIn(skillsInstallDir, name);
+    if (!p) return false;
+    var st;
+    try { st = fs.lstatSync(p); } catch (_e) { return false; }
+    if (!st.isSymbolicLink()) return false;
+    var target = fs.readlinkSync(p);
+    var resolvedTarget = path.resolve(path.dirname(p), target);
+    var src = path.resolve(skillsSourceDir);
+    if (path.dirname(resolvedTarget) === src) return true;
+    var m = readInstallManifest();
+    var rel = path.join('skills', name);
+    return !!(m && Array.isArray(m.entries) && m.entries.some(function(e) { return e.path === rel && e.type === 'symlink' && e.target === target; }));
+  }
 
   function resolveSkills(tiersObj, tierName) {
     var tier = tiersObj.tiers && tiersObj.tiers[tierName];
@@ -380,11 +458,9 @@ if (args.includes('--skills')) {
       console.error('install name would escape skills directory: ' + installName);
       process.exit(1);
     }
-    var installSrc = path.join(skillsSourceDir, installName);
-    var installDst = path.join(skillsInstallDir, installName);
-    var resolvedInstallSrc = path.resolve(installSrc);
-    var resolvedSkillsSourceDir = path.resolve(skillsSourceDir);
-    if (!resolvedInstallSrc.startsWith(resolvedSkillsSourceDir + path.sep) && resolvedInstallSrc !== resolvedSkillsSourceDir) {
+    var installSrc = skillPathIn(skillsSourceDir, installName);
+    var installDst = skillPathIn(skillsInstallDir, installName);
+    if (!installSrc || !installDst) {
       console.error('install name would escape skills directory: ' + installName);
       process.exit(1);
     }
@@ -392,13 +468,16 @@ if (args.includes('--skills')) {
       console.error('Skill not found: ' + installName);
       process.exit(1);
     }
-    if (fs.existsSync(installDst)) {
+    var installExisting = null;
+    try { installExisting = fs.lstatSync(installDst); } catch (_e) {}
+    if (installExisting) {
       console.log('Already installed: ' + installName);
       process.exit(0);
     }
     try {
       if (!fs.existsSync(skillsInstallDir)) fs.mkdirSync(skillsInstallDir, { recursive: true });
       fs.symlinkSync(installSrc, installDst);
+      recordSkillLink(installName, installSrc);
       console.log('Installed: ' + installName);
     } catch (e) {
       console.error('Failed to install ' + installName + ': ' + e.message);
@@ -413,21 +492,30 @@ if (args.includes('--skills')) {
       console.error('Usage: ccc --skills remove <name>');
       process.exit(1);
     }
-    var removeDst = path.join(skillsInstallDir, removeName);
-    if (!fs.existsSync(removeDst) && !fs.existsSync(removeDst + '/')) {
-      // lstat to catch broken symlinks too
-      var removExists = false;
-      try { fs.lstatSync(removeDst); removExists = true; } catch (_e) {}
-      if (!removExists) { console.log('Not installed: ' + removeName); process.exit(0); }
+    // Same validator and containment check as install (audit #21), then an ownership check before unlinking.
+    if (!/^[a-z0-9-]{1,64}$/.test(removeName)) {
+      console.error('Invalid skill name: must match /^[a-z0-9-]{1,64}$/');
+      process.exit(1);
+    }
+    var removeDst = skillPathIn(skillsInstallDir, removeName);
+    if (!removeDst) {
+      console.error('remove name would escape skills directory: ' + removeName);
+      process.exit(1);
+    }
+    var removeStat = null;
+    try { removeStat = fs.lstatSync(removeDst); } catch (_e) {} // lstat also sees broken symlinks
+    if (!removeStat) { console.log('Not installed: ' + removeName); process.exit(0); }
+    if (!removeStat.isSymbolicLink()) {
+      console.error(removeName + ' is not a symlink — refusing to remove. Delete manually if intended.');
+      process.exit(1);
+    }
+    if (!ownedSkillLink(removeName)) {
+      console.error(removeName + ' links outside CC Commander\'s skills (' + fs.readlinkSync(removeDst) + ') — refusing to remove. Delete manually if intended.');
+      process.exit(1);
     }
     try {
-      var removeStat = fs.lstatSync(removeDst);
-      if (removeStat.isSymbolicLink()) {
-        fs.unlinkSync(removeDst);
-      } else {
-        console.error(removeName + ' is not a symlink — refusing to remove. Delete manually if intended.');
-        process.exit(1);
-      }
+      fs.unlinkSync(removeDst);
+      recordSkillLink(removeName, null);
       console.log('Removed: ' + removeName);
     } catch (e) {
       console.error('Failed to remove ' + removeName + ': ' + e.message);
@@ -449,19 +537,24 @@ if (args.includes('--skills')) {
     } else {
       tierSkills = resolveSkills(tiers, tierName);
     }
-    if (!tiers.tiers || !tiers.tiers[tierName]) {
+    if (tierName !== 'full' && (!tiers.tiers || !tiers.tiers[tierName])) {
       console.error('Unknown tier: ' + tierName);
       if (tiers.tiers) console.error('Available tiers: ' + Object.keys(tiers.tiers).join(', '));
       process.exit(1);
     }
-    // Remove existing skill symlinks
+    // Remove the skill symlinks CC Commander made; the user's own links and directories stay (audit #01)
     var currentInstalled = getInstalledSkills();
     var removed = 0;
+    var keptForeign = 0;
     currentInstalled.forEach(function(s) {
-      var dst = path.join(skillsInstallDir, s);
+      var dst = skillPathIn(skillsInstallDir, s);
+      if (!dst) return;
       try {
-        var st = fs.lstatSync(dst);
-        if (st.isSymbolicLink()) { fs.unlinkSync(dst); removed++; }
+        if (!fs.lstatSync(dst).isSymbolicLink()) return;
+        if (!ownedSkillLink(s)) { keptForeign++; return; }
+        fs.unlinkSync(dst);
+        recordSkillLink(s, null);
+        removed++;
       } catch (_e) {}
     });
     // Install tier skills
@@ -469,13 +562,13 @@ if (args.includes('--skills')) {
     var added = 0;
     var skipped = 0;
     tierSkills.forEach(function(s) {
-      var src = path.join(skillsSourceDir, s);
-      var dst = path.join(skillsInstallDir, s);
-      if (!fs.existsSync(src)) { skipped++; return; }
-      try { fs.symlinkSync(src, dst); added++; } catch (_e) { skipped++; }
+      var src = skillPathIn(skillsSourceDir, s);
+      var dst = skillPathIn(skillsInstallDir, s);
+      if (!src || !dst || !fs.existsSync(src)) { skipped++; return; }
+      try { fs.symlinkSync(src, dst); recordSkillLink(s, src); added++; } catch (_e) { skipped++; }
     });
     console.log('Switched to tier: ' + tierName);
-    console.log('  Removed: ' + removed + ' skill(s)');
+    console.log('  Removed: ' + removed + ' skill(s)' + (keptForeign > 0 ? ' (' + keptForeign + ' link(s) not made by CC Commander kept)' : ''));
     console.log('  Installed: ' + added + ' skill(s)' + (skipped > 0 ? ' (' + skipped + ' skipped/missing)' : ''));
     process.exit(0);
   }

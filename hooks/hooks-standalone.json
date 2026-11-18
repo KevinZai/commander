@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_description": "Standalone hooks for CC Commander. Use this if you do NOT have ECC installed. All 14 kit-native hooks organized by lifecycle (session-coach retired 2026-07-10 — folded into the plugin's suggest engine).",
+  "_description": "Standalone hooks for CC Commander. Use this if you do NOT have ECC installed. All 14 kit-native hooks organized by lifecycle (session-coach retired 2026-07-10 — folded into the plugin's suggest engine). install.sh rewrites $HOME/.claude/hooks/ in each command to the hooks dir of the config it installs into (CLAUDE_CONFIG_DIR aware).",
   "hooks": {
     "PreToolUse": [
       {
@@ -8,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/careful-guard.js"
+            "command": "node \"$HOME/.claude/hooks/careful-guard.js\""
           }
         ],
         "description": "Block destructive commands (rm -rf, DROP TABLE, force push, etc.)"
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/pre-commit-verify.js",
+            "command": "node \"$HOME/.claude/hooks/pre-commit-verify.js\"",
             "timeout": 15
           }
         ],
@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/confidence-gate.js"
+            "command": "node \"$HOME/.claude/hooks/confidence-gate.js\""
           }
         ],
         "description": "Warn on multi-file bash operations (sed -i on globs, find -exec, etc.)"
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/auto-notify.js"
+            "command": "node \"$HOME/.claude/hooks/auto-notify.js\""
           }
         ],
         "description": "Auto-notify on significant events"
@@ -51,7 +51,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/preuse-logger.js"
+            "command": "node \"$HOME/.claude/hooks/preuse-logger.js\""
           }
         ],
         "description": "Log tool usage for analysis"
@@ -61,7 +61,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/context-guard.js"
+            "command": "node \"$HOME/.claude/hooks/context-guard.js\""
           }
         ],
         "description": "Track context usage — warns at ~70% and auto-saves session"
@@ -71,7 +71,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/auto-checkpoint.js"
+            "command": "node \"$HOME/.claude/hooks/auto-checkpoint.js\""
           }
         ],
         "description": "Auto git-stash checkpoint every 10 file edits"
@@ -81,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/cost-alert.js"
+            "command": "node \"$HOME/.claude/hooks/cost-alert.js\""
           }
         ],
         "description": "Cost proxy alerts at ~$0.50 (30 calls) and ~$2.00 (60 calls)"
@@ -91,7 +91,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/auto-lessons.js"
+            "command": "node \"$HOME/.claude/hooks/auto-lessons.js\""
           }
         ],
         "description": "Auto-capture errors and corrections to tasks/lessons.md"
@@ -101,7 +101,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/rate-predictor.js"
+            "command": "node \"$HOME/.claude/hooks/rate-predictor.js\""
           }
         ],
         "description": "Predict session duration based on tool call rate"
@@ -112,7 +112,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/pre-compact.js"
+            "command": "node \"$HOME/.claude/hooks/pre-compact.js\""
           }
         ],
         "description": "Auto-save session state (cwd, git branch, modified files, active tasks) before context compaction"
@@ -123,7 +123,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/status-checkin.js"
+            "command": "node \"$HOME/.claude/hooks/status-checkin.js\""
           }
         ],
         "description": "Session end status check-in"
@@ -132,7 +132,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/session-end-verify.js"
+            "command": "node \"$HOME/.claude/hooks/session-end-verify.js\""
           }
         ],
         "description": "Verify modified files and check for console.log on session end"
@@ -141,7 +141,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ~/.claude/hooks/self-verify.js"
+            "command": "node \"$HOME/.claude/hooks/self-verify.js\""
           }
         ],
         "description": "Check for incomplete tasks, uncommitted changes, and TODO/FIXME in modified files"
@@ -150,7 +150,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "afplay /System/Library/Sounds/Blow.aiff"
+            "command": "command -v afplay >/dev/null 2>&1 && afplay /System/Library/Sounds/Blow.aiff || true"
           }
         ],
         "description": "Play sound on session completion (macOS)"
