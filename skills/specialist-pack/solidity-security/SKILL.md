@@ -119,4 +119,4 @@ contract WellDocumentedContract {
 - Repo: https://github.com/wshobson/agents
 - Path: `plugins/blockchain-web3/skills/solidity-security/`
 - Pinned sha: `9c61ab243def98f72da12abd41cfcf5bcd91af9d`
-- License: MIT, copy at `skills/specialist-pack/licenses/wshobson_agents-LICENSE.txt`
+- License: MIT, full text in `LICENSE.txt` beside this file (also at `skills/specialist-pack/licenses/wshobson_agents-LICENSE.txt`)

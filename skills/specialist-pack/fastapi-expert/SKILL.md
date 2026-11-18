@@ -43,10 +43,10 @@ Schema + endpoint + dependency injection in one cohesive unit:
 
 ```python
 # schemas.py
-from pydantic import BaseModel, EmailStr, field_validator, model_config
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 class UserCreate(BaseModel):
-    model_config = model_config(str_strip_whitespace=True)
+    model_config = ConfigDict(str_strip_whitespace=True)
 
     email: EmailStr
     password: str
@@ -60,7 +60,7 @@ class UserCreate(BaseModel):
         return v
 
 class UserResponse(BaseModel):
-    model_config = model_config(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     email: EmailStr
@@ -113,13 +113,16 @@ async def create_user(db: AsyncSession, payload: UserCreate) -> User:
 
 ```python
 # security.py
+import os
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated
 
-SECRET_KEY = "<jwt-secret>"  # use os.environ / settings
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "")  # required; never a literal
+if len(SECRET_KEY) < 32:
+    raise RuntimeError("Set JWT_SECRET_KEY to a random secret of at least 32 characters")
 ALGORITHM = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
@@ -194,4 +197,4 @@ Maintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant a
 - Repo: https://github.com/Jeffallan/claude-skills
 - Path: `skills/fastapi-expert/`
 - Pinned sha: `67c1961b180dc92cf08983344627109e983e8f51`
-- License: MIT, copy at `skills/specialist-pack/licenses/Jeffallan_claude-skills-LICENSE.txt`
+- License: MIT, full text in `LICENSE.txt` beside this file (also at `skills/specialist-pack/licenses/Jeffallan_claude-skills-LICENSE.txt`)

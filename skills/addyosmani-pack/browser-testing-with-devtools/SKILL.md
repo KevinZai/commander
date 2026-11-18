@@ -32,7 +32,7 @@ Add the following to your project's `.mcp.json` or Claude Code settings:
   "mcpServers": {
     "chrome-devtools": {
       "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@latest", "--isolated", "--no-usage-statistics", "--no-performance-crux"]
+      "args": ["-y", "chrome-devtools-mcp@1.13.0", "--isolated", "--no-usage-statistics", "--no-performance-crux"]
     }
   }
 }
@@ -324,5 +324,5 @@ After any browser-facing change:
 
 - Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), path `skills/browser-testing-with-devtools/`
 - Pinned commit: `39b723ceebf81474d0557c1fecd01eddab585563`
-- License: MIT, Copyright (c) 2025 Addy Osmani. The full text is in `LICENSE.txt` at the root of `skills/addyosmani-pack/`.
+- License: MIT, Copyright (c) 2025 Addy Osmani. The full text is in `LICENSE.txt` beside this file (and at the root of `skills/addyosmani-pack/`).
 - Copied unchanged into CC Commander except for this section and any lines marked "CCC safety:".

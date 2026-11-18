@@ -235,11 +235,11 @@ After instrumenting a feature, confirm:
 - [ ] Every new alert is symptom-based, has a runbook link, and was test-fired once
 - [ ] An induced failure in staging was located via telemetry alone, without reading the source
 
-For the at-a-glance version of this list, including the pre-launch instrumentation gate, see `../../references/observability-checklist.md`.
+For the at-a-glance version of this list, including the pre-launch instrumentation gate, see [observability-checklist.md](https://github.com/addyosmani/agent-skills/blob/39b723ceebf81474d0557c1fecd01eddab585563/references/observability-checklist.md) (upstream only, not copied).
 
 ## Source
 
 - Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), path `skills/observability-and-instrumentation/`
 - Pinned commit: `39b723ceebf81474d0557c1fecd01eddab585563`
-- License: MIT, Copyright (c) 2025 Addy Osmani. The full text is in `LICENSE.txt` at the root of `skills/addyosmani-pack/`.
+- License: MIT, Copyright (c) 2025 Addy Osmani. The full text is in `LICENSE.txt` beside this file (and at the root of `skills/addyosmani-pack/`).
 - Copied unchanged into CC Commander except for this section and any lines marked "CCC safety:".

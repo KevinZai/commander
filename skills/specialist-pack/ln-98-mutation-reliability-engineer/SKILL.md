@@ -91,4 +91,4 @@ Report in the user's language, in this order; label all five fields and state ea
 - Repo: https://github.com/levnikolaevich/claude-code-skills
 - Path: `plugins/engineering-foundation-suite/skills/ln-98-mutation-reliability-engineer/`
 - Pinned sha: `809845957a79a8e470d97a794ab7f19fa4f246b7`
-- License: MIT, copy at `skills/specialist-pack/licenses/levnikolaevich_claude-code-skills-LICENSE.txt`
+- License: MIT, full text in `LICENSE.txt` beside this file (also at `skills/specialist-pack/licenses/levnikolaevich_claude-code-skills-LICENSE.txt`)

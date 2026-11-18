@@ -560,6 +560,7 @@ class ProtectedViewSet(viewsets.ModelViewSet):
 
 ```python
 # auth.py - FastAPI JWT implementation
+import os
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
@@ -569,7 +570,9 @@ from pydantic import BaseModel
 from typing import Annotated
 
 # Configuration
-SECRET_KEY = "<jwt-secret>"  # Use environment variable
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "")  # required; never a literal
+if len(SECRET_KEY) < 32:
+    raise RuntimeError("Set JWT_SECRET_KEY to a random secret of at least 32 characters")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

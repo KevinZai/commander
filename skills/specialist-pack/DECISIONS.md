@@ -77,3 +77,14 @@ License checks: every Jeffallan skill carries `license: MIT` in its own frontmat
 ## Not done in this batch
 
 The worker that copied these skills left counts, `commander/contract.json`, the registry, NOTICE.md, CHANGELOG and the Codex mirror alone. The PR's integration commit updates all of them; `_tiers.json` and `ccc-suggest` are unchanged.
+
+## Second Codex pass (2026-11-18)
+
+- `chaos-engineer`: the DNS example validates the hostname, uses no shell under sudo and removes only the line it added. The Chaos Monkey config targets staging and starts disabled; the ASG script needs an explicit `ASG_NAME` and is a dry run unless `DRY_RUN=0`; CI cleanup deletes only the experiment it applied.
+- `kubernetes-specialist`: the Istio, Linkerd and Submariner installs download a pinned release and verify its checksum instead of piping a script into a shell. The Argo CD initial password is no longer printed in agent sessions.
+- `gitops-workflow`: Argo CD installs from a pinned release tag; related skills point at this pack's `kubernetes-specialist`.
+- `fastapi-expert`: imports `ConfigDict` (Pydantic 2), and both JWT examples refuse to start without a real `JWT_SECRET_KEY`.
+- `wordpress-pro`: the example CSP uses a script nonce instead of `unsafe-inline` and `unsafe-eval`.
+- `elixir-expert`: reads the local Mix project instead of querying an upstream context manager.
+
+- The Jeffallan license reads `Copyright (c) 2025` with no holder name; that matches upstream exactly (checked against the clone at the pinned commit), so it is kept as is. Each sub-skill folder now carries its source LICENSE.txt so it can be installed on its own.
