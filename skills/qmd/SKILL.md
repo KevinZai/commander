@@ -14,14 +14,17 @@ Claude Code plugin (recommended upstream):
 
 Install from the upstream README, reviewed at [`aa247d0`](https://github.com/tobi/qmd/tree/aa247d0ee2e5dc3b83e1270714c0f06ca94e2514#readme). CCC safety: the plugin marketplace serves the current upstream revision, not the reviewed one. Before installing, confirm the marketplace source is `github.com/tobi/qmd` itself and not a same-named plugin from another publisher, and tell the user if upstream has changed since `aa247d0`.
 
-CLI and MCP only:
+CLI and MCP only (macOS and Linux; on native Windows the npm global bin layout differs, so follow the upstream README there):
 
 ```bash
 # One errexit subshell, run on its own: a failed install stops before registration,
 # and the server is registered by the absolute path of the binary just installed.
 ( set -euo pipefail
   npm install -g @tobilu/qmd@2.9.0          # pinned; fails if that version is unavailable
-  qmd="$(npm prefix -g)/bin/qmd"
+  prefix="$(npm prefix -g)"             # its own statement, so a failed lookup stops here
+  case "$prefix" in /*) ;; *) echo "stop: no npm global prefix"; exit 1;; esac
+  qmd="$prefix/bin/qmd"
+  [ -x "$qmd" ]
   "$qmd" --version
   claude mcp add qmd -- "$qmd" mcp
 )
