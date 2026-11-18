@@ -71,7 +71,7 @@ These toolkit skills only describe how to install and route to upstream projects
 
 ## MIT-Derived Skill (caveman)
 
-`skills/caveman/` derives from [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) as it was published under the MIT License (Copyright (c) 2026 Julius Brussee). Upstream was MIT from commit `af5375d` (2026-04-04) until commit `921eab8` relicensed the repository to Apache-2.0 on 2026-09-24. The MIT text is in `skills/caveman/LICENSE.txt`. CC Commander keeps the MIT-era text and does not sync later upstream changes; taking them would need an Apache-2.0 NOTICE section first.
+`skills/caveman/` derives from [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) as it was published under the MIT License (Copyright (c) 2026 Julius Brussee). Upstream was MIT from commit `af5375d` (2026-04-04) until commit `921eab8` relicensed the repository to Apache-2.0 on 2026-09-24. The closest upstream source is the first release, `af5375d` (`caveman/SKILL.md`, 2026-04-04; unchanged in substance through `d84127c`, 2026-04-06): about a fifth of Commander's lines match it, and the rest is Commander's own text. The MIT text is in `skills/caveman/LICENSE.txt`. CC Commander keeps the MIT-era text and does not sync later upstream changes; taking them would need an Apache-2.0 NOTICE section first.
 
 ## MIT-Derived Skill (cloudflare-security-audit)
 

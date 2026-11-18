@@ -13,7 +13,7 @@ Linear: CC-2133 (parent). Kevin shared a chart of the 15 most-starred Claude ski
 
 | Repository | Finding | Action |
 |---|---|---|
-| JuliusBrussee/caveman | Commander's `skills/caveman` derives from the MIT-era upstream. Upstream was MIT from `af5375d` (2026-04-04) and was relicensed to Apache-2.0 by `921eab8` on 2026-09-24. | Added the MIT text as `skills/caveman/LICENSE.txt` and a NOTICE section. The skill is not synced to the Apache-2.0 text; doing that needs an Apache NOTICE section first, which is Kevin's call. |
+| JuliusBrussee/caveman | Commander's `skills/caveman` derives from the MIT-era upstream. Upstream was MIT from `af5375d` (2026-04-04) and was relicensed to Apache-2.0 by `921eab8` on 2026-09-24. | Closest source is upstream `af5375d` (about a fifth of lines match; the rest is Commander's own). Added the MIT text as `skills/caveman/LICENSE.txt` and a NOTICE section pinning that commit. The skill is not synced to the Apache-2.0 text; doing that needs an Apache NOTICE section first, which is Kevin's call. |
 | Graphify-Labs/graphify | The repository formerly at safishamsi/graphify. Commander's pinned commit `a9860f7` exists there. License is Apache-2.0, already covered by NOTICE. | The submodule URL update belongs to the upstream sync work, not this batch. |
 
 ## Refused
