@@ -39,7 +39,7 @@ Use the required isolated worktree for writes, stage only owned files, and prese
 - CLI: `commander/engine.js`, `tui.js`, `dispatcher.js`, `knowledge.js`, and `plugins.js`. CLI state is per lane under `<config dir>/commander/` (`commander/lib/lane.js`: `CCC_CONFIG_DIR` > `CLAUDE_CONFIG_DIR` > `~/.claude`), reading the legacy `~/.claude/commander/` copy until the lane writes its own; plugin hooks still write `~/.claude/commander/`.
 - `skills/ccc-*/` are domain routers; load a matching router instead of the whole skill catalog. `commands/`, `prompts/`, `templates/`, and `compatibility/` supply the other toolkit surfaces.
 - Keep personal overlays separate from the public installer. Only `claude-code` and `codex` are first-class telemetry sources; public workflows must not depend on personal paths, credentials, hostnames, or private services.
-- `claude-mem` remains external opt-in, not a bundled vendor: its AGPL license must not be silently folded into the MIT distribution.
+- `claude-mem` remains external opt-in, not a bundled vendor. Its LICENSE moved from AGPL-3.0 to Apache-2.0 (verified 2026-11-18); bundling it still needs Kevin's decision and Apache attribution in NOTICE.md.
 
 ## Development and checks
 

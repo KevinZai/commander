@@ -46,4 +46,4 @@ Together they provide two layers of learning — strategic (CCC) and tactical (c
 
 ## License
 
-AGPL-3.0. Included as a git submodule — no code derivation. See docs/LICENSES-VENDORS.md.
+Apache-2.0 since 2026 (verified 2026-11-18 from the upstream LICENSE and NOTICE; earlier releases were AGPL-3.0). Not vendored or bundled: users install it themselves. See docs/LICENSES-VENDORS.md.
