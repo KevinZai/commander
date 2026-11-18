@@ -15,6 +15,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isMainModule } from './lib/code-mode.mjs';
 import { readStdinJson } from './lib/session-key.mjs';
+import { CODEX_PATCH_TOOL, editTargets } from './lib/edit-targets.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PATTERNS_FILE_NEW = join(__dirname, '..', 'lib', 'secret-patterns.json');
@@ -24,6 +25,7 @@ const PATTERNS_FILE = existsSync(PATTERNS_FILE_NEW) ? PATTERNS_FILE_NEW : PATTER
 // Tools whose inputs are worth scanning
 const SCANNED_TOOLS = new Set([
   'Write', 'Edit', 'MultiEdit', 'Bash', 'PowerShell', 'WebSearch',
+  CODEX_PATCH_TOOL, // Codex file edits: the patch text is parsed so only written paths and added lines are scanned
   'REPL', // Code Mode: the whole JavaScript program is in tool_input.code, so a key literal in it is caught before it runs
   'mcp__', // prefix match handled below
 ]);
@@ -41,6 +43,16 @@ function extractTextFromInput(toolInput) {
   return Object.values(toolInput)
     .map(v => (typeof v === 'string' ? v : JSON.stringify(v)))
     .join('\n');
+}
+
+// Codex apply_patch: scan the paths and the lines the patch adds. Removed lines are left out so a
+// patch that deletes a leaked key is not itself blocked. A patch that cannot be parsed is scanned whole.
+function textForScan(toolName, input, toolInput) {
+  if (toolName === CODEX_PATCH_TOOL) {
+    const targets = editTargets(input);
+    if (targets.length) return targets.map((t) => `${t.path}\n${t.content}`).join('\n');
+  }
+  return extractTextFromInput(toolInput);
 }
 
 // allowlist: placeholder/test-key terms. Only the token containing the term is blanked out, so one
@@ -92,7 +104,7 @@ export async function run(input = {}) {
 
     const toolInput = input.tool_input || input.input || {};
     const textToScan = stripAllowlistedTerms(
-      stripAllowlistedTokens(extractTextFromInput(toolInput), patternsConfig.allowlistRegex),
+      stripAllowlistedTokens(textForScan(toolName, input, toolInput), patternsConfig.allowlistRegex),
       patternsConfig.allowlist
     );
 
