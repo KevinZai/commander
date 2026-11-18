@@ -65,6 +65,9 @@ const {
   translateMcp,
   mcpToToml,
   remapModel,
+  skillDisablesModelInvocation,
+  codexSkillPolicyYaml,
+  IMPLICIT_INVOCATION_OFF,
 } = translator;
 
 const { agentMarkdownToToml } = await import(
@@ -79,6 +82,8 @@ for (const [name, fn] of Object.entries({
   translateMcp,
   mcpToToml,
   remapModel,
+  skillDisablesModelInvocation,
+  codexSkillPolicyYaml,
   agentMarkdownToToml,
 })) {
   if (typeof fn !== 'function') {
@@ -166,6 +171,7 @@ async function buildSkills() {
   const files = await listFiles(sourceSkillsDir);
   let skillCount = 0;
   let supportFileCount = 0;
+  const explicitOnlySkills = [];
 
   for (const relativePath of files) {
     if (relativePath.split(path.sep).some((part) => CLAUDE_ONLY_DIRS.has(part))) {
@@ -177,6 +183,7 @@ async function buildSkills() {
     if (path.basename(relativePath) === 'SKILL.md') {
       const skillMd = await readFile(inputPath, 'utf8');
       await writeText(outputPath, translateSkill(skillMd));
+      if (skillDisablesModelInvocation(skillMd)) explicitOnlySkills.push(path.dirname(relativePath));
       skillCount += 1;
       console.log(`✓ skill ${path.dirname(relativePath)} passthrough`);
       continue;
@@ -187,6 +194,25 @@ async function buildSkills() {
   }
 
   console.log(`✓ skills support files copied (${supportFileCount})`);
+
+  // disable-model-invocation: true -> agents/openai.yaml policy.allow_implicit_invocation: false.
+  let generatedPolicies = 0;
+  for (const skillDir of explicitOnlySkills) {
+    const rel = path.join(skillDir, 'agents', 'openai.yaml');
+    let handWritten = null;
+    try {
+      handWritten = await readFile(path.join(sourceSkillsDir, rel), 'utf8');
+    } catch { /* none: generate below */ }
+    if (handWritten !== null) {
+      if (!IMPLICIT_INVOCATION_OFF.test(handWritten)) {
+        throw new Error(`skills/${rel} must set policy.allow_implicit_invocation: false (SKILL.md disables model invocation)`);
+      }
+      continue;
+    }
+    await writeText(path.join(outputSkillsDir, rel), codexSkillPolicyYaml(path.basename(skillDir)));
+    generatedPolicies += 1;
+  }
+  console.log(`✓ skills explicit-only policy: ${explicitOnlySkills.length} (${generatedPolicies} generated agents/openai.yaml)`);
   return skillCount;
 }
 

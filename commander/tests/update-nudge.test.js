@@ -110,6 +110,35 @@ describe('update-nudge run()', () => {
     assert.equal(cached.outdated, true);
   });
 
+  it('Codex mirror root (.codex-plugin only) -> reads the Codex manifest, fetches the Codex upstream, Codex update text', async () => {
+    const root = fs.mkdtempSync(path.join(TMP_ROOT, 'codex-root-'));
+    fs.mkdirSync(path.join(root, '.codex-plugin'), { recursive: true });
+    fs.writeFileSync(path.join(root, '.codex-plugin', 'plugin.json'), JSON.stringify({ version: '7.2.0' }));
+    const home = makeHome();
+    const urls = [];
+    const fetchText = (url) => { urls.push(url); return Promise.resolve(JSON.stringify({ version: '7.3.0' })); };
+
+    const res = await hookModule.run({
+      env: { CLAUDE_PLUGIN_ROOT: root, PLUGIN_ROOT: root, HOME: home },
+      fetchText,
+    });
+
+    assert.deepEqual(urls, ['https://raw.githubusercontent.com/KevinZai/commander/main/commander/cowork-plugin-codex/.codex-plugin/plugin.json']);
+    const ctx = res.hookSpecificOutput?.additionalContext || '';
+    assert.match(ctx, /7\.3\.0/);
+    assert.match(ctx, /codex plugin marketplace upgrade/);
+    assert.match(ctx, /restart Codex/);
+    assert.doesNotMatch(ctx, /claude plugin|known_marketplaces/, 'no Claude-only remediation on Codex');
+  });
+
+  it('plugin root with no manifest -> silent, no fetch', async () => {
+    const root = fs.mkdtempSync(path.join(TMP_ROOT, 'empty-root-'));
+    const fetchText = fakeFetchText(JSON.stringify({ version: '9.9.9' }));
+    const res = await hookModule.run({ env: { CLAUDE_PLUGIN_ROOT: root, HOME: makeHome() }, fetchText });
+    assert.equal(res.hookSpecificOutput, undefined);
+    assert.equal(fetchText.callCount(), 0);
+  });
+
   it('current -> silent, but still writes a cache entry (avoids re-fetching for 24h)', async () => {
     const root = makePluginRoot('7.2.0');
     const home = makeHome();
