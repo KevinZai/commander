@@ -33,7 +33,7 @@ process.env.CCC_STRIPE_PRICE_PRO_MONTHLY = PRICE_PRO_MONTHLY;
 process.env.CCC_STRIPE_PRICE_PRO_YEARLY = PRICE_PRO_YEARLY;
 process.env.CCC_STRIPE_PRICE_FOUNDERS = PRICE_FOUNDERS;
 
-const { createStripeWebhookApp, tierAfterSubscription, subscriptionEventApplies } = await import(
+const { createStripeWebhookApp, tierAfterSubscription, subscriptionEventApplies, parseClaimRow } = await import(
   "../src/routes/stripe-webhook.js"
 );
 import type { AccountTier } from "../src/lib/paywall.js";
@@ -85,7 +85,9 @@ type FakeOpts = { failWrites?: boolean; readDelaysMs?: number[] };
 function makeFakes(users: FakeUser[] = [], opts: FakeOpts = {}) {
   const calls: Call[] = [];
   const processed = new Set<string>();
-  const claims = new Set<string>();
+  // event id -> the token of the delivery that owns the claim
+  const claims = new Map<string, string>();
+  let tokenSeq = 0;
   const readDelays = [...(opts.readDelaysMs ?? [])];
   // Lets concurrent deliveries interleave between their read and their write.
   const pause = async () => {
@@ -111,18 +113,23 @@ function makeFakes(users: FakeUser[] = [], opts: FakeOpts = {}) {
   // SQL functions they stand in for: no other delivery can run in between.
   const deps: Partial<StripeWebhookDeps> = {
     claimEvent: async (id) => {
-      if (processed.has(id)) return "processed";
-      if (claims.has(id)) return "in_flight";
-      claims.add(id);
-      return "claimed";
+      if (processed.has(id)) return { status: "processed" };
+      if (claims.has(id)) return { status: "in_flight" };
+      const token = `tok_${++tokenSeq}`;
+      claims.set(id, token);
+      return { status: "claimed", token };
     },
-    recordEventProcessed: async (id, type) => {
+    // Like complete_stripe_event / release_stripe_event: only the token that
+    // owns the claim can record or drop it.
+    recordEventProcessed: async (id, type, token) => {
       calls.push({ fn: "recordEventProcessed", args: [id, type] });
+      if (claims.get(id) !== token) return false;
       processed.add(id);
       claims.delete(id);
+      return true;
     },
-    releaseEvent: async (id) => {
-      claims.delete(id);
+    releaseEvent: async (id, token) => {
+      if (claims.get(id) === token) claims.delete(id);
     },
     findUserByCustomerId: async (customerId) => {
       const u = users.find((x) => x.customerId === customerId);
@@ -524,6 +531,34 @@ describe("stripe webhook concurrent deliveries", () => {
     assert.equal(users[0].tier, "pro");
   });
 
+  it("a delivery whose claim was taken over cannot release or complete the new claim", async () => {
+    // The first delivery stalls past its lease; a second delivery takes the
+    // claim over (simulated by swapping the stored token) before the first ends.
+    const { users, claims, processed } = useFakes([makeUser({ customerId: "cus_123" })], {
+      readDelaysMs: [30],
+    });
+    const payload = eventPayload("customer.subscription.created", proSub(), { id: "evt_takeover" });
+    const first = post(app, payload, signedHeaders(payload));
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    assert.ok(claims.has("evt_takeover"), "first delivery holds the claim");
+    claims.set("evt_takeover", "tok_takeover");
+    const res = await first;
+    assert.equal(res.status, 409, "the stale delivery is told to retry");
+    assert.equal(claims.get("evt_takeover"), "tok_takeover", "the replacement claim is untouched");
+    assert.equal(processed.has("evt_takeover"), false, "the stale delivery records nothing");
+    assert.equal(users[0].tier, "pro", "the idempotent apply itself still happened");
+  });
+
+  it("a stale delivery that fails cannot release the replacement claim", async () => {
+    const { claims } = useFakes([makeUser({ customerId: "cus_123" })], { failWrites: true, readDelaysMs: [30] });
+    const payload = eventPayload("customer.subscription.created", proSub(), { id: "evt_takeover_fail" });
+    const first = post(app, payload, signedHeaders(payload));
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    claims.set("evt_takeover_fail", "tok_takeover");
+    assert.equal((await first).status, 500);
+    assert.equal(claims.get("evt_takeover_fail"), "tok_takeover", "a late release leaves the new owner's claim");
+  });
+
   it("an older activation racing a newer cancellation cannot land last", async () => {
     // Both deliveries read the user before either writes; the older one writes last.
     const { users } = useFakes([makeUser({ customerId: "cus_123", tier: "pro", stripeSubscriptionId: "sub_1" })], {
@@ -636,5 +671,23 @@ describe("stripe webhook founders", () => {
     assert.equal(tierAfterSubscription({ tier: "founders", foundersGrantedAt: null }, true), null);
     assert.equal(tierAfterSubscription({ tier: "free", foundersGrantedAt: null }, true), "pro");
     assert.equal(tierAfterSubscription({ tier: "pro", foundersGrantedAt: null }, false), "free");
+  });
+});
+
+// ─── claim_stripe_event result parsing ─────────────────────────────────────
+describe("parseClaimRow", () => {
+  it("returns the ownership token with a claim", () => {
+    assert.deepEqual(parseClaimRow([{ status: "claimed", claim_token: "6f1c" }]), { status: "claimed", token: "6f1c" });
+    assert.deepEqual(parseClaimRow({ status: "claimed", claim_token: "6f1c" }), { status: "claimed", token: "6f1c" });
+  });
+  it("accepts processed and in_flight without a token", () => {
+    assert.deepEqual(parseClaimRow([{ status: "processed", claim_token: null }]), { status: "processed" });
+    assert.deepEqual(parseClaimRow([{ status: "in_flight", claim_token: null }]), { status: "in_flight" });
+  });
+  it("rejects a claim without a token and any other shape", () => {
+    assert.throws(() => parseClaimRow([{ status: "claimed", claim_token: null }]));
+    assert.throws(() => parseClaimRow("claimed"));
+    assert.throws(() => parseClaimRow([]));
+    assert.throws(() => parseClaimRow(null));
   });
 });

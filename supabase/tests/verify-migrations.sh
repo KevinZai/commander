@@ -62,8 +62,8 @@ race() { # <db> <first sql> <second sql>  -> prints the second session's result
 concurrency_checks() { # <db>
   "${PSQL[@]}" -d "$1" -c "insert into users (user_id, email, tier) values ('u-race', 'race@example.com', 'free') on conflict do nothing"
   local got
-  got="$(race "$1" "select public.claim_stripe_event('evt_race', 'customer.subscription.updated')" \
-               "select public.claim_stripe_event('evt_race', 'customer.subscription.updated')")"
+  got="$(race "$1" "select status from public.claim_stripe_event('evt_race', 'customer.subscription.updated')" \
+               "select status from public.claim_stripe_event('evt_race', 'customer.subscription.updated')")"
   [ "$got" = "in_flight" ] || { echo "FAIL: concurrent duplicate claim returned '$got'" >&2; exit 1; }
   got="$(race "$1" "select public.apply_stripe_subscription('u-race', 'sub_r', 'canceled', '2026-11-01T00:00:20Z', false, true)" \
                "select result || ':' || tier from public.apply_stripe_subscription('u-race', 'sub_r', 'active', '2026-11-01T00:00:05Z', true, false)")"

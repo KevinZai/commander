@@ -23,6 +23,9 @@
 //     Only the claimant applies it; a concurrent delivery of the same event is
 //     answered 409 so Stripe retries, and an event already applied is
 //     acknowledged without side effects. A failed attempt releases its claim.
+//     The claim carries an ownership token; complete and release only act on
+//     the claim that token names, so a delivery whose lease expired and was
+//     taken over cannot record or drop the new owner's claim.
 //   - The subscription ordering check and the entitlement write happen in one
 //     locked statement sequence (apply_stripe_subscription), so an older event
 //     can never land after a newer one, even when both arrive at once. Events
@@ -89,8 +92,14 @@ export type SubscriptionApplyResult = {
   tier: AccountTier | null;
 };
 
-/** claimed: this delivery applies the event; processed: already applied; in_flight: another delivery holds it. */
-export type EventClaim = "claimed" | "processed" | "in_flight";
+/**
+ * claimed: this delivery applies the event and owns the claim named by `token`;
+ * processed: already applied; in_flight: another delivery holds it.
+ */
+export type EventClaim =
+  | { status: "claimed"; token: string }
+  | { status: "processed" }
+  | { status: "in_flight" };
 
 // ─── Injectable deps (tests provide fakes; default = Stripe SDK + Supabase) ─
 // Every DB dep THROWS on a backend error so the route answers non-2xx and
@@ -100,10 +109,13 @@ export type StripeWebhookDeps = {
   constructEvent: (payload: string, signature: string, secret: string) => Stripe.Event;
   /** Atomic: of concurrent callers for one event id, at most one gets "claimed". */
   claimEvent: (eventId: string, type: string) => Promise<EventClaim>;
-  /** Records the event as applied and drops its claim. */
-  recordEventProcessed: (eventId: string, type: string) => Promise<void>;
-  /** Drops this delivery's claim after a failure so a redelivery can run. */
-  releaseEvent: (eventId: string) => Promise<void>;
+  /**
+   * Records the event as applied and drops its claim, only while `token` still
+   * owns the claim. Resolves false (nothing recorded) when the claim was taken over.
+   */
+  recordEventProcessed: (eventId: string, type: string, token: string) => Promise<boolean>;
+  /** Drops this delivery's claim (only if `token` still owns it) so a redelivery can run. */
+  releaseEvent: (eventId: string, token: string) => Promise<void>;
   findUserByCustomerId: (customerId: string) => Promise<BillingUser | null>;
   findUserByRef: (ref: UserRef) => Promise<BillingUser | null>;
   linkCustomer: (userId: string, customerId: string) => Promise<void>;
@@ -159,6 +171,16 @@ function dbError(what: string, error: { message?: string; code?: string }): Erro
 // Treated as "no such user" rather than a retryable backend failure.
 const INVALID_TEXT_REPRESENTATION = "22P02";
 
+/** Parses claim_stripe_event's single (status, claim_token) row. Throws on any other shape. */
+export function parseClaimRow(data: unknown): EventClaim {
+  const row = (Array.isArray(data) ? data[0] : data) as { status?: unknown; claim_token?: unknown } | null;
+  if (row && row.status === "claimed" && typeof row.claim_token === "string" && row.claim_token) {
+    return { status: "claimed", token: row.claim_token };
+  }
+  if (row && (row.status === "processed" || row.status === "in_flight")) return { status: row.status };
+  throw new Error("claim_stripe_event returned an unexpected value");
+}
+
 function defaultDeps(): StripeWebhookDeps {
   async function selectOne(column: "stripe_customer_id" | "user_id" | "email", value: string) {
     const { data, error } = await db
@@ -179,15 +201,20 @@ function defaultDeps(): StripeWebhookDeps {
     claimEvent: async (eventId, type) => {
       const { data, error } = await db.rpc("claim_stripe_event", { p_event_id: eventId, p_type: type });
       if (error) throw dbError("claim_stripe_event", error);
-      if (data === "claimed" || data === "processed" || data === "in_flight") return data;
-      throw new Error("claim_stripe_event returned an unexpected value");
+      return parseClaimRow(data);
     },
-    recordEventProcessed: async (eventId, type) => {
-      const { error } = await db.rpc("complete_stripe_event", { p_event_id: eventId, p_type: type });
+    recordEventProcessed: async (eventId, type, token) => {
+      const { data, error } = await db.rpc("complete_stripe_event", {
+        p_event_id: eventId,
+        p_type: type,
+        p_claim_token: token,
+      });
       if (error) throw dbError("complete_stripe_event", error);
+      if (typeof data !== "boolean") throw new Error("complete_stripe_event returned an unexpected value");
+      return data;
     },
-    releaseEvent: async (eventId) => {
-      const { error } = await db.rpc("release_stripe_event", { p_event_id: eventId });
+    releaseEvent: async (eventId, token) => {
+      const { error } = await db.rpc("release_stripe_event", { p_event_id: eventId, p_claim_token: token });
       if (error) throw dbError("release_stripe_event", error);
     },
     findUserByCustomerId: (customerId) => selectOne("stripe_customer_id", customerId),
@@ -434,14 +461,15 @@ export function createStripeWebhookApp(overrides?: Partial<StripeWebhookDeps>): 
       logger.error({ err: (err as Error).message, type: event.type, id: event.id }, "Stripe event claim failed");
       return c.json({ error: "Webhook handler error" }, 500);
     }
-    if (claim === "processed") {
+    if (claim.status === "processed") {
       return c.json({ received: true, duplicate: true });
     }
-    if (claim === "in_flight") {
+    if (claim.status === "in_flight") {
       // Another delivery of this event is being applied right now. Answer
       // non-2xx so Stripe retries; the retry sees "processed" once it is done.
       return c.json({ error: "Event is being processed; retry" }, 409);
     }
+    const token = claim.token;
 
     try {
       let outcome: Outcome;
@@ -469,12 +497,17 @@ export function createStripeWebhookApp(overrides?: Partial<StripeWebhookDeps>): 
 
       // Only a fully applied event is recorded; a failure above leaves it
       // unrecorded so the redelivery runs the (idempotent) handler again.
-      await deps.recordEventProcessed(event.id, event.type);
+      if (!(await deps.recordEventProcessed(event.id, event.type, token))) {
+        // Our lease expired and another delivery took the claim over. It (or
+        // Stripe's redelivery) records the event; the handlers are idempotent.
+        logger.warn({ type: event.type, id: event.id }, "Stripe event claim lost before it was recorded");
+        return c.json({ error: "Event claim lost; retry" }, 409);
+      }
       return c.json({ received: true, action: outcome.action });
     } catch (err) {
       // Release the claim so the redelivery can run the (idempotent) handler.
       // If the release itself fails, the claim's lease expires instead.
-      await deps.releaseEvent(event.id).catch((releaseErr: unknown) => {
+      await deps.releaseEvent(event.id, token).catch((releaseErr: unknown) => {
         logger.warn({ err: (releaseErr as Error).message, id: event.id }, "Stripe event claim release failed");
       });
       // Never leak internals; Stripe retries on non-2xx.

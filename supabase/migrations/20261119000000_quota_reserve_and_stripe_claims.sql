@@ -12,7 +12,8 @@
 --   reserve_call(text, text, integer)       Codex audit #19/#20: atomic monthly
 --                                            reservation for one billable call
 --   stripe_event_claims + claim_stripe_event / complete_stripe_event /
---   release_stripe_event                    audit #06: one worker per event id
+--   release_stripe_event                    audit #06: one worker per event id;
+--                                            complete/release need the claim token
 --   apply_stripe_subscription(...)          audit #06: ordering checked and the
 --                                            entitlement written under one row lock
 -- Every function is SECURITY DEFINER and executable by service_role only
@@ -78,71 +79,107 @@ grant execute on function public.reserve_call(text, text, integer) to service_ro
 -- marks an event a worker is applying now; a concurrent delivery of the same
 -- event sees 'in_flight' and is answered non-2xx so Stripe retries it later.
 -- A claim older than the lease (a crashed worker) can be taken over.
+--
+-- Every claim carries a fresh claim_token. complete and release match on the
+-- event id AND the token, so a worker whose lease expired and was taken over
+-- cannot complete or release the new owner's claim (a late release would
+-- otherwise admit a third worker while the second is still applying).
 create table if not exists public.stripe_event_claims (
   event_id    text primary key,
   type        text not null,
-  claimed_at  timestamptz not null default now()
+  claimed_at  timestamptz not null default now(),
+  claim_token uuid not null default gen_random_uuid()
 );
+alter table public.stripe_event_claims
+  add column if not exists claim_token uuid not null default gen_random_uuid();
 alter table public.stripe_event_claims enable row level security;
 revoke all on table public.stripe_event_claims from public, anon, authenticated;
 grant all on table public.stripe_event_claims to service_role;
 
--- Returns 'claimed' (this caller applies the event), 'processed' (already
--- applied: acknowledge) or 'in_flight' (another worker holds a live claim).
-create or replace function public.claim_stripe_event(p_event_id text, p_type text, p_lease_seconds integer default 300)
-returns text
+-- Earlier drafts of this file returned a bare text status and took no token.
+-- The return type and arguments changed, so drop those signatures first.
+drop function if exists public.claim_stripe_event(text, text, integer);
+drop function if exists public.complete_stripe_event(text, text);
+drop function if exists public.release_stripe_event(text);
+drop function if exists public.complete_stripe_event(text, text, uuid);
+drop function if exists public.release_stripe_event(text, uuid);
+
+-- Returns one row (status, claim_token):
+--   'claimed'   this caller applies the event; claim_token identifies its claim
+--   'processed' already applied: acknowledge (claim_token is null)
+--   'in_flight' another worker holds a live claim (claim_token is null)
+create function public.claim_stripe_event(p_event_id text, p_type text, p_lease_seconds integer default 300)
+returns table (status text, claim_token uuid)
 language plpgsql
 security definer
 set search_path = public
 as $$
+#variable_conflict use_column
+declare
+  v_token uuid := gen_random_uuid();
 begin
-  if exists (select 1 from public.stripe_events where event_id = p_event_id) then
-    return 'processed';
+  if exists (select 1 from public.stripe_events e where e.event_id = p_event_id) then
+    return query select 'processed'::text, null::uuid;
+    return;
   end if;
 
-  insert into public.stripe_event_claims as c (event_id, type, claimed_at)
-  values (p_event_id, p_type, clock_timestamp())
+  insert into public.stripe_event_claims as c (event_id, type, claimed_at, claim_token)
+  values (p_event_id, p_type, clock_timestamp(), v_token)
   on conflict (event_id) do update
-    set claimed_at = clock_timestamp()
+    set claimed_at = clock_timestamp(), claim_token = v_token
   where c.claimed_at < clock_timestamp() - make_interval(secs => greatest(coalesce(p_lease_seconds, 300), 1));
   if not found then
-    return 'in_flight';
+    return query select 'in_flight'::text, null::uuid;
+    return;
   end if;
 
   -- A worker that finished between the first check and the claim has
   -- committed its stripe_events row by now (complete_stripe_event writes it
   -- in the same transaction that drops the claim).
-  if exists (select 1 from public.stripe_events where event_id = p_event_id) then
-    delete from public.stripe_event_claims where event_id = p_event_id;
-    return 'processed';
+  if exists (select 1 from public.stripe_events e where e.event_id = p_event_id) then
+    delete from public.stripe_event_claims c where c.event_id = p_event_id and c.claim_token = v_token;
+    return query select 'processed'::text, null::uuid;
+    return;
   end if;
-  return 'claimed';
+  return query select 'claimed'::text, v_token;
 end;
 $$;
 
--- Records the event as applied and drops its claim, in one transaction.
-create or replace function public.complete_stripe_event(p_event_id text, p_type text)
-returns void
+-- Records the event as applied and drops its claim, in one transaction, only
+-- while p_claim_token still owns the claim. Returns false (and records
+-- nothing) when the claim was taken over or is gone: the caller answers
+-- non-2xx and the current owner, or Stripe's redelivery, records it.
+create function public.complete_stripe_event(p_event_id text, p_type text, p_claim_token uuid)
+returns boolean
 language plpgsql
 security definer
 set search_path = public
 as $$
 begin
+  delete from public.stripe_event_claims c
+   where c.event_id = p_event_id and c.claim_token = p_claim_token;
+  if not found then
+    return false;
+  end if;
   insert into public.stripe_events (event_id, type) values (p_event_id, p_type)
   on conflict (event_id) do nothing;
-  delete from public.stripe_event_claims where event_id = p_event_id;
+  return true;
 end;
 $$;
 
--- Drops a claim after a failed attempt so Stripe's redelivery can run at once.
-create or replace function public.release_stripe_event(p_event_id text)
-returns void
+-- Drops this caller's claim after a failed attempt so Stripe's redelivery can
+-- run at once. Returns false when p_claim_token no longer owns the claim; a
+-- replacement owner's claim is left alone.
+create function public.release_stripe_event(p_event_id text, p_claim_token uuid)
+returns boolean
 language plpgsql
 security definer
 set search_path = public
 as $$
 begin
-  delete from public.stripe_event_claims where event_id = p_event_id;
+  delete from public.stripe_event_claims c
+   where c.event_id = p_event_id and c.claim_token = p_claim_token;
+  return found;
 end;
 $$;
 
@@ -233,12 +270,12 @@ end;
 $$;
 
 revoke all on function public.claim_stripe_event(text, text, integer) from public, anon, authenticated;
-revoke all on function public.complete_stripe_event(text, text) from public, anon, authenticated;
-revoke all on function public.release_stripe_event(text) from public, anon, authenticated;
+revoke all on function public.complete_stripe_event(text, text, uuid) from public, anon, authenticated;
+revoke all on function public.release_stripe_event(text, uuid) from public, anon, authenticated;
 revoke all on function public.stripe_subscription_status_rank(text) from public, anon, authenticated;
 revoke all on function public.apply_stripe_subscription(text, text, text, timestamptz, boolean, boolean) from public, anon, authenticated;
 grant execute on function public.claim_stripe_event(text, text, integer) to service_role;
-grant execute on function public.complete_stripe_event(text, text) to service_role;
-grant execute on function public.release_stripe_event(text) to service_role;
+grant execute on function public.complete_stripe_event(text, text, uuid) to service_role;
+grant execute on function public.release_stripe_event(text, uuid) to service_role;
 grant execute on function public.stripe_subscription_status_rank(text) to service_role;
 grant execute on function public.apply_stripe_subscription(text, text, text, timestamptz, boolean, boolean) to service_role;
