@@ -65,7 +65,7 @@ Per-intent routing, "don't confuse with" pairs and the campaign chains: [referen
 
 4. **Pick a direction when polishing.** After `critique`, ask with AskUserQuestion (header "Direction"): 🟢 the direction the critique supports (more impact: `bolder` + `overdrive`, or calmer: `quieter` + `distill`) · the other direction · neither, fix the findings only. Never apply `bolder` and `quieter` to the same elements.
 
-5. **Load and run.** Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` for each step of the chain and follow it. For `looks`, the sub-skill reads the full look spec from `vendor/mengto-skills/` at apply time.
+5. **Load and run.** Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` for each step of the chain and follow it. The 3D route is the exception: it is a sibling pack, so read `${CLAUDE_SKILL_DIR}/../threejs-pack/SKILL.md`. For `looks`, the sub-skill reads the full look spec from `vendor/mengto-skills/` at apply time.
 
 6. **Check performance before shipping motion.** Run `optimize` on any change that adds animation, WebGL or particles; prefer CSS when it achieves the same effect.
 

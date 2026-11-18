@@ -67,7 +67,7 @@ fi
 # Randomly select and terminate instances
 echo "$INSTANCES" | tr ' ' '\n' | shuf | head -n $TO_KILL | while read instance; do
   echo "Terminating instance: $instance"
-  if [ "$DRY_RUN" = "1" ]; then echo "  (dry run, not terminated)"; continue; fi
+  if [ "$DRY_RUN" != "0" ]; then echo "  (dry run, not terminated; only DRY_RUN=0 terminates)"; continue; fi
   aws ec2 terminate-instances --instance-ids "$instance"
   sleep 30  # Wait between terminations
 done
@@ -212,6 +212,8 @@ gremlin.create_network_attack(
 
 ## CI/CD Integration
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```yaml
 # GitHub Actions workflow for chaos testing
 name: Chaos Engineering Tests
@@ -295,6 +297,8 @@ jobs:
 ```
 
 ## Jenkins Pipeline
+
+> CCC safety: upstream example that changes or exposes a live system (deletes, scales, restarts, rolls back, kills, or prints runtime secrets). Do not run it as written: name the context and the exact target, preview where possible, and get the user's go-ahead for this run. Logged in the pack's `DECISIONS.md`.
 
 ```groovy
 // Jenkinsfile for chaos testing

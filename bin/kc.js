@@ -256,7 +256,8 @@ if (args.includes('--list-skills')) {
 // Agent API: --skills
 if (args.includes('--skills')) {
   var os = require('os');
-  var skillsInstallDir = path.join(os.homedir(), '.claude', 'skills');
+  // Same target as install.sh: CLAUDE_CONFIG_DIR when set, else ~/.claude
+  var skillsInstallDir = path.join(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'), 'skills');
   var skillsSourceDir = path.join(__dirname, '..', 'skills');
   var tiersFilePath = path.join(skillsSourceDir, '_tiers.json');
   var tiers = {};

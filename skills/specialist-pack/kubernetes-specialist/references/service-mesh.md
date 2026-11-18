@@ -7,7 +7,10 @@
 ```bash
 # Install Istio CLI from a pinned release, checked against its published SHA-256.
 # CCC safety: never pipe a download into a shell; pick and review the version first.
-# The subshell stops at the first failed step, so a bad checksum never reaches tar.
+# The whole sequence is one subshell with errexit, run on its own (never as the
+# left side of && or ||, where bash ignores errexit), so a bad checksum stops
+# before tar and before any istioctl call. istioctl is called by the absolute
+# path of the copy just verified, never whatever is first on PATH.
 ISTIO_VERSION=<release from github.com/istio/istio/releases>
 ( set -euo pipefail
   f="istio-${ISTIO_VERSION}-linux-amd64.tar.gz"
@@ -15,18 +18,21 @@ ISTIO_VERSION=<release from github.com/istio/istio/releases>
   curl -fsSLO "https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/${f}.sha256"
   sha256sum -c "${f}.sha256"
   tar -xzf "$f"
-) && export PATH="$PWD/istio-${ISTIO_VERSION}/bin:$PATH"
-
-# Install Istio with default profile
-istioctl install --set profile=default -y
+  istioctl="$PWD/istio-${ISTIO_VERSION}/bin/istioctl"
+  "$istioctl" version --remote=false
+  # Install Istio with default profile
+  "$istioctl" install --set profile=default -y
+  "$istioctl" verify-install
+)
 
 # Enable sidecar injection for namespace
 kubectl label namespace production istio-injection=enabled
 
-# Verify installation
-istioctl verify-install
+# Check the control plane
 kubectl get pods -n istio-system
 ```
+
+Later examples call `istioctl` by name. Put the verified `istio-${ISTIO_VERSION}/bin` first on `PATH` only after the block above has succeeded.
 
 ## Istio Profiles
 
@@ -333,27 +339,21 @@ LINKERD_VERSION=<release tag from github.com/linkerd/linkerd2/releases>
   f="linkerd2-cli-${LINKERD_VERSION}-linux-amd64"
   curl -fsSLO "https://github.com/linkerd/linkerd2/releases/download/${LINKERD_VERSION}/${f}"
   curl -fsSLO "https://github.com/linkerd/linkerd2/releases/download/${LINKERD_VERSION}/${f}.sha256"
-  echo "$(cat "${f}.sha256" | awk '{print $1}')  ${f}" | sha256sum -c -
-  install -m 0755 "$f" "$HOME/.local/bin/linkerd"
+  echo "$(awk '{print $1}' "${f}.sha256")  ${f}" | sha256sum -c -
+  linkerd="$HOME/.local/bin/linkerd"
+  install -m 0755 "$f" "$linkerd"
+  # Every later step uses the binary just verified, by absolute path.
+  "$linkerd" check --pre                              # validate cluster
+  "$linkerd" install --crds | kubectl apply -f -      # CRDs (pipefail stops on a failed render)
+  "$linkerd" install | kubectl apply -f -             # control plane
+  "$linkerd" check
 )
-
-# Validate cluster
-linkerd check --pre
-
-# Install CRDs
-linkerd install --crds | kubectl apply -f -
-
-# Install control plane
-linkerd install | kubectl apply -f -
-
-# Check installation
-linkerd check
 
 # Enable injection for namespace
 kubectl annotate namespace production linkerd.io/inject=enabled
 
 # Inject existing deployments
-kubectl get deploy -n production -o yaml | linkerd inject - | kubectl apply -f -
+kubectl get deploy -n production -o yaml | "$HOME/.local/bin/linkerd" inject - | kubectl apply -f -
 ```
 
 ## Linkerd Service Profile
@@ -430,6 +430,8 @@ spec:
 
 ## Kiali Dashboard
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```bash
 # Install Kiali
 kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.20/samples/addons/kiali.yaml
@@ -439,6 +441,8 @@ istioctl dashboard kiali
 ```
 
 ## Jaeger Tracing
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```bash
 # Install Jaeger

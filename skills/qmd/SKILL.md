@@ -12,15 +12,12 @@ Opt-in add-on. [tobi/qmd](https://github.com/tobi/qmd) (MIT) indexes markdown co
 
 Claude Code plugin (recommended upstream):
 
-```text
-/plugin marketplace add tobi/qmd
-/plugin install qmd@qmd
-```
+Install from the upstream README, reviewed at [`aa247d0`](https://github.com/tobi/qmd/tree/aa247d0ee2e5dc3b83e1270714c0f06ca94e2514#readme). CCC safety: the plugin marketplace serves the current upstream revision, not the reviewed one. Before installing, confirm the marketplace source is `github.com/tobi/qmd` itself and not a same-named plugin from another publisher, and tell the user if upstream has changed since `aa247d0`.
 
 CLI and MCP only:
 
 ```bash
-npm install -g @tobilu/qmd     # or: bun install -g @tobilu/qmd
+npm install -g @tobilu/qmd@2.9.0   # pinned; fails if that version is unavailable
 claude mcp add qmd -- qmd mcp
 ```
 

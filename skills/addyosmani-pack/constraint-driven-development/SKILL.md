@@ -146,11 +146,11 @@ Picking a dimension means installing something. Don't leave the user with a numb
 | Dimension | Tool | Install | Run | Gate on |
 |-----------|------|---------|-----|---------|
 | Types (TS) | tsc | already there | `tsc --noEmit` | any error |
-| Types (Python) | mypy | `pip install mypy` | `mypy .` | any error |
+| Types (Python) | mypy | exact version in the project's locked dev requirements (`mypy==<version>`) | `mypy .` | any error |
 | Lint | your existing config | already there | `eslint .` / `biome check` / `ruff check` | any error |
 | Coverage (JS) | your test runner | Vitest: `npm i -D @vitest/coverage-v8`; Jest: already there | `vitest run --coverage` (or `jest --coverage`) | coverage of changed lines |
-| Coverage (Python) | pytest-cov | `pip install pytest-cov` | `pytest --cov --cov-report=lcov` | same |
-| Security: code | Semgrep | `pipx install semgrep` | `npm run check:security` (below) | high or critical, including legacy `ERROR` |
+| Coverage (Python) | pytest-cov | exact version in the project's locked dev requirements (`pytest-cov==<version>`) | `pytest --cov --cov-report=lcov` | same |
+| Security: code | Semgrep | `pipx install semgrep==<version>`, an exact reviewed version | `npm run check:security` (below) | high or critical, including legacy `ERROR` |
 | Security: secrets | gitleaks | `brew install gitleaks` | `gitleaks dir . --redact --no-banner` | any finding |
 | Security: dependencies | osv-scanner | `brew install osv-scanner` | `osv-scanner scan source -r .` | high or above |
 | Performance: page | Lighthouse | `npm i -D lighthouse` | `lighthouse $URL --output=json --quiet` | LCP, CLS, performance score |
@@ -168,7 +168,7 @@ Five things that will bite you if you skip them:
 5. **Semgrep's registry rules are free to run; check the licence before redistributing them.** `opengrep` is a drop-in fork with the same rule format and JSON output if that matters to your legal team.
 
 `semgrep scan` and `axe` can exit 0 on findings; copy [scripts/quality-gate.mjs](scripts/quality-gate.mjs) into the project's `scripts/` directory to enforce these thresholds. CCC safety: the script is MIT (Copyright (c) 2025 Addy Osmani). When you copy it, also copy `addyosmani-pack/LICENSE.txt` next to it (for example as `scripts/quality-gate.LICENSE.txt`) so the full MIT text travels with it; a header pointing back to this pack is not enough.
-Keep the scanner before `&&` so a failed scan stops the command.
+Keep the scanner before `&&` so a failed scan stops the command. CCC safety: reports go to a private per-run temp file that is removed afterwards, never a fixed file in the project root that can be staged. Semgrep reads a checked-in ruleset (`.semgrep/rules.yml`, exported once from the registry pack you chose and reviewed), so the same commit always runs the same rules; refresh it in its own reviewed commit.
 
 Add each one to the project's own script so it's reproducible without an agent:
 
@@ -177,8 +177,8 @@ Add each one to the project's own script so it's reproducible without an agent:
   "scripts": {
     "check:fast": "tsc --noEmit && eslint . && gitleaks dir . --redact --no-banner",
     "check:task": "npm run check:fast && vitest run --coverage",
-    "check:security": "semgrep scan --config p/default --strict --json > semgrep-results.json && node scripts/quality-gate.mjs semgrep semgrep-results.json",
-    "check:a11y": "axe \"$PREVIEW_URL\" --tags wcag2a,wcag2aa,wcag21aa --stdout > axe-results.json && node scripts/quality-gate.mjs axe axe-results.json",
+    "check:security": "f=$(mktemp) && semgrep scan --config .semgrep/rules.yml --metrics=off --strict --json > \"$f\" && node scripts/quality-gate.mjs semgrep \"$f\"; s=$?; rm -f \"$f\"; exit $s",
+    "check:a11y": "f=$(mktemp) && axe \"$PREVIEW_URL\" --tags wcag2a,wcag2aa,wcag21aa --stdout > \"$f\" && node scripts/quality-gate.mjs axe \"$f\"; s=$?; rm -f \"$f\"; exit $s",
     "check:full": "npm run check:task && npm run check:security && osv-scanner scan source -r ."
   }
 }
@@ -222,7 +222,7 @@ Agents don't craft clever loopholes. They hit a red check and take the cheapest 
 
 None of this needs tooling beyond `git diff`. Tightening the bar should be silent; loosening it should be loud.
 
-Unlike the numbered dimensions, the floor has no de facto tool of its own, so an agent asked to enforce it tends to write a checker from scratch, and two agents write two different ones. A reference implementation of these five checks ships with this skill in [references/floor-guard.md](references/floor-guard.md) (diff-scoped, exit `0`/`1`/`2`, patterns adaptable per ecosystem). Adapt that rather than reinventing it, for the same reason every dimension names a de facto tool: so the mechanism is the same across runs and stacks.
+Unlike the numbered dimensions, the floor has no de facto tool of its own, so an agent asked to enforce it tends to write a checker from scratch, and two agents write two different ones. A reference implementation of these five checks ships with this skill in [references/floor-guard.md](references/floor-guard.md) (diff-scoped, exit `0`/`1`/`2`, patterns adaptable per ecosystem). CCC safety: the guard is MIT (Copyright (c) 2025 Addy Osmani); keep its header line and copy `addyosmani-pack/LICENSE.txt` beside the adapted file (for example as `scripts/floor-guard.LICENSE.txt`). Adapt that rather than reinventing it, for the same reason every dimension names a de facto tool: so the mechanism is the same across runs and stacks.
 
 **Not all checks are equally circular.** Rank them by one question: can the agent make this pass by writing code that doesn't work?
 

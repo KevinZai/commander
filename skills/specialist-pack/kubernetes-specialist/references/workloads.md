@@ -174,6 +174,8 @@ spec:
 
 ## DaemonSet Pattern
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```yaml
 apiVersion: apps/v1
 kind: DaemonSet
@@ -277,6 +279,8 @@ spec:
 
 ## CronJob Pattern
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```yaml
 apiVersion: batch/v1
 kind: CronJob
@@ -337,6 +341,8 @@ spec:
 ```
 
 ## Init Containers
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```yaml
 spec:

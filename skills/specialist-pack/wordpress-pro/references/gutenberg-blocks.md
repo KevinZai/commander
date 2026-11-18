@@ -20,6 +20,8 @@ WordPress 6.4+ uses the Block Editor (Gutenberg) as the primary editing experien
 
 ### Using @wordpress/create-block
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```bash
 # Create a new block plugin
 npx @wordpress/create-block my-block --namespace my-plugin

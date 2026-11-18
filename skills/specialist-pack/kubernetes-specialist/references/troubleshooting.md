@@ -4,6 +4,8 @@
 
 ### Pod Inspection
 
+> CCC safety: upstream example that changes or exposes a live system (deletes, scales, restarts, rolls back, kills, or prints runtime secrets). Do not run it as written: name the context and the exact target, preview where possible, and get the user's go-ahead for this run. Logged in the pack's `DECISIONS.md`.
+
 ```bash
 # Get pods with details
 kubectl get pods -n production -o wide
@@ -40,6 +42,8 @@ kubectl port-forward service/web-app 8080:80 -n production
 ```
 
 ### Deployment Debugging
+
+> CCC safety: upstream example that changes or exposes a live system (deletes, scales, restarts, rolls back, kills, or prints runtime secrets). Do not run it as written: name the context and the exact target, preview where possible, and get the user's go-ahead for this run. Logged in the pack's `DECISIONS.md`.
 
 ```bash
 # Check deployment status
@@ -109,6 +113,8 @@ kubectl get events -n production --field-selector involvedObject.name=web-app-7d
 
 ### Ephemeral Debug Container
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```bash
 # Attach debug container to running pod
 kubectl debug -it web-app-7d5c8b9f4-xk2pm -n production \
@@ -130,6 +136,8 @@ kubectl debug web-app-7d5c8b9f4-xk2pm -n production \
 ```
 
 ### Debug on Node
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```bash
 # Create privileged pod on specific node
@@ -164,6 +172,8 @@ kubectl get pod web-app-7d5c8b9f4-xk2pm -n production -o yaml | grep -A 5 nodeSe
 ```
 
 ### Issue 2: CrashLoopBackOff
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```bash
 # Check logs from crashed container
@@ -202,6 +212,8 @@ kubectl create secret docker-registry registry-credentials \
 
 ### Issue 4: Service Not Accessible
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```bash
 # Check service endpoints
 kubectl get endpoints web-app -n production
@@ -238,6 +250,8 @@ kubectl exec web-app-7d5c8b9f4-xk2pm -n production -- cat /etc/resolv.conf
 ```
 
 ### Issue 6: NetworkPolicy Blocking Traffic
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```bash
 # List network policies
@@ -347,6 +361,8 @@ kubectl describe priorityclass high-priority
 ## Diagnostic Tools
 
 ### Network Tools Container
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```yaml
 apiVersion: v1
