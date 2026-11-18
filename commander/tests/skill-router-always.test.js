@@ -62,7 +62,6 @@ test('subagent context names the matching skill and skips manual ones outside al
   assert.match(renderSubagentContext(review, 'claude-code', 'auto'), /Skill commander:ccc-review/);
   const brainstorm = scoreRoutes('brainstorm feature ideas for onboarding', routes);
   assert.equal(renderSubagentContext(brainstorm, 'claude-code', 'auto'), null);
-  assert.match(renderSubagentContext(brainstorm, 'claude-code', 'always'), /ccc-brainstorm/);
   assert.equal(renderSubagentContext(scoreRoutes('deploy this to fly', routes), 'claude-code', 'always'), null);
 });
 
@@ -119,20 +118,40 @@ test('a medium match is only an option for workers in auto mode, never a directi
   if (out) assert.doesNotMatch(out, /Before starting/);
 });
 
-test('SubagentStart recovers the task from the parent transcript and claims it once', () => {
+test('PreToolUse queues Agent calls and SubagentStart claims each once, in spawn order', async () => {
+  const { recordAgentCall } = await import('../cowork-plugin/hooks/subagent-skill-router.js');
   const dir = mkdtempSync(join(tmpdir(), 'ccc-sub-'));
   const env = { CCC_CONFIG_DIR: dir };
   const prev = process.env.CCC_CONFIG_DIR;
   process.env.CCC_CONFIG_DIR = dir;
   try {
-    const transcript = join(dir, 't.jsonl');
-    const call = (id, type, prompt) => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', id, name: 'Agent', input: { subagent_type: type, description: 'task', prompt } }] } });
-    writeFileSync(transcript, [call('tu1', 'general-purpose', 'Review this PR before I merge'), call('tu2', 'Explore', 'hello there')].join('\n') + '\n');
-    const payload = { session_id: 's1', transcript_path: transcript, agent_type: 'general-purpose', hook_event_name: 'SubagentStart' };
-    assert.match(ctx(run(payload, env)), /ccc-review/);
-    assert.equal(ctx(run(payload, env)), undefined, 'the same call is not claimed twice');
+    const call = (id, type, prompt) => recordAgentCall({ session_id: 's1', tool_name: 'Agent', tool_use_id: id, tool_input: { subagent_type: type, description: 'task', prompt } });
+    call('tu1', 'general-purpose', 'Review this PR before I merge');
+    call('tu2', 'general-purpose', 'hello there');
+    call('tu3', 'Explore', 'Review this PR before I merge');
+    recordAgentCall({ session_id: 's1', tool_name: 'Bash', tool_input: { command: 'ls' } });
+    const start = { session_id: 's1', agent_type: 'general-purpose', hook_event_name: 'SubagentStart' };
+    assert.match(ctx(run(start, env)), /ccc-review/, 'first worker gets the first call');
+    assert.equal(ctx(run(start, env)), undefined, 'second worker gets its own (non-matching) task');
+    assert.equal(ctx(run(start, env)), undefined, 'nothing left for this type');
+    assert.match(ctx(run({ ...start, agent_type: 'Explore' }, env)), /ccc-review/);
   } finally {
     if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('always mode never auto-runs a side-effect skill even on a clear match', () => {
+  const c = scoreRoutes('Review this PR before I merge', routes).map((x, i) => (i === 0 ? { ...x, route: { ...x.route, id: 'ccc-update' } } : x));
+  assert.equal(tierFor(c, 'always'), 'medium');
+});
+
+test('workers are never offered hidden skills', () => {
+  const c = scoreRoutes('brainstorm feature ideas for onboarding', routes);
+  assert.equal(renderSubagentContext(c, 'claude-code', 'always'), null);
+});
+
+test('"review the last commit" routes to ccc-review', () => {
+  const c = scoreRoutes('review the last commit for bugs', routes);
+  assert.equal(c[0] && c[0].route.id, 'ccc-review');
 });
