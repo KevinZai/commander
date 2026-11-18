@@ -38,7 +38,7 @@ Upstream says this skill is "inspired by" Anthropic's Code Simplifier plugin (Ap
 
 ## Second Codex pass (2026-11-18)
 
-- `floor-guard.md` no longer echoes flagged source lines (only rule, file, and `CONSTRAINTS.md` rule text). A local run with a fake secret beside `gitleaks:allow` printed only `[silenced-checker] a.js`.
+- `floor-guard.md` no longer echoes flagged lines from any file (only rule and file). A local run with a fake secret beside `gitleaks:allow` printed only `[silenced-checker] a.js`.
 - `chrome-devtools-mcp` is pinned to `1.13.0`. `doubt-driven-development` uses a private `mktemp` prompt file removed on exit. Copying `quality-gate.mjs` now copies the full MIT text with it.
 - The two upstream reference files that were not copied (`orchestration-patterns.md`, `observability-checklist.md`) are linked at the pinned commit.
 
