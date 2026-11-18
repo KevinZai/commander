@@ -164,7 +164,7 @@ units. Do not turn this index into a direct clinical sympathetic-state measure.
 ## Bounded pipeline
 
 ```bash
-python skills/neurokit2/scripts/eda_pipeline.py \
+python skills/science-pack/neurokit2/scripts/eda_pipeline.py \
   --input deidentified.csv --column EDA --root . --deidentified \
   --sampling-rate 100 --unit uS \
   --clean-method neurokit --phasic-method highpass \

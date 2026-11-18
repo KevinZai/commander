@@ -262,30 +262,30 @@ network calls, reject URLs and symlinks, bound files/rows/features, avoid unsafe
 pickle loading, and lazily import scientific packages.
 
 ```bash
-python skills/scikit-survival/scripts/validate_survival_csv.py --help
-python skills/scikit-survival/scripts/train_survival_model.py --help
-python skills/scikit-survival/scripts/evaluate_survival_metrics.py --help
-python skills/scikit-survival/scripts/competing_risk_cif.py --help
-python skills/scikit-survival/scripts/model_report.py --help
+python skills/science-pack/scikit-survival/scripts/validate_survival_csv.py --help
+python skills/science-pack/scikit-survival/scripts/train_survival_model.py --help
+python skills/science-pack/scikit-survival/scripts/evaluate_survival_metrics.py --help
+python skills/science-pack/scikit-survival/scripts/competing_risk_cif.py --help
+python skills/science-pack/scikit-survival/scripts/model_report.py --help
 ```
 
 Typical local flow:
 
 ```bash
-python skills/scikit-survival/scripts/validate_survival_csv.py \
+python skills/science-pack/scikit-survival/scripts/validate_survival_csv.py \
   --input data.csv --event-column event --time-column time \
   --feature-columns age,group,measurement --structured-output outcome.npy
 
-python skills/scikit-survival/scripts/train_survival_model.py \
+python skills/science-pack/scikit-survival/scripts/train_survival_model.py \
   --input data.csv --event-column event --time-column time \
   --numeric-columns age,measurement --categorical-columns group \
   --model coxph --tune --prediction-output predictions.npz \
   --output training-summary.json
 
-python skills/scikit-survival/scripts/evaluate_survival_metrics.py \
+python skills/science-pack/scikit-survival/scripts/evaluate_survival_metrics.py \
   --input predictions.npz --output metrics-summary.json
 
-python skills/scikit-survival/scripts/model_report.py \
+python skills/science-pack/scikit-survival/scripts/model_report.py \
   --training-summary training-summary.json \
   --metrics-summary metrics-summary.json --output model-report.md
 ```

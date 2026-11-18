@@ -253,16 +253,16 @@ JSON without coordinates or record identifiers.
 | `scripts/sensitive_coordinates_checklist.py` | Privacy/generalization release gate |
 
 ```bash
-python skills/geopandas/scripts/vector_inventory.py --help
-python skills/geopandas/scripts/crs_reprojection_plan.py \
+python skills/science-pack/geopandas/scripts/vector_inventory.py --help
+python skills/science-pack/geopandas/scripts/crs_reprojection_plan.py \
   --source-crs EPSG:4326 --target-crs EPSG:32631
-python skills/geopandas/scripts/geometry_validity_report.py data.gpkg
-python skills/geopandas/scripts/spatial_join_audit.py points.gpkg zones.gpkg \
+python skills/science-pack/geopandas/scripts/geometry_validity_report.py data.gpkg
+python skills/science-pack/geopandas/scripts/spatial_join_audit.py points.gpkg zones.gpkg \
   --predicate within --left-id point_id --right-id zone_id
-python skills/geopandas/scripts/export_plan.py data.gpkg result.parquet \
+python skills/science-pack/geopandas/scripts/export_plan.py data.gpkg result.parquet \
   --format geoparquet --schema-version 1.1.0 \
   --stable-id-column feature_id --id-unique-verified
-python skills/geopandas/scripts/sensitive_coordinates_checklist.py \
+python skills/science-pack/geopandas/scripts/sensitive_coordinates_checklist.py \
   --public-output --precise-points --contains-addresses
 ```
 

@@ -62,7 +62,7 @@ Tested with Python 3.12, nmrglue 0.12, NumPy 2.5.3, and SciPy 1.18.1:
 
 ```bash
 uv run --no-project --python 3.12 --with nmrglue==0.12 --with numpy==2.5.3 --with scipy==1.18.1 \
-  python skills/nmrglue/scripts/process_1d.py fid.npz processing.json nmr-result
+  python skills/science-pack/nmrglue/scripts/process_1d.py fid.npz processing.json nmr-result
 ```
 
 Paths assume the collection root. Adjust them when installed elsewhere. The output

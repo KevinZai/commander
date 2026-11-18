@@ -74,7 +74,7 @@ times are a helper policy; some native nonparametric APIs permit zero.
 Validate bounded local CSV input:
 
 ```bash
-python skills/scikit-survival/scripts/validate_survival_csv.py \
+python skills/science-pack/scikit-survival/scripts/validate_survival_csv.py \
   --input data.csv \
   --event-column event \
   --time-column time \

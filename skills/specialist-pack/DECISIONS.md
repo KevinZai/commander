@@ -88,3 +88,25 @@ The worker that copied these skills left counts, `commander/contract.json`, the 
 - `elixir-expert`: reads the local Mix project instead of querying an upstream context manager.
 
 - The Jeffallan license reads `Copyright (c) 2025` with no holder name; that matches upstream exactly (checked against the clone at the pinned commit), so it is kept as is. Each sub-skill folder now carries its source LICENSE.txt so it can be installed on its own.
+
+## Third Codex pass (2026-11-18)
+
+Fixed, because an agent could run them as written:
+- `kubernetes-specialist/references/service-mesh.md` and `multi-cluster.md`: each install runs in a `set -euo pipefail` subshell, so a failed download or checksum stops before extraction.
+- `gitops-workflow/references/argocd-setup.md` and `kubernetes-specialist/references/gitops.md`: pinned release tag (Helm: pinned chart version), no admin password printed.
+- `kubernetes-specialist/references/troubleshooting.md`: Secrets are described, never decoded or dumped.
+- `wordpress-pro/references/performance-security.md`: database dumps go to a directory outside the web root, refused if inside ABSPATH; `.htaccess` is defense in depth only.
+- The router adds a pack-wide "CCC safety" rule for every reference file: verify downloads, never print secrets, no destructive examples against production without the user naming the target.
+
+## Upstream notes (logged, not fixed)
+
+These are example-quality issues in upstream reference material. The router's safety rule covers running them; fix them upstream or when a sub-skill is next synced.
+- `salesforce-developer/references/deployment-devops.md`: CI installs Salesforce CLI from the moving `stable` channel without verification, and writes auth URLs into shell source and `auth.txt`.
+- `kubernetes-specialist/references/multi-cluster.md` (Cluster API binary) and `service-mesh.md` (Kiali and Jaeger manifests): unpinned downloads.
+- `chaos-engineer/references/kubernetes-chaos.md`: an example deletes 30% of matching custom resources in `production` from the current kube context; the drain helper's `continue` does not skip DaemonSet pods. `chaos-tools.md`: Jenkins interpolates an unrestricted duration string into YAML.
+- `spring-boot-engineer/references/security.md`: refresh and access tokens share one validator.
+- `wordpress-pro/references/performance-security.md`: backup compression unlinks the SQL file without checking the write.
+- `godot-gdscript-patterns/references/advanced-patterns.md`: the save system uses one published encryption password.
+- `solidity-security`: the example calls `deposit()`, which neither `SecureBank` version defines, and the overflow test accepts any revert.
+- Missing `legacy-modernizer` references in the FastAPI, NestJS and GraphQL migration guides. Angle-bracket version placeholders are intentional and must be filled in before running.
+

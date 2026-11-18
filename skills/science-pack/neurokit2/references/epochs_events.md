@@ -96,7 +96,7 @@ Do not let NaN padding or integer zero padding silently become a physiological
 baseline. The dependency-free planner reports affected trials:
 
 ```bash
-python skills/neurokit2/scripts/plan_epochs.py \
+python skills/science-pack/neurokit2/scripts/plan_epochs.py \
   --events 1000,2500,4000 --event-unit samples \
   --sampling-rate 100 --recording-samples 5000 \
   --epoch-start -0.2 --epoch-end 0.8 \

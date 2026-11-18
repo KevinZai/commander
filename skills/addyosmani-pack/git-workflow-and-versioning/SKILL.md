@@ -215,11 +215,12 @@ This pattern catches wrong assumptions early and gives reviewers a clear map of 
 Before every commit:
 
 ```bash
-# 1. Check what you're about to commit
-git diff --staged
-
-# 2. Ensure no secrets (lists matching file names only — any output means review them)
+# 1. Ensure no secrets first (lists matching file names only — any output means review them).
+# CCC safety: scan before printing the patch, so a staged secret never lands in the transcript.
 git diff --staged -i -G'password|secret|api_key|token' --name-only
+
+# 2. Then check what you're about to commit (names and stats; open individual files only after step 1 is clean)
+git diff --staged --stat
 
 # 3. Run tests
 npm test

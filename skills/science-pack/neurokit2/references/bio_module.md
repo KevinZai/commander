@@ -142,7 +142,7 @@ The bundled validator accepts a strict JSON manifest:
 ```
 
 ```bash
-python skills/neurokit2/scripts/validate_multimodal.py \
+python skills/science-pack/neurokit2/scripts/validate_multimodal.py \
   --manifest streams.json --root . --deidentified
 ```
 

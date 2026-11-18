@@ -161,7 +161,7 @@ Accepting an `Idempotency-Key` is the contract. Honouring it is the implementati
 
 ```typescript
 crypto.randomUUID()                    // ✗ new key per attempt — every retry is a new charge
-`${userId}:${amount}`                  // ✗ two legitimate $50 charges collapse into one
+`${userId}:${amount}`                  // ✗ two legitimate charges of 50 dollars collapse into one
 `${orderId}:${Date.now()}`             // ✗ a timestamp is randomUUID() wearing a hat
 
 req.headers['idempotency-key']         // ✓ client generates once, reuses on retry

@@ -42,7 +42,7 @@ uses `mcpServers` JSON and requires a local stdio bridge, this configuration use
   "mcpServers": {
     "bgpt": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://bgpt.pro/mcp/stream", "--transport", "http-only"]
+      "args": ["-y", "mcp-remote@0.16.6", "https://bgpt.pro/mcp/stream", "--transport", "http-only"]
     }
   }
 }
@@ -146,7 +146,7 @@ use them only as screening aids, not as a study-specific risk-of-bias assessment
 ## Allowance and review scope
 
 At the review date the provider advertises 50 free **results** per network,
-then $0.02 per returned result. A successful DOI lookup counts as one result;
+then 0.02 USD per returned result. A successful DOI lookup counts as one result;
 unfound lookups cost none. Recheck the allowance and pricing before a large
 batch. Do not repeatedly retry a quota-exhausted request.
 
