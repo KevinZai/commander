@@ -736,3 +736,16 @@ test('install.sh and uninstall.sh refuse a symlink-then-.. path that lands on ho
     assert.strictEqual(readFileSync(join(home, 'skills', 'mine.txt'), 'utf8'), 'mine');
   });
 });
+
+// Review of 11cd33c: a ~/.claude that is a symlink to a dotfiles folder resolves there, and --clean still works.
+test('install.sh --clean works when ~/.claude is a symlink to a dotfiles folder', () => {
+  withHome('ccc-install-dotfiles-clean-', (home) => {
+    const real = join(home, 'dotfiles', 'claude');
+    mkdirSync(join(real, 'commands'), { recursive: true });
+    writeFileSync(join(real, 'commands', 'old.md'), 'old');
+    symlinkSync(real, join(home, '.claude'));
+    ok(run(INSTALL_SH, home, ['--force', '--mode=essentials', '--skip-deps', '--clean']), 'clean install through the link');
+    assert.ok(!existsSync(join(real, 'commands', 'old.md')), 'old command cleared (and backed up)');
+    assert.ok(lstatSync(join(home, '.claude')).isSymbolicLink(), 'the ~/.claude link itself is kept');
+  });
+});

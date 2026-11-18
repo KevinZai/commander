@@ -48,9 +48,9 @@ if command -v node &>/dev/null; then
     var norm = process.platform === "darwin" || process.platform === "win32" ? function(s) { return s.toLowerCase(); } : function(s) { return s; };
     var real = physical(process.argv[1]), dir = norm(real), home = norm(physical(process.argv[2]));
     if (dir === path.parse(dir).root || dir === home || (home + path.sep).indexOf(dir + path.sep) === 0) {
-      console.error(process.argv[1] + " resolves to " + real); process.exit(1);
+      process.stdout.write(process.argv[1] + " resolves to " + real); process.exit(1);
     }
-    process.stdout.write(real);' "$CLAUDE_DIR" "$HOME" 2>&1)"; then
+    process.stdout.write(real);' "$CLAUDE_DIR" "$HOME" 2>/dev/null)"; then
     echo "ERROR: CLAUDE_DIR must not be /, the home directory or one of its parents: $guard_out"; exit 1
   fi
   CLAUDE_DIR="$guard_out"
