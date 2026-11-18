@@ -44,7 +44,8 @@ type RawEntry = { id: string; name: string; path: string; source: string; descri
 type Manifest = {
   release: string;
   counts: { skills: number; pluginSkills: number; ecosystemSkills: number; agents: number };
-  skills: Array<{ id: string; name: string; source: string; origin: string; bundled: string; description: string }>;
+  skills: Array<{ id: string; name: string; source: string; origin: string; bundled: string; description: string; licenseBundled?: string; licenseSource?: string }>;
+  withheldSkills: Array<{ id: string; source: string; reason: string }>;
   agents: Array<{ name: string; tier: string; bundled: string }>;
   duplicateRegistryEntries: number;
 };
@@ -460,7 +461,8 @@ describe("the declared license file name is the one resolved", () => {
       skills: Array<{ id: string; licenseSource?: string }>;
       withheldSkills: Array<{ id: string }>;
     };
-    assert.equal(m.skills.find((s) => s.id === "ecosystem/ab-test-setup")!.licenseSource, "skills/ab-test-setup/LICENCE");
+    const shipped = m.skills as Array<{ id: string; licenseSource?: string }>;
+    assert.equal(shipped.find((s) => s.id === "ecosystem/ab-test-setup")!.licenseSource, "skills/ab-test-setup/LICENCE");
     assert.ok(m.withheldSkills.some((w) => w.id === "ecosystem/ccc-data"));
   });
 });

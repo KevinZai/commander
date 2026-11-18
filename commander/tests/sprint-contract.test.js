@@ -193,3 +193,21 @@ test('malformed check-json fails validation instead of becoming manual', async (
   assert.strictEqual(v.ok, false);
   assert.match(v.errors.join(' '), /AC1: check-json/);
 });
+
+test('an empty or undecodable check-json is a hard error in validate and from-plan', async () => {
+  const lib = await libP;
+  const bare = lib.renderContract({ title: 'Bare', criteria: [{ text: 'criterion text here', check: 'true' }] })
+    .replace(/· check: `true`/, '· check-json:');
+  const v = lib.validateContract(lib.parseContract(bare));
+  assert.strictEqual(v.ok, false);
+  assert.match(v.errors.join(' '), /AC1: check-json/);
+  assert.throws(() => lib.renderContract({ title: 'X', criteria: [{ text: 'criterion text here', check: null, checkError: 'bad' }] }), /undecodable/);
+  const dir = tmpRepo();
+  for (const line of ['- Works well enough · check-json: `"unterminated`', '- Works well enough · check-json:']) {
+    fs.writeFileSync(path.join(dir, 'plan.md'), `# P\n\n## Acceptance criteria\n\n${line}\n`);
+    const r = run(dir, ['from-plan', 'plan.md']);
+    assert.strictEqual(r.code, 1, line);
+    assert.match(r.json.errors.join(' '), /AC1: check-json/);
+    assert.ok(!fs.existsSync(path.join(dir, 'tasks', 'sprint-contract.md')), 'nothing written');
+  }
+});

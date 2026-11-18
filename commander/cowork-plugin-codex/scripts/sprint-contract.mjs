@@ -82,6 +82,9 @@ function main(argv) {
     const md = fs.readFileSync(plan, 'utf8');
     const criteria = criteriaFromPlan(md);
     if (!criteria.length) return out({ ok: false, errors: ['plan has no "## Evals — what does done look like?" or "## Acceptance criteria" bullets'] }, 1);
+    // A check that cannot be decoded is an error, never silently a manual criterion.
+    const bad = criteria.filter((c) => c.checkError).map((c) => `${c.id}: ${c.checkError}`);
+    if (bad.length) return out({ ok: false, errors: bad }, 1);
     const target = flag(args, '--out') || CONTRACT_PATH;
     const archived = writeContract(target, renderContract({ title: titleFromPlan(md), source: path.basename(plan), criteria }));
     const r = report(target, { archived });

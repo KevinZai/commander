@@ -15,7 +15,8 @@ export const ARCHIVE_DIR = 'tasks/contracts';
 export const MARKER = 'ccc-sprint-contract v1';
 export const MAX_CRITERIA = 20;
 
-const CHECK_SPLIT = /\s+(?:·|—|-{1,2})\s+check(-json)?:\s+(.+)$/i;
+const CHECK_SPLIT = /\s+(?:·|—|-{1,2})\s+check(-json)?:(?:\s+(.*\S))?\s*$/i;
+const CHECK_JSON_ERROR = 'check-json is not one code span holding a non-empty JSON string';
 const ITEM = /^\s*[-*]\s+(?:\[( |x|X)\]\s+)?(.*\S)\s*$/;
 const ID_PREFIX = /^(AC\d+)\s*(?:—|-|:|·)\s*/;
 
@@ -31,13 +32,15 @@ export function splitCriterion(raw) {
   if (m) {
     text = text.slice(0, m.index).trim();
     if (m[1]) {
+      if (!m[2]) return { text, check: null, checkError: CHECK_JSON_ERROR };
       // check-json: the command is a JSON string inside one code span, so
       // newlines and boundary whitespace survive exactly.
       const inner = unwrapCodeSpan(m[2].trim());
       try { check = inner === null ? undefined : JSON.parse(inner); } catch { check = undefined; }
-      if (typeof check !== 'string' || !check) return { text, check: null, checkError: 'check-json is not one code span holding a non-empty JSON string' };
+      if (typeof check !== 'string' || !check) return { text, check: null, checkError: CHECK_JSON_ERROR };
       return { text, check };
     }
+    if (!m[2]) return { text, check: null, checkError: 'check: has no command (write `check: manual` for a manual criterion)' };
     check = m[2].trim();
     const inner = unwrapCodeSpan(check);
     if (inner !== null) check = inner;
@@ -148,6 +151,8 @@ export function titleFromPlan(markdown) {
 
 /** Render a contract file. `criteria` items: { id?, text, check?, done? }. */
 export function renderContract({ title, source = 'manual', created = new Date().toISOString(), criteria = [], outOfScope = [] }) {
+  const broken = criteria.filter((c) => c.checkError);
+  if (broken.length) throw new Error(`cannot render criteria with undecodable checks: ${broken.map((c) => c.id || '?').join(', ')}`);
   const items = criteria.map((c, i) => {
     const id = c.id || `AC${i + 1}`;
     const check = c.check ? ` · ${renderCheck(c.check)}` : ' · check: manual';
