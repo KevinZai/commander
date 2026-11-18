@@ -42,3 +42,17 @@ Upstream says this skill is "inspired by" Anthropic's Code Simplifier plugin (Ap
 - `chrome-devtools-mcp` is pinned to `1.13.0`. `doubt-driven-development` uses a private `mktemp` prompt file removed on exit. Copying `quality-gate.mjs` now copies the full MIT text with it.
 - The two upstream reference files that were not copied (`orchestration-patterns.md`, `observability-checklist.md`) are linked at the pinned commit.
 
+
+## Third Codex pass (2026-11-18)
+
+Fixed: `floor-guard` prints only rule and file for every finding, `git-workflow-and-versioning` runs its secret scan before showing the staged change (and then only `--stat`), and the `$50` example no longer trips the argument-placeholder test.
+
+## Upstream notes (logged, not fixed)
+
+Example-quality items in upstream text, for the next sync or an upstream issue:
+- `code-simplification`: links Anthropic's Code Simplifier at `main` and calls itself an adaptation (provenance is recorded above), and one "clear" rewrite turns an object of `{ count }` records into a `Map` of numbers.
+- `browser-testing-with-devtools`: the persistent MCP config still launches through `npx -y` (pinned to 1.13.0); a locally installed binary is stricter.
+- `deprecation-and-migration` and `git-workflow-and-versioning`: bare `npx` tools (`migrate-check` and others) with no project-owned version.
+- `api-and-interface-design`: the idempotency example keys stored responses by the client key alone; scope it by tenant or user.
+- `doubt-driven-development`: `echo` or heredoc guidance can still expand shell syntax if artifact text is pasted into shell source.
+- `constraint-driven-development`: the guard splits `git ls-files` output on newlines (quoted non-ASCII names), and flags the shipped policy template's own prose.
