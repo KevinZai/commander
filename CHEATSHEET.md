@@ -115,7 +115,7 @@ Brain/hands architecture — each persona has a distinct role, model alias and v
 
 ### Lifecycle hook events (30)
 
-28 events, 46 handlers — fire automatically every session (no configuration needed).
+28 events, 47 handlers — fire automatically every session (no configuration needed).
 
 | Event | Handlers |
 |-------|----------|
@@ -132,7 +132,7 @@ Brain/hands architecture — each persona has a distinct role, model alias and v
 | `CwdChanged` / `DirectoryAdded` | 1 each (session-state sync) — new in v8 |
 | `FileChanged` | 1 (stale `CLAUDE.md` nudge) — new in v8 |
 | 13 more | `UserPromptExpansion`, `PostToolUseFailure`, `StopFailure`, `Notification`, `PreCompact`, `PostCompact`, `SubagentStart`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `InstructionsLoaded` — one handler each |
-| **TOTAL** | **28 events** · **46 handlers** |
+| **TOTAL** | **28 events** · **47 handlers** |
 
 ### Plugin Workflows + Ultracode
 

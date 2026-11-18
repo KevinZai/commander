@@ -19,7 +19,7 @@ node commander/engine.js     # launch the CLI
 ├── commander/cowork-plugin/   ← the Desktop plugin (primary product)
 │   ├── skills/                ← 93 plugin skills
 │   ├── agents/                ← 22 specialist agent personas
-│   └── hooks/                 ← 28 lifecycle hooks (46 handlers)
+│   └── hooks/                 ← 28 lifecycle hooks (47 handlers)
 ├── apps/mcp-server-cloud/     ← hosted MCP backend (v4.1)
 ├── site/                      ← commanderplugin.com (Next.js)
 ├── mintlify-docs/             ← docs.commanderplugin.com

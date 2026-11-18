@@ -204,7 +204,7 @@ test('plugin namespace is rewritten to cc-commander: across the tree', () => {
   }
   assert.match(
     fs.readFileSync(path.join(outDir, 'hooks', 'lib', 'route-scorer.mjs'), 'utf8'),
-    /invoke Skill cc-commander:\$\{top\.id\}/
+    /invoke Skill cc-commander:\$\{route\.id\}/
   );
   // Paths and prose stay untouched.
   assert.match(fs.readFileSync(path.join(outDir, 'README.md'), 'utf8'), /Commander/);

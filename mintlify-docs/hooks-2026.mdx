@@ -1,10 +1,10 @@
 ---
 title: "Hooks 2026 — 30 Events"
-description: "Commander registers 28 Claude Code lifecycle hook events with 46 handlers. Seven new events were introduced in v8.0.0. Full registry, the events Commander leaves alone, and the 12-event Codex mirror."
+description: "Commander registers 28 Claude Code lifecycle hook events with 47 handlers. Seven new events were introduced in v8.0.0. Full registry, the events Commander leaves alone, and the 12-event Codex mirror."
 ---
 
 <Note>
-  **Introduced in v8.0.0.** Seven events Claude Code added since August are now wired: `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged`. The registry grew from 23 events to **30 events · 46 handlers**. Existing handlers are unchanged.
+  **Introduced in v8.0.0.** Seven events Claude Code added since August are now wired: `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged`. The registry grew from 23 events to **30 events · 47 handlers**. Existing handlers are unchanged.
 </Note>
 
 ## Full hook registry (current)
@@ -42,7 +42,7 @@ Rebuilt from the plugin's [`hooks/hooks.json`](https://github.com/KevinZai/comma
 | `CwdChanged` | 1 | `session-state-sync.js` | **New in v8.** Keeps this session's `active-session-<session_id>.json` pointed at the current working directory |
 | `DirectoryAdded` | 1 | `session-state-sync.js` | **New in v8.** Records directories added to the session |
 
-**Total: 28 events · 46 handlers**
+**Total: 28 events · 47 handlers**
 
 ## Events Commander deliberately leaves alone
 

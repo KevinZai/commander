@@ -1,6 +1,6 @@
 # Plugin Hooks — Registry Map
 
-Canonical count: **46 handlers across 28 events** (see `hooks.json` — `commander/contract.json` carries the same numbers).
+Canonical count: **47 handlers across 28 events** (see `hooks.json` — `commander/contract.json` carries the same numbers).
 
 ## ✅ Active handlers (wired in `hooks.json`)
 

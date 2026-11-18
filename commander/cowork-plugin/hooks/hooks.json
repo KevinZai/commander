@@ -260,6 +260,11 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/subagent-start-tracker.js\"",
             "timeout": 3,
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/subagent-skill-router.js\"",
+            "timeout": 3
           }
         ]
       }

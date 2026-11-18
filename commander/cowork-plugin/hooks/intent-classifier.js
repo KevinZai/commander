@@ -25,7 +25,8 @@
  * running on the fleet) get a <ccc-fleet-route> block instead: the Fleet skill,
  * its read-only commands and the `ccc checkin` line (hooks/lib/fleet-intent.mjs).
  *
- * Env: CCC_ROUTE_MODE=off|suggest|auto (default auto; suggest never auto-runs;
+ * Env: CCC_ROUTE_MODE=off|suggest|auto|always (default auto; suggest never auto-runs;
+ *        always also runs a likely match and hints weak ones;
  *        overrides the lane's saved `routeMode` in <config dir>/commander/config.json)
  *      CCC_FLEET_ROUTE=on|off Fleet routing (default: on only when the
  *        claude-fleet skill is installed)
@@ -192,7 +193,7 @@ function handlePrompt(data) {
     } else {
       const candidates = scoreRoutes(rawPrompt, loadRoutes());
       const tier = tierFor(candidates, mode);
-      context = renderRouteContext(candidates, tier, host);
+      context = renderRouteContext(candidates, tier, host, mode);
       if (context) {
         const top = candidates[0];
         const state = loadState(data.session_id);

@@ -4297,6 +4297,8 @@ hooks:
     path: commander/cowork-plugin/hooks/stale-claude-md-nudge.js
   - id: stop-failure-handler
     path: commander/cowork-plugin/hooks/stop-failure-handler.js
+  - id: subagent-skill-router
+    path: commander/cowork-plugin/hooks/subagent-skill-router.js
   - id: subagent-start-tracker
     path: commander/cowork-plugin/hooks/subagent-start-tracker.js
   - id: subagent-stop

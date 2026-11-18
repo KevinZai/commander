@@ -28,7 +28,7 @@ Six workflows carry most of the value:
 - **`/ccc-review`: a severity-rated review.** Reviews your branch or PR, or runs a security, performance or whole-project audit, and returns a report ranked by severity.
 - **`/ccc-ship`: a GO, CAUTION or NO-GO before you release.** A parallel pre-flight matrix, then, each behind a picker, a tagged release with changelog, a deploy, or a rollback.
 
-Behind the menus: 93 plugin skills (32 visible to Claude, the rest load only when you type their name, which keeps session start light: about 2,900 tokens in our measurement, down from about 6,700), 22 specialist agents, 28 lifecycle hook events with 46 handlers, and a 12-gate method (plan before build, verifier separate from worker, prove before alarm, loops need gates, leave durable state, and seven more).
+Behind the menus: 93 plugin skills (32 visible to Claude, the rest load only when you type their name, which keeps session start light: about 2,900 tokens in our measurement, down from about 6,700), 22 specialist agents, 28 lifecycle hook events with 47 handlers, and a 12-gate method (plan before build, verifier separate from worker, prove before alarm, loops need gates, leave durable state, and seven more).
 
 **Safe by default.** Telemetry is off unless you opt in. `CCC_OFFLINE=1` blocks every outbound call Commander makes itself. The permission gate denies every force-push form. The secret-leak guard stops key literals before a tool runs. Every outbound call is listed in the README.
 
