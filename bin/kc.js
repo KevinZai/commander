@@ -257,35 +257,45 @@ if (args.includes('--list-skills')) {
 if (args.includes('--skills')) {
   var os = require('os');
   // Same target as install.sh: CLAUDE_CONFIG_DIR when set, else ~/.claude
-  // Resolve symlinks where the path exists (so /tmp and /private/tmp compare equal).
-  function realOrResolved(p) { try { return fs.realpathSync(p); } catch (_e) { return path.resolve(p); } }
   var claudeProfileDir = path.resolve(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'));
   var skillsInstallDir = path.join(claudeProfileDir, 'skills');
   var skillsSourceDir = path.join(__dirname, '..', 'skills');
   // Same guard as install.sh, applied after resolving links: neither the profile nor its
   // skills directory may be /, the home directory, or a directory that contains home.
+  // Compare by device and inode, not path text, so case-insensitive filesystems
+  // (/Users vs /users on APFS) cannot slip past.
+  function fileId(p) { try { var st = fs.statSync(p); return st.dev + ':' + st.ino; } catch (_e) { return null; } }
   (function guardProfile() {
-    var home = realOrResolved(os.homedir());
+    var homeAndAncestors = {};
+    var cur = path.resolve(os.homedir());
+    while (true) {
+      var id = fileId(cur);
+      if (id) homeAndAncestors[id] = true;
+      var up = path.dirname(cur);
+      if (up === cur) break;
+      cur = up;
+    }
     [claudeProfileDir, skillsInstallDir].forEach(function(p) {
-      var real = realOrResolved(p);
-      if (real === path.parse(real).root || home === real || home.indexOf(real + path.sep) === 0) {
-        console.error('Invalid CLAUDE_CONFIG_DIR: ' + p + ' resolves to ' + real + '; refusing to manage skills there.');
+      var id = fileId(p);
+      if (id && homeAndAncestors[id]) {
+        console.error('Invalid CLAUDE_CONFIG_DIR: ' + p + ' is /, the home directory, or a directory above it; refusing to manage skills there.');
         process.exit(1);
       }
     });
   })();
-  // A link is Commander's only if it points into this package's skills/ directory.
-  // Live links compare real paths; a dangling link compares its resolved target text
-  // against both spellings of the source root.
+  // A link is Commander's only if its IMMEDIATE target is an entry of this package's
+  // skills/ directory: the target's parent must be that directory (same device and
+  // inode), and the entry itself is not dereferenced. So skills/mintlify, which is
+  // itself a link, still counts, and a user alias pointing at some other directory
+  // that happens to end in a Commander skill does not.
+  var skillsSourceId = fileId(skillsSourceDir);
   function isManagedSkillLink(dst) {
     try {
       if (!fs.lstatSync(dst).isSymbolicLink()) return false;
       var target = path.resolve(path.dirname(dst), fs.readlinkSync(dst));
-      var roots = [path.resolve(skillsSourceDir), realOrResolved(skillsSourceDir)].map(function(r) { return r + path.sep; });
-      var live = fs.existsSync(dst);
-      var candidate = live ? fs.realpathSync(dst) : target;
-      return roots.some(function(r) { return candidate.indexOf(r) === 0 || target.indexOf(r) === 0; }) &&
-        (!live || roots.some(function(r) { return candidate.indexOf(r) === 0; }));
+      var name = path.basename(target);
+      if (!name || name === '.' || name === '..') return false;
+      return skillsSourceId !== null && fileId(path.dirname(target)) === skillsSourceId;
     } catch (_e) { return false; }
   }
   var tiersFilePath = path.join(skillsSourceDir, '_tiers.json');

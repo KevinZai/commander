@@ -22,7 +22,7 @@ CLI and MCP only (macOS and Linux; on native Windows the npm global bin layout d
 ( set -euo pipefail
   npm install -g @tobilu/qmd@2.9.0          # pinned; fails if that version is unavailable
   prefix="$(npm prefix -g)"             # its own statement, so a failed lookup stops here
-  case "$prefix" in /*) ;; *) echo "stop: no npm global prefix"; exit 1;; esac
+  case "$prefix" in /?*) ;; *) echo "stop: no npm global prefix"; exit 1;; esac
   qmd="$prefix/bin/qmd"
   [ -x "$qmd" ]
   "$qmd" --version
