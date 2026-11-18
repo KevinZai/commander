@@ -152,12 +152,12 @@ All helpers run offline, reject URLs and symlinks, bound their inputs, write out
 atomically with private permissions, and refuse to overwrite without `--force`.
 
 ```bash
-python skills/uncertainty-and-units/scripts/propagate_uncertainty.py --help
-python skills/uncertainty-and-units/scripts/uncertainty_budget.py --help
-python skills/uncertainty-and-units/scripts/format_result.py --help
-python skills/uncertainty-and-units/scripts/convert_units.py --help
-python skills/uncertainty-and-units/scripts/audit_units.py --help
-python skills/uncertainty-and-units/scripts/check_plausibility.py --help
+python skills/science-pack/uncertainty-and-units/scripts/propagate_uncertainty.py --help
+python skills/science-pack/uncertainty-and-units/scripts/uncertainty_budget.py --help
+python skills/science-pack/uncertainty-and-units/scripts/format_result.py --help
+python skills/science-pack/uncertainty-and-units/scripts/convert_units.py --help
+python skills/science-pack/uncertainty-and-units/scripts/audit_units.py --help
+python skills/science-pack/uncertainty-and-units/scripts/check_plausibility.py --help
 ```
 
 ### propagate_uncertainty.py
@@ -167,7 +167,7 @@ endpoints. This fixed-trial diagnostic does **not** implement the adaptive stabi
 in JCGM 101 7.9/8.2 and never labels the GUM result fully validated.
 
 ```bash
-python skills/uncertainty-and-units/scripts/propagate_uncertainty.py \
+python skills/science-pack/uncertainty-and-units/scripts/propagate_uncertainty.py \
   --expression "m / (pi * (d / 2) ** 2 * h)" \
   --variable "m=250.0,0.05" \
   --variable "d=2.0,0.002,rectangular" \
@@ -200,8 +200,8 @@ assumptions before deciding what to report.
 Combines components stated the way certificates and data sheets state them.
 
 ```bash
-python skills/uncertainty-and-units/scripts/uncertainty_budget.py --template > budget.json
-python skills/uncertainty-and-units/scripts/uncertainty_budget.py --spec budget.json --format markdown
+python skills/science-pack/uncertainty-and-units/scripts/uncertainty_budget.py --template > budget.json
+python skills/science-pack/uncertainty-and-units/scripts/uncertainty_budget.py --spec budget.json --format markdown
 ```
 
 Each component names a `distribution` that fixes its divisor — `expanded` divides by its
@@ -217,7 +217,7 @@ expanded uncertainty.
 ### format_result.py
 
 ```bash
-python skills/uncertainty-and-units/scripts/format_result.py \
+python skills/science-pack/uncertainty-and-units/scripts/format_result.py \
   --value 12.34567 --uncertainty 0.02345 --unit mm \
   --coverage-factor 2.26 --coverage-probability 0.95
 ```
@@ -229,10 +229,10 @@ for an uncertainty beginning in 1 or 2, and when the uncertainty exceeds the est
 ### convert_units.py
 
 ```bash
-python skills/uncertainty-and-units/scripts/convert_units.py \
+python skills/science-pack/uncertainty-and-units/scripts/convert_units.py \
   --value 532 --unit nm --to eV --context spectroscopy --uncertainty 0.5
 
-python skills/uncertainty-and-units/scripts/convert_units.py \
+python skills/science-pack/uncertainty-and-units/scripts/convert_units.py \
   --value 1.0 --unit g --to mol --context chemistry --context-parameter "mw=180.156 g/mol"
 ```
 
@@ -248,7 +248,7 @@ error message when a conversion needs one, and flags offset and logarithmic unit
 Static review of existing analysis code. Parses, never imports or runs.
 
 ```bash
-python skills/uncertainty-and-units/scripts/audit_units.py \
+python skills/science-pack/uncertainty-and-units/scripts/audit_units.py \
   --input analysis.py --format markdown --fail-on medium
 ```
 
@@ -289,13 +289,13 @@ quantities against dimensionless groups, characteristic scales, and illustrative
 bands, and verifies each formula's dimensionality before reporting a number.
 
 ```bash
-python skills/uncertainty-and-units/scripts/check_plausibility.py \
+python skills/science-pack/uncertainty-and-units/scripts/check_plausibility.py \
   --quantity "density=1060 kg/m**3" --quantity "velocity=0.5 mm/s" \
   --quantity "length=8 um" --quantity "viscosity=3.5 mPa*s" \
   --group reynolds --format markdown
 # Re = 0.001211 -- laminar (circular pipe, length = diameter)
 
-python skills/uncertainty-and-units/scripts/check_plausibility.py \
+python skills/science-pack/uncertainty-and-units/scripts/check_plausibility.py \
   --quantity "diameter=2 m" --band "eukaryotic_cell_diameter=diameter"
 # implausible: 4.3 decades outside the 5-100 um range
 ```

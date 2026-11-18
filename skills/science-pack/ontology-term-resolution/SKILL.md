@@ -51,7 +51,7 @@ standard library. Full traps for the non-OLS services are in `references/compani
 ## Resolve text to terms
 
 ```bash
-cd skills/ontology-term-resolution/scripts
+cd skills/science-pack/ontology-term-resolution/scripts
 
 # one string, constrained to the ontology that should define it
 python3 resolve_terms.py "liver" --ontology uberon

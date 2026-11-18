@@ -264,7 +264,7 @@ because it maximizes a metric.
 The bundled evaluator rejects unsupported grids and shape/type confusion:
 
 ```bash
-python skills/scikit-survival/scripts/evaluate_survival_metrics.py \
+python skills/science-pack/scikit-survival/scripts/evaluate_survival_metrics.py \
   --input predictions.npz \
   --output metrics-summary.json
 ```

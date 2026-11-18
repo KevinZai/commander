@@ -266,13 +266,13 @@ an all-event survival probability as a cause-specific CIF.
 The helper defaults to deterministic synthetic data:
 
 ```bash
-python skills/scikit-survival/scripts/competing_risk_cif.py
+python skills/science-pack/scikit-survival/scripts/competing_risk_cif.py
 ```
 
 For local CSV:
 
 ```bash
-python skills/scikit-survival/scripts/competing_risk_cif.py \
+python skills/science-pack/scikit-survival/scripts/competing_risk_cif.py \
   --input competing.csv \
   --event-column status \
   --time-column time \

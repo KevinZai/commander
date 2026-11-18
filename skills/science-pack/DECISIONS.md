@@ -188,3 +188,16 @@ Upstream instructions were checked for force-push, hook skipping, auto-merge and
 | `exa-search`, `bgpt-paper-search`, `alphagenome`, `esm`, `pyzotero`, `tiledbvcf`, `pymatgen`, `paper-lookup`, `ontology-term-resolution`, `scientific-critical-thinking` | Send queries or user inputs to hosted services | Ask before sending unpublished user data; keys come only from the user's own environment | data |
 
 Every copied SKILL.md ends with a `## Source` section (repository, path, pinned commit, MIT, license location) and lists its CCC edits there. No upstream description contained `<` or `>`, so no description was rewritten.
+
+## Third Codex pass (2026-11-18)
+
+Fixed, because an agent could run them as written:
+- 52 command paths of the form `skills/<child>/scripts` now read `skills/science-pack/<child>/scripts`, so they resolve from the Commander root.
+- `bgpt-paper-search` pins `mcp-remote@0.16.6`. `mageck` verifies the archive's SHA-256 before extracting or running `setup.py`. `alphagenome` tells the user to set the key in their own terminal instead of typing it into the session.
+
+## Upstream notes (logged, not fixed)
+
+- `diffdock` runs an unpinned (`latest`) container image; `cellprofiler` and `qiime2-amplicon` reference images and integration tests that live outside Commander.
+- `paper-lookup` passes the Semantic Scholar key on the curl command line, and its client scripts, plus the `ontology-term-resolution` ones, read whole remote responses into memory.
+- `ontology-term-resolution` refers to `skills/scientific-schematics/scripts`, a skill that is not in this pack.
+- The per-child Source sections do not list every Commander edit; NOTICE.md is the full record.

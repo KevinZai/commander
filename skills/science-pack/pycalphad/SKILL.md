@@ -61,7 +61,7 @@ From the collection root:
 
 ```bash
 uv run --no-project --python 3.12 --with pycalphad==0.11.2 --with numpy==2.5.3 \
-  python skills/pycalphad/scripts/equilibrate.py \
+  python skills/science-pack/pycalphad/scripts/equilibrate.py \
   skills/pycalphad/assets/ideal-cu-ni.tdb \
   skills/pycalphad/assets/equilibrium.json equilibrium-result
 ```

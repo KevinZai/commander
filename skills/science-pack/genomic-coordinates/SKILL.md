@@ -59,7 +59,7 @@ serves 0-based files through a 1-based browser box. `references/format-conventio
 has the full table with per-format detail.
 
 ```bash
-cd skills/genomic-coordinates/scripts
+cd skills/science-pack/genomic-coordinates/scripts
 
 python3 convert_coords.py --list                          # the table
 python3 convert_coords.py --from bed --to gff chr1 999 1000

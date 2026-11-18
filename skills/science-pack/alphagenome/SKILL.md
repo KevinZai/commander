@@ -49,8 +49,9 @@ Both are reached through one `pip install alphagenome` and one API key.
 
 ```bash
 uv pip install alphagenome                     # PyPI; tested on Python 3.12 and 3.13, alphagenome 0.9.0
-export ALPHAGENOME_API_KEY="..."               # https://deepmind.google.com/science/alphagenome
-cd skills/alphagenome/scripts
+# The user sets ALPHAGENOME_API_KEY in their own terminal (https://deepmind.google.com/science/alphagenome);
+# CCC safety: never type the key into an agent session.
+cd skills/science-pack/alphagenome/scripts
 python atlas_query.py scorers                  # proves key + network in one call
 ```
 

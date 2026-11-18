@@ -71,7 +71,7 @@ Whatever you pick, run a **sensitivity analysis**: report how required n changes
 
 ## Quick recipes (closed-form)
 
-The bundled `scripts/power.py` wraps statsmodels and SciPy into one consistent interface so you don't have to remember which solver belongs to which test. Run from `skills/statistical-power/scripts/` or add that directory to `sys.path`.
+The bundled `scripts/power.py` wraps statsmodels and SciPy into one consistent interface so you don't have to remember which solver belongs to which test. Run from `skills/science-pack/statistical-power/scripts/` or add that directory to `sys.path`.
 
 ```python
 from power import sample_size, power, mde, power_curve

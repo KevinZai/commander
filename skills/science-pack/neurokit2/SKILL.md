@@ -85,7 +85,7 @@ volts, microsiemens, or arbitrary units.
 ### 1. Inspect before transforming
 
 ```bash
-python skills/neurokit2/scripts/inspect_signal.py \
+python skills/science-pack/neurokit2/scripts/inspect_signal.py \
   --input recording.csv --root . --deidentified \
   --columns ECG,RSP,EDA --time-column time_s \
   --units ECG=mV,RSP=a.u.,EDA=uS
@@ -153,7 +153,7 @@ variability is not interchangeable with ECG HRV.
 Use the bounded pipeline:
 
 ```bash
-python skills/neurokit2/scripts/ecg_hrv_pipeline.py \
+python skills/science-pack/neurokit2/scripts/ecg_hrv_pipeline.py \
   --synthetic --sampling-rate 250 --duration 300 \
   --domains time,frequency,nonlinear
 ```
@@ -185,7 +185,7 @@ it is not an absolute microsiemens threshold. Other supported detectors ignore t
 argument, which the helper records explicitly. cvxEDA needs optional `cvxopt`.
 
 ```bash
-python skills/neurokit2/scripts/eda_pipeline.py \
+python skills/science-pack/neurokit2/scripts/eda_pipeline.py \
   --synthetic --sampling-rate 100 --duration 60 \
   --phasic-method highpass --peak-method neurokit
 ```
@@ -210,7 +210,7 @@ epochs = nk.epochs_create(
 Plan sample-exact windows first:
 
 ```bash
-python skills/neurokit2/scripts/plan_epochs.py \
+python skills/science-pack/neurokit2/scripts/plan_epochs.py \
   --events 1000,2500,4000 --event-unit samples \
   --sampling-rate 100 --recording-samples 5000 \
   --epoch-start -0.2 --epoch-end 0.8 \
@@ -232,7 +232,7 @@ NaN. RSA is added only when synchronized ECG and RSP are present.
 Validate a strict local manifest before calling it:
 
 ```bash
-python skills/neurokit2/scripts/validate_multimodal.py \
+python skills/science-pack/neurokit2/scripts/validate_multimodal.py \
   --manifest streams.json --root . --deidentified
 ```
 
@@ -296,7 +296,7 @@ require `--deidentified`.
 Generate a fixture without exposing participant data:
 
 ```bash
-python skills/neurokit2/scripts/generate_synthetic.py \
+python skills/science-pack/neurokit2/scripts/generate_synthetic.py \
   --output synthetic.csv --root . --duration 30 \
   --sampling-rate 250 --seed 42
 ```
