@@ -167,7 +167,7 @@ Five things that will bite you if you skip them:
 4. **Coverage needs no second test run.** Read the lcov your suite already writes and intersect it with `git diff`. Running the suite twice to get a number is the fastest way to make people hate this.
 5. **Semgrep's registry rules are free to run; check the licence before redistributing them.** `opengrep` is a drop-in fork with the same rule format and JSON output if that matters to your legal team.
 
-`semgrep scan` and `axe` can exit 0 on findings; copy [scripts/quality-gate.mjs](scripts/quality-gate.mjs) into the project's `scripts/` directory to enforce these thresholds.
+`semgrep scan` and `axe` can exit 0 on findings; copy [scripts/quality-gate.mjs](scripts/quality-gate.mjs) into the project's `scripts/` directory to enforce these thresholds. CCC safety: the script is MIT (Copyright (c) 2025 Addy Osmani); when you copy it, add a header comment with that copyright line and a pointer to the MIT license in `addyosmani-pack/LICENSE.txt`, or copy that LICENSE next to it.
 Keep the scanner before `&&` so a failed scan stops the command.
 
 Add each one to the project's own script so it's reproducible without an agent:

@@ -30,7 +30,8 @@ This skill is primarily an interactive dialogue. Invoke it with an idea, and the
 ```bash
 # Optional. Run from the project root so this creates ./docs/ideas.
 # <skill-dir> is the directory that contains this SKILL.md
-# (for example .agents/skills/idea-refine or .cursor/skills/idea-refine).
+# (for example ~/.claude/skills/addyosmani-pack/idea-refine in CC Commander,
+# or .agents/skills/idea-refine / .cursor/skills/idea-refine upstream).
 bash <skill-dir>/scripts/idea-refine.sh
 ```
 
