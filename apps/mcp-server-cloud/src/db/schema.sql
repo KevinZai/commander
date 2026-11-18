@@ -1,6 +1,13 @@
--- CC Commander hosted MCP — Supabase schema
+-- CC Commander hosted MCP — LEGACY Supabase schema snapshot
 --
--- Apply via Supabase SQL Editor (or `supabase db push` if using the CLI).
+-- SUPERSEDED. The canonical, ordered schema is the migration chain in
+-- supabase/migrations/ at the repository root (see README.md "Database").
+-- Do not build new databases from this file. A database that was built from
+-- it converges on the chain by running
+-- supabase/migrations/20261118000000_reconcile_hosted_schema.sql next.
+-- The grants and guard below are kept here so re-running this file can never
+-- re-open the quota RPCs or entitlement columns (Codex audit #08).
+--
 -- Service-role client (src/db/client.ts) bypasses RLS, so RLS is enabled but
 -- only the included policies allow access. Never use anon key against this DB.
 --
@@ -110,5 +117,38 @@ alter table public.usage_counters enable row level security;
 -- (Add user-scoped SELECT policies later if/when an OAuth user-facing UI ships.)
 
 -- ─── grants ─────────────────────────────────────────────────────────────────
+-- Security-definer RPCs: PUBLIC holds EXECUTE by default and Supabase's
+-- default privileges grant it to anon/authenticated as well. Revoke all three
+-- explicitly so only the service can read caps or mutate a user's quota.
+revoke all on function public.get_effective_cap(uuid)           from public, anon, authenticated;
+revoke all on function public.increment_usage(uuid, text)       from public, anon, authenticated;
 grant execute on function public.get_effective_cap(uuid)        to service_role;
 grant execute on function public.increment_usage(uuid, text)    to service_role;
+
+-- Client roles get no table privileges: tier, license_key and the Stripe
+-- columns are service-managed.
+revoke all on table public.users, public.usage_counters from public, anon, authenticated;
+
+-- Defense in depth: even if a grant or policy is added later, anon and
+-- authenticated may change nothing on a users row except last_seen_at.
+-- (The reconcile migration replaces this with the full guard.)
+create or replace function public.users_guard()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if current_user in ('anon', 'authenticated') then
+    if tg_op = 'INSERT'
+       or (to_jsonb(new) - 'last_seen_at') is distinct from (to_jsonb(old) - 'last_seen_at') then
+      raise exception 'users columns are service-managed' using errcode = '42501';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists users_guard on public.users;
+create trigger users_guard
+  before insert or update on public.users
+  for each row execute function public.users_guard();

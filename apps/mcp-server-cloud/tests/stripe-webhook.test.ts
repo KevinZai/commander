@@ -1,12 +1,14 @@
 /**
- * Stripe webhook tests — signature validation + tier-flip event handling.
+ * Stripe webhook tests — signature validation, entitlement reconciliation,
+ * delivery ordering, failure handling and founders preservation.
  *
  * Run:  node --import tsx --test tests/stripe-webhook.test.ts
  *
  * Signatures are generated with the real `stripe` package
  * (generateTestHeaderString), so the valid-signature path exercises the
  * SDK's actual constructEvent verification — no mocked crypto.
- * DB writes are faked via the injectable deps on createStripeWebhookApp.
+ * DB access is an in-memory fake behind the injectable deps on
+ * createStripeWebhookApp, so tests assert resulting entitlement state.
  */
 
 import { beforeEach, describe, it } from "node:test";
@@ -31,8 +33,9 @@ process.env.CCC_STRIPE_PRICE_PRO_MONTHLY = PRICE_PRO_MONTHLY;
 process.env.CCC_STRIPE_PRICE_PRO_YEARLY = PRICE_PRO_YEARLY;
 process.env.CCC_STRIPE_PRICE_FOUNDERS = PRICE_FOUNDERS;
 
-const { createStripeWebhookApp } = await import("../src/routes/stripe-webhook.js");
+const { createStripeWebhookApp, tierAfterSubscription } = await import("../src/routes/stripe-webhook.js");
 import type { AccountTier } from "../src/lib/paywall.js";
+import type { BillingUser, StripeWebhookDeps } from "../src/routes/stripe-webhook.js";
 
 // Signature helper backed by the real SDK (verification also uses the SDK).
 const stripe = new Stripe("sk_test_placeholder_signing_only");
@@ -46,44 +49,119 @@ function signedHeaders(payload: string): Record<string, string> {
   };
 }
 
-// ─── Fake DB deps recorder ─────────────────────────────────────────────────
+// ─── In-memory fake DB ─────────────────────────────────────────────────────
 type Call = { fn: string; args: unknown[] };
+type FakeUser = {
+  userId: string;
+  email: string | null;
+  tier: AccountTier;
+  customerId: string | null;
+  foundersGrantedAt: string | null;
+  stripeSubscriptionId: string | null;
+  subscriptionStatus: string | null;
+  subscriptionEventAt: string | null;
+};
 
-function makeFakes(currentTier: AccountTier | null = "free") {
-  const calls: Call[] = [];
+const USER_ID = "8a68e2f2-0000-4000-8000-000000000001";
+
+function makeUser(overrides: Partial<FakeUser> = {}): FakeUser {
   return {
-    calls,
-    deps: {
-      setTierByCustomerId: async (customerId: string, tier: AccountTier) => {
-        calls.push({ fn: "setTierByCustomerId", args: [customerId, tier] });
-        return true;
-      },
-      getTierByCustomerId: async (customerId: string) => {
-        calls.push({ fn: "getTierByCustomerId", args: [customerId] });
-        return currentTier;
-      },
-      setTierByUserRef: async (ref: { userId?: string; email?: string }, tier: AccountTier) => {
-        calls.push({ fn: "setTierByUserRef", args: [ref, tier] });
-        return true;
-      },
-      linkCustomer: async (ref: { userId?: string; email?: string }, customerId: string) => {
-        calls.push({ fn: "linkCustomer", args: [ref, customerId] });
-        return true;
-      },
-    },
+    userId: USER_ID,
+    email: "buyer@example.com",
+    tier: "free",
+    customerId: null,
+    foundersGrantedAt: null,
+    stripeSubscriptionId: null,
+    subscriptionStatus: null,
+    subscriptionEventAt: null,
+    ...overrides,
   };
 }
 
-function post(app: ReturnType<typeof createStripeWebhookApp>, body: string, headers: Record<string, string>) {
-  return app.fetch(new Request("http://test/", { method: "POST", headers, body }));
+function makeFakes(users: FakeUser[] = [], opts: { failWrites?: boolean } = {}) {
+  const calls: Call[] = [];
+  const processed = new Set<string>();
+  const view = (u: FakeUser): BillingUser => ({
+    userId: u.userId,
+    tier: u.tier,
+    foundersGrantedAt: u.foundersGrantedAt,
+    stripeSubscriptionId: u.stripeSubscriptionId,
+    subscriptionEventAt: u.subscriptionEventAt,
+  });
+  const byId = (id: string) => {
+    const u = users.find((x) => x.userId === id);
+    if (!u) throw new Error(`fake: no user ${id}`);
+    return u;
+  };
+  const write = (fn: string) => {
+    if (opts.failWrites) throw new Error(`fake: ${fn} backend down`);
+  };
+  const deps: Partial<StripeWebhookDeps> = {
+    isEventProcessed: async (id) => processed.has(id),
+    recordEventProcessed: async (id, type) => {
+      calls.push({ fn: "recordEventProcessed", args: [id, type] });
+      processed.add(id);
+    },
+    findUserByCustomerId: async (customerId) => {
+      const u = users.find((x) => x.customerId === customerId);
+      return u ? view(u) : null;
+    },
+    findUserByRef: async (ref) => {
+      const u =
+        (ref.userId && users.find((x) => x.userId === ref.userId)) ||
+        (ref.email && users.find((x) => x.email === ref.email)) ||
+        undefined;
+      return u ? view(u) : null;
+    },
+    linkCustomer: async (userId, customerId) => {
+      calls.push({ fn: "linkCustomer", args: [userId, customerId] });
+      write("linkCustomer");
+      byId(userId).customerId = customerId;
+    },
+    applySubscription: async (userId, patch) => {
+      calls.push({ fn: "applySubscription", args: [userId, patch] });
+      write("applySubscription");
+      const u = byId(userId);
+      if (patch.tier) u.tier = patch.tier;
+      u.stripeSubscriptionId = patch.subscriptionId;
+      u.subscriptionStatus = patch.status;
+      u.subscriptionEventAt = patch.eventAt;
+    },
+    grantFounders: async (userId, grantedAt) => {
+      calls.push({ fn: "grantFounders", args: [userId, grantedAt] });
+      write("grantFounders");
+      const u = byId(userId);
+      u.tier = "founders";
+      u.foundersGrantedAt = grantedAt;
+    },
+  };
+  return { calls, users, processed, deps };
 }
 
-function eventPayload(type: string, object: Record<string, unknown>): string {
+let fakes: ReturnType<typeof makeFakes>;
+let app: ReturnType<typeof createStripeWebhookApp>;
+
+function useFakes(users: FakeUser[] = [], opts: { failWrites?: boolean } = {}) {
+  fakes = makeFakes(users, opts);
+  app = createStripeWebhookApp(fakes.deps);
+  return fakes;
+}
+
+function post(target: ReturnType<typeof createStripeWebhookApp>, body: string, headers: Record<string, string>) {
+  return target.fetch(new Request("http://test/", { method: "POST", headers, body }));
+}
+
+let eventSeq = 0;
+function eventPayload(
+  type: string,
+  object: Record<string, unknown>,
+  opts: { id?: string; created?: number } = {}
+): string {
   return JSON.stringify({
-    id: "evt_test_1",
+    id: opts.id ?? `evt_test_${++eventSeq}`,
     object: "event",
     api_version: "2025-01-01",
-    created: Math.floor(Date.now() / 1000),
+    created: opts.created ?? Math.floor(Date.now() / 1000),
     type,
     data: { object },
     livemode: false,
@@ -92,13 +170,39 @@ function eventPayload(type: string, object: Record<string, unknown>): string {
   });
 }
 
-let fakes: ReturnType<typeof makeFakes>;
-let app: ReturnType<typeof createStripeWebhookApp>;
+function send(type: string, object: Record<string, unknown>, opts: { id?: string; created?: number } = {}) {
+  const payload = eventPayload(type, object, opts);
+  return post(app, payload, signedHeaders(payload));
+}
+
+function proSub(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "sub_1",
+    object: "subscription",
+    customer: "cus_123",
+    status: "active",
+    items: { data: [{ price: { id: PRICE_PRO_MONTHLY } }] },
+    ...overrides,
+  };
+}
+
+function foundersCheckout(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "cs_1",
+    object: "checkout.session",
+    mode: "payment",
+    payment_status: "paid",
+    customer: "cus_new",
+    client_reference_id: USER_ID,
+    customer_details: { email: "buyer@example.com" },
+    metadata: { ccc_price_id: PRICE_FOUNDERS },
+    ...overrides,
+  };
+}
 
 beforeEach(() => {
   process.env.CCC_STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET;
-  fakes = makeFakes();
-  app = createStripeWebhookApp(fakes.deps);
+  useFakes();
 });
 
 // ─── Signature validation ──────────────────────────────────────────────────
@@ -139,7 +243,7 @@ describe("stripe webhook signature validation", () => {
   });
 
   it("rejects a validly-signed but tampered payload", async () => {
-    const payload = eventPayload("customer.subscription.created", {});
+    const payload = eventPayload("customer.subscription.created", {}, { id: "evt_test_1" });
     const headers = signedHeaders(payload);
     const tampered = payload.replace("evt_test_1", "evt_evil_1");
     const res = await post(app, tampered, headers);
@@ -158,126 +262,280 @@ describe("stripe webhook signature validation", () => {
 
 // ─── Tier flips ────────────────────────────────────────────────────────────
 describe("stripe webhook tier flips", () => {
-  it("subscription.created with the pro monthly price flips tier to pro", async () => {
-    const payload = eventPayload("customer.subscription.created", {
-      id: "sub_1",
-      object: "subscription",
-      customer: "cus_123",
-      items: { data: [{ price: { id: PRICE_PRO_MONTHLY } }] },
-    });
-    const res = await post(app, payload, signedHeaders(payload));
+  it("subscription.created with the pro monthly price flips a linked user to pro", async () => {
+    const { users } = useFakes([makeUser({ customerId: "cus_123" })]);
+    const res = await send("customer.subscription.created", proSub());
     assert.equal(res.status, 200);
-    assert.deepEqual(fakes.calls, [
-      { fn: "setTierByCustomerId", args: ["cus_123", "pro"] },
-    ]);
+    assert.equal(users[0].tier, "pro");
+    assert.equal(users[0].stripeSubscriptionId, "sub_1");
+    assert.equal(users[0].subscriptionStatus, "active");
   });
 
   it("subscription.created with the pro yearly price flips tier to pro", async () => {
-    const payload = eventPayload("customer.subscription.created", {
-      id: "sub_2",
-      object: "subscription",
-      customer: "cus_456",
-      items: { data: [{ price: { id: PRICE_PRO_YEARLY } }] },
-    });
-    const res = await post(app, payload, signedHeaders(payload));
+    const { users } = useFakes([makeUser({ customerId: "cus_456" })]);
+    const res = await send(
+      "customer.subscription.created",
+      proSub({ id: "sub_2", customer: "cus_456", items: { data: [{ price: { id: PRICE_PRO_YEARLY } }] } })
+    );
     assert.equal(res.status, 200);
-    assert.deepEqual(fakes.calls, [
-      { fn: "setTierByCustomerId", args: ["cus_456", "pro"] },
-    ]);
+    assert.equal(users[0].tier, "pro");
   });
 
   it("subscription.created with an UNKNOWN price does NOT flip the tier", async () => {
-    const payload = eventPayload("customer.subscription.created", {
-      id: "sub_3",
-      object: "subscription",
-      customer: "cus_789",
-      items: { data: [{ price: { id: "price_someone_elses_product" } }] },
-    });
-    const res = await post(app, payload, signedHeaders(payload));
+    const { users, calls } = useFakes([makeUser({ customerId: "cus_789" })]);
+    const res = await send(
+      "customer.subscription.created",
+      proSub({ customer: "cus_789", items: { data: [{ price: { id: "price_someone_elses_product" } }] } })
+    );
     assert.equal(res.status, 200);
-    assert.equal(fakes.calls.length, 0);
+    assert.equal(users[0].tier, "free");
+    assert.deepEqual(calls.map((c) => c.fn), ["recordEventProcessed"]);
+  });
+
+  it("subscription.created with an incomplete status does not grant pro", async () => {
+    const { users } = useFakes([makeUser({ customerId: "cus_123" })]);
+    const res = await send("customer.subscription.created", proSub({ status: "incomplete" }));
+    assert.equal(res.status, 200);
+    assert.equal(users[0].tier, "free");
+  });
+
+  it("subscription.updated to active grants pro; to unpaid revokes it", async () => {
+    const { users } = useFakes([makeUser({ customerId: "cus_123" })]);
+    const t0 = Math.floor(Date.now() / 1000);
+    assert.equal((await send("customer.subscription.updated", proSub(), { created: t0 })).status, 200);
+    assert.equal(users[0].tier, "pro");
+    const unpaid = await send("customer.subscription.updated", proSub({ status: "unpaid" }), { created: t0 + 60 });
+    assert.equal(unpaid.status, 200);
+    assert.equal(users[0].tier, "free");
   });
 
   it("subscription.deleted flips a pro customer back to free", async () => {
-    const payload = eventPayload("customer.subscription.deleted", {
-      id: "sub_1",
-      object: "subscription",
-      customer: "cus_123",
-      items: { data: [{ price: { id: PRICE_PRO_MONTHLY } }] },
-    });
-    const res = await post(app, payload, signedHeaders(payload));
-    assert.equal(res.status, 200);
-    assert.deepEqual(fakes.calls, [
-      { fn: "getTierByCustomerId", args: ["cus_123"] },
-      { fn: "setTierByCustomerId", args: ["cus_123", "free"] },
+    const { users } = useFakes([
+      makeUser({ customerId: "cus_123", tier: "pro", stripeSubscriptionId: "sub_1" }),
     ]);
+    const res = await send("customer.subscription.deleted", proSub({ status: "canceled" }));
+    assert.equal(res.status, 200);
+    assert.equal(users[0].tier, "free");
   });
 
-  it("subscription.deleted NEVER downgrades a founders (lifetime) customer", async () => {
-    fakes = makeFakes("founders");
-    app = createStripeWebhookApp(fakes.deps);
-    const payload = eventPayload("customer.subscription.deleted", {
-      id: "sub_9",
-      object: "subscription",
-      customer: "cus_founder",
-    });
-    const res = await post(app, payload, signedHeaders(payload));
-    assert.equal(res.status, 200);
-    assert.deepEqual(fakes.calls, [{ fn: "getTierByCustomerId", args: ["cus_founder"] }]);
-  });
-
-  it("checkout.session.completed (payment mode, founders metadata) grants founders + links customer", async () => {
-    const payload = eventPayload("checkout.session.completed", {
-      id: "cs_1",
-      object: "checkout.session",
-      mode: "payment",
-      customer: "cus_new",
-      client_reference_id: "8a68e2f2-0000-4000-8000-000000000001",
-      customer_details: { email: "founder@example.com" },
-      metadata: { ccc_price_id: PRICE_FOUNDERS },
-    });
-    const res = await post(app, payload, signedHeaders(payload));
-    assert.equal(res.status, 200);
-    assert.deepEqual(fakes.calls, [
-      {
-        fn: "linkCustomer",
-        args: [
-          { userId: "8a68e2f2-0000-4000-8000-000000000001", email: "founder@example.com" },
-          "cus_new",
-        ],
-      },
-      { fn: "setTierByCustomerId", args: ["cus_new", "founders"] },
+  it("subscription.deleted for a superseded subscription keeps the current plan", async () => {
+    const { users } = useFakes([
+      makeUser({ customerId: "cus_123", tier: "pro", stripeSubscriptionId: "sub_new" }),
     ]);
+    const res = await send("customer.subscription.deleted", proSub({ id: "sub_old", status: "canceled" }));
+    assert.equal(res.status, 200);
+    assert.equal(users[0].tier, "pro");
   });
 
-  it("checkout.session.completed in subscription mode links the customer but leaves the flip to subscription.created", async () => {
-    const payload = eventPayload("checkout.session.completed", {
+  it("checkout in subscription mode links the customer; subscription.created then grants pro", async () => {
+    const { users } = useFakes([makeUser()]);
+    const res = await send("checkout.session.completed", {
       id: "cs_2",
       object: "checkout.session",
       mode: "subscription",
-      customer: "cus_sub",
-      client_reference_id: "8a68e2f2-0000-4000-8000-000000000002",
-      customer_details: { email: "pro@example.com" },
+      payment_status: "paid",
+      customer: "cus_123",
+      client_reference_id: USER_ID,
+      customer_details: { email: "buyer@example.com" },
     });
-    const res = await post(app, payload, signedHeaders(payload));
     assert.equal(res.status, 200);
-    assert.deepEqual(fakes.calls, [
-      {
-        fn: "linkCustomer",
-        args: [
-          { userId: "8a68e2f2-0000-4000-8000-000000000002", email: "pro@example.com" },
-          "cus_sub",
-        ],
-      },
-    ]);
+    assert.equal(users[0].customerId, "cus_123");
+    assert.equal(users[0].tier, "free", "the flip is left to the subscription event");
+    assert.equal((await send("customer.subscription.created", proSub())).status, 200);
+    assert.equal(users[0].tier, "pro");
   });
 
-  it("unhandled event types are acknowledged with 200 and no DB writes", async () => {
-    const payload = eventPayload("invoice.paid", { id: "in_1", object: "invoice" });
-    const res = await post(app, payload, signedHeaders(payload));
+  it("checkout links by checkout email when client_reference_id is absent", async () => {
+    const { users } = useFakes([makeUser()]);
+    const res = await send("checkout.session.completed", {
+      id: "cs_3",
+      object: "checkout.session",
+      mode: "subscription",
+      customer: "cus_mail",
+      customer_details: { email: "buyer@example.com" },
+    });
+    assert.equal(res.status, 200);
+    assert.equal(users[0].customerId, "cus_mail");
+  });
+
+  it("unhandled event types are acknowledged with 200 and no entitlement writes", async () => {
+    const res = await send("invoice.paid", { id: "in_1", object: "invoice" });
     assert.equal(res.status, 200);
     const body = (await res.json()) as { received: boolean };
     assert.equal(body.received, true);
-    assert.equal(fakes.calls.length, 0);
+    assert.deepEqual(fakes.calls.map((c) => c.fn), ["recordEventProcessed"]);
+  });
+});
+
+// ─── Ordering + failure handling (Codex audit #06) ─────────────────────────
+describe("stripe webhook ordering and failures", () => {
+  it("subscription.created BEFORE the customer is linked answers non-2xx, then succeeds on retry", async () => {
+    const { users, processed } = useFakes([makeUser()]);
+    const subPayload = eventPayload("customer.subscription.created", proSub(), { id: "evt_sub_early" });
+
+    const early = await post(app, subPayload, signedHeaders(subPayload));
+    assert.equal(early.status, 409, "Stripe must retry an unlinked subscription");
+    assert.equal(users[0].tier, "free");
+    assert.equal(processed.has("evt_sub_early"), false, "a failed event is not recorded");
+
+    const link = await send("checkout.session.completed", {
+      id: "cs_4",
+      object: "checkout.session",
+      mode: "subscription",
+      customer: "cus_123",
+      client_reference_id: USER_ID,
+    });
+    assert.equal(link.status, 200);
+
+    const retry = await post(app, subPayload, signedHeaders(subPayload));
+    assert.equal(retry.status, 200);
+    assert.equal(users[0].tier, "pro");
+    assert.equal(processed.has("evt_sub_early"), true);
+  });
+
+  it("a subscription-mode checkout with no matching user answers non-2xx", async () => {
+    useFakes([]);
+    const res = await send("checkout.session.completed", {
+      id: "cs_5",
+      object: "checkout.session",
+      mode: "subscription",
+      customer: "cus_nobody",
+      customer_details: { email: "nobody@example.com" },
+    });
+    assert.equal(res.status, 409);
+  });
+
+  it("a database failure answers 500 and leaves the event unrecorded", async () => {
+    const { processed } = useFakes([makeUser({ customerId: "cus_123" })], { failWrites: true });
+    const res = await send("customer.subscription.created", proSub(), { id: "evt_db_down" });
+    assert.equal(res.status, 500);
+    const body = (await res.json()) as { error: string };
+    assert.equal(body.error, "Webhook handler error", "internals are not leaked");
+    assert.equal(processed.has("evt_db_down"), false);
+  });
+
+  it("a founders grant that fails to write answers 500, not 200", async () => {
+    useFakes([makeUser()], { failWrites: true });
+    const res = await send("checkout.session.completed", foundersCheckout({ customer: null }));
+    assert.equal(res.status, 500);
+  });
+
+  it("a failing event-store write answers 500 so Stripe redelivers", async () => {
+    useFakes([makeUser({ customerId: "cus_123" })]);
+    app = createStripeWebhookApp({
+      ...fakes.deps,
+      recordEventProcessed: async () => {
+        throw new Error("fake: stripe_events down");
+      },
+    });
+    const res = await send("customer.subscription.created", proSub());
+    assert.equal(res.status, 500);
+  });
+
+  it("a redelivered event that already succeeded is acknowledged without side effects", async () => {
+    const { calls } = useFakes([makeUser({ customerId: "cus_123" })]);
+    const payload = eventPayload("customer.subscription.created", proSub(), { id: "evt_dup" });
+    assert.equal((await post(app, payload, signedHeaders(payload))).status, 200);
+    const writes = calls.length;
+    const again = await post(app, payload, signedHeaders(payload));
+    assert.equal(again.status, 200);
+    assert.deepEqual(await again.json(), { received: true, duplicate: true });
+    assert.equal(calls.length, writes, "no second write");
+  });
+
+  it("a stale subscription event cannot resurrect a cancelled plan", async () => {
+    const { users } = useFakes([makeUser({ customerId: "cus_123" })]);
+    const t0 = Math.floor(Date.now() / 1000);
+    const deleted = await send("customer.subscription.deleted", proSub({ status: "canceled" }), { created: t0 });
+    assert.equal(deleted.status, 200);
+    // The earlier created event is redelivered after the deletion.
+    const late = await send("customer.subscription.created", proSub(), { created: t0 - 3600 });
+    assert.equal(late.status, 200);
+    assert.equal(users[0].tier, "free");
+  });
+
+  it("a paid founders checkout with no matching user answers non-2xx", async () => {
+    const { processed } = useFakes([]);
+    const res = await send("checkout.session.completed", foundersCheckout(), { id: "evt_orphan" });
+    assert.equal(res.status, 409);
+    assert.equal(processed.has("evt_orphan"), false);
+  });
+});
+
+// ─── Founders (lifetime) preservation ──────────────────────────────────────
+describe("stripe webhook founders", () => {
+  it("a settled founders checkout grants founders and links the customer", async () => {
+    const { users } = useFakes([makeUser()]);
+    const res = await send("checkout.session.completed", foundersCheckout());
+    assert.equal(res.status, 200);
+    assert.equal(users[0].tier, "founders");
+    assert.equal(users[0].customerId, "cus_new");
+    assert.ok(users[0].foundersGrantedAt, "the lifetime grant is recorded independently");
+  });
+
+  it("an UNPAID founders checkout grants nothing until async_payment_succeeded", async () => {
+    const { users } = useFakes([makeUser()]);
+    const pending = await send("checkout.session.completed", foundersCheckout({ payment_status: "unpaid" }));
+    assert.equal(pending.status, 200);
+    assert.equal(users[0].tier, "free");
+    const settled = await send("checkout.session.async_payment_succeeded", foundersCheckout());
+    assert.equal(settled.status, 200);
+    assert.equal(users[0].tier, "founders");
+  });
+
+  it("founders metadata on a subscription-mode checkout does not grant founders", async () => {
+    const { users } = useFakes([makeUser()]);
+    const res = await send("checkout.session.completed", foundersCheckout({ mode: "subscription" }));
+    assert.equal(res.status, 200);
+    assert.equal(users[0].tier, "free");
+  });
+
+  it("subscription.created NEVER overwrites a founders tier", async () => {
+    const { users } = useFakes([
+      makeUser({ customerId: "cus_123", tier: "founders", foundersGrantedAt: "2026-01-01T00:00:00.000Z" }),
+    ]);
+    const res = await send("customer.subscription.created", proSub());
+    assert.equal(res.status, 200);
+    assert.equal(users[0].tier, "founders");
+    assert.equal(users[0].stripeSubscriptionId, "sub_1", "subscription state is still tracked");
+  });
+
+  it("subscription.deleted NEVER downgrades a founders (lifetime) customer", async () => {
+    const { users } = useFakes([
+      makeUser({ customerId: "cus_founder", tier: "founders", stripeSubscriptionId: "sub_9" }),
+    ]);
+    const res = await send(
+      "customer.subscription.deleted",
+      proSub({ id: "sub_9", customer: "cus_founder", status: "canceled" })
+    );
+    assert.equal(res.status, 200);
+    assert.equal(users[0].tier, "founders");
+  });
+
+  it("a pro subscriber who buys founders stays founders after cancelling pro", async () => {
+    const { users } = useFakes([makeUser({ customerId: "cus_123" })]);
+    const t0 = Math.floor(Date.now() / 1000);
+    await send("customer.subscription.created", proSub(), { created: t0 });
+    assert.equal(users[0].tier, "pro");
+    await send("checkout.session.completed", foundersCheckout({ customer: "cus_123" }), { created: t0 + 10 });
+    assert.equal(users[0].tier, "founders");
+    await send("customer.subscription.deleted", proSub({ status: "canceled" }), { created: t0 + 20 });
+    assert.equal(users[0].tier, "founders");
+  });
+
+  it("a redelivered founders checkout keeps the original grant time", async () => {
+    const { users } = useFakes([
+      makeUser({ customerId: "cus_new", tier: "founders", foundersGrantedAt: "2026-01-01T00:00:00.000Z" }),
+    ]);
+    const res = await send("checkout.session.completed", foundersCheckout());
+    assert.equal(res.status, 200);
+    assert.equal(users[0].foundersGrantedAt, "2026-01-01T00:00:00.000Z");
+  });
+
+  it("tierAfterSubscription leaves a lifetime grant alone", () => {
+    assert.equal(tierAfterSubscription({ tier: "pro", foundersGrantedAt: "2026-01-01T00:00:00Z" }, false), null);
+    assert.equal(tierAfterSubscription({ tier: "founders", foundersGrantedAt: null }, true), null);
+    assert.equal(tierAfterSubscription({ tier: "free", foundersGrantedAt: null }, true), "pro");
+    assert.equal(tierAfterSubscription({ tier: "pro", foundersGrantedAt: null }, false), "free");
   });
 });
