@@ -21,6 +21,8 @@ do $$ begin
   assert (select count(*) from pg_proc where proname = 'reserve_call') = 1, 'one reserve_call overload';
   assert to_regprocedure('public.reserve_call(text,text,integer)') is not null, 'reserve_call(text,text,integer)';
   assert to_regclass('public.stripe_event_claims') is not null, 'claims table';
+  assert to_regprocedure('public.complete_stripe_event(text,text)') is null, 'tokenless complete is gone';
+  assert to_regprocedure('public.release_stripe_event(text)') is null, 'tokenless release is gone';
 end $$;
 
 -- effective privileges: service_role only, for every new function (audit #08)
@@ -32,8 +34,8 @@ begin
   foreach f in array array[
     'public.reserve_call(text,text,integer)',
     'public.claim_stripe_event(text,text,integer)',
-    'public.complete_stripe_event(text,text)',
-    'public.release_stripe_event(text)',
+    'public.complete_stripe_event(text,text,uuid)',
+    'public.release_stripe_event(text,uuid)',
     'public.apply_stripe_subscription(text,text,text,timestamptz,boolean,boolean)'
   ] loop
     foreach r in array array['anon', 'authenticated'] loop
@@ -52,7 +54,8 @@ end $$;
 
 select pg_temp.expect_denied($q$select * from public.reserve_call('u-free', '2026-12', 10)$q$, 'anon');
 select pg_temp.expect_denied($q$select * from public.reserve_call('u-free', '2026-12', 10)$q$, 'authenticated');
-select pg_temp.expect_denied($q$select public.claim_stripe_event('evt_x', 'x')$q$, 'authenticated');
+select pg_temp.expect_denied($q$select * from public.claim_stripe_event('evt_x', 'x')$q$, 'authenticated');
+select pg_temp.expect_denied($q$select public.release_stripe_event('evt_x', gen_random_uuid())$q$, 'authenticated');
 select pg_temp.expect_denied($q$select * from public.apply_stripe_subscription('u-free', 's', 'active', now(), true, false)$q$, 'authenticated');
 select pg_temp.expect_denied($q$select * from public.stripe_event_claims$q$, 'anon');
 
@@ -83,20 +86,49 @@ commit;
 -- Stripe event claims
 begin;
 set local role service_role;
-do $$ begin
-  assert public.claim_stripe_event('evt_c1', 'customer.subscription.updated') = 'claimed', 'first claim';
-  assert public.claim_stripe_event('evt_c1', 'customer.subscription.updated') = 'in_flight', 'second claim while live';
-  perform public.release_stripe_event('evt_c1');
-  assert public.claim_stripe_event('evt_c1', 'customer.subscription.updated') = 'claimed', 'claim after release';
-  perform public.complete_stripe_event('evt_c1', 'customer.subscription.updated');
-  assert public.claim_stripe_event('evt_c1', 'customer.subscription.updated') = 'processed', 'processed after complete';
+do $$
+declare
+  c record;
+  t1 uuid;
+  t2 uuid;
+begin
+  select * into c from public.claim_stripe_event('evt_c1', 'customer.subscription.updated');
+  assert c.status = 'claimed' and c.claim_token is not null, 'first claim returns a token';
+  t1 := c.claim_token;
+  select * into c from public.claim_stripe_event('evt_c1', 'customer.subscription.updated');
+  assert c.status = 'in_flight' and c.claim_token is null, 'second claim while live';
+  assert not public.release_stripe_event('evt_c1', gen_random_uuid()), 'a wrong token cannot release';
+  select * into c from public.claim_stripe_event('evt_c1', 'customer.subscription.updated');
+  assert c.status = 'in_flight', 'claim survives a wrong-token release';
+  assert public.release_stripe_event('evt_c1', t1), 'owner releases';
+  select * into c from public.claim_stripe_event('evt_c1', 'customer.subscription.updated');
+  assert c.status = 'claimed' and c.claim_token <> t1, 'claim after release gets a new token';
+  t2 := c.claim_token;
+  assert not public.complete_stripe_event('evt_c1', 'customer.subscription.updated', t1), 'stale token cannot complete';
+  assert not exists (select 1 from public.stripe_events where event_id = 'evt_c1'), 'stale complete records nothing';
+  assert public.complete_stripe_event('evt_c1', 'customer.subscription.updated', t2), 'owner completes';
+  select * into c from public.claim_stripe_event('evt_c1', 'customer.subscription.updated');
+  assert c.status = 'processed' and c.claim_token is null, 'processed after complete';
   assert not exists (select 1 from public.stripe_event_claims where event_id = 'evt_c1'), 'claim dropped on complete';
-  assert public.claim_stripe_event('evt_1', 'x') = 'processed', 'pre-existing stripe_events row counts as processed';
-  -- a crashed worker's claim is taken over after the lease
-  assert public.claim_stripe_event('evt_c2', 'x') = 'claimed', 'claim c2';
+  select * into c from public.claim_stripe_event('evt_1', 'x');
+  assert c.status = 'processed', 'pre-existing stripe_events row counts as processed';
+
+  -- a crashed worker's claim is taken over after the lease, and the first
+  -- worker can then neither release nor complete the replacement claim
+  select * into c from public.claim_stripe_event('evt_c2', 'x');
+  assert c.status = 'claimed', 'claim c2';
+  t1 := c.claim_token;
   update public.stripe_event_claims set claimed_at = now() - interval '10 minutes' where event_id = 'evt_c2';
-  assert public.claim_stripe_event('evt_c2', 'x') = 'claimed', 'expired claim taken over';
-  assert public.claim_stripe_event('evt_c2', 'x') = 'in_flight', 'renewed claim is live';
+  select * into c from public.claim_stripe_event('evt_c2', 'x');
+  assert c.status = 'claimed' and c.claim_token <> t1, 'expired claim taken over with a new token';
+  t2 := c.claim_token;
+  assert not public.release_stripe_event('evt_c2', t1), 'expired owner cannot release the takeover';
+  select * into c from public.claim_stripe_event('evt_c2', 'x');
+  assert c.status = 'in_flight', 'renewed claim is live after the late release';
+  assert not public.complete_stripe_event('evt_c2', 'x', t1), 'expired owner cannot complete the takeover';
+  assert (select claim_token from public.stripe_event_claims where event_id = 'evt_c2') = t2, 'takeover claim intact';
+  assert not exists (select 1 from public.stripe_events where event_id = 'evt_c2'), 'late complete records nothing';
+  assert public.complete_stripe_event('evt_c2', 'x', t2), 'current owner completes';
 end $$;
 commit;
 

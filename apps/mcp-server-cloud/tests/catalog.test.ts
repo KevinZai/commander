@@ -353,6 +353,43 @@ describe("license notices travel with served skills", () => {
     assert.equal(plain.license, undefined);
   });
 
+  it("emits an install hint only for a top-level skills/<name>/SKILL.md source", async () => {
+    const { getSkill, cliInstallName } = await import("../src/tools/get-skill.js");
+    assert.equal(cliInstallName("skills/ab-test-setup/SKILL.md"), "ab-test-setup");
+    assert.equal(cliInstallName("skills/ccc-devops/performance-monitoring/SKILL.md"), null, "nested pack skill");
+    assert.equal(cliInstallName("commander/cowork-plugin/skills/ccc-data/SKILL.md"), null, "plugin skill");
+    assert.equal(cliInstallName("skills/Mixed_Case/SKILL.md"), null, "name kc.js rejects");
+    assert.equal(cliInstallName("skills/ab-test-setup/README.md"), null);
+    assert.equal(cliInstallName("x/skills/ab-test-setup/SKILL.md"), null);
+
+    const repo = makeRepo();
+    tempDirs.push(repo);
+    const dataDir = tmp("ccc-catalog-hint-");
+    bundler.bundleCatalog({ repoRoot: repo, dataDir });
+    process.env.COMMANDER_CATALOG_DIR = dataDir;
+    await registry.reloadRegistry();
+
+    const top = await getSkill({ name: "ecosystem/ab-test-setup" });
+    assert.match(String(top.installHint), /ccc --skills install ab-test-setup\./);
+
+    // `ccc --skills install ccc-data` would link the ecosystem skills/ccc-data,
+    // not this plugin skill: no hint, the pinned source link only.
+    const plugin = await getSkill({ name: "plugin/ccc-data" });
+    assert.equal(plugin.path, "commander/cowork-plugin/skills/ccc-data/SKILL.md");
+    assert.equal("installHint" in plugin, false);
+    assert.match(String(plugin.githubUrl), /commander\/cowork-plugin\/skills\/ccc-data\/SKILL\.md$/);
+
+    // Nested pack skill: kc.js only looks under top-level skills/<name>.
+    const nested = await getSkill({ name: "ecosystem/ccc-devops/performance-monitoring" });
+    assert.equal("installHint" in nested, false);
+    assert.match(String(nested.githubUrl), /skills\/ccc-devops\/performance-monitoring\/SKILL\.md$/);
+
+    // Listed as skills/ccc-build but resolved under the plugin root.
+    const resolved = await getSkill({ name: "ccc-build" });
+    assert.equal(resolved.path, "commander/cowork-plugin/skills/ccc-build/SKILL.md");
+    assert.equal("installHint" in resolved, false);
+  });
+
   it("never turns a missing body into install instructions", async () => {
     const repo = makeRepo();
     tempDirs.push(repo);

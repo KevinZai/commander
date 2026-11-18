@@ -9,12 +9,14 @@
   },
   "weekly_active_installs": 0,
   "activation": {
+    "available": false,
+    "reason": "first_result goes to the hosted /v1/events endpoint, which keeps only a process-local counter and discards the event; no retained aggregate exists for this report to read.",
     "window_days": 30,
-    "installs": 0,
-    "first_results": 0,
+    "installs": null,
+    "first_results": null,
     "rate": null,
     "median_seconds_to_first_result": null,
-    "by_skill": []
+    "by_skill": null
   },
   "top_skills": [],
   "top_agents": [],
