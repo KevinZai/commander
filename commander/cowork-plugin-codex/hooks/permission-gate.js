@@ -59,6 +59,8 @@ const READ_ONLY_TOOLS = new Set([
 
 // The home directory as a literal operand, e.g. `rm -rf /Users/me` (escaped for a RegExp; empty when unknown or /).
 const HOME_LITERAL = (() => { try { return (process.env.HOME || homedir() || '').replace(/\/+$/, ''); } catch { return ''; } })();
+// One rm operand: quoted segments and backslash escapes are part of the word, so "a&b", 'a;b' or a\&b do not end it.
+const RM_WORD = String.raw`(?:'[^']*'|"[^"\\]*(?:\\.[^"\\]*)*"|\\.|[^\s;&|'"\\])+`;
 // Case-insensitive volumes (macOS, Windows): /Users/Me is the same directory as /Users/me.
 const HOME_FLAGS = process.platform === 'darwin' || process.platform === 'win32' ? 'i' : '';
 const HOME_ALT = HOME_LITERAL ? '|' + HOME_LITERAL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\/?\\*?' : '';
@@ -73,8 +75,8 @@ const DANGEROUS_PATTERNS = [
   // anywhere in a segment counts, whatever comes before it (a newline, then/do, sudo -u root, timeout 5, eval), so
   // a search that quotes "rm -rf" next to ~ is also denied and must be run by hand. The bounded word count and the
   // lookahead gate keep matching linear on long inputs. Home also matches written out in full (/Users/me).
-  new RegExp(String.raw`(?<![\w./-])(?=(?:\/(?:[\w.-]+\/)*)?rm\s)(?:\/(?:[\w.-]+\/)*)?rm\s+(?:(?:[^\s;&|]+\s+){0,64}?["']?(?:\/\*?|~\/?\*?|\$\{?HOME\}?\/?\*?` +
-    HOME_ALT + String.raw`)["']?(?=\s|$|[;&|)<>])|(?:[^\s;&|]+\s+){64})`, HOME_FLAGS),
+  new RegExp(String.raw`(?<![\w./-])(?=(?:[\w.-]*\/)*rm\s)(?:[\w.-]*\/)*rm\s+(?:(?:${RM_WORD}\s+){0,64}?["']?(?:\/\*?|~\/?\*?|\$\{?HOME\}?\/?\*?` +
+    HOME_ALT + String.raw`)["']?(?=\s|$|[;&|)<>])|(?:${RM_WORD}\s+){64})`, HOME_FLAGS),
   /git\s+push\s+--force/,   // kept as-is so nothing denied before CC-654 is allowed now
   // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
   // `git` starts a word (a path like /usr/bin/git or a quoted `sh -c "git ..."` counts) and only global options

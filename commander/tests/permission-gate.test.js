@@ -299,7 +299,8 @@ describe('permission-gate: dangerous operations → always reject', () => {
       'cd x && rm -rf ~', 'bash -c "rm -rf /"', 'FOO=1 sudo -E rm -rf /', 'echo hi | xargs rm -rf ~', 'x=$(rm -rf /)',
       'cd /tmp\nrm -rf /', 'echo start\nrm -rf ~', 'if x; then rm -rf ~; fi', 'for d in a; do rm -rf /; done', '! rm -rf ~',
       'sudo -u root rm -rf /', 'nice -n 10 rm -rf ~', 'timeout 5 rm -rf ~', 'eval rm -rf ~', 'eval "rm -rf ~"', 'watch rm -rf ~',
-      'rm -rf ~>/dev/null', 'rm -rf /<input', 'rm -rf "$HOME">log']) {
+      'rm -rf ~>/dev/null', 'rm -rf /<input', 'rm -rf "$HOME">log',
+      'rm -rf "a&b" ~', "rm -rf 'a;b' ~", 'rm -rf "a|b" /', 'rm -rf a\\&b ~', './rm -rf ~', 'bin/rm -rf /']) {
       const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'test-session-dangerous-001' });
       assert.equal(r.exitCode, 0, `Deny must exit 0 (stdout on exit 1 is discarded), got ${r.exitCode}`);
       const decision = r.parsed?.hookSpecificOutput?.decision;

@@ -893,6 +893,11 @@ function held(e) { return !e.abs && e.type !== 'mcp-server' && heldDirs.some(fun
 // ── Prune: entries a previous install wrote in these groups that this install no longer writes ──
 (prev.entries || []).forEach(function(e) {
   if (!groups.has(e.group) || ops.has(keyOf(e)) || held(e)) return;
+  // A ccc link from an earlier CCC_BIN_DIR may serve another profile, so it is never pruned, only named (Codex #298).
+  if (e.abs && e.type === 'symlink' && path.basename(e.abs) === 'ccc') {
+    stats.conflicts.push(e.abs + ' (the previous ccc command; kept in case another profile uses it)');
+    return;
+  }
   if (!inRoot(e)) { stats.conflicts.push(e.path + ' (its parent now resolves outside the config dir; left alone)'); return; }
   var r = removeOwned(e);
   if (r === 'kept') stats.keptModified++;
