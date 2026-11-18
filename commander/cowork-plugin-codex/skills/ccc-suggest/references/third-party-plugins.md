@@ -23,6 +23,7 @@ Install steps to name:
 | Research | `context7` | Current library documentation | bundled MCP |
 | Research | `claude-video` | The user shares a video or screen recording; `/watch` gives frames and a transcript (Code sessions, not Cowork) | opt-in (`skills/claude-video`) |
 | Code map | `codebase-memory-mcp` | Unfamiliar or large repo, call tracing, change impact, test selection; preferred over graphify when connected | opt-in MCP (`skills/codebase-memory-mcp`, `/ccc-connect`) |
+| Code map | `understand-anything` | An interactive knowledge-graph dashboard and guided tour of a codebase or docs folder, for onboarding a person rather than the agent; overlaps codebase-memory-mcp and graphify, so name it only when the user wants a visual tour. Its analysis runs through the agent's own model | opt-in (`/plugin marketplace add Egonex-AI/Understand-Anything`, then `/plugin install understand-anything@understand-anything`) |
 | Browsing | `dev-browser` | A real browser for agents | opt-in |
 | Planning | `planning-with-files` | Persistent markdown planning; complements `/ccc-plan` | opt-in |
 | Planning | `bmad-method` | Agile-style multi-role planning | opt-in |
