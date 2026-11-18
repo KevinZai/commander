@@ -30,6 +30,7 @@ Each lives at `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` and sets `disable-model
 | Sub-skill | Use for | Not for |
 |---|---|---|
 | `security-audit` | Full audit: SAST, DAST, manual review, threat modeling | A single checklist |
+| `cloudflare-security-audit` | Source-first vulnerability research with strict sandbox rules, a coverage ledger and a validated findings report (Cloudflare, MIT) | Scanner setup or a quick checklist |
 | `prompt-injection-defense` | Prompt injection, jailbreaks and LLM-specific attack vectors | Non-AI code paths |
 | `dependency-audit` | npm, pip, cargo and other dependencies: CVEs, licenses, supply chain | Credentials in code |
 | `secrets-scanner` | Hardcoded secrets, API keys, tokens and passwords, with remediation | Package vulnerabilities |
@@ -42,7 +43,7 @@ Campaigns (pre-launch review, AI application security, incident response, contin
 
 ## What happens
 
-1. **Classify the request.** An argument or an unambiguous request maps to one row above (`audit` → `security-audit`, `deps` → `dependency-audit`, `secrets` → `secrets-scanner`, `owasp` → `owasp-top-10`, `codeql` → `codeql-integration`, `variants` → `variant-analysis`, `incident` → `incident-response`). An active breach routes to `incident-response` without a picker. Otherwise go to Decision points.
+1. **Classify the request.** An argument or an unambiguous request maps to one row above (`audit` → `security-audit`, `deep-audit` or a pen test of the codebase → `cloudflare-security-audit`, `deps` → `dependency-audit`, `secrets` → `secrets-scanner`, `owasp` → `owasp-top-10`, `codeql` → `codeql-integration`, `variants` → `variant-analysis`, `incident` → `incident-response`). An active breach routes to `incident-response` without a picker. Otherwise go to Decision points.
 
 2. **Confirm scope** in one message: files or whole repository, vulnerability class, and stack. Read the manifest files that exist to name the stack:
 

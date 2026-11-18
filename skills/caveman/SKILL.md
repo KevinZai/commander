@@ -99,5 +99,5 @@ Based on benchmarks from JuliusBrussee/caveman:
 
 ## Attribution
 
-Based on [caveman](https://github.com/JuliusBrussee/caveman) by Julius Brussee (MIT license).
+Based on [caveman](https://github.com/JuliusBrussee/caveman) by Julius Brussee, from the MIT-licensed releases (2026-04-04 to 2026-09-24; MIT text in `LICENSE.txt`). Upstream is Apache-2.0 since 2026-09-24, so later upstream changes are not synced here.
 Integrated into CC Commander by Kevin Z.
