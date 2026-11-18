@@ -14,7 +14,7 @@ disable-model-invocation: true
 
 **CC Commander** · /ccc-babysit-pr · a watched PR, verified feedback handling and a ready report backed by local proof.
 
-> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/babysit-pr/SKILL.md` at `92e38e2cf677a84a142e8df296861c588542135c`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
+> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/babysit-pr/SKILL.md` at `11e37a74d0a6868c121cd0910ab2b3bd9873b92a`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
 
 Many repos have AI review bots. They help, even when they are not always right. The user's selected model is preserved. Upstream also supports T3 Code's native watcher; it is not used here. Codex: ask pickers as plain-text questions.
 

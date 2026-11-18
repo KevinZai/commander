@@ -16,7 +16,7 @@ disable-model-invocation: true
 
 **CC Commander** · $ccc-takeover · own someone else's unfinished work, verify it, and finish it with credit intact.
 
-> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/takeover/SKILL.md` at `92e38e2cf677a84a142e8df296861c588542135c`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
+> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/takeover/SKILL.md` at `11e37a74d0a6868c121cd0910ab2b3bd9873b92a`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
 
 Take responsibility for the original goal. Do not defend an implementation just because another agent built it.
 

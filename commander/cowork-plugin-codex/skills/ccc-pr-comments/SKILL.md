@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 **CC Commander** · $ccc-pr-comments · every comment posted for the user carries a clear attribution note and a direct reply.
 
-> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/leaving-pr-comments/SKILL.md` at `92e38e2cf677a84a142e8df296861c588542135c`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
+> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/leaving-pr-comments/SKILL.md` at `11e37a74d0a6868c121cd0910ab2b3bd9873b92a`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
 
 This skill is a format reference. Other PR skills read it; it is not auto-invoked. Codex: ask any question below as a plain-text question.
 

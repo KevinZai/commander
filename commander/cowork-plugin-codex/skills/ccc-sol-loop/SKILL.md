@@ -19,7 +19,7 @@ disable-model-invocation: true
 
 **CC Commander** · $ccc-sol-loop · an OpenAI reviewer checks your change in a loop with a ledger, a round budget and minimal fixes.
 
-> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/sol-loop/SKILL.md` at `92e38e2cf677a84a142e8df296861c588542135c`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
+> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/sol-loop/SKILL.md` at `11e37a74d0a6868c121cd0910ab2b3bd9873b92a`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
 
 Make the most minimal changes that satisfy the reviewer. Watch for scope creep and push back when a finding is out of scope. The user's session model stays in place; only the reviewer is a different model.
 

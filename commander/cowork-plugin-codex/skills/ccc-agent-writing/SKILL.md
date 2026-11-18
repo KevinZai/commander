@@ -129,7 +129,7 @@ Delivery (step 6):
 
 ---
 
-_Adapted from [superpowers/writing-skills](https://github.com/nicholasgasior/superpowers) — MIT licensed._
+_Originally adapted from [obra/superpowers](https://github.com/obra/superpowers) `writing-skills` (MIT); since rewritten for technical documents._
 
 ---
 

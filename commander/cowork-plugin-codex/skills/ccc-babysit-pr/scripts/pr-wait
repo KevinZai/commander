@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Adapted from t3dotgg/tstack skills/babysit-pr/scripts/pr-wait at
-# 92e38e2cf677a84a142e8df296861c588542135c. MIT, Copyright (c) 2026 Theo Browne;
+# 11e37a74d0a6868c121cd0910ab2b3bd9873b92a. MIT, Copyright (c) 2026 Theo Browne;
 # see ../LICENSE.txt. CC Commander change marked "CCC safety:".
 """pr-wait: watch one GitHub pull request and print one line per real event.
 
