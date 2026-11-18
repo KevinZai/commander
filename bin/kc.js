@@ -649,8 +649,13 @@ if (args.includes('--template')) {
 if (args.includes('--daemon')) {
   dispatching = true; // prevent interactive launch
   var daemon = require(path.join(__dirname, '..', 'commander', 'daemon'));
-  var running = daemon.isRunning();
-  if (running) { console.log('Daemon already running (PID ' + running + '). Use --daemon-stop first.'); process.exit(1); }
+  var blocker = daemon.startBlocker();
+  if (blocker && blocker.reason === 'running') { console.log('Daemon already running (PID ' + blocker.pid + '). Use --daemon-stop first.'); process.exit(1); }
+  if (blocker) {
+    console.log('A process with PID ' + blocker.pid + ' is recorded in ' + daemon.PID_FILE + ' by an older CC Commander, and it is still alive.');
+    console.log('It may be a daemon still consuming the queue, so a second one is not started. Stop it (kill ' + blocker.pid + ') or, if it is not a daemon, delete the PID file.');
+    process.exit(1);
+  }
   daemon.start({
     interval: args.includes('--interval') ? parseInt(args[args.indexOf('--interval') + 1]) * 1000 : 300000,
     budget: args.includes('--tick-budget') ? parseInt(args[args.indexOf('--tick-budget') + 1]) * 1000 : 15000,

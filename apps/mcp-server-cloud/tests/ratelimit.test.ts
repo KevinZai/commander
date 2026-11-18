@@ -206,6 +206,16 @@ describe("what counts as a billable call", () => {
     assert.equal(state.reserveCalls, 0);
   });
 
+  it("lets a user delete stored notes at the monthly cap, without billing", async () => {
+    state.callsUsed = 1000; // at the cap
+    const del = { jsonrpc: "2.0", id: 9, method: "tools/call", params: { name: "commander_notes_pin", arguments: { action: "delete" } } };
+    assert.equal((await post(del)).status, 200);
+    assert.equal((await post({ tool: "commander_notes_pin", args: { action: "delete" } })).status, 200);
+    assert.equal(state.reserveCalls, 0);
+    const pin = { jsonrpc: "2.0", id: 10, method: "tools/call", params: { name: "commander_notes_pin", arguments: { note: "x" } } };
+    assert.equal((await post(pin)).status, 429, "pinning is still billed");
+  });
+
   it("does not bill a GET (SSE handshake)", async () => {
     const res = await mkApp().fetch(new Request("http://test/"));
     assert.equal(res.status, 200);

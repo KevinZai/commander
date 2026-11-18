@@ -154,6 +154,20 @@ export function validateCallBody(body: unknown): CallRequest {
 // ─── What counts as a billable call ─────────────────────────────────────────
 const KNOWN_TOOLS = new Set<string>(TOOL_NAMES);
 
+/** Deleting your stored notes is a privacy right, not usage: it is never billed and never blocked by the
+ *  monthly cap (Codex audit, notes deletion at the cap). Burst limiting still applies. */
+function isUnbilledOperation(tool: string, args: unknown): boolean {
+  return (
+    tool === "commander_notes_pin" &&
+    !!args && typeof args === "object" && !Array.isArray(args) &&
+    (args as Record<string, unknown>).action === "delete"
+  );
+}
+
+function billedTool(tool: unknown, args: unknown): number {
+  return typeof tool === "string" && KNOWN_TOOLS.has(tool) && !isUnbilledOperation(tool, args) ? 1 : 0;
+}
+
 /** Which dispatcher will handle the body: the /v1 REST handler or the /mcp streamable transport. */
 export type Transport = "v1" | "mcp";
 
@@ -162,7 +176,7 @@ function mcpToolCalls(message: unknown): number {
   const m = message as Record<string, unknown>;
   if (m.jsonrpc !== "2.0" || m.method !== "tools/call") return 0;
   const params = m.params as Record<string, unknown> | undefined;
-  return typeof params?.name === "string" && KNOWN_TOOLS.has(params.name) ? 1 : 0;
+  return billedTool(params?.name, params?.arguments ?? params?.args);
 }
 
 /**
@@ -175,7 +189,7 @@ function mcpToolCalls(message: unknown): number {
 export function billableCalls(transport: Transport, body: unknown): number {
   if (transport === "v1") {
     const v = validateCallBody(body);
-    return v.ok && v.kind === "call" && KNOWN_TOOLS.has(v.tool) ? 1 : 0;
+    return v.ok && v.kind === "call" ? billedTool(v.tool, v.args) : 0;
   }
   if (Array.isArray(body)) return body.reduce((n: number, m) => n + mcpToolCalls(m), 0);
   return mcpToolCalls(body);

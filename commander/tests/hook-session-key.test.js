@@ -116,6 +116,21 @@ describe('SessionEnd hooks are order-independent', () => {
     assert.equal(rec.startedAt, '2026-10-26T12:00:00.000Z');
   });
 
+  it('a resumed session that ends twice in one day keeps both archives; the canonical name holds the latest', () => {
+    seed('twice-a-day', '2026-10-26T15:00:00.000Z');
+    fs.writeFileSync(path.join(SESSIONS, 'active-cost-twice-a-day.json'), JSON.stringify({ sessionId: 'twice-a-day', toolCalls: 7, estimatedCost: 0 }));
+    runHook('session-save.js', { session_id: 'twice-a-day', hook_event_name: 'SessionEnd' });
+    seed('twice-a-day', '2026-10-26T16:00:00.000Z');
+    runHook('session-save.js', { session_id: 'twice-a-day', hook_event_name: 'SessionEnd' });
+    const mine = fs.readdirSync(SESSIONS).filter((n) => /^\d{4}-\d{2}-\d{2}-/.test(n))
+      .map((n) => ({ n, a: JSON.parse(fs.readFileSync(path.join(SESSIONS, n), 'utf8')) }))
+      .filter((x) => x.a.sessionId === 'twice-a-day');
+    assert.equal(mine.length, 2, 'two completions, two archives');
+    assert.ok(mine.some((x) => x.a.toolCalls === 7 && x.a.startedAt === '2026-10-26T15:00:00.000Z'), 'the first completion and its counts survive');
+    const canonical = mine.find((x) => /^\d{4}-\d{2}-\d{2}-[0-9a-f]{8}\.json$/.test(x.n));
+    assert.equal(canonical.a.startedAt, '2026-10-26T16:00:00.000Z', 'the canonical name points at the latest completion');
+  });
+
   it("does not adopt another session's archive", () => {
     runHook('session-end.js', { session_id: 'f14-stranger', hook_event_name: 'SessionEnd' });
     assert.ok(!fs.existsSync(knowledge('f14-stranger')));

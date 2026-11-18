@@ -12,7 +12,7 @@
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
 import { readStdinJson, sessionKey } from './lib/session-key.mjs';
-import { readFile, mkdir, unlink } from 'node:fs/promises';
+import { readFile, mkdir, unlink, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
 import { randomBytes } from 'node:crypto';
@@ -46,8 +46,18 @@ async function main() {
     // session (an 8-hex collision) falls back to a random suffix.
     const randomName = () => `${now.toISOString().slice(0, 10)}-${randomBytes(4).toString('hex')}.json`;
     let filename = key === 'default' ? randomName() : archiveName(key, now);
-    if (key !== 'default' && existsSync(join(SESSIONS_DIR, filename)) && !(await readOwnedJson(join(SESSIONS_DIR, filename), key))) {
-      filename = randomName();
+    if (key !== 'default' && existsSync(join(SESSIONS_DIR, filename))) {
+      const earlier = await readOwnedJson(join(SESSIONS_DIR, filename), key);
+      if (!earlier) {
+        filename = randomName();
+      } else {
+        // The same session ended before today (a resumed session): keep that completion under its own
+        // name, so the canonical name points at the latest one and no archive is overwritten.
+        const stamp = Date.parse(earlier.completedAt) || now.getTime() - 1;
+        let kept = filename.replace(/\.json$/, `-${stamp}.json`);
+        if (existsSync(join(SESSIONS_DIR, kept))) kept = filename.replace(/\.json$/, `-${stamp}-${randomBytes(4).toString('hex')}.json`);
+        await rename(join(SESSIONS_DIR, filename), join(SESSIONS_DIR, kept));
+      }
     }
 
     // sessionId lets session-end (same SessionEnd event, run in parallel) find

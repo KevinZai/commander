@@ -37,6 +37,10 @@ const ALLOWED_EVENTS = new Set([
   "agent_dispatched",
   // Activation: sent once per install when a flagship skill finishes its first result
   "first_result",
+  // Skill routing (commander/cowork-plugin/hooks/intent-classifier.js logRouteEvent): counted, then discarded
+  "route_offered",
+  "route_outcome",
+  "route_next_offered",
 ]);
 
 // Flagship skills a first_result may name; anything else is counted as "other".

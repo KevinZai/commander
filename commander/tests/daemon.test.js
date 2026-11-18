@@ -90,6 +90,30 @@ describe('daemon tick: claim, dispatch, settle', () => {
     assert.deepEqual(statusCalls.map((c) => c.status), ['running', 'failed']);
   });
 
+  it('a failed terminal write is not reported done, and a later tick reconciles it without rerunning', async () => {
+    const item = queue.addTask('persist me', 1);
+    const second = queue.addTask('next job', 2);
+    let dispatches = 0;
+    dispatcher.dispatchAsync = () => { dispatches++; return { result: 'ok', cost_usd: 0 }; };
+    let failTerminal = true;
+    queue.updateStatus = function (id, status, extra) {
+      statusCalls.push({ id, status });
+      if (failTerminal && status === 'done') throw new Error('ENOSPC: no space left on device');
+      return origUpdateStatus.call(queue, id, status, extra);
+    };
+    const first = await daemon.tick({ budget: 60000 });
+    assert.strictEqual(first.status, 'unrecorded');
+    assert.strictEqual(readItem(item.id).status, 'running', 'the queue file still says running');
+    const blocked = await daemon.tick({ budget: 60000 });
+    assert.strictEqual(blocked.skipped, 'unrecorded', 'no new job while a status is unrecorded');
+    assert.strictEqual(readItem(second.id).status, 'pending');
+    failTerminal = false;
+    const third = await daemon.tick({ budget: 60000 });
+    assert.strictEqual(readItem(item.id).status, 'done', 'reconciled');
+    assert.strictEqual(third.job && third.job.id, second.id, 'the next job runs after reconciliation');
+    assert.strictEqual(dispatches, 2, 'the first job was not rerun');
+  });
+
   it('an over-budget tick claims nothing and leaves the job pending', async () => {
     const item = queue.addTask('later', 1);
     let called = false;
@@ -230,6 +254,15 @@ describe('daemon stop verifies process identity', () => {
     const exited = new Promise((r) => child.once('exit', (_code, signal) => r(signal)));
     assert.equal(daemon.stop({ pidFile }), true);
     assert.equal(await exited, 'SIGTERM');
+  });
+
+  it('startBlocker refuses to start beside a live process from a legacy bare-pid file', () => {
+    const pidFile = path.join(TMP, 'legacy.pid');
+    fs.writeFileSync(pidFile, '424242');
+    const live = daemon.startBlocker({ pidFile, isAlive: () => true });
+    assert.deepStrictEqual(live, { pid: 424242, reason: 'unverifiable-live' });
+    assert.strictEqual(daemon.startBlocker({ pidFile, isAlive: () => false }), null, 'a dead legacy pid does not block');
+    assert.strictEqual(daemon.startBlocker({ pidFile: path.join(TMP, 'absent.pid') }), null);
   });
 
   it('writePidFile records this process identity', () => {
