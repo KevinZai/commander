@@ -18,7 +18,7 @@ Path P = Claude Code plugin (check `claude plugin list --available --json` for a
 | AgentMail | API key | TBD | TBD — link the official docs |
 | Browserbase [aff] | API key | S | `npx -y @browserbasehq/mcp` · `BROWSERBASE_API_KEY` |
 | Cloudflare [aff] | API token | P if listed, else S | `npx @cloudflare/mcp-server-cloudflare` · `CLOUDFLARE_API_TOKEN` |
-| codebase-memory-mcp | none | L | download the pinned installer `https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/v0.9.0/install.sh` to a file and show it, run it with `CBM_DOWNLOAD_URL=https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.9.0` and `--skip-config` (it checks the archive's SHA-256), then `codebase-memory-mcp install --no-hooks`; local, no key |
+| codebase-memory-mcp | none | L | in one fail-closed block (`set -euo pipefail`): download `https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/v0.9.0/install.sh` to a mktemp file, verify its SHA-256 is `90ef82a3da3336ddc2c3851ad56822067b161856f24cd88cbd405fe423af6a66`, run it with `CBM_DOWNLOAD_URL=https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.9.0` and `--skip-config` (it verifies the archive), then `codebase-memory-mcp install --no-hooks`. Stop at the first failure; local, no key |
 | Context7 | none | bundled | Already bundled with Commander (credential-free); nothing to wire |
 | Discord | bot token | TBD | Community MCP — verify before use |
 | Exa | API key | S | `npx @exa/mcp` · `EXA_API_KEY` |
