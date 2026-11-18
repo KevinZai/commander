@@ -131,7 +131,7 @@ This question is mandatory in every interactive doubt cycle — even on artifact
 2. Test it works (`gemini --version` or equivalent) before passing the full prompt — a stale or broken binary may pass `which` but fail on real input.
 3. Confirm the exact invocation with the user, including required flags, auth, and env vars (e.g., API keys). Implementations vary; never assume.
 4. Pass ARTIFACT + CONTRACT + the adversarial prompt **only**. No session context, no CLAIM.
-5. Mind shell escaping. If the artifact contains quotes, `$(...)`, or backticks, prefer stdin (`echo … | gemini`) or a heredoc over inline `-p "…"`. When in doubt, ask the user to confirm the invocation before running it.
+5. Mind shell escaping. If the artifact contains quotes, `$(...)`, or backticks, write the prompt to a file with your file-writing tool (not `echo` or a shell heredoc, which expand or mangle it) and pass the file on stdin, never inline `-p "…"`. When in doubt, ask the user to confirm the invocation before running it.
 6. Take the output into Step 4 (RECONCILE).
 
 **Never interpolate the artifact into a shell-quoted argument.** Code, markdown, and review prompts routinely contain backticks, `$(...)`, and quote characters that will either truncate the prompt or execute embedded shell. Write the full prompt to a file and pipe it through stdin.
@@ -143,6 +143,8 @@ Example shapes (verify flags against your installed tool — syntax differs acro
 # (CCC safety: a per-run mktemp file, not a shared /tmp path, removed on exit).
 # Then pipe via stdin so shell metacharacters in the artifact stay inert.
 PROMPT_FILE=$(mktemp) && chmod 600 "$PROMPT_FILE" && trap 'rm -f "$PROMPT_FILE"' EXIT
+# Fill "$PROMPT_FILE" with the file-writing tool, then refuse to send an empty prompt:
+[ -s "$PROMPT_FILE" ] || { echo "stop: prompt file is empty"; exit 1; }
 
 # Codex (read-only sandbox keeps the CLI from writing to your workspace):
 codex exec --sandbox read-only -C <repo-path> - < "$PROMPT_FILE"
