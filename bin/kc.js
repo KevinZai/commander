@@ -437,7 +437,7 @@ if (args.includes('--skills')) {
     if (!st.isSymbolicLink()) return false;
     var target = fs.readlinkSync(p);
     var resolvedTarget = path.resolve(path.dirname(p), target);
-    try { resolvedTarget = fs.realpathSync(p); } catch (_e) { /* dangling: compare lexically */ }
+    try { resolvedTarget = fs.realpathSync(p); } catch (e) { if (!e || e.code !== 'ENOENT') return false; /* dangling: compare lexically */ }
     var src = path.resolve(skillsSourceDir);
     try { src = fs.realpathSync(skillsSourceDir); } catch (_e) { /* keep lexical */ }
     // A link into this checkout's skills/ is ours only under its own name; skills/alias -> <src>/other is the user's.
@@ -713,7 +713,7 @@ if (args.includes('--skills')) {
     console.log('  Removed: ' + removed + ' skill(s)' + (keptForeign > 0 ? ' (' + keptForeign + ' link(s) not made by CC Commander kept)' : '') +
       (restoredOriginals > 0 ? ' (' + restoredOriginals + ' original(s) restored from backup)' : ''));
     console.log('  Installed: ' + added + ' skill(s)' + (skipped > 0 ? ' (' + skipped + ' skipped/missing)' : ''));
-    process.exit(0);
+    process.exit(process.exitCode || 0);   // keeps the exit 1 from a failed manifest write
   }
 
   console.error('Unknown subcommand: ' + subCmd);

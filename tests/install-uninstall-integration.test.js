@@ -718,3 +718,21 @@ test('install.sh and uninstall.sh refuse a manifest that does not name its profi
     }
   });
 });
+
+// Codex review of #298, third round: a symlink followed by .. is resolved against the disk, not lexically, and
+// the installer acts on the resolved path. home/sub/link -> home/x, so home/sub/link/.. is home itself.
+test('install.sh and uninstall.sh refuse a symlink-then-.. path that lands on home', () => {
+  withHome('ccc-install-symdotdot-', (home) => {
+    mkdirSync(join(home, 'sub'), { recursive: true });
+    mkdirSync(join(home, 'x'), { recursive: true });
+    mkdirSync(join(home, 'skills'), { recursive: true });
+    writeFileSync(join(home, 'skills', 'mine.txt'), 'mine');
+    symlinkSync(join(home, 'x'), join(home, 'sub', 'link'));
+    const dir = home + '/sub/link/..';   // a raw string: join() would collapse the .. before the installer sees it
+    const res = run(INSTALL_SH, home, ['--force', '--mode=essentials', '--skip-deps', '--clean'], { CLAUDE_CONFIG_DIR: dir });
+    assert.notStrictEqual(res.status, 0, 'install must refuse');
+    const un = run(UNINSTALL_SH, home, ['--force'], { CLAUDE_CONFIG_DIR: dir });
+    assert.notStrictEqual(un.status, 0, 'uninstall must refuse');
+    assert.strictEqual(readFileSync(join(home, 'skills', 'mine.txt'), 'utf8'), 'mine');
+  });
+});

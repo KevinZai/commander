@@ -36,20 +36,32 @@ while [[ "$CLAUDE_DIR" == */ && "$CLAUDE_DIR" != "/" ]]; do CLAUDE_DIR="${CLAUDE
 # capitalization that lands on /, the home directory or one of its ancestors is refused. A path that does not
 # exist yet is resolved through its nearest existing ancestor.
 if command -v node &>/dev/null; then
-  if ! guard_err="$(node -e '
+  # Resolved one component at a time against the disk, so /var/.. is /private on macOS, not /. The scripts then
+  # act on this resolved path only, so the guard and every rm/mkdir see the same directory (Codex #298).
+  if ! guard_out="$(node -e '
     var fs = require("fs"), path = require("path");
-    function resolve(p) {
-      p = path.resolve(p); var rest = [];
-      while (true) { try { return path.join.apply(null, [fs.realpathSync(p)].concat(rest)); } catch (_e) {}
-        var up = path.dirname(p); if (up === p) return path.join.apply(null, [p].concat(rest)); rest.unshift(path.basename(p)); p = up; }
+    function physical(p) {
+      var cur = path.isAbsolute(p) ? path.parse(p).root : fs.realpathSync(process.cwd());
+      var parts = p.split(/[\\/]+/).filter(Boolean), missing = false;
+      for (var i = 0; i < parts.length; i++) {
+        var c = parts[i];
+        if (c === ".") continue;
+        if (c === "..") { cur = path.dirname(cur); continue; }
+        var next = path.join(cur, c);
+        if (!missing) { try { cur = fs.realpathSync(next); continue; } catch (_e) { missing = true; } }
+        cur = next;
+      }
+      return cur;
     }
     var norm = process.platform === "darwin" || process.platform === "win32" ? function(s) { return s.toLowerCase(); } : function(s) { return s; };
-    var dir = norm(resolve(process.argv[1])), home = norm(resolve(process.argv[2]));
+    var real = physical(process.argv[1]), dir = norm(real), home = norm(physical(process.argv[2]));
     if (dir === path.parse(dir).root || dir === home || (home + path.sep).indexOf(dir + path.sep) === 0) {
-      console.error(process.argv[1] + " resolves to " + dir); process.exit(1);
-    }' "$CLAUDE_DIR" "$HOME" 2>&1)"; then
-    echo "ERROR: CLAUDE_DIR must not be /, the home directory or one of its parents: $guard_err"; exit 1
+      console.error(process.argv[1] + " resolves to " + real); process.exit(1);
+    }
+    process.stdout.write(real);' "$CLAUDE_DIR" "$HOME" 2>&1)"; then
+    echo "ERROR: CLAUDE_DIR must not be /, the home directory or one of its parents: $guard_out"; exit 1
   fi
+  CLAUDE_DIR="$guard_out"
 fi
 # The install plan is tab-separated, so a path containing a tab or newline cannot be represented in it.
 case "$CLAUDE_DIR$SCRIPT_DIR" in
@@ -316,14 +328,18 @@ select_install_mode() {
   echo "  4) Dashboard   — Dashboard only (requires npm)"
   echo "  5) Config      — Just CLAUDE.md + settings.json"
   echo ""
-  read -p "Choose [1-5, default=1]: " mode_choice
-  case "$mode_choice" in
-    2) INSTALL_MODE="essentials" ;;
-    3) INSTALL_MODE="scripts" ;;
-    4) INSTALL_MODE="dashboard" ;;
-    5) INSTALL_MODE="config" ;;
-    *) INSTALL_MODE="full" ;;
-  esac
+  # Only an empty answer means the default; anything else unrecognized asks again rather than choosing full.
+  while true; do
+    read -p "Choose [1-5, default=1]: " mode_choice
+    case "$mode_choice" in
+      ""|1) INSTALL_MODE="full"; break ;;
+      2) INSTALL_MODE="essentials"; break ;;
+      3) INSTALL_MODE="scripts"; break ;;
+      4) INSTALL_MODE="dashboard"; break ;;
+      5) INSTALL_MODE="config"; break ;;
+      *) echo "  Please enter a number from 1 to 5." ;;
+    esac
+  done
 }
 
 should_install() {

@@ -28,20 +28,32 @@ while [[ "$CLAUDE_DIR" == */ && "$CLAUDE_DIR" != "/" ]]; do CLAUDE_DIR="${CLAUDE
 # capitalization that lands on /, the home directory or one of its ancestors is refused. A path that does not
 # exist yet is resolved through its nearest existing ancestor.
 if command -v node &>/dev/null; then
-  if ! guard_err="$(node -e '
+  # Resolved one component at a time against the disk, so /var/.. is /private on macOS, not /. The scripts then
+  # act on this resolved path only, so the guard and every rm/mkdir see the same directory (Codex #298).
+  if ! guard_out="$(node -e '
     var fs = require("fs"), path = require("path");
-    function resolve(p) {
-      p = path.resolve(p); var rest = [];
-      while (true) { try { return path.join.apply(null, [fs.realpathSync(p)].concat(rest)); } catch (_e) {}
-        var up = path.dirname(p); if (up === p) return path.join.apply(null, [p].concat(rest)); rest.unshift(path.basename(p)); p = up; }
+    function physical(p) {
+      var cur = path.isAbsolute(p) ? path.parse(p).root : fs.realpathSync(process.cwd());
+      var parts = p.split(/[\\/]+/).filter(Boolean), missing = false;
+      for (var i = 0; i < parts.length; i++) {
+        var c = parts[i];
+        if (c === ".") continue;
+        if (c === "..") { cur = path.dirname(cur); continue; }
+        var next = path.join(cur, c);
+        if (!missing) { try { cur = fs.realpathSync(next); continue; } catch (_e) { missing = true; } }
+        cur = next;
+      }
+      return cur;
     }
     var norm = process.platform === "darwin" || process.platform === "win32" ? function(s) { return s.toLowerCase(); } : function(s) { return s; };
-    var dir = norm(resolve(process.argv[1])), home = norm(resolve(process.argv[2]));
+    var real = physical(process.argv[1]), dir = norm(real), home = norm(physical(process.argv[2]));
     if (dir === path.parse(dir).root || dir === home || (home + path.sep).indexOf(dir + path.sep) === 0) {
-      console.error(process.argv[1] + " resolves to " + dir); process.exit(1);
-    }' "$CLAUDE_DIR" "$HOME" 2>&1)"; then
-    echo "ERROR: CLAUDE_DIR must not be /, the home directory or one of its parents: $guard_err"; exit 1
+      console.error(process.argv[1] + " resolves to " + real); process.exit(1);
+    }
+    process.stdout.write(real);' "$CLAUDE_DIR" "$HOME" 2>&1)"; then
+    echo "ERROR: CLAUDE_DIR must not be /, the home directory or one of its parents: $guard_out"; exit 1
   fi
+  CLAUDE_DIR="$guard_out"
 fi
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 MANIFEST="$CLAUDE_DIR/commander/install-manifest.json"
@@ -309,10 +321,14 @@ var stamp = function(buf) { return Buffer.from(buf.toString('utf8').replace(/^<!
   if (!lst(abs)) return;
   if (sameFile(abs, path.join(srcRoot, doc), doc === 'BIBLE.md' ? stamp : null)) removeEntry(abs); else result.kept.push(doc);
 });
+// The ccc link is shared by every profile that installed from this checkout. Without a manifest there is no record
+// of which profile made it, so it is left in place and named for the user to remove (Codex #298).
 binDirs.forEach(function(dir) {
   var link = path.join(dir, 'ccc');
   var st = lst(link);
-  if (st && st.isSymbolicLink() && path.resolve(dir, fs.readlinkSync(link)) === path.join(srcRoot, 'bin', 'ccc.js')) removeEntry(link);
+  if (st && st.isSymbolicLink() && path.resolve(dir, fs.readlinkSync(link)) === path.join(srcRoot, 'bin', 'ccc.js')) {
+    result.kept.push(link + ' (the shared ccc command; remove it yourself if no other profile uses it)');
+  }
 });
 report();
 })();
