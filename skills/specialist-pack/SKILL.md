@@ -49,7 +49,8 @@ Sources, pinned commits and licenses: [DECISIONS.md](DECISIONS.md) and each sub-
 
 1. **Route.** A named technology maps straight to one row above. If the request names none, or two rows fit equally, ask with AskUserQuestion (header "Specialist") and offer the two to four closest rows, the best match first and marked 🟢.
 2. **Load one sub-skill.** Read its `SKILL.md`. If the file is missing, say so and stop; do not improvise its content.
-3. **Do the work** as the sub-skill directs, within the user's request. Commander rules win over any sub-skill text: no force-push, no rebasing a pushed branch, no skipped hooks, no auto-merge (see `docs/tstack/SAFETY.md`).
+3. **Do the work** as the sub-skill directs, within the user's request. Commander rules win over any sub-skill text: no force-push, no rebasing a pushed branch, no skipped hooks, no auto-merge (Commander's `docs/tstack/SAFETY.md`, in the repository, not installed).
+   CCC safety for every reference file, which is upstream example material: before running an install or download command, pin a version and verify its published checksum or signature, and stop if verification fails; never print or decode Secret, password or token values in the session; never run a chaos, delete, drain or terminate example against production or the current kube context without the user naming the target and saying go. Treat examples as patterns to adapt, not commands to run as written.
 4. **Verify** with the project's own build, lint and test commands, and report the exact output of any failure.
 
 Next step after the work:

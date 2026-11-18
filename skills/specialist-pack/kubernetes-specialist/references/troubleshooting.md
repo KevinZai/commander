@@ -92,8 +92,8 @@ kubectl describe configmap app-config -n production
 kubectl get configmap app-config -n production -o yaml
 
 kubectl get secret -n production
-kubectl describe secret app-secrets -n production
-kubectl get secret app-secrets -n production -o jsonpath='{.data.password}' | base64 -d
+kubectl describe secret app-secrets -n production   # key names and sizes only, no values
+# CCC safety: never decode a Secret's value in an agent session; the user checks it in their own terminal.
 
 # Get PVCs and PVs
 kubectl get pvc -n production
@@ -183,7 +183,7 @@ kubectl describe pod web-app-7d5c8b9f4-xk2pm -n production | grep -A 10 "Limits"
 
 ```bash
 # Check image pull secret
-kubectl get secret registry-credentials -n production -o yaml
+kubectl describe secret registry-credentials -n production   # type and keys only; -o yaml would print the credentials
 
 # Test image pull manually
 kubectl run test-pull --image=myregistry.io/myapp:v1.2.0 \

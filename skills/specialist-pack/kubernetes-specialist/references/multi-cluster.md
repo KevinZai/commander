@@ -151,8 +151,13 @@ spec:
 # CCC safety: never pipe a download into a shell. Download the release archive,
 # verify it against the checksum published with that release, then extract it.
 SUBCTL_VERSION=<release tag>
-curl -fsSLO "https://github.com/submariner-io/subctl/releases/download/${SUBCTL_VERSION}/subctl-${SUBCTL_VERSION}-linux-amd64.tar.xz"
-# verify the archive against the release's published checksum before extracting
+EXPECTED_SHA256=<SHA-256 published on that release page>
+( set -euo pipefail
+  f="subctl-${SUBCTL_VERSION}-linux-amd64.tar.xz"
+  curl -fsSLO "https://github.com/submariner-io/subctl/releases/download/${SUBCTL_VERSION}/${f}"
+  echo "${EXPECTED_SHA256}  ${f}" | sha256sum -c -   # stops here on a mismatch
+  tar -xJf "$f"
+)
 
 # Join clusters to broker
 subctl deploy-broker --kubeconfig kubeconfig-cluster1

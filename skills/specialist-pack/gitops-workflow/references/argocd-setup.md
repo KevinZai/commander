@@ -6,20 +6,20 @@
 
 ```bash
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -n argocd -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"  # ARGOCD_VERSION: a reviewed release tag, never the moving "stable" ref
 ```
 
 ### 2. High Availability Installation
 
 ```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/ha/install.yaml
+kubectl apply -n argocd -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/ha/install.yaml"  # ARGOCD_VERSION: a reviewed release tag, never the moving "stable" ref
 ```
 
 ### 3. Helm Installation
 
 ```bash
 helm repo add argo https://argoproj.github.io/argo-helm
-helm install argocd argo/argo-cd -n argocd --create-namespace
+helm install argocd argo/argo-cd -n argocd --create-namespace --version <reviewed chart version>
 ```
 
 ## Initial Configuration
@@ -30,8 +30,9 @@ helm install argocd argo/argo-cd -n argocd --create-namespace
 # Port forward
 kubectl port-forward svc/argocd-server -n argocd 8080:443
 
-# Get initial admin password
-argocd admin initial-password -n argocd
+# Initial admin password: CCC safety: the user runs this in their own terminal;
+# never print it in an agent session, where it would land in the transcript.
+#   argocd admin initial-password -n argocd
 ```
 
 ### Configure Ingress
