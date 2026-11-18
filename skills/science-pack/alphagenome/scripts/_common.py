@@ -95,7 +95,7 @@ ATLAS_TRACK_SCORERS: tuple[str, ...] = (
 SNVS_PER_BASE = 3
 
 INSTALL_HINT = (
-    "alphagenome is not installed. Run: uv pip install alphagenome "
+    "alphagenome is not installed. Run: uv pip install alphagenome==0.9.0 "
     "(or invoke with: uv run --with alphagenome <script>)"
 )
 

@@ -97,7 +97,7 @@ def build_from_salmon(quant_dir: Path, tx2gene: Path,
     try:
         from pytximport import tximport
     except ImportError:
-        sys.exit("Salmon mode needs pytximport. Install with: uv pip install pytximport")
+        sys.exit("Salmon mode needs pytximport. Install with: uv pip install pytximport==0.13.0")
 
     if tx2gene is None:
         sys.exit("--tx2gene is required for --from salmon (columns: transcript_id, gene_id)")

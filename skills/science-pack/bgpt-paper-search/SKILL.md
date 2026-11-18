@@ -35,14 +35,14 @@ an MCP server. The provider supports both transports:
 
 Use the host's native remote-MCP configuration when supported. For a host that
 uses `mcpServers` JSON and requires a local stdio bridge, this configuration uses
-`mcp-remote` (adapt it to the host's actual settings format):
+`mcp-remote` (adapt it to the host's actual settings format). CCC safety: install the bridge once as an exact, lockfile-recorded dependency (`npm install --save-dev --save-exact mcp-remote@0.16.6`, shown to the user first); `--no-install` then runs only that copy and stops instead of fetching on startup:
 
 ```json
 {
   "mcpServers": {
     "bgpt": {
       "command": "npx",
-      "args": ["-y", "mcp-remote@0.16.6", "https://bgpt.pro/mcp/stream", "--transport", "http-only"]
+      "args": ["--no-install", "mcp-remote", "https://bgpt.pro/mcp/stream", "--transport", "http-only"]
     }
   }
 }

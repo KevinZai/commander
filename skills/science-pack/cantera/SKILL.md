@@ -54,7 +54,7 @@ From the collection root:
 ```bash
 uv run --no-project --python 3.12 --with cantera==3.2.0 --with numpy==2.5.3 \
   python skills/science-pack/cantera/scripts/ignition_delay.py \
-  skills/cantera/assets/hydrogen-ignition.json hydrogen-result
+  skills/science-pack/cantera/assets/hydrogen-ignition.json hydrogen-result
 ```
 
 Tested on Python 3.12, Cantera 3.2.0, and NumPy 2.5.3. No external solver executable or

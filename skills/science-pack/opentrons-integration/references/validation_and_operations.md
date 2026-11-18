@@ -25,7 +25,7 @@ Dedicated Flex environment:
 
 ```bash
 uv venv --python 3.12 .venv-opentrons
-uv pip install --python .venv-opentrons/bin/python -r skills/opentrons-integration/requirements-flex.txt
+uv pip install --python .venv-opentrons/bin/python -r skills/science-pack/opentrons-integration/requirements-flex.txt
 .venv-opentrons/bin/opentrons_simulate protocol.py
 ```
 

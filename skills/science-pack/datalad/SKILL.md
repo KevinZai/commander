@@ -53,7 +53,7 @@ adds indirection without buying anything.
 ```bash
 # git-annex is NOT written in Python but is available from PyPI if you already
 # have git itself installed:
-uv pip install git-annex
+uv pip install git-annex==10.20261026
 # You can also install it first from the system
 # (Debian/Ubuntu: apt install git-annex; macOS: brew install git-annex;
 #  conda-forge: conda install -c conda-forge git-annex)

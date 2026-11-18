@@ -21,7 +21,7 @@ This installation example was checked against current documentation, not rerun d
 ```bash
 docker run --rm --platform linux/amd64 \
   -v "$PWD/data:/data" -v "$PWD/qiime2-amplicon:/skill:ro" \
-  quay.io/qiime2/qiime2:2026.7 qiime info
+  quay.io/qiime2/qiime2:2026.7@sha256:ffde217254fe71bc3ace7f17d4ee5efebbad4f81dab52b6af8aee124ebc713c8 qiime info
 ```
 
 `qiime info` and `qiime dada2 denoise-paired --help` in the target environment are the authoritative

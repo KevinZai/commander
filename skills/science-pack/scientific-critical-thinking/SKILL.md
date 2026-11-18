@@ -66,10 +66,10 @@ Only add figures when the **user explicitly requests** a diagram (for example, a
 - GRADE or risk-of-bias evaluation frameworks
 
 **How to create figures:**
-- **Preferred:** Use the **scientific-schematics** skill for AI-generated diagrams from a natural-language description
-- **Alternative:** Build figures in your usual tools (draw.io, PowerPoint, matplotlib, etc.)
+- **Default:** Build figures in your usual tools (draw.io, PowerPoint, matplotlib, etc.)
+- **Optional:** the upstream **scientific-schematics** skill generates diagrams from a description. It is not part of this pack. CCC safety: use it only if the user installed it separately and agrees to send the description to OpenRouter; check that the script below exists before running it, and stop if it does not.
 
-Run from the repository root, with `OPENROUTER_API_KEY` set:
+Only in that case, from the upstream repository root, with `OPENROUTER_API_KEY` set:
 
 ```bash
 python skills/scientific-schematics/scripts/generate_schematic.py "Illustrative GRADE appraisal: define outcome and comparison, assess certainty domains with reasons; keep recommendation decisions separate" -o figures/grade_flowchart.png --doc-type report

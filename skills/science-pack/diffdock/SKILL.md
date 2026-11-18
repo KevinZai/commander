@@ -42,12 +42,13 @@ scientific dependencies. Do not substitute current `torch` or the unrelated PyPI
 installation recipe. Follow upstream Docker instructions if suitable:
 
 ```bash
-docker pull rbgcsail/diffdock
-docker run -it --gpus all --entrypoint /bin/bash rbgcsail/diffdock
+# CCC safety: pinned by digest (tag v1.1.3, checked on Docker Hub 2026-11-18), never the moving latest.
+docker pull rbgcsail/diffdock@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0
+docker run -it --gpus all --entrypoint /bin/bash rbgcsail/diffdock@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0
 micromamba activate diffdock
 ```
 
-Record the image digest: its unversioned tag need not equal the checked source.
+The digest above is tag `v1.1.3`; a newer image needs its own review and digest. CCC safety: first use downloads model weights that the checker cannot verify (it accepts any nonempty checkpoint). Tell the user before the first run, and use weights whose SHA-256 they have checked against the upstream release.
 PDB-based inference has a CPU path; sequence folding calls `.cuda()` unconditionally.
 ESM2 embeddings are needed even for PDB inputs. First use can download docking,
 ESM2 and (for sequence inputs) ESMFold weights and build SO(2)/SO(3) tables. Budget

@@ -26,7 +26,7 @@ copy of this skill directory called `cellprofiler-skill/`:
 
 ```bash
 docker run --rm --platform linux/amd64 --entrypoint python \
-  -v "$PWD:/work" -w /work cellprofiler/cellprofiler:4.2.8 \
+  -v "$PWD:/work" -w /work cellprofiler/cellprofiler:4.2.8@sha256:fec440caa2b44edf80f9bd440a3d8c6b214d72437332ad2586a32d79e2eae2a4 \
   cellprofiler-skill/scripts/nuclei_assay.py run images.csv results
 ```
 

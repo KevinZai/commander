@@ -42,11 +42,11 @@ Pyzotero is a Python wrapper for the [Zotero API v3](https://www.zotero.org/supp
 - **API Key**: create at https://www.zotero.org/settings/keys/new
 - **Library ID**: for group libraries, the integer after `/groups/` in the group URL
 
-Store credentials in environment variables or a `.env` file:
-```
-ZOTERO_LIBRARY_ID=your_user_id
-ZOTERO_API_KEY=your_api_key
-ZOTERO_LIBRARY_TYPE=user  # or "group"
+The user sets these three environment variables in their own terminal before the session (CCC safety: not in a `.env` file the agent loads, and never typed into chat):
+```bash
+export ZOTERO_LIBRARY_ID=your_user_id
+read -rs ZOTERO_API_KEY && export ZOTERO_API_KEY   # typed hidden, kept out of shell history
+export ZOTERO_LIBRARY_TYPE=user  # or "group"
 ```
 
 See [references/authentication.md](references/authentication.md) for full setup details.

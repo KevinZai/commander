@@ -8,8 +8,8 @@ weights, no GPU, one API key. The same key serves the Atlas.
 ## Setup
 
 ```bash
-uv pip install alphagenome            # PyPI; Python >= 3.10, tested here on 3.12 and 3.13
-export ALPHAGENOME_API_KEY=...        # https://deepmind.google.com/science/alphagenome
+uv pip install alphagenome==0.9.0     # PyPI; Python >= 3.10, tested here on 3.12 and 3.13
+read -rs ALPHAGENOME_API_KEY && export ALPHAGENOME_API_KEY   # user runs this; typed hidden, kept out of history. Key: https://deepmind.google.com/science/alphagenome
 ```
 
 ```python

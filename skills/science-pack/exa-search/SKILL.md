@@ -71,7 +71,7 @@ uv run "$SKILL_PATH/scripts/exa_search.py" --help
 If you prefer a persistent install:
 
 ```bash
-uv pip install "exa-py>=2.23.0,<3"
+uv pip install "exa-py==2.23.0"
 ```
 
 ### Authentication
@@ -81,7 +81,7 @@ All commands read the API key from the `EXA_API_KEY` environment variable. Get y
 CCC safety: never load the whole project `.env` into the command, which would expose every other credential in it to `uv` and the script, and never type the key into an agent session. The user sets only this variable in their own terminal before starting the session:
 
 ```bash
-export EXA_API_KEY=...   # the user runs this themselves; the value never goes in the transcript
+read -rs EXA_API_KEY && export EXA_API_KEY   # the user runs this themselves; the value is typed hidden and stays out of shell history and the transcript
 ```
 
 Use `--help` to verify installation and CLI parsing; it does not require an API key or validate authentication. Authentication is checked only when a real query is made.
