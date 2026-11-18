@@ -77,7 +77,7 @@ Compose one sample message ("🧪 Broadcast test from CC Commander — no action
    gh run list --limit 10 --json name,conclusion,headBranch,url,updatedAt 2>/dev/null
    CCC_STATE="${CCC_CONFIG_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}/commander"
    tail -n 50 "$CCC_STATE/ccc-ci-events.jsonl" 2>/dev/null
-   cat "$CCC_STATE/last-test-result.json" 2>/dev/null
+   cat "$CCC_STATE"/projects/"$(basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")"-*/test-results.json 2>/dev/null
    tail -n 200 "$CCC_STATE/mission-control/metrics.jsonl" 2>/dev/null
    ```
 

@@ -6,7 +6,8 @@
  * Dual-mode: exports run({input,env,cwd}) for the SessionStart orchestrator,
  * and runs standalone via CLI tail when invoked directly (PostCompact hook).
  *
- * Reads ~/.claude/commander/sessions/active-session.json and session-state.json.
+ * Reads this session's live record (sessions/active-session-<session_id>.json,
+ * hooks/lib/active-session.mjs) and session-state.json.
  * Emits an orientation status message so the model knows it returned from
  * context compaction. Always exits 0. Keep output ≤3 lines to avoid wasting tokens.
  *
@@ -23,6 +24,8 @@ import { join } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
 import { fileURLToPath } from 'node:url';
 import { emitUser } from './lib/emit.mjs';
+import { sessionKey } from './lib/session-key.mjs';
+import { readActiveSession } from './lib/active-session.mjs';
 
 /**
  * Pure-function entry for orchestrator (CC-414).
@@ -40,12 +43,12 @@ export async function run({ input: _input, env = process.env, cwd: _cwd } = {}) 
     return { continue: true, suppressOutput: true };
   }
   const cccDir = stateDir(env);
-  const sessionFile = join(cccDir, 'sessions', 'active-session.json');
   const stateFile = join(cccDir, 'session-state.json');
   try {
     let sessionInfo = '';
     try {
-      const session = JSON.parse(await readFile(sessionFile, 'utf8'));
+      const session = await readActiveSession(join(cccDir, 'sessions'), sessionKey(input));
+      if (!session) throw new Error('no live record for this session');
       const cost = session.estimatedCost ? ` | cost so far: $${session.estimatedCost.toFixed(2)}` : '';
       const mode = session.activeMode ? ` | mode: ${session.activeMode}` : '';
       const skill = session.activeSkill ? ` | skill: ${session.activeSkill}` : '';

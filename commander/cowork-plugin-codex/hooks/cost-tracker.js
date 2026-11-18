@@ -10,15 +10,16 @@
  *
  * State is keyed by the stdin session_id so parallel sessions never share or
  * clobber each other's counters. session-save.js and cost-ceiling-enforcer.js
- * read/clean the same session-keyed file.
+ * read/clean the same session-keyed file. Parallel tool calls in ONE session
+ * run this hook concurrently, so the increment is a locked read-modify-write
+ * with a temp-file rename (lib/atomic-json.mjs, Codex audit #26).
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitUser, emitSilent } from './lib/emit.mjs';
 import { readStdinJson, sessionKey } from './lib/session-key.mjs';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
-import { existsSync } from 'node:fs';
+import { updateJson } from './lib/atomic-json.mjs';
 import { isMainModule } from './lib/code-mode.mjs';
 
 const SESSIONS_DIR = join(stateDir(), 'sessions');
@@ -33,16 +34,10 @@ export async function run(input = {}) {
   try {
     const SESSION_KEY = sessionKey(input);
     const COST_FILE = join(SESSIONS_DIR, `active-cost-${SESSION_KEY}.json`);
-    let costData = { toolCalls: 0, estimatedCost: 0, sessionId: SESSION_KEY, startedAt: new Date().toISOString() };
-    try {
-      costData = JSON.parse(await readFile(COST_FILE, 'utf8'));
-    } catch {}
-
-    costData.toolCalls++;
-    costData.estimatedCost = costData.toolCalls * UNIT_PER_CALL;
-
-    if (!existsSync(SESSIONS_DIR)) await mkdir(SESSIONS_DIR, { recursive: true });
-    await writeFile(COST_FILE, JSON.stringify(costData, null, 2));
+    const { value: costData } = await updateJson(COST_FILE, (current) => {
+      const toolCalls = (Number.isFinite(current.toolCalls) ? current.toolCalls : 0) + 1;
+      return { ...current, toolCalls, estimatedCost: toolCalls * UNIT_PER_CALL };
+    }, { fallback: () => ({ toolCalls: 0, estimatedCost: 0, sessionId: SESSION_KEY, startedAt: new Date().toISOString() }) });
 
     if (costData.toolCalls > ALERT_CALLS) {
       out = emitUser(

@@ -150,11 +150,17 @@ function buildGoodFixture() {
   writeFile(root, 'README.md', '# README\n');
   writeFile(root, 'LICENSE', 'MIT\n');
   writeFile(root, 'commander/core/registry.yaml', 'version: 1\n');
+  writeFile(
+    root,
+    'commander/cowork-plugin/lib/secret-patterns.json',
+    JSON.stringify({ patterns: [{ id: 'aws-access-key', label: 'AWS', regex: 'AKIA[0-9A-Z]{16}', severity: 'critical' }] })
+  );
   return root;
 }
 
 function diagnosticsOptions(root) {
-  return { homeDir: path.join(root, 'home') };
+  // env and claudeVersion pinned so the host shell cannot change the result.
+  return { homeDir: path.join(root, 'home'), env: {}, claudeVersion: '2.1.327 (Claude Code)' };
 }
 
 // --- 0. claude settings -----------------------------------------------------
@@ -590,10 +596,10 @@ test('checkCriticalFiles: fail when LICENSE missing', function () {
 
 // --- runDiagnostics ---------------------------------------------------------
 
-test('runDiagnostics: returns 14 results with required shape', function () {
+test('runDiagnostics: returns 16 results with required shape', function () {
   var root = buildGoodFixture();
   var results = diag.runDiagnostics(root, diagnosticsOptions(root));
-  assert.strictEqual(results.length, 14);
+  assert.strictEqual(results.length, 16);
   for (var i = 0; i < results.length; i++) {
     var r = results[i];
     assert.ok(r.category, 'result needs category');
@@ -609,7 +615,7 @@ test('runDiagnostics: all categories ok on canonical fixture', function () {
   assert.strictEqual(nonOk.length, 0, 'expected all ok, got: ' + JSON.stringify(nonOk));
 });
 
-test('runDiagnostics: covers all 14 expected categories', function () {
+test('runDiagnostics: covers all 16 expected categories', function () {
   var root = buildGoodFixture();
   var results = diag.runDiagnostics(root, diagnosticsOptions(root));
   var categories = results.map(function (r) { return r.category; }).sort();
@@ -617,6 +623,7 @@ test('runDiagnostics: covers all 14 expected categories', function () {
     'agent-models',
     'bundled-mcp-servers',
     'claude-teams-flag',
+    'code-mode',
     'contract-integrity',
     'critical-files',
     'display-name',
@@ -625,6 +632,7 @@ test('runDiagnostics: covers all 14 expected categories', function () {
     'license-cleanup',
     'mcp-availability',
     'network-mode',
+    'secret-guard',
     'test-suite',
     'vendor-submodules',
     'version-parity',
@@ -667,4 +675,108 @@ test('settings checks read the running lane (CLAUDE_CONFIG_DIR), not ~/.claude',
   assert.match(diag.checkEffortDefault(root, { homeDir: home, env: { CLAUDE_CONFIG_DIR: path.join(root, 'x'), CCC_CONFIG_DIR: lane } }).message, /effortLevel=low/);
   var dflt = diag.checkEffortDefault(root, { homeDir: home, env: {} });
   assert.strictEqual(dflt.message, 'effortLevel=xhigh in ~/.claude/settings.json');
+});
+
+// --- secret guard patterns (Fable audit P2: the guard fails open) -----------
+
+test('checkSecretPatterns: ok when every pattern compiles', function () {
+  var root = buildGoodFixture();
+  var r = diag.checkSecretPatterns(root);
+  assert.strictEqual(r.status, 'ok', r.message);
+});
+
+test('checkSecretPatterns: fail when the patterns file is missing', function () {
+  var root = buildGoodFixture();
+  fs.unlinkSync(path.join(root, 'commander/cowork-plugin/lib/secret-patterns.json'));
+  var r = diag.checkSecretPatterns(root);
+  assert.strictEqual(r.status, 'fail');
+  assert.match(r.message, /missing/);
+  assert.match(r.message, /every tool call through/);
+});
+
+test('checkSecretPatterns: fail when the patterns file is not JSON', function () {
+  var root = buildGoodFixture();
+  writeFile(root, 'commander/cowork-plugin/lib/secret-patterns.json', '{ nope');
+  var r = diag.checkSecretPatterns(root);
+  assert.strictEqual(r.status, 'fail');
+  assert.match(r.message, /not valid JSON/);
+});
+
+test('checkSecretPatterns: warn names a regex that does not compile (inline (?i) flag)', function () {
+  var root = buildGoodFixture();
+  writeFile(root, 'commander/cowork-plugin/lib/secret-patterns.json', JSON.stringify({
+    patterns: [{ id: 'ok', regex: 'AKIA[0-9A-Z]{16}' }, { id: 'inline-flag', regex: '(?i)secret' }],
+  }));
+  var r = diag.checkSecretPatterns(root);
+  assert.strictEqual(r.status, 'warn');
+  assert.match(r.message, /inline-flag/);
+});
+
+test('shipped secret-patterns.json: every pattern compiles', function () {
+  var r = diag.checkSecretPatterns(path.join(__dirname, '..', '..'));
+  assert.strictEqual(r.status, 'ok', r.message);
+});
+
+// --- Code Mode readiness (report only) ---------------------------------------
+
+test('checkCodeMode: off when the flag is unset, version shown', function () {
+  var root = buildGoodFixture();
+  var r = diag.checkCodeMode(root, diagnosticsOptions(root));
+  assert.strictEqual(r.status, 'ok');
+  assert.match(r.message, /Code Mode off/);
+  assert.match(r.message, /Claude Code 2\.1\.327/);
+});
+
+test('checkCodeMode: requested with no blocker is ok', function () {
+  var root = buildGoodFixture();
+  var opts = { homeDir: path.join(root, 'home'), env: { CLAUDE_CODE_EXPERIMENTAL_CODE_MODE: '1' }, claudeVersion: '2.1.327' };
+  var r = diag.checkCodeMode(root, opts);
+  assert.strictEqual(r.status, 'ok', r.message);
+  assert.match(r.message, /no known blocker/);
+});
+
+test('checkCodeMode: a 0 in settings keeps it off even with 1 in the shell', function () {
+  var root = buildGoodFixture();
+  writeFile(root, 'home/.claude/settings.json', JSON.stringify({ env: { CLAUDE_CODE_EXPERIMENTAL_CODE_MODE: '0' } }));
+  var opts = { homeDir: path.join(root, 'home'), env: { CLAUDE_CODE_EXPERIMENTAL_CODE_MODE: '1' }, claudeVersion: '2.1.327' };
+  assert.match(diag.checkCodeMode(root, opts).message, /Code Mode off/);
+});
+
+test('checkCodeMode: names every documented blocker', function () {
+  var root = buildGoodFixture();
+  writeFile(root, 'home/.claude/settings.json', JSON.stringify({
+    apiKeyHelper: '/bin/key',
+    env: { CLAUDE_CODE_EXPERIMENTAL_CODE_MODE: '1', CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1', CLAUDE_CODE_ENABLE_TELEMETRY: '1' },
+  }));
+  var opts = {
+    homeDir: path.join(root, 'home'),
+    env: {
+      DISABLE_TELEMETRY: '1',
+      CLAUDE_CODE_USE_BEDROCK: '1',
+      ANTHROPIC_BASE_URL: 'https://gateway.example.test',
+      ANTHROPIC_CUSTOM_HEADERS: 'X-Api-Key: abc',
+    },
+    claudeVersion: '2.1.324',
+  };
+  var r = diag.checkCodeMode(root, opts);
+  assert.strictEqual(r.status, 'warn');
+  [/agent teams/, /apiKeyHelper/, /OpenTelemetry/, /DISABLE_TELEMETRY/, /CLAUDE_CODE_USE_BEDROCK/, /ANTHROPIC_BASE_URL/, /ANTHROPIC_CUSTOM_HEADERS/]
+    .forEach(function (re) { assert.match(r.message, re); });
+  assert.match(r.remediation, /code-mode/);
+});
+
+test('checkCodeMode: too old a version is a blocker', function () {
+  var root = buildGoodFixture();
+  var opts = { homeDir: path.join(root, 'home'), env: { CLAUDE_CODE_EXPERIMENTAL_CODE_MODE: '1' }, claudeVersion: '2.1.300 (Claude Code)' };
+  var r = diag.checkCodeMode(root, opts);
+  assert.strictEqual(r.status, 'warn');
+  assert.match(r.message, /older than 2\.1\.323/);
+});
+
+test('checkCodeMode: never writes settings', function () {
+  var root = buildGoodFixture();
+  var file = path.join(root, 'home/.claude/settings.json');
+  var before = fs.readFileSync(file, 'utf8');
+  diag.checkCodeMode(root, { homeDir: path.join(root, 'home'), env: { CLAUDE_CODE_EXPERIMENTAL_CODE_MODE: '1', DISABLE_TELEMETRY: '1' }, claudeVersion: '2.1.327' });
+  assert.strictEqual(fs.readFileSync(file, 'utf8'), before);
 });

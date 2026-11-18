@@ -1,6 +1,6 @@
 ---
 title: "Architecture"
-description: "How CC Commander works: brain/hands separation, 22 specialist sub-agents, 30 lifecycle hooks, six plugin workflows, the HUD mod, and the Claude Agent SDK pattern underneath."
+description: "How CC Commander works: brain/hands separation, 22 specialist sub-agents, 28 lifecycle hooks, six plugin workflows, the HUD mod, and the Claude Agent SDK pattern underneath."
 ---
 
 ## Brain / Hands
@@ -37,15 +37,15 @@ Each agent declares a model **alias** and an effort level in its frontmatter, so
 
 Read-only reviewers use `disallowedTools` so they cannot edit. Fable is reserved for work where a wrong call is expensive: architecture, threat models, and verification of load-bearing claims. See [Agents](/plugin/agents) for each persona.
 
-## 30 Lifecycle Hooks / 49 Handlers
+## 28 Lifecycle Hooks / 46 Handlers
 
 Hooks fire automatically around Claude Code sessions; each event can have several handlers. The main groups:
 
 | Group | Events |
 |---|---|
-| Session | `SessionStart`, `Setup`, `SessionEnd`, `InstructionsLoaded`, `ConfigChange`, `CwdChanged`, `DirectoryAdded`, `FileChanged` |
+| Session | `SessionStart`, `SessionEnd`, `InstructionsLoaded`, `ConfigChange`, `CwdChanged`, `DirectoryAdded`, `FileChanged` |
 | Prompt | `UserPromptSubmit`, `UserPromptExpansion` |
-| Tools and permissions | `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PostToolBatch`, `PermissionRequest`, `PermissionDenied` |
+| Tools and permissions | `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`, `PermissionDenied` |
 | Model | `PreModelSwitch`, `PostModelSwitch` |
 | Agents and tasks | `SubagentStart`, `SubagentStop`, `TaskCreated`, `TaskCompleted`, `TeammateIdle` |
 | Turn and context | `Stop`, `StopFailure`, `Notification`, `PreCompact`, `PostCompact`, `Elicitation`, `ElicitationResult` |

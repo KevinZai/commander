@@ -30,7 +30,7 @@
  *     decision: { timestamp, sessionId, decision, toolName }. `decision`
  *     is whatever string the gate hook actually wrote — this file does
  *     NOT hardcode an enum of expected values; it classifies each raw
- *     decision string into one of blocked / auto-fixed / approved / other
+ *     decision string into one of blocked / auto-fixed / requested / other
  *     by pattern-matching the string itself (classifyDecision below), so
  *     it stays correct if the hook's vocabulary drifts.
  *   - tool-failures.jsonl — one row per failed tool call:
@@ -223,15 +223,25 @@ function redact(value) {
 // so it is a BLOCK, not an applied fix. A rejection/denial pattern is
 // therefore matched BEFORE the bare-autofix pattern, so a denied autofix
 // counts as blocked. The "auto-fixed" bucket is reserved for a genuine
-// applied fix (a future `auto-fixed` / `approved-autofix` decision).
+// applied fix (an `auto-fixed` / `autofix-applied` decision).
+//
+// PermissionRequest is not the final decision: when the gate does not deny,
+// the request continues to the user's prompt or to later rules, and the hook
+// never learns the outcome. The gate therefore logs `requested`,
+// `requested-autofix` or `deferred-to-user`, all counted as "requested". Rows
+// written by older builds as `approved` / `approved-autofix` meant the same
+// thing and are counted there too, never as approvals or applied fixes
+// (Codex audit #26).
 function classifyDecision(decision) {
   const raw = typeof decision === 'string' && decision.trim() ? decision.trim() : 'unknown';
   if (/(?:reject|deny|denied|block).*autofix|autofix.*(?:reject|deny|denied|block)/i.test(raw))
     return { kind: 'blocked', label: 'blocked (autofix needs approval)' };
-  if (/auto-?fixed|autofix-applied|approved-autofix/i.test(raw)) return { kind: 'autofixed', label: 'auto-fixed' };
+  if (/^approved-autofix$|^requested-autofix$/i.test(raw)) return { kind: 'requested', label: 'requested (autofix)' };
+  if (/auto-?fixed|autofix-applied/i.test(raw)) return { kind: 'autofixed', label: 'auto-fixed' };
   if (/danger/i.test(raw)) return { kind: 'blocked', label: 'blocked (dangerous)' };
   if (/reject|deny|denied|block/i.test(raw)) return { kind: 'blocked', label: 'blocked' };
-  if (/approve/i.test(raw)) return { kind: 'approved', label: 'approved' };
+  if (/defer/i.test(raw)) return { kind: 'requested', label: 'deferred to user' };
+  if (/^requested$|^approved$/i.test(raw)) return { kind: 'requested', label: 'requested' };
   return { kind: 'other', label: raw };
 }
 
@@ -285,12 +295,12 @@ function aggregateDecisions(gateRows) {
 
   let blocked = 0;
   let autofixed = 0;
-  let approved = 0;
+  let requested = 0;
   let otherCount = 0;
   for (const entry of counts) {
     if (entry.kind === 'blocked') blocked += entry.count;
     else if (entry.kind === 'autofixed') autofixed += entry.count;
-    else if (entry.kind === 'approved') approved += entry.count;
+    else if (entry.kind === 'requested') requested += entry.count;
     else otherCount += entry.count;
   }
 
@@ -299,7 +309,7 @@ function aggregateDecisions(gateRows) {
     counts,
     blocked,
     autofixed,
-    approved,
+    requested,
     otherCount,
   };
 }

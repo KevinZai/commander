@@ -18,6 +18,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { randomUUID } from 'crypto';
+import { fileURLToPath } from 'url';
 import { isOffline, isTelemetryEnabled as telemetryOptedIn } from './network-mode.js';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
@@ -39,7 +40,7 @@ const BATCH_TIMEOUT_MS = 5000;
 // hook past its timeout. fetch() has no `timeout` option; it needs a signal.
 const SEND_TIMEOUT_MS = 2500;
 
-const VERSION = getVersion();
+const VERSION = getPluginVersion();
 const OS = process.platform;
 const NODE_VERSION = process.version;
 const CCC_SURFACE = process.env.CCC_SURFACE || 'unknown';
@@ -81,18 +82,22 @@ function isTelemetryEnabled() {
   return telemetryOptedIn(process.env);
 }
 
-// ─── Helper: Get package version ──────────────────────────────────────────────
-function getVersion() {
-  try {
-    const pkgPath = path.join(process.cwd(), 'package.json');
-    if (fs.existsSync(pkgPath)) {
-      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-      return pkg.version || '4.1.0-beta.2';
+// ─── Helper: Get plugin version ───────────────────────────────────────────────
+// The version of THIS plugin install, from its own manifest next to lib/:
+// .claude-plugin/plugin.json (Claude) or .codex-plugin/plugin.json (the
+// generated Codex mirror). It used to read package.json from process.cwd() —
+// the customer's project — and fall back to a stale hardcoded beta version (Codex
+// audit #28). 'unknown' when no manifest is readable.
+export function getPluginVersion(pluginRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')) {
+  for (const rel of ['.claude-plugin/plugin.json', '.codex-plugin/plugin.json']) {
+    try {
+      const manifest = JSON.parse(fs.readFileSync(path.join(pluginRoot, rel), 'utf8'));
+      if (manifest && typeof manifest.version === 'string' && manifest.version.trim()) return manifest.version.trim();
+    } catch {
+      // try the next manifest
     }
-  } catch {
-    // Ignore
   }
-  return '4.1.0-beta.2';
+  return 'unknown';
 }
 
 // ─── Helper: Scrub sensitive properties ───────────────────────────────────────

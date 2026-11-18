@@ -815,6 +815,203 @@ function checkNetworkMode(root, options) {
   );
 }
 
+// --- Secret guard patterns --------------------------------------------------
+
+/**
+ * secret-leak-guard.js FAILS OPEN: when its patterns file is missing or not
+ * JSON it lets every tool call through, and a pattern whose regex does not
+ * compile is skipped without a word. Nothing else surfaces either case, so
+ * the doctor does (Fable audit P2). Reads the same files the guard reads:
+ * commander/cowork-plugin/lib/secret-patterns.json, else the legacy
+ * commander/core/secret-patterns.json.
+ */
+function checkSecretPatterns(root) {
+  var primary = path.join(root, 'commander', 'cowork-plugin', 'lib', 'secret-patterns.json');
+  var legacy = path.join(root, 'commander', 'core', 'secret-patterns.json');
+  var file = exists(primary) ? primary : legacy;
+  var shown = path.relative(root, file);
+  var raw = safeRead(file);
+  if (raw === null) {
+    return fail(
+      'secret-guard',
+      'secret-patterns.json is missing (' + path.relative(root, primary) + '): the secret-leak guard is letting every tool call through',
+      'Restore commander/cowork-plugin/lib/secret-patterns.json from a known-good commit.'
+    );
+  }
+  var config;
+  try {
+    config = JSON.parse(raw);
+  } catch (e) {
+    return fail(
+      'secret-guard',
+      shown + ' is not valid JSON (' + e.message + '): the secret-leak guard is letting every tool call through',
+      'Fix the JSON syntax in ' + shown + ' or restore it from a known-good commit.'
+    );
+  }
+  var patterns = config && Array.isArray(config.patterns) ? config.patterns : null;
+  if (!patterns || patterns.length === 0) {
+    return fail(
+      'secret-guard',
+      shown + ' has no "patterns" array: the secret-leak guard checks nothing',
+      'Restore the "patterns" array in ' + shown + '.'
+    );
+  }
+  var broken = [];
+  patterns.forEach(function (pat, i) {
+    var id = pat && pat.id ? pat.id : '#' + i;
+    try {
+      if (!pat || typeof pat.regex !== 'string') throw new Error('no regex');
+      new RegExp(pat.regex, 'i');
+    } catch (_) {
+      broken.push(id);
+    }
+  });
+  (Array.isArray(config.allowlistRegex) ? config.allowlistRegex : []).forEach(function (re, i) {
+    try { new RegExp(re); } catch (_) { broken.push('allowlistRegex[' + i + ']'); }
+  });
+  if (broken.length > 0) {
+    return warn(
+      'secret-guard',
+      broken.length + ' secret pattern(s) do not compile and are skipped by the guard: ' + broken.join(', '),
+      'Fix those regexes in ' + shown + ' (JavaScript syntax: inline flags such as (?i) are not supported; the guard already matches case-insensitively).'
+    );
+  }
+  return ok('secret-guard', patterns.length + ' secret patterns load and compile from ' + shown);
+}
+
+// --- Code Mode readiness ------------------------------------------------------
+
+// Source: https://code.claude.com/docs/en/code-mode (Requirements, "Code Mode
+// doesn't start") and env-vars "Features that need feature-flag fetching",
+// read 2026-11-18. Report only: this check never changes a setting.
+var CODE_MODE_MIN = [2, 1, 323];
+var CODE_MODE_TEAMS_MIN = [2, 1, 326];
+var CODE_MODE_PROVIDER_VARS = [
+  'CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CODE_USE_FOUNDRY',
+  'CLAUDE_CODE_USE_ANTHROPIC_AWS', 'CLAUDE_CODE_USE_ANTHROPIC_GOOGLE_CLOUD', 'CLAUDE_CODE_USE_MANTLE',
+  'CLAUDE_CODE_USE_GATEWAY',
+];
+var CODE_MODE_FLAG_FETCH_VARS = [
+  'DISABLE_TELEMETRY', 'DO_NOT_TRACK', 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC',
+  'CLAUDE_CODE_DISABLE_FEATURE_FLAGS', 'DISABLE_GROWTHBOOK',
+];
+var CODE_MODE_OTEL_VARS = ['CLAUDE_CODE_ENABLE_TELEMETRY', 'ENABLE_BETA_TRACING_DETAILED'];
+
+function parseVersion(text) {
+  var m = /(\d+)\.(\d+)\.(\d+)/.exec(String(text || ''));
+  return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
+}
+
+function versionAtLeast(v, min) {
+  for (var i = 0; i < 3; i++) {
+    if (v[i] > min[i]) return true;
+    if (v[i] < min[i]) return false;
+  }
+  return true;
+}
+
+function isOnValue(v) {
+  return v !== undefined && v !== null && String(v).trim() !== '' && !/^(0|false|off|no)$/i.test(String(v).trim());
+}
+
+/** `claude --version` of the CLI on PATH, or null. options.claudeVersion pins it for tests. */
+function installedClaudeVersion(options) {
+  if (options && Object.prototype.hasOwnProperty.call(options, 'claudeVersion')) return options.claudeVersion;
+  try {
+    return require('child_process').execFileSync('claude', ['--version'], {
+      encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * Whether Claude Code's Code Mode is requested here, and what would keep it
+ * from starting. Reads the shell env (options.env) and the lane's user
+ * settings.json `env` block and keys (Claude Code ignores this variable in
+ * project settings). Report only: never edits anything.
+ */
+function checkCodeMode(root, options) {
+  var env = options && options.env ? options.env : process.env;
+  var settingsPath = settingsPathFromOptions(options);
+  var shown = shownPath(settingsPath, options);
+  var settings = safeJson(settingsPath) || {};
+  var senv = settings.env && typeof settings.env === 'object' ? settings.env : {};
+  function value(name) {
+    if (env[name] !== undefined) return { v: env[name], where: 'shell' };
+    if (senv[name] !== undefined) return { v: senv[name], where: shown };
+    return null;
+  }
+
+  var shellFlag = env.CLAUDE_CODE_EXPERIMENTAL_CODE_MODE;
+  var settingsFlag = senv.CLAUDE_CODE_EXPERIMENTAL_CODE_MODE;
+  var flags = [shellFlag, settingsFlag].filter(function (v) { return v !== undefined; }).map(String);
+  // A 0 in either place keeps Code Mode off even when the other says 1.
+  var requested = flags.indexOf('1') !== -1 && flags.indexOf('0') === -1;
+  var where = [];
+  if (shellFlag !== undefined) where.push(shellFlag + ' in the shell');
+  if (settingsFlag !== undefined) where.push(settingsFlag + ' in ' + shown);
+  var flagText = where.length ? 'CLAUDE_CODE_EXPERIMENTAL_CODE_MODE=' + where.join(', ') : 'CLAUDE_CODE_EXPERIMENTAL_CODE_MODE not set';
+
+  var blockers = [];
+  var version = parseVersion(installedClaudeVersion(options));
+  var versionText = version ? 'Claude Code ' + version.join('.') : 'Claude Code version unknown';
+  if (version && !versionAtLeast(version, CODE_MODE_MIN)) {
+    blockers.push(versionText + ' is older than 2.1.323 (run claude update)');
+  }
+  var teams = value('CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS');
+  if (teams && isOnValue(teams.v) && version && !versionAtLeast(version, CODE_MODE_TEAMS_MIN)) {
+    blockers.push('agent teams are on, and Code Mode with agent teams needs 2.1.326+');
+  }
+  if (typeof settings.apiKeyHelper === 'string' && settings.apiKeyHelper.trim()) {
+    blockers.push('apiKeyHelper is set in ' + shown);
+  }
+  var authToken = value('ANTHROPIC_AUTH_TOKEN');
+  if (authToken && String(authToken.v).trim()) blockers.push('ANTHROPIC_AUTH_TOKEN is set (' + authToken.where + ')');
+  var headers = value('ANTHROPIC_CUSTOM_HEADERS');
+  if (headers && /(^|\n|,)\s*(authorization|x-api-key)\s*:/i.test(String(headers.v))) {
+    blockers.push('ANTHROPIC_CUSTOM_HEADERS carries an Authorization or X-Api-Key header (' + headers.where + ')');
+  }
+  CODE_MODE_OTEL_VARS.forEach(function (name) {
+    var v = value(name);
+    if (v && isOnValue(v.v)) blockers.push('OpenTelemetry export: ' + name + ' is set (' + v.where + ')');
+  });
+  CODE_MODE_FLAG_FETCH_VARS.forEach(function (name) {
+    var v = value(name);
+    // CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC disables traffic for any non-empty value, even 0.
+    var on = v && (name === 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC' ? String(v.v).trim() !== '' : isOnValue(v.v));
+    if (on) blockers.push(name + ' turns off feature-flag fetching (' + v.where + ')');
+  });
+  CODE_MODE_PROVIDER_VARS.forEach(function (name) {
+    var v = value(name);
+    if (v && isOnValue(v.v)) blockers.push(name + ' is set; Code Mode works only directly with the Anthropic API (' + v.where + ')');
+  });
+  var baseUrl = value('ANTHROPIC_BASE_URL');
+  if (baseUrl && String(baseUrl.v).trim() && !/^https:\/\/api\.anthropic\.com\/?$/i.test(String(baseUrl.v).trim())) {
+    blockers.push('ANTHROPIC_BASE_URL points at a gateway or proxy (' + baseUrl.where + ')');
+  }
+
+  var summary = flagText + ' · ' + versionText;
+  var docs = 'See https://code.claude.com/docs/en/code-mode#code-mode-doesnt-start. The doctor reports only; it changes no setting.';
+  if (!requested) {
+    return ok(
+      'code-mode',
+      'Code Mode off (' + summary + ')' + (blockers.length ? '. If turned on it would not start: ' + blockers.join('; ') : '')
+    );
+  }
+  if (blockers.length) {
+    return warn('code-mode', 'Code Mode requested but will not start (' + summary + '): ' + blockers.join('; '), docs);
+  }
+  if (!version) {
+    return warn('code-mode', 'Code Mode requested (' + summary + '); could not read `claude --version` to confirm 2.1.323+', docs);
+  }
+  return ok(
+    'code-mode',
+    'Code Mode requested, no known blocker (' + summary + '). It also needs an interactive terminal session on the native build, a supported model, and no HIPAA or zero-data-retention organization setting.'
+  );
+}
+
 // --- runner -----------------------------------------------------------------
 
 function runDiagnostics(root, options) {
@@ -834,6 +1031,8 @@ function runDiagnostics(root, options) {
     checkVersionParity(r),
     checkCriticalFiles(r),
     checkNetworkMode(r, options),
+    checkSecretPatterns(r),
+    checkCodeMode(r, options),
   ];
 }
 
@@ -860,6 +1059,8 @@ module.exports = {
   checkVersionParity: checkVersionParity,
   checkCriticalFiles: checkCriticalFiles,
   checkNetworkMode: checkNetworkMode,
+  checkSecretPatterns: checkSecretPatterns,
+  checkCodeMode: checkCodeMode,
   EXPECTED_MCP_SERVERS: EXPECTED_MCP_SERVERS,
   EXPECTED_CONNECTOR_COUNT: EXPECTED_CONNECTOR_COUNT,
 };
