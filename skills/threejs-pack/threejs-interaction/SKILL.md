@@ -411,9 +411,10 @@ const selectionBox = new SelectionBox(camera, scene);
 const helper = new SelectionHelper(renderer, "selectBox"); // a div with this class: give .selectBox position: fixed, a border and a background in CSS, or nothing shows
 
 function ndc(event) {
+  const rect = renderer.domElement.getBoundingClientRect(); // normalize against the canvas, not the window
   return new THREE.Vector3(
-    (event.clientX / window.innerWidth) * 2 - 1,
-    -(event.clientY / window.innerHeight) * 2 + 1,
+    ((event.clientX - rect.left) / rect.width) * 2 - 1,
+    -((event.clientY - rect.top) / rect.height) * 2 + 1,
     0.5,
   );
 }
