@@ -31,8 +31,10 @@ var translator = require('./translator');
 var path = require('path');
 var fs = require('fs');
 var os = require('os');
+var crypto = require('crypto');
 
 var pkg = require('../../package.json');
+var isOffline = require('../cowork-plugin/lib/network-mode').isOffline;
 var BRAND = require('../branding');
 
 var SERVER_INFO = {
@@ -164,19 +166,23 @@ function handleUpdate(_args) {
   if (typeof checker.checkForUpdate !== 'function') {
     return { currentVersion: pkg.version, latestVersion: null, note: 'Run: npm view cc-commander version' };
   }
-  // checkForUpdate() is async (it fetches over the network) — returns a
-  // Promise the router (see handleRequest) awaits before replying.
+  // checkForUpdate() is async and applies the shared CCC_OFFLINE guard
+  // (cowork-plugin/lib/network-mode.js) before any request; the router (see
+  // handleRequest) awaits it before replying.
   return checker.checkForUpdate({ localVersion: pkg.version }).then(function (result) {
     var note;
-    if (result.status === 'outdated') note = checker.remediationText();
+    if (result.offline && result.status === 'unknown') note = 'Offline mode (CCC_OFFLINE or "offline": true): update check skipped, no request made.';
+    else if (result.status === 'outdated') note = checker.remediationText();
     else if (result.status === 'unknown') note = 'Could not reach the update server — offline or rate-limited. Try again later.';
     else note = 'Up to date.';
-    return {
+    var out = {
       currentVersion: result.installed,
       latestVersion: result.latest,
       status: result.status,
       note: note,
     };
+    if (result.offline) out.offline = true;
+    return out;
   }).catch(function () {
     return { currentVersion: pkg.version, latestVersion: null, note: 'Update check failed.' };
   });
@@ -191,37 +197,164 @@ function handleInit(args) {
   return { content: template, projectName: args.projectName || 'my-project' };
 }
 
-function handleNotesPin(args) {
-  var notesDir = path.join(os.homedir(), '.claude', 'commander');
-  try { fs.mkdirSync(notesDir, { recursive: true }); } catch (_) {}
-  var notesFile = path.join(notesDir, 'pinned-notes.json');
-  var notes = [];
-  try { notes = JSON.parse(fs.readFileSync(notesFile, 'utf8')); } catch (_) {}
-  var note = { id: Date.now().toString(), content: args.content, tags: args.tags || [], pinnedAt: new Date().toISOString() };
-  notes.push(note);
-  try { fs.writeFileSync(notesFile, JSON.stringify(notes, null, 2)); } catch (_) {}
-  return { pinned: true, id: note.id };
+// ─── Local record stores ───────────────────────────────────────
+// Notes, plans and pushed tasks persist before a tool reports success. A
+// failed read or write propagates as a tool error (isError) instead of a
+// success response for a record that never landed. An unreadable store is
+// never overwritten with an empty list.
+
+function storeDir() {
+  return path.join(os.homedir(), '.claude', 'commander');
 }
 
-function handleTasksPush(args) {
-  return {
-    queued: true,
-    title: args.title,
-    note: 'Connect Linear via ccc settings to push tasks. Task queued locally.',
+function newRecordId(prefix) {
+  return prefix + '-' + Date.now().toString(36) + '-' + crypto.randomBytes(4).toString('hex');
+}
+
+function readStore(file) {
+  var raw;
+  try {
+    raw = fs.readFileSync(file, 'utf8');
+  } catch (err) {
+    if (err && err.code === 'ENOENT') return [];
+    throw new Error('Could not read ' + file + ': ' + err.message);
+  }
+  var parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    throw new Error('Refusing to overwrite unreadable store ' + file + ': ' + err.message);
+  }
+  if (!Array.isArray(parsed)) throw new Error('Refusing to overwrite store ' + file + ': not a JSON array');
+  return parsed;
+}
+
+/** Atomically write the list (temp file + rename), then confirm the record landed. */
+function writeStore(file, records, id) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  var tmp = file + '.' + process.pid + '.' + crypto.randomBytes(4).toString('hex') + '.tmp';
+  try {
+    fs.writeFileSync(tmp, JSON.stringify(records, null, 2));
+    fs.renameSync(tmp, file);
+  } catch (err) {
+    try { fs.unlinkSync(tmp); } catch (_) {}
+    throw new Error('Could not save ' + file + ': ' + err.message);
+  }
+  var check = readStore(file);
+  if (!check.some(function (r) { return r && r.id === id; })) throw new Error('Record ' + id + ' not found in ' + file + ' after write');
+}
+
+function appendRecord(fileName, record) {
+  var file = path.join(storeDir(), fileName);
+  var records = readStore(file);
+  records.push(record);
+  writeStore(file, records, record.id);
+  return file;
+}
+
+function updateRecord(fileName, id, patch) {
+  var file = path.join(storeDir(), fileName);
+  var records = readStore(file);
+  var found = false;
+  records = records.map(function (r) {
+    if (!r || r.id !== id) return r;
+    found = true;
+    return Object.assign({}, r, patch);
+  });
+  if (!found) throw new Error('Record ' + id + ' not found in ' + file);
+  writeStore(file, records, id);
+}
+
+function requireString(value, field) {
+  if (typeof value !== 'string' || !value.trim()) throw new Error(field + ' is required');
+  return value;
+}
+
+function handleNotesPin(args) {
+  var content = requireString(args.content, 'content');
+  var note = {
+    id: newRecordId('note'),
+    content: content,
+    tags: Array.isArray(args.tags) ? args.tags.filter(function (t) { return typeof t === 'string'; }) : [],
+    pinnedAt: new Date().toISOString(),
   };
+  var file = appendRecord('pinned-notes.json', note);
+  return { pinned: true, id: note.id, store: file };
 }
 
 function handlePlanIntegrate(args) {
-  var plansDir = path.join(os.homedir(), '.claude', 'commander');
-  try { fs.mkdirSync(plansDir, { recursive: true }); } catch (_) {}
-  var plansFile = path.join(plansDir, 'plans.json');
-  var plans = [];
-  try { plans = JSON.parse(fs.readFileSync(plansFile, 'utf8')); } catch (_) {}
-  var plan = { id: Date.now().toString(), title: args.title || 'Untitled Plan', plan: args.plan, importedAt: new Date().toISOString() };
-  plans.push(plan);
-  try { fs.writeFileSync(plansFile, JSON.stringify(plans, null, 2)); } catch (_) {}
-  return { integrated: true, id: plan.id, title: plan.title };
+  var planText = requireString(args.plan, 'plan');
+  var plan = {
+    id: newRecordId('plan'),
+    title: typeof args.title === 'string' && args.title.trim() ? args.title : 'Untitled Plan',
+    plan: planText,
+    importedAt: new Date().toISOString(),
+  };
+  var file = appendRecord('plans.json', plan);
+  return { integrated: true, id: plan.id, title: plan.title, store: file };
 }
+
+/**
+ * Linear availability without a network call: offline mode or a missing token
+ * means the integration is not configured for this push.
+ */
+function linearAvailability() {
+  if (isOffline(process.env)) return { available: false, reason: 'Offline mode (CCC_OFFLINE or "offline": true) is on.' };
+  var linear;
+  try {
+    linear = deps.linear();
+  } catch (err) {
+    return { available: false, reason: 'Linear integration could not load: ' + err.message };
+  }
+  var authError = linear && typeof linear.validateAuth === 'function' ? linear.validateAuth() : { error: 'Linear integration unavailable.' };
+  if (authError) return { available: false, reason: authError.error || 'Linear is not connected.' };
+  return { available: true, linear: linear };
+}
+
+/**
+ * Persist the task locally first (the retrievable record), then push it to
+ * Linear when that integration is available. The response reports the
+ * integration as not_configured, pushed or failed; it never claims a push
+ * that did not happen.
+ */
+function handleTasksPush(args) {
+  var title = requireString(args.title, 'title');
+  var task = {
+    id: newRecordId('task'),
+    title: title,
+    description: typeof args.description === 'string' ? args.description : '',
+    priority: typeof args.priority === 'string' ? args.priority : null,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    linear: null,
+  };
+  var file = appendRecord('tasks.json', task);
+  var base = { queued: true, id: task.id, title: title, store: file };
+
+  var avail = linearAvailability();
+  if (!avail.available) {
+    base.linear = { status: 'not_configured', note: avail.reason + ' Task saved locally only.' };
+    return base;
+  }
+  return Promise.resolve()
+    .then(function () { return avail.linear.quickCreateIssue(title, task.description); })
+    .then(function (issue) {
+      var linearInfo = { status: 'pushed', identifier: issue && issue.identifier, url: issue && issue.url, issueId: issue && issue.id };
+      updateRecord('tasks.json', task.id, { linear: linearInfo });
+      base.linear = linearInfo;
+      return base;
+    }, function (err) {
+      var linearInfo = { status: 'failed', error: (err && err.message) || String(err) };
+      updateRecord('tasks.json', task.id, { linear: linearInfo });
+      base.linear = linearInfo;
+      return base;
+    });
+}
+
+// Test seam: integrations are resolved lazily so tests can substitute them.
+var deps = {
+  linear: function () { return require('../integrations/linear'); },
+};
 
 // ─── Tool dispatch map ─────────────────────────────────────────
 
@@ -244,6 +377,11 @@ var HANDLERS = {
 
 // ─── Request Router ────────────────────────────────────────────
 
+/**
+ * Route one JSON-RPC request and write its reply. Returns a Promise that
+ * settles after the reply is written when a tool handler is async, so the
+ * transport can wait for in-flight work before exiting.
+ */
 function handleRequest(req) {
   var id = req.id;
   var method = req.method;
@@ -276,10 +414,9 @@ function handleRequest(req) {
       // A handful of handlers (e.g. commander_update) are async and return a
       // Promise — every other handler stays synchronous and unaffected.
       if (result && typeof result.then === 'function') {
-        result
+        return result
           .then(function(resolved) { reply(id, translator.translateResult(toolName, resolved)); })
           .catch(function(err) { reply(id, translator.translateError(err)); });
-        return;
       }
       reply(id, translator.translateResult(toolName, result));
     } catch (err) {
@@ -300,26 +437,38 @@ function handleRequest(req) {
 // ─── Stdio transport ───────────────────────────────────────────
 
 function main() {
+  var pending = new Set();
   var rl = readline.createInterface({ input: process.stdin, terminal: false });
   rl.on('line', function(line) {
     line = line.trim();
     if (!line) return;
     try {
       var req = JSON.parse(line);
-      handleRequest(req);
-    } catch (err) {
+      var p = handleRequest(req);
+      if (p && typeof p.then === 'function') {
+        pending.add(p);
+        p.then(function() { pending.delete(p); }, function() { pending.delete(p); });
+      }
+    } catch (_err) {
       // Parse error
       var errMsg = JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } });
       process.stdout.write(errMsg + '\n');
     }
   });
 
+  // Let in-flight async tool calls (update check, Linear push) reply first.
   rl.on('close', function() {
-    process.exit(0);
+    Promise.allSettled(Array.from(pending)).then(function() { process.exit(0); });
   });
 
   // Signal readiness to stderr (not stdout — stdout is JSON-RPC only)
   process.stderr.write('[commander-mcp] CC Commander MCP Server v' + pkg.version + ' ready (local mode)\n');
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = {
+  HANDLERS: HANDLERS,
+  handleRequest: handleRequest,
+  deps: deps,
+};

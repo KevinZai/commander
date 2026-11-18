@@ -32,11 +32,11 @@ Wire into your IDE's MCP config:
 | `commander_get_agent` | Full agent definition |
 | `commander_invoke_agent` | Agent dispatch hints |
 | `commander_status` | Health check + license info |
-| `commander_update` | Check for updates |
+| `commander_update` | Check for updates (no request under `CCC_OFFLINE=1`) |
 | `commander_init` | Generate project CLAUDE.md |
-| `commander_notes_pin` | Pin notes to knowledge store |
-| `commander_tasks_push` | Push tasks to Linear |
-| `commander_plan_integrate` | Import plan into session context |
+| `commander_notes_pin` | Pin a note to the local knowledge store; returns its id |
+| `commander_tasks_push` | Save a task locally, then push to Linear if connected (`linear.status`: pushed, failed, not_configured) |
+| `commander_plan_integrate` | Save a plan to the local plan store; returns its id |
 
 ## Architecture
 

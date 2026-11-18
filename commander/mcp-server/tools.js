@@ -2,7 +2,9 @@
 
 /**
  * CC Commander MCP Server — Tool Definitions
- * 14 tools: discovery + routing hints, stub-level (no execution).
+ * 14 tools: discovery + routing hints (no skill execution). notes_pin,
+ * tasks_push and plan_integrate persist a local record before reporting
+ * success and return its id.
  */
 
 var TOOLS = [
@@ -128,7 +130,7 @@ var TOOLS = [
   },
   {
     name: 'commander_notes_pin',
-    description: "Pin a note to Commander's cross-session knowledge store.",
+    description: "Pin a note to Commander's local cross-session knowledge store (~/.claude/commander/pinned-notes.json). Returns the saved note id; a failed save is a tool error.",
     inputSchema: {
       type: 'object',
       required: ['content'],
@@ -140,7 +142,7 @@ var TOOLS = [
   },
   {
     name: 'commander_tasks_push',
-    description: 'Push a task to Linear (if connected via Commander settings).',
+    description: 'Save a task to the local Commander task store (~/.claude/commander/tasks.json), then push it to Linear when a Linear token is set and offline mode is off. Returns the local record id and linear.status: pushed, failed or not_configured.',
     inputSchema: {
       type: 'object',
       required: ['title'],
@@ -153,7 +155,7 @@ var TOOLS = [
   },
   {
     name: 'commander_plan_integrate',
-    description: "Import an existing plan into Commander's session context for tracking.",
+    description: "Import an existing plan into Commander's local plan store (~/.claude/commander/plans.json) for tracking. Returns the saved plan id; a failed save is a tool error.",
     inputSchema: {
       type: 'object',
       required: ['plan'],

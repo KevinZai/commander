@@ -264,3 +264,68 @@ describe('CLI --remote-only', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Offline guard (audit #23): the shared network-mode switch stops the fetch
+// ---------------------------------------------------------------------------
+
+describe('checkForUpdate() offline guard', () => {
+  function spyFetch() {
+    const spy = () => { spy.calls++; return Promise.resolve(JSON.stringify({ version: '99.0.0' })); };
+    spy.calls = 0;
+    return spy;
+  }
+
+  it('makes no request under CCC_OFFLINE=1 and resolves unknown + offline', async () => {
+    const fetchImpl = spyFetch();
+    const result = await updateCheck.checkForUpdate({
+      localVersion: '1.0.0',
+      cachePath: tmpCachePath(),
+      fetchImpl,
+      env: { CCC_OFFLINE: '1', HOME: TMP },
+    });
+    assert.equal(fetchImpl.calls, 0);
+    assert.deepEqual(result, { status: 'unknown', latest: null, installed: '1.0.0', offline: true });
+  });
+
+  it('honors "offline": true in ~/.commander/config.json', async () => {
+    const home = fs.mkdtempSync(path.join(TMP, 'home-'));
+    fs.mkdirSync(path.join(home, '.commander'));
+    fs.writeFileSync(path.join(home, '.commander', 'config.json'), JSON.stringify({ offline: true }));
+    const fetchImpl = spyFetch();
+    const result = await updateCheck.checkForUpdate({ cachePath: tmpCachePath(), fetchImpl, env: { HOME: home } });
+    assert.equal(fetchImpl.calls, 0);
+    assert.equal(result.offline, true);
+  });
+
+  it('still answers from a fresh cache while offline, without a request', async () => {
+    const cachePath = tmpCachePath();
+    fs.writeFileSync(cachePath, JSON.stringify({ remoteVersion: '2.0.0', timestamp: Date.now() }));
+    const fetchImpl = spyFetch();
+    const result = await updateCheck.checkForUpdate({
+      localVersion: '1.0.0',
+      cachePath,
+      fetchImpl,
+      env: { CCC_OFFLINE: 'true', HOME: TMP },
+    });
+    assert.equal(fetchImpl.calls, 0);
+    assert.equal(result.status, 'outdated');
+    assert.equal(result.offline, true);
+  });
+
+  it('uses the same isOffline as the plugin network-mode module', () => {
+    const networkMode = require('../cowork-plugin/lib/network-mode');
+    assert.equal(updateCheck.isOffline, networkMode.isOffline);
+  });
+
+  it('CLI --remote-only under CCC_OFFLINE (no cache) exits non-zero with no output', () => {
+    const home = fs.mkdtempSync(path.join(TMP, 'offline-home-'));
+    const r = spawnSync(process.execPath, [MODULE_PATH, '--remote-only'], {
+      encoding: 'utf8',
+      timeout: 6000,
+      env: { ...process.env, HOME: home, USERPROFILE: home, CCC_OFFLINE: '1' },
+    });
+    assert.notEqual(r.status, 0);
+    assert.equal((r.stdout || '').trim(), '');
+  });
+});
