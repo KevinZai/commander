@@ -303,7 +303,9 @@ describe('permission-gate: dangerous operations → always reject', () => {
       'rm -rf "a&b" ~', "rm -rf 'a;b' ~", 'rm -rf "a|b" /', 'rm -rf a\\&b ~', './rm -rf ~', 'bin/rm -rf /',
       'rm -rf build 2>&1 ~', 'rm -rf 2>&1 ~', 'rm -rf &>/dev/null ~', 'rm -rf ~//', 'rm -rf ~/./', 'rm -rf //', 'rm -rf /./',
       'rm -rf ~/..', 'rm -rf /..', 'rm -rf ~/.', 'rm -rf ~/../me', 'rm -rf ~/x/../*', 'rm -rf /tmp/../*', 'rm -rf "$HOME"/a/..',
-      'rm -rf ~/"Arts & Crafts"/..', 'rm -rf "$HOME"/"Arts & Crafts"/../*', 'rm -rf ~/Arts\\ \\&\\ Crafts/..', 'rm -rf /../tmp/x', 'rm -rf ~/../*']) {
+      'rm -rf ~/"Arts & Crafts"/..', 'rm -rf "$HOME"/"Arts & Crafts"/../*', 'rm -rf ~/Arts\\ \\&\\ Crafts/..', 'rm -rf /../tmp/x', 'rm -rf ~/../*',
+      'rm -rf "$HOME/Arts & Crafts/.."', 'rm -rf "$HOME/Arts & Crafts/../fixture.txt"', 'rm -rf "$HOME/Arts & Crafts"/..',
+      'rm -rf "$HOME/Arts & Crafts"/../*', "rm -rf '/tmp/a b/../..'", 'rm -rf "/tmp/a & b/../.."', 'rm -rf "$HOME/.."']) {
       const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'test-session-dangerous-001' });
       assert.equal(r.exitCode, 0, `Deny must exit 0 (stdout on exit 1 is discarded), got ${r.exitCode}`);
       const decision = r.parsed?.hookSpecificOutput?.decision;
@@ -320,7 +322,8 @@ describe('permission-gate: dangerous operations → always reject', () => {
     }
     for (const command of [`rm -rf ${home}/project`, `rm -rf ${home}x`, 'rm -rf /home/gate-testXuser',
       'rm -rf x && cd ~', 'rm -rf x; cd /', 'rm -rf ~/proj', 'rm -rf node_modules', 'rm -rf dist/ out/',
-      'rm -rf ~/.config/x', 'rm -rf ~/.cache', 'rm -rf /.hidden', 'rm -rf build 2>&1', 'rm -rf ./dist >/dev/null 2>&1', 'rm -rf ../build', 'rm -rf ~/..foo', 'rm -rf /tmp/a..b']) {
+      'rm -rf ~/.config/x', 'rm -rf ~/.cache', 'rm -rf /.hidden', 'rm -rf build 2>&1', 'rm -rf ./dist >/dev/null 2>&1', 'rm -rf ../build', 'rm -rf ~/..foo', 'rm -rf /tmp/a..b',
+      'rm -rf "$HOME/Arts & Crafts/old"', 'rm -rf "/tmp/a & b"', "rm -rf '/tmp/x..y'"]) {
       const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'home-literal' }, { HOME: home });
       assert.notEqual(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny', `${command} must not be hard-denied`);
     }

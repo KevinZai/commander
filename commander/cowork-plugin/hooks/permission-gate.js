@@ -69,6 +69,16 @@ const DOTS = String.raw`(?:\/|\.{1,2}(?=\/|\s|$|[;&|)<>"'*]))*`;
 // One piece of a path operand for the .. check: a quoted segment, an escape, or a plain character, so a folder
 // named "Arts & Crafts" or Arts\ \&\ Crafts does not end the path before its .. segment.
 const PATH_SEG = String.raw`(?:'[^']*'|"[^"\\]*(?:\\.[^"\\]*)*"|\\.|[^\s;&|<>'"\\])`;
+// A word that opens with a quote ("$HOME/Arts & Crafts/..", '/tmp/a b/../x', "$HOME/a b"/..): the path starts just
+// after the quote, and the .. segment may sit inside the quoted part or after it. Spaces and & inside the quotes
+// are part of the path.
+const DQ_BODY = String.raw`(?:[^"\\]|\\.)`;
+const QUOTED_DOTDOT = [
+  String.raw`(?<=")(?:\$\{?HOME\}?)?(?:\/${DQ_BODY}*?)?\/\.\.(?=[\/"])${DQ_BODY}*"${PATH_SEG}*`,
+  String.raw`(?<=")(?:\$\{?HOME\}?)?\/${DQ_BODY}*"${PATH_SEG}*?\/\.\.(?=\/|\s|$|[;&|)<>"'*])${PATH_SEG}*`,
+  String.raw`(?<=')(?:\/[^']*?)?\/\.\.(?=[\/'])[^']*'${PATH_SEG}*`,
+  String.raw`(?<=')\/[^']*'${PATH_SEG}*?\/\.\.(?=\/|\s|$|[;&|)<>"'*])${PATH_SEG}*`,
+].join('|');
 // Case-insensitive volumes (macOS, Windows): /Users/Me is the same directory as /Users/me.
 const HOME_FLAGS = process.platform === 'darwin' || process.platform === 'win32' ? 'i' : '';
 const HOME_RE = HOME_LITERAL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -87,7 +97,7 @@ const DANGEROUS_PATTERNS = [
   // anywhere in a segment counts, whatever comes before it (a newline, then/do, sudo -u root, timeout 5, eval), so
   // a search that quotes "rm -rf" next to ~ is also denied and must be run by hand. The bounded word count and the
   // lookahead gate keep matching linear on long inputs. Home also matches written out in full (/Users/me).
-  new RegExp(String.raw`(?<![\w./-])(?=(?:[\w.-]*\/)*rm\s)(?:[\w.-]*\/)*rm\s+(?:(?:${RM_WORD}\s+){0,64}?["']?(?:(?:\/|~["']?\/|\$\{?HOME\}?["']?\/)(?:${PATH_SEG}*?\/)?\.\.(?=\/|\s|$|[;&|)<>"'*])${PATH_SEG}*|\/${DOTS}\*?|~${DOTS}\*?|\$\{?HOME\}?${DOTS}\*?` +
+  new RegExp(String.raw`(?<![\w./-])(?=(?:[\w.-]*\/)*rm\s)(?:[\w.-]*\/)*rm\s+(?:(?:${RM_WORD}\s+){0,64}?["']?(?:(?:\/|~["']?\/|\$\{?HOME\}?["']?\/)(?:${PATH_SEG}*?\/)?\.\.(?=\/|\s|$|[;&|)<>"'*])${PATH_SEG}*|${QUOTED_DOTDOT}|\/${DOTS}\*?|~${DOTS}\*?|\$\{?HOME\}?${DOTS}\*?` +
     HOME_ALT + String.raw`)["']?(?=\s|$|[;&|)<>])|(?:${RM_WORD}\s+){64})`, HOME_FLAGS),
   /git\s+push\s+--force/,   // kept as-is so nothing denied before CC-654 is allowed now
   // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
