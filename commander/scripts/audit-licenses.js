@@ -141,7 +141,9 @@ function main() {
 
   // 3. Classify each copy
   const results = copies.map(copy => {
-    const spdx = resolveVendorLicense(copy, vendors);
+    let spdx = resolveVendorLicense(copy, vendors);
+    // An unverified copy must say why (upstream gone, no license text); without a reason it counts as unknown.
+    if (spdx === 'LicenseRef-Unverified' && !/unreachable|404|no license text/i.test(copy.notes || '')) spdx = 'UNKNOWN';
     const cls = CLASSIFICATION[spdx] || CLASSIFICATION['UNKNOWN'];
     return { ...copy, spdx, ...cls };
   });
@@ -196,13 +198,21 @@ function main() {
     console.log('\n  ACTION REQUIRED: Kevin must remove, relicense, or convert to submodule reference.');
     console.log('  DO NOT commit until resolved.\n');
   } else if (warn.length > 0) {
-    console.log('  ⚠️  COMPATIBLE-BUT-NOT-STRICT-MIT — ' + warn.length + ' file(s) from Apache/BSD vendors:');
-    console.log('  These are permissive and distribution-compatible, but not strict-MIT.');
-    console.log('  Kevin has explicitly acknowledged these in copied-content.json.\n');
-    for (const r of warn) {
-      console.log(`     • ${r.file} (${r.spdx})`);
+    const unverified = warn.filter(r => r.spdx === 'LicenseRef-Unverified');
+    const permissive = warn.filter(r => r.spdx !== 'LicenseRef-Unverified');
+    if (permissive.length > 0) {
+      console.log('  ⚠️  COMPATIBLE-BUT-NOT-STRICT-MIT — ' + permissive.length + ' file(s) from Apache/BSD vendors:');
+      console.log('  These are permissive and distribution-compatible, but not strict-MIT.');
+      console.log('  Kevin has explicitly acknowledged these in copied-content.json.\n');
+      for (const r of permissive) console.log(`     • ${r.file} (${r.spdx})`);
+      console.log('');
     }
-    console.log('');
+    if (unverified.length > 0) {
+      console.log('  ❓ LICENSE UNVERIFIED — ' + unverified.length + ' file(s) whose upstream is unreachable and that ship no license text.');
+      console.log('  Not known to be distribution-compatible: recover the license, rewrite the file, or remove it.\n');
+      for (const r of unverified) console.log(`     • ${r.file} (${r.spdx})`);
+      console.log('');
+    }
   } else {
     console.log('  ✅ ALL CLEAR — every copied file traces to an MIT-licensed source.\n');
   }

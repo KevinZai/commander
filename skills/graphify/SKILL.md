@@ -11,7 +11,7 @@ triggers:
 
 # Graphify — Codebase Knowledge Graph
 
-Build a knowledge graph from code, docs, PDFs, images and media, then query the graph instead of grepping. Code is parsed locally with tree-sitter (about 40 languages); only the semantic pass over docs and media uses a model. From the command line that is the backend you configure; `/graphify .` inside an assistant session uses that session's model, so docs and media in the folder are sent to it.
+Build a knowledge graph from code, docs, PDFs, images and media, then query the graph instead of grepping. Code is parsed locally with tree-sitter (about 40 languages); only the semantic pass over docs and media uses a model. From the command line that is the backend you configure; `/graphify .` inside an assistant session uses that session's model, so docs, PDFs and images in the folder are sent to it (audio and video are transcribed locally first, and the transcript is what the model sees).
 
 ## Install
 
