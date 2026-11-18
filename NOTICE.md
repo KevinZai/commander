@@ -56,3 +56,7 @@ These toolkit skills only describe how to install and route to upstream projects
 ## MIT-Derived Skills (threejs-pack)
 
 `skills/threejs-pack/` holds 13 skills copied from [CloudAI-X/threejs-skills](https://github.com/CloudAI-X/threejs-skills), pinned at `0e181866f095b5f06d005133876e926515390d95`. MIT License, Copyright (c) 2026 CloudAI-X; the full text is in `skills/threejs-pack/LICENSE.txt`. Each SKILL.md ends with a Source section naming its upstream path. Each sub-skill folder also carries a copy of the license so it can be installed on its own. Local changes: `threejs-asset-pipeline` pins the gltf-transform (4.5.1) and gltfjsx (6.5.3) CLIs; `threejs-interaction` normalizes selection coordinates against the canvas instead of the window.
+
+## MIT-Derived Skills (addyosmani-pack)
+
+`skills/addyosmani-pack/` holds 13 skills copied from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), pinned at `39b723ceebf81474d0557c1fecd01eddab585563`. MIT License, Copyright (c) 2025 Addy Osmani; the full text is in `skills/addyosmani-pack/LICENSE.txt`. CC Commander changes are marked "CCC safety:" (git-workflow-and-versioning, constraint-driven-development and its floor-guard reference, browser-testing-with-devtools, doubt-driven-development). `DECISIONS.md` lists the 12 upstream skills left out and the Commander skill covering each.

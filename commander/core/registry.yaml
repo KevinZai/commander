@@ -29,6 +29,11 @@ skills:
     domain: general
     tier: free
     description: "name: ad-creative"
+  - id: addyosmani-pack
+    path: skills/addyosmani-pack/SKILL.md
+    domain: general
+    tier: free
+    description: "name: addyosmani-pack"
   - id: advisor
     path: skills/advisor/SKILL.md
     domain: general
