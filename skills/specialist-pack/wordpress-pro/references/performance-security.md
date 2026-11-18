@@ -889,13 +889,22 @@ class Database_Backup {
     private string $backup_dir;
 
     public function __construct() {
-        $upload_dir = wp_upload_dir();
-        $this->backup_dir = $upload_dir['basedir'] . '/backups/';
+        // CCC safety: database dumps never go under wp-content/uploads or anywhere in the web root.
+        // .htaccess does nothing on nginx and many hosts, so the dump would be downloadable.
+        // Use a directory outside ABSPATH (override with MY_PLUGIN_BACKUP_DIR in wp-config.php).
+        $dir = defined('MY_PLUGIN_BACKUP_DIR') ? MY_PLUGIN_BACKUP_DIR : dirname(ABSPATH) . '/wp-backups';
+        $this->backup_dir = trailingslashit($dir);
+        $root = realpath(ABSPATH);
+        $parent = realpath(dirname(rtrim($this->backup_dir, '/')));
+        if ($root === false || $parent === false || str_starts_with($parent . '/', $root . '/')) {
+            throw new RuntimeException('Backup directory must be outside the web root.');
+        }
 
         if (!file_exists($this->backup_dir)) {
             wp_mkdir_p($this->backup_dir);
+            @chmod($this->backup_dir, 0700);
 
-            // Protect directory
+            // Defense in depth only; the location outside the web root is the real protection.
             file_put_contents($this->backup_dir . '.htaccess', 'deny from all');
             file_put_contents($this->backup_dir . 'index.php', '<?php // Silence is golden');
         }

@@ -7,12 +7,15 @@
 ```bash
 # Install Istio CLI from a pinned release, checked against its published SHA-256.
 # CCC safety: never pipe a download into a shell; pick and review the version first.
+# The subshell stops at the first failed step, so a bad checksum never reaches tar.
 ISTIO_VERSION=<release from github.com/istio/istio/releases>
-f="istio-${ISTIO_VERSION}-linux-amd64.tar.gz"
-curl -fsSLO "https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/${f}"
-curl -fsSLO "https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/${f}.sha256"
-sha256sum -c "${f}.sha256"
-tar -xzf "$f" && export PATH="$PWD/istio-${ISTIO_VERSION}/bin:$PATH"
+( set -euo pipefail
+  f="istio-${ISTIO_VERSION}-linux-amd64.tar.gz"
+  curl -fsSLO "https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/${f}"
+  curl -fsSLO "https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/${f}.sha256"
+  sha256sum -c "${f}.sha256"
+  tar -xzf "$f"
+) && export PATH="$PWD/istio-${ISTIO_VERSION}/bin:$PATH"
 
 # Install Istio with default profile
 istioctl install --set profile=default -y
@@ -326,11 +329,13 @@ spec:
 # Install Linkerd CLI from a pinned release, checked against its published SHA-256.
 # CCC safety: never pipe a download into a shell; pick and review the version first.
 LINKERD_VERSION=<release tag from github.com/linkerd/linkerd2/releases>
-f="linkerd2-cli-${LINKERD_VERSION}-linux-amd64"
-curl -fsSLO "https://github.com/linkerd/linkerd2/releases/download/${LINKERD_VERSION}/${f}"
-curl -fsSLO "https://github.com/linkerd/linkerd2/releases/download/${LINKERD_VERSION}/${f}.sha256"
-sha256sum -c "${f}.sha256"
-install -m 0755 "$f" "$HOME/.local/bin/linkerd"
+( set -euo pipefail
+  f="linkerd2-cli-${LINKERD_VERSION}-linux-amd64"
+  curl -fsSLO "https://github.com/linkerd/linkerd2/releases/download/${LINKERD_VERSION}/${f}"
+  curl -fsSLO "https://github.com/linkerd/linkerd2/releases/download/${LINKERD_VERSION}/${f}.sha256"
+  echo "$(cat "${f}.sha256" | awk '{print $1}')  ${f}" | sha256sum -c -
+  install -m 0755 "$f" "$HOME/.local/bin/linkerd"
+)
 
 # Validate cluster
 linkerd check --pre

@@ -16,7 +16,7 @@
 kubectl create namespace argocd
 
 # Install ArgoCD
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -n argocd -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"  # ARGOCD_VERSION: a reviewed release tag, never the moving "stable" ref
 
 # Wait for pods
 kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
