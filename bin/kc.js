@@ -320,10 +320,16 @@ if (args.includes('--skills')) {
   function isManagedSkillLink(dst) {
     try {
       if (!fs.lstatSync(dst).isSymbolicLink()) return false;
-      var target = path.resolve(path.dirname(dst), fs.readlinkSync(dst));
-      var name = path.basename(target);
+      // Keep the raw link text: path.resolve/join would collapse '..' before the
+      // filesystem follows an intermediate symlink. Let stat resolve the parent.
+      var raw = fs.readlinkSync(dst).replace(/[\\/]+$/, '');
+      var full = path.isAbsolute(raw) ? raw : path.dirname(dst) + path.sep + raw;
+      var cut = Math.max(full.lastIndexOf('/'), path.sep === '\\' ? full.lastIndexOf('\\') : -1);
+      if (cut < 0) return false;
+      var name = full.slice(cut + 1);
       if (!name || name === '.' || name === '..') return false;
-      return skillsSourceId !== null && fileId(path.dirname(target)) === skillsSourceId;
+      var parent = full.slice(0, cut) || path.sep;
+      return skillsSourceId !== null && fileId(parent) === skillsSourceId;
     } catch (_e) { return false; }
   }
   var tiersFilePath = path.join(skillsSourceDir, '_tiers.json');
