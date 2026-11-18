@@ -51,8 +51,20 @@ type InternalSkill = SkillEntry & { contentFile: string; licenseFile: string | n
 
 const LICENSE_NAMES = ["LICENSE.txt", "LICENSE", "LICENSE.md"];
 
-/** A LICENSE beside the skill's SKILL.md, else in its pack dir; absolute path or null. */
-function findLicenseFile(contentFile: string): string | null {
+/** The license file a SKILL.md's frontmatter names (`license: Complete terms in LICENSE.txt`), or null. */
+export function declaredLicenseName(skillMd: string): string | null {
+  const fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(skillMd);
+  const line = fm ? /^license:\s*(.*)$/m.exec(fm[1]) : null;
+  const m = line ? /\b(LICEN[SC]E(?:\.[A-Za-z]+)?)\b/.exec(line[1]) : null;
+  return m ? m[1] : null;
+}
+
+/**
+ * A LICENSE beside the skill's SKILL.md, else in its pack dir; absolute path or
+ * null. When the skill declares a license file that is missing, the expected
+ * path is returned anyway, so reading it fails and the skill is not served.
+ */
+function findLicenseFile(contentFile: string, declared: string | null = null): string | null {
   const dir = path.dirname(contentFile);
   const dirs = [dir];
   const parent = path.dirname(dir);
@@ -63,7 +75,7 @@ function findLicenseFile(contentFile: string): string | null {
       if (existsSync(file)) return file;
     }
   }
-  return null;
+  return declared ? path.join(dir, declared) : null;
 }
 type InternalAgent = AgentEntry & { contentFile: string };
 
@@ -213,7 +225,7 @@ async function loadFromRepo(repoRoot: string): Promise<Loaded> {
       description: description || entry.name || entry.id,
       path: source,
       contentFile,
-      licenseFile: findLicenseFile(contentFile),
+      licenseFile: findLicenseFile(contentFile, declaredLicenseName(await readFile(contentFile, "utf8").catch(() => ""))),
       origin: originOf(entry.source, source),
     });
   }
@@ -434,14 +446,17 @@ export async function getSkillContent(skillId: string): Promise<string | null> {
 }
 
 /**
- * The license notice shipped with a copied skill, or null when it has none.
- * Throws when the skill has a notice that cannot be read, so the caller never
- * serves the skill without it.
+ * One skill's metadata, body and license read from a single registry entry, so
+ * a reload in between can never pair one revision's body with another's
+ * license. Throws when the skill has a license notice that cannot be read.
  */
-export async function getSkillLicense(skillId: string): Promise<string | null> {
-  const skill = findInternalSkill(skillId);
-  if (!skill?.licenseFile) return null;
-  return await readFile(skill.licenseFile, "utf8");
+export async function getSkillDelivery(skillId: string): Promise<{ skill: SkillEntry; content: string | null; license: string | null } | null> {
+  const entry = findInternalSkill(skillId);
+  if (!entry) return null;
+  const { contentFile, licenseFile } = entry;
+  const license = licenseFile ? await readFile(licenseFile, "utf8") : null;
+  const content = await readFile(contentFile, "utf8").catch(() => null);
+  return { skill: publicSkill(entry), content, license };
 }
 
 /** Source commit of the served catalog, when known (bundle builds record it). */

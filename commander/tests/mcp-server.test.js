@@ -117,3 +117,18 @@ test('skills-loader serves nested skills with their license, and refuses when a 
     fs.readFileSync = orig;
   }
 });
+
+test('skills-loader refuses a skill whose declared LICENSE.txt is missing', function() {
+  var loader = require('../mcp-server/skills-loader.js');
+  var fs = require('fs');
+  var p = require('path');
+  var origExists = fs.existsSync;
+  var target = p.join('canvas-design', 'LICENSE.txt');
+  fs.existsSync = function(f) { return String(f).endsWith(target) ? false : origExists.apply(fs, arguments); };
+  try {
+    var r = loader.getSkill('canvas-design');
+    assert.ok(r && r.error && /declares LICENSE\.txt/.test(r.error), JSON.stringify(r && Object.keys(r)));
+  } finally {
+    fs.existsSync = origExists;
+  }
+});

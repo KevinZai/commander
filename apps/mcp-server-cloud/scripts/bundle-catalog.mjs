@@ -51,6 +51,14 @@ const LICENSE_NAMES = ["LICENSE.txt", "LICENSE", "LICENSE.md"];
  * its SKILL.md, else one in its pack dir (the parent, when that is not a
  * top-level skills root). Repo-relative path, or null.
  */
+/** The license file a SKILL.md's frontmatter names, or null (mirrors registry.ts). */
+export function declaredLicenseName(skillMd) {
+  const fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(skillMd);
+  const line = fm ? /^license:\s*(.*)$/m.exec(fm[1]) : null;
+  const m = line ? /\b(LICEN[SC]E(?:\.[A-Za-z]+)?)\b/.exec(line[1]) : null;
+  return m ? m[1] : null;
+}
+
 export function findSkillLicense(repoRoot, source) {
   const dir = path.dirname(source);
   const dirs = [dir];
@@ -193,6 +201,7 @@ export function bundleCatalog({ repoRoot = DEFAULT_REPO_ROOT, dataDir = DEFAULT_
 
   const missing = [];
   const skills = [];
+  const withheld = [];
   const seen = new Map();
   let duplicates = 0;
   for (const s of registry.skills) {
@@ -217,6 +226,12 @@ export function bundleCatalog({ repoRoot = DEFAULT_REPO_ROOT, dataDir = DEFAULT_
     }
     const registryDescription = s.description.startsWith("name:") ? "" : s.description;
     const licenseSource = findSkillLicense(repoRoot, source);
+    const declared = declaredLicenseName(body.toString("utf8"));
+    if (declared && !licenseSource) {
+      // Never ship a skill without the notice it declares: withhold it and say so.
+      withheld.push({ id: s.id, source, reason: `declares ${declared}, which is missing` });
+      continue;
+    }
     const licenseBody = licenseSource ? readFileSync(path.join(repoRoot, licenseSource)) : null;
     skills.push({
       id: s.id,
@@ -280,6 +295,7 @@ export function bundleCatalog({ repoRoot = DEFAULT_REPO_ROOT, dataDir = DEFAULT_
     generatedAt: new Date().toISOString(),
     registrySha256: sha256(registryRaw),
     duplicateRegistryEntries: duplicates,
+    withheldSkills: withheld,
     counts: {
       skills: skills.length,
       pluginSkills: skills.filter((s) => s.origin === "plugin").length,
@@ -339,6 +355,7 @@ function main(argv) {
     if (!verifyOnly) {
       const built = bundleCatalog();
       console.log(`✓ Bundled release ${built.release}: ${built.counts.skills} skills (${built.counts.pluginSkills} plugin, ${built.counts.ecosystemSkills} ecosystem), ${built.counts.agents} agents`);
+      for (const w of built.withheldSkills) console.warn(`! Withheld skill ${w.id} (${w.source}): ${w.reason}`);
     }
     const manifest = verifyCatalog();
     console.log(`✓ Catalog bundle verified (release ${manifest.release}, commit ${manifest.gitCommit ?? "unknown"})`);

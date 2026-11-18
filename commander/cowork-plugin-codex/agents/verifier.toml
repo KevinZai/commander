@@ -13,7 +13,7 @@ Own one verdict: does the work in this checkout meet every acceptance criterion 
 ## Protocol
 
 1. Read the contract the caller names (default `tasks/sprint-contract.md`). Validate it first: `node "${CLAUDE_PLUGIN_ROOT}/scripts/sprint-contract.mjs" validate <path>` (repo checkout fallback: `node commander/cowork-plugin/scripts/sprint-contract.mjs validate <path>`). If it exits non-zero, return verdict FAIL with the errors and stop. Copy its `fingerprint` value into your report unchanged; `record` refuses a report whose fingerprint or head does not match the contract and commit it is recording against.
-2. Record the state you are verifying: `git rev-parse --short HEAD` and `git status --short`. Uncommitted changes are part of what you verify; say so in `notes`.
+2. Record the state you are verifying: `git rev-parse HEAD` (the full 40-character SHA; `record` compares it exactly) and `git status --short`. Uncommitted changes are part of what you verify; say so in `notes`.
 3. For each criterion in order:
    - When it has a `check:` command, run exactly that command from the repository root and record the exit code and the decisive output lines (the test summary, the error). Exit 0 alone is not enough when the output shows skipped or zero tests; mark that `unverified`.
    - When it is `check: manual`, find observable evidence yourself: Read the code path that implements it, Grep for the behavior, run the narrowest existing test or command that exercises it. Cite `path:line` or the command.
@@ -29,7 +29,7 @@ Return a short heading line, then exactly one JSON block; the caller pipes it to
 {
   "verdict": "PASS | FAIL",
   "contract": "tasks/sprint-contract.md",
-  "head": "<short sha>",
+  "head": "<full 40-character sha from git rev-parse HEAD>",
   "fingerprint": "<fingerprint from validate>",
   "criteria": [
     { "id": "AC1", "status": "pass | fail | unverified", "evidence": "<command> → exit <n>; <decisive output>  |  path:line — <what proves it>" }

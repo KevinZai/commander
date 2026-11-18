@@ -38,7 +38,7 @@ function flags(args, name) {
 
 function gitHead() {
   try {
-    return execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
   } catch {
     return 'no-git';
   }
@@ -140,9 +140,10 @@ function main(argv) {
     if (!verdict || verdict.fingerprint !== fingerprint) {
       errors.push(`report fingerprint ${JSON.stringify(verdict && verdict.fingerprint)} does not match this contract (${fingerprint}); re-run the verifier on ${target}`);
     }
+    // The full 40-character SHA, compared exactly: a prefix or a look-alike is not this commit.
     const rh = verdict && typeof verdict.head === 'string' ? verdict.head.trim() : '';
-    if (!rh || head === 'no-git' || !(head.startsWith(rh) || rh.startsWith(head)) || rh.length < 7) {
-      errors.push(`report head ${JSON.stringify(rh || null)} is not the current HEAD (${head}); re-run the verifier at this commit`);
+    if (!/^[0-9a-f]{40}$/.test(head) || rh !== head) {
+      errors.push(`report head ${JSON.stringify(rh || null)} is not the full current HEAD (${head}); re-run the verifier at this commit with \`git rev-parse HEAD\``);
     }
     if (errors.length) return out({ ok: false, path: target, head, fingerprint, errors }, 1);
     const normalized = normalizeVerdict(parsed, verdict);

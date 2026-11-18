@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 'use strict';
 var path = require('path');
+// The one skill-name rule for `ccc --skills` (CWE-22/CWE-73 hardening). The hosted
+// server's install hint (apps/mcp-server-cloud/src/tools/get-skill.ts) uses the
+// same literal; tests/skill-slug-parity.test.js keeps them identical.
+var SKILL_SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 var fs = require('fs');
 var args = process.argv.slice(2);
 var dispatching = false;
@@ -300,7 +304,7 @@ if (args.includes('--skills')) {
   // CWE-22 path traversal + CWE-73 argv injection hardening, shared by install and remove (audit #21):
   // a skill name is lowercase alphanumeric with hyphens, max 64 chars, and resolves directly inside its dir.
   function skillPathIn(dir, name) {
-    if (typeof name !== 'string' || !/^[a-z0-9-]{1,64}$/.test(name)) return null;
+    if (typeof name !== 'string' || !SKILL_SLUG.test(name)) return null;
     var base = path.resolve(dir);
     var p = path.resolve(base, name);
     return path.dirname(p) === base ? p : null;
@@ -469,8 +473,8 @@ if (args.includes('--skills')) {
     }
     // CWE-22 path traversal + CWE-73 argv injection hardening:
     // Skill name must be lowercase alphanumeric with hyphens, max 64 chars.
-    if (!/^[a-z0-9-]{1,64}$/.test(installName)) {
-      console.error('Invalid skill name: must match /^[a-z0-9-]{1,64}$/');
+    if (!SKILL_SLUG.test(installName)) {
+      console.error('Invalid skill name: lowercase letters, digits and hyphens, starting with a letter or digit, max 64 chars');
       process.exit(1);
     }
     // Defense-in-depth: reject obviously-malicious input shapes before any path join.
@@ -523,8 +527,8 @@ if (args.includes('--skills')) {
       process.exit(1);
     }
     // Same validator and containment check as install (audit #21), then an ownership check before unlinking.
-    if (!/^[a-z0-9-]{1,64}$/.test(removeName)) {
-      console.error('Invalid skill name: must match /^[a-z0-9-]{1,64}$/');
+    if (!SKILL_SLUG.test(removeName)) {
+      console.error('Invalid skill name: lowercase letters, digits and hyphens, starting with a letter or digit, max 64 chars');
       process.exit(1);
     }
     var removeDst = skillPathIn(skillsInstallDir, removeName);

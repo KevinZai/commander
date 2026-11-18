@@ -15,7 +15,7 @@ export const ARCHIVE_DIR = 'tasks/contracts';
 export const MARKER = 'ccc-sprint-contract v1';
 export const MAX_CRITERIA = 20;
 
-const CHECK_SPLIT = /\s+(?:·|—|-{1,2})\s+check:\s+(.+)$/i;
+const CHECK_SPLIT = /\s+(?:·|—|-{1,2})\s+check(-json)?:\s+(.+)$/i;
 const ITEM = /^\s*[-*]\s+(?:\[( |x|X)\]\s+)?(.*\S)\s*$/;
 const ID_PREFIX = /^(AC\d+)\s*(?:—|-|:|·)\s*/;
 
@@ -29,13 +29,22 @@ export function splitCriterion(raw) {
   let check = null;
   const m = text.match(CHECK_SPLIT);
   if (m) {
-    check = m[1].trim();
     text = text.slice(0, m.index).trim();
+    if (m[1]) {
+      // check-json: the command is a JSON string inside one code span, so
+      // newlines and boundary whitespace survive exactly.
+      const inner = unwrapCodeSpan(m[2].trim());
+      try { check = inner === null ? null : JSON.parse(inner); } catch { check = null; }
+      if (typeof check !== 'string') check = null;
+      return { text, check };
+    }
+    check = m[2].trim();
+    const inner = unwrapCodeSpan(check);
+    if (inner !== null) check = inner;
   } else {
     const cmd = text.match(/`([^`]+)`/);
     if (cmd) check = cmd[1].trim();
   }
-  if (check) check = unwrapCodeSpan(check);
   const manual = check && check.match(/^manual\b\s*(?:[—:-]+\s*)?(.*)$/i);
   if (manual) {
     check = null;
@@ -45,9 +54,9 @@ export function splitCriterion(raw) {
 }
 
 /**
- * A command as an inline code span that round-trips verbatim: the fence is one
- * backtick longer than the longest run inside, padded with a space when the
- * command starts or ends with a backtick (CommonMark code-span rules).
+ * A string as one inline code span: the fence is one backtick longer than the
+ * longest run inside, padded with a space when the string starts or ends with
+ * a backtick (CommonMark code-span rules).
  */
 export function codeSpan(command) {
   const s = String(command);
@@ -57,25 +66,43 @@ export function codeSpan(command) {
   return `${fence}${pad}${s}${pad}${fence}`;
 }
 
+/** A command that renders as a plain one-backtick span and reads back unchanged. */
+function plainCommand(s) {
+  return s.length > 0 && !/[`\n\r]/.test(s) && s === s.trim();
+}
+
+/** How a check command is written in the contract: plain span, else JSON in a span. */
+export function renderCheck(command) {
+  const s = String(command);
+  return plainCommand(s) ? `check: ${codeSpan(s)}` : `check-json: ${codeSpan(JSON.stringify(s))}`;
+}
+
+/**
+ * The content of a string that is exactly one enclosing code span, or null.
+ * The span must open and close with the same backtick run and contain no run
+ * of that length inside (so "`a` && `b`" is two spans and is left alone).
+ */
 function unwrapCodeSpan(raw) {
   const s = String(raw);
-  const fence = (s.match(/^`+/) || [''])[0];
-  if (!fence || s.length < 2 * fence.length + 1 || !s.endsWith(fence)) return s;
-  let inner = s.slice(fence.length, s.length - fence.length);
-  if (inner.startsWith('`') || inner.endsWith('`')) return s;
-  if (inner.length >= 2 && inner.startsWith(' ') && inner.endsWith(' ') && inner.trim()) inner = inner.slice(1, -1);
+  const m = s.match(/^(`+)([\s\S]*?[^`]|)(`+)$/);
+  if (!m || m[1].length !== m[3].length) return null;
+  let inner = m[2];
+  const runs = inner.match(/`+/g) || [];
+  if (runs.some((r) => r.length === m[1].length)) return null;
+  if (inner.length >= 2 && inner.startsWith(' ') && inner.endsWith(' ') && inner.trim() && /^ `|` $/.test(inner)) inner = inner.slice(1, -1);
   return inner;
 }
 
 /**
- * Identity of a contract's content: title plus every criterion's id, text and
- * check. A verifier report must name this value, so evidence for one contract
+ * Identity of a contract's content: title, every criterion's id, text and
+ * check, and the out-of-scope list. A verifier report must name this value, so evidence for one contract
  * can never be recorded against another.
  */
 export function contractFingerprint(parsed) {
   const body = JSON.stringify({
     title: parsed.title || '',
     criteria: (parsed.criteria || []).map((c) => [c.id, c.text, c.check || null]),
+    outOfScope: parsed.outOfScope || [],
   });
   return createHash('sha256').update(body).digest('hex').slice(0, 16);
 }
@@ -120,7 +147,7 @@ export function titleFromPlan(markdown) {
 export function renderContract({ title, source = 'manual', created = new Date().toISOString(), criteria = [], outOfScope = [] }) {
   const items = criteria.map((c, i) => {
     const id = c.id || `AC${i + 1}`;
-    const check = c.check ? ` · check: ${codeSpan(c.check)}` : ' · check: manual';
+    const check = c.check ? ` · ${renderCheck(c.check)}` : ' · check: manual';
     return `- [${c.done ? 'x' : ' '}] ${id} — ${c.text}${check}`;
   });
   return [
@@ -164,6 +191,7 @@ export function parseContract(markdown) {
     status,
     verified,
     criteria,
+    outOfScope: bullets(sectionLines(text, /out of scope/i)).map((b) => b.body),
   };
 }
 

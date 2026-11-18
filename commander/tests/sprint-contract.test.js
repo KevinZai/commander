@@ -101,7 +101,7 @@ test('CLI: from-plan, record, status, and archive on a new contract', () => {
   assert.ok(fs.existsSync(path.join(dir, 'tasks', 'sprint-contract.md')));
   const fingerprint = made.json.fingerprint;
   assert.match(fingerprint, /^[0-9a-f]{16}$/);
-  const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
   const bind = { fingerprint, head };
 
   const failing = run(dir, ['record', '-'], JSON.stringify({ ...bind, verdict: 'PASS', criteria: [{ id: 'AC1', status: 'pass', evidence: 'exit 0' }] }));
@@ -143,15 +143,17 @@ test('CLI: record refuses evidence for another contract or another commit', () =
   const dir = tmpRepo();
   const a = run(dir, ['new', '--out', 'tasks/a.md', '--title', 'Contract A', '--criterion', 'The A thing works fine :: true']);
   const b = run(dir, ['new', '--out', 'tasks/b.md', '--title', 'Contract B', '--criterion', 'The B thing works fine :: true']);
-  const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
   const pass = (fp, h) => JSON.stringify({ fingerprint: fp, head: h, verdict: 'PASS', criteria: [{ id: 'AC1', status: 'pass', evidence: 'ok' }] });
   const before = fs.readFileSync(path.join(dir, 'tasks/b.md'), 'utf8');
   const wrongContract = run(dir, ['record', '-', 'tasks/b.md'], pass(a.json.fingerprint, head));
   assert.strictEqual(wrongContract.code, 1);
   assert.match(wrongContract.json.errors.join(' '), /fingerprint/);
-  const wrongHead = run(dir, ['record', '-', 'tasks/b.md'], pass(b.json.fingerprint, 'aaaaaaa'));
-  assert.strictEqual(wrongHead.code, 1);
-  assert.match(wrongHead.json.errors.join(' '), /HEAD/);
+  for (const h of ['aaaaaaa', head.slice(0, 7), head.slice(0, 7) + '-typo', head + 'x']) {
+    const wrongHead = run(dir, ['record', '-', 'tasks/b.md'], pass(b.json.fingerprint, h));
+    assert.strictEqual(wrongHead.code, 1, h);
+    assert.match(wrongHead.json.errors.join(' '), /HEAD/);
+  }
   assert.strictEqual(run(dir, ['record', '-', 'tasks/b.md'], JSON.stringify({ verdict: 'PASS', criteria: [] })).code, 1, 'unbound report refused');
   assert.strictEqual(fs.readFileSync(path.join(dir, 'tasks/b.md'), 'utf8'), before, 'nothing recorded');
   assert.strictEqual(run(dir, ['record', '-', 'tasks/b.md'], pass(b.json.fingerprint, head)).code, 0);
@@ -163,7 +165,20 @@ test('CLI: record refuses evidence for another contract or another commit', () =
 
 test('check commands with backticks round-trip verbatim', async () => {
   const lib = await libP;
-  const checks = ['node -e "console.log(`hi ${1+1}`)"', '`echo` a', 'a ``b`` c', 'plain'];
+  const checks = ['node -e "console.log(`hi ${1+1}`)"', '`echo` a', 'a ``b`` c', 'plain', ' lead and trail\\ ', 'line one\nline two', '`x`'];
   const md = lib.renderContract({ title: 'Ticks', criteria: checks.map((check, i) => ({ text: `criterion number ${i}`, check })) });
   assert.deepStrictEqual(lib.parseContract(md).criteria.map((c) => c.check), checks);
+});
+
+test('a plan check with two separate code spans is kept whole', async () => {
+  const lib = await libP;
+  assert.strictEqual(lib.splitCriterion('Works · check: `a` && `b`').check, '`a` && `b`');
+});
+
+test('the fingerprint covers the out-of-scope list', async () => {
+  const lib = await libP;
+  const base = { title: 'T', criteria: [{ text: 'criterion text here', check: 'true' }] };
+  const a = lib.contractFingerprint(lib.parseContract(lib.renderContract({ ...base, outOfScope: ['billing'] })));
+  const b = lib.contractFingerprint(lib.parseContract(lib.renderContract({ ...base, outOfScope: ['nothing'] })));
+  assert.notStrictEqual(a, b);
 });

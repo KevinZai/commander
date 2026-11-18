@@ -124,7 +124,7 @@ function getSkill(name) {
   try {
     var content = fs.readFileSync(skill.path, 'utf8');
     var out = { id: skill.id, name: skill.name, domain: skill.domain, tier: skill.tier, content: content };
-    var license = readSkillLicense(skill.path);
+    var license = readSkillLicense(skill.path, content);
     if (license && license.error) return { error: license.error };
     if (license) out.license = license.text;
     return out;
@@ -137,7 +137,15 @@ var LICENSE_NAMES = ['LICENSE.txt', 'LICENSE', 'LICENSE.md'];
 
 // The notice that travels with a copied skill: a LICENSE beside SKILL.md, else
 // one in its pack dir (the parent, unless that is a top-level skills root).
-function readSkillLicense(skillFile) {
+// The license file a SKILL.md's frontmatter names (`license: Complete terms in LICENSE.txt`), or null.
+function declaredLicenseName(skillMd) {
+  var fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(skillMd || '');
+  var line = fm ? /^license:\s*(.*)$/m.exec(fm[1]) : null;
+  var m = line ? /\b(LICEN[SC]E(?:\.[A-Za-z]+)?)\b/.exec(line[1]) : null;
+  return m ? m[1] : null;
+}
+
+function readSkillLicense(skillFile, skillMd) {
   var dir = path.dirname(skillFile);
   var dirs = [dir];
   var parent = path.dirname(dir);
@@ -152,6 +160,8 @@ function readSkillLicense(skillFile) {
       }
     }
   }
+  var declared = declaredLicenseName(skillMd);
+  if (declared) return { error: 'This skill declares ' + declared + ' but the file is missing; not serving it without the notice.' };
   return null;
 }
 

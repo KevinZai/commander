@@ -428,3 +428,22 @@ describe("an unreadable license notice blocks serving", () => {
     assert.equal(inv.invocationGuide, undefined);
   });
 });
+
+describe("a declared license file is required", () => {
+  const DECLARING = "---\nname: ab-test-setup\nlicense: Complete terms in LICENSE.txt\n---\n# A/B\n";
+
+  it("the bundle withholds a skill that declares a missing LICENSE.txt", () => {
+    const repo = makeRepo();
+    tempDirs.push(repo);
+    writeFile(repo, "skills/ab-test-setup/SKILL.md", DECLARING);
+    const m = bundler.bundleCatalog({ repoRoot: repo, dataDir: tmp("ccc-catalog-decl-") }) as Manifest & { withheldSkills: Array<{ id: string; reason: string }> };
+    assert.ok(!m.skills.some((s) => s.id === "ecosystem/ab-test-setup"), "not shipped without its notice");
+    assert.match(m.withheldSkills.find((w) => w.id === "ecosystem/ab-test-setup")!.reason, /declares LICENSE\.txt/);
+  });
+
+  it("reads the declared license file name from frontmatter only", () => {
+    assert.equal(registry.declaredLicenseName(DECLARING), "LICENSE.txt");
+    assert.equal(registry.declaredLicenseName("---\nname: x\nlicense: MIT\n---\n"), null);
+    assert.equal(registry.declaredLicenseName("# no frontmatter\nlicense: see LICENSE.txt\n"), null);
+  });
+});
