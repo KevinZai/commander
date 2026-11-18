@@ -38,3 +38,17 @@ The following plugin skills are adapted from [t3dotgg/tstack](https://github.com
 Vendor packages under `vendor/` are git submodules, each under its own license; the full table is in `vendor/LICENSE`.
 
 - claude-code-playground (`vendor/claude-code-playground`, https://github.com/anthropics/claude-code-playground) — owned by Anthropic, PBC — Apache License 2.0. Upstream describes it as an Anthropic DevRel playground, provided as-is and not an official Anthropic product.
+
+## MIT-Derived Skills (ponytail)
+
+`skills/ponytail/SKILL.md` is copied unchanged from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail), pinned at `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846`. MIT License, Copyright (c) 2026 DietrichGebert; the full text is in `skills/ponytail/LICENSE.txt`. `skills/mode-switcher/modes/ponytail.md` summarizes the same rules as a CC Commander mode.
+
+## Opt-in MIT add-ons (installed from upstream, not redistributed)
+
+These toolkit skills only describe how to install and route to upstream projects. No upstream source is copied into this distribution.
+
+- `skills/diagram-design` — [cathrynlavery/diagram-design](https://github.com/cathrynlavery/diagram-design), MIT
+- `skills/claude-video` — [bradautomates/claude-video](https://github.com/bradautomates/claude-video), MIT
+- `skills/mempalace` — [MemPalace/mempalace](https://github.com/MemPalace/mempalace), MIT
+- `skills/qmd` — [tobi/qmd](https://github.com/tobi/qmd), MIT
+- `skills/codebase-memory-mcp` — [DeusData/codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp), MIT

@@ -101,7 +101,7 @@ Project signals from step 1 move the 🟢 to another group, which is then listed
 
 | Group | Options |
 |---|---|
-| Research & observe | 🟢 Research — search, scraping, docs · Observability — errors and performance |
+| Research & observe | 🟢 Research — search, scraping, docs · Code map — local code graph · Observability — errors and performance |
 | Build & ship | 🟢 Backend — database, auth, storage · Hosting — deploys and previews · Cache / Queue — Redis and Kafka · Billing — payments |
 | Team & comms | 🟢 Tasks — issues and projects · Knowledge — pages and databases · Comms — channels and threads · Email — sending and inboxes |
 | Automate & design | 🟢 Automation — browsers and app actions · Design — files and components · Agent harness — external agent CLI |
@@ -117,10 +117,11 @@ With `stripe` in `package.json`, Billing takes the 🟢 in Build & ship and is l
 | Cache / Queue | Upstash [aff] — serverless Redis and Kafka (only option) |
 | Billing | Stripe — payments, subscriptions, invoices (only option) |
 | Tasks | GitHub — issues and PRs · Linear — issues, projects, cycles (first-class Commander integration) |
-| Knowledge | Notion — pages, databases, comments (only option) |
+| Knowledge | MemPalace — local searchable session memory, no key · Notion — pages, databases, comments · qmd — local search over notes and docs, no key |
 | Comms | Discord — community server · Slack — channels, threads |
 | Email | AgentMail — agent-native inbox · Resend [aff] — transactional email |
 | Research | Context7 — live library docs (already bundled; nothing to wire) · Exa — neural search · Firecrawl — scraping to markdown · Tavily — web search |
+| Code map | codebase-memory-mcp — local code graph, callers, impact, test selection; no key (only option) |
 | Observability | Sentry [aff] — errors, performance, releases (only option) |
 | Automation | Browserbase [aff] — remote headless browsers · n8n — self-hosted workflows · Playwright — local browser automation, no credential · Zapier — app actions |
 | Design | Figma — files, components, comments (only option) |
@@ -128,7 +129,7 @@ With `stripe` in `package.json`, Billing takes the 🟢 in Build & ship and is l
 
 No connector is pre-selected. Mark one 🟢 only when step 1 shows it already in use (an installed plugin or MCP server, or its package in `package.json`). Affiliate status never changes the order or the 🟢.
 
-**Arguments:** a category name (`tasks`, `backend`, `hosting`, `cache`, `knowledge`, `comms`, `observability`, `billing`, `automation`, `agent-harness`, `email`, `research`, `design`) opens its level-3 picker; `productivity` opens a level-2 picker with 🟢 Tasks, Knowledge, Comms; `dev` opens a level-2 picker with 🟢 Backend, Hosting, Observability, Billing; no argument opens level 1.
+**Arguments:** a category name (`tasks`, `backend`, `hosting`, `cache`, `knowledge`, `comms`, `observability`, `billing`, `automation`, `agent-harness`, `email`, `research`, `code-map`, `design`) opens its level-3 picker; `productivity` opens a level-2 picker with 🟢 Tasks, Knowledge, Comms; `dev` opens a level-2 picker with 🟢 Backend, Hosting, Observability, Billing; no argument opens level 1.
 
 **Install picker** (header "Install"): 🟢 **Install now** (runs the one install command shown) · **Show the command only** (the user runs it) · **Cancel**.
 

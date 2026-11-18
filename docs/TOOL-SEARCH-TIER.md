@@ -10,7 +10,7 @@ Modeled on **Hermes Tool Search** (OpenClaw's deferred-tool-loading pattern), to
 
 ## The problem: tool schemas are context
 
-Every connected tool ships a JSON schema (name, description, parameters). With 16 opt-in MCP connectors plus the bundled servers, eagerly loading every tool can burn tens of thousands of tokens *before the user types a word*. A Slack server alone can add 20+ tools; a Linear server, 50+. Most of them are irrelevant to any given task.
+Every connected tool ships a JSON schema (name, description, parameters). With 19 opt-in MCP connectors plus the bundled servers, eagerly loading every tool can burn tens of thousands of tokens *before the user types a word*. A Slack server alone can add 20+ tools; a Linear server, 50+. Most of them are irrelevant to any given task.
 
 That cost compounds against CC Commander's **workflow-first** doctrine: the lead session is a control plane and should stay slim (`commander/cowork-plugin/rules/workflow-first.md`). A bloated tool surface is the same anti-pattern as dumping raw file contents into the lead context — noise that crowds out reasoning.
 
@@ -58,7 +58,7 @@ Tool search introduces a tier model that mirrors `skills/_tiers.json`. Choose th
 | **Deferred** (recommended) | on | Names only + `ToolSearch` | Many connectors; long sessions; workflow-first lead contexts |
 | **Pinned + deferred** | on | A small allowlist eager, the rest deferred | You always use 3-4 tools but occasionally reach for the long tail |
 
-**Recommended default for CC Commander sessions: Deferred.** With 16 opt-in MCP connectors available via `/ccc-connect`, eager loading is rarely justified.
+**Recommended default for CC Commander sessions: Deferred.** With 19 opt-in MCP connectors available via `/ccc-connect`, eager loading is rarely justified.
 
 ---
 

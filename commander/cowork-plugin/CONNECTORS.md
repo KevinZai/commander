@@ -23,7 +23,7 @@ All other connectors below are **opt-in** via `/ccc-connect` — enable each wit
 | Chat | `~~chat` | Slack | Microsoft Teams, Discord |
 | Email | `~~email` | Gmail | Outlook |
 | Calendar | `~~calendar` | Google Calendar | Outlook Calendar |
-| Knowledge base | `~~knowledge base` | — | Notion, Confluence, Coda |
+| Knowledge base | `~~knowledge base` | qmd, MemPalace | Notion, Confluence, Coda |
 | Social media | `~~social media` | — | Typefully, Buffer |
 | Bookmarks | `~~bookmarks` | — | Raindrop, Pocket |
 | CI/CD | `~~CI/CD` | — | GitHub Actions, CircleCI, Jenkins |
@@ -32,7 +32,7 @@ All other connectors below are **opt-in** via `/ccc-connect` — enable each wit
 | Library docs | `~~library docs` | Context7 (bundled) | — |
 | Files | `~~files` | Google Drive | Dropbox, OneDrive |
 
-## 🔌 The 16 opt-in MCP servers
+## 🔌 The 19 opt-in MCP servers
 
 > CC Commander bundles **2 credential-free MCP servers** (`context7` + `sequential-thinking`) so the plugin works immediately on install with zero API keys. Everything below is **opt-in** via `/ccc-connect` — users enable per-MCP with their own credentials. No shared keys, no lock-in, no silent failures on install day. Anonymous usage telemetry is off unless you opt in with `CCC_TELEMETRY=1`; `CCC_OFFLINE=1` blocks every outbound call (see the plugin README, "Data & network").
 
@@ -41,12 +41,15 @@ All other connectors below are **opt-in** via `/ccc-connect` — enable each wit
 | AgentMail | Email | Agent-native inbox (new) | No | AgentMail MCP |
 | Browserbase | Automation | Remote headless browsers beyond Playwright | ✅ | `npx -y @browserbasehq/mcp` |
 | Cloudflare | Edge | Workers + R2 + D1 | ✅ | Cloudflare MCP |
+| codebase-memory-mcp | Code map | Local code graph: callers, impact, test selection; Commander's preferred code mapper | No | `codebase-memory-mcp install` (see `skills/codebase-memory-mcp`) |
 | Discord | Comms | Pro community lives here | No | Community MCP |
 | Fly.io | Hosting | Services + Docker; matches `/ccc-devops` | ✅ | Unverified — `/ccc-connect` links the official docs |
 | Linear | Tasks | First-class CC Commander integration (`/ccc-linear`, `/ccc-linear-board`) | No | Official Linear MCP |
+| MemPalace | Memory | Local verbatim session memory with search; MIT alternative to claude-mem | No | `claude mcp add mempalace -- mempalace-mcp` |
 | Neon | Database | Postgres serverless, lighter than Supabase for tiny projects | ✅ | `npx -y @neondatabase/mcp-server-neon` |
 | Notion | Knowledge | Docs workflow; official MCP | No | Official Notion MCP |
 | Postgres | Database | Direct DB query/schema inspection | No | `npx -y @modelcontextprotocol/server-postgres` |
+| qmd | Knowledge | On-device search over notes and docs | No | `claude mcp add qmd -- qmd mcp` |
 | Resend | Email | Transactional email for SaaS | ✅ | Unverified — `/ccc-connect` links the official docs |
 | Sentry | Observability | Error tracking for shipped apps | ✅ | Sentry MCP (official) |
 | Slack | Comms | Team workflows; official MCP | No | Official Slack MCP |

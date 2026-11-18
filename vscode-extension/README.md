@@ -65,7 +65,7 @@ Install **Claude Code Desktop** to unlock:
 - All 22 specialist sub-agents
 - 9 lifecycle hooks with 25+ handlers
 - 2 bundled MCP servers (context7, sequential-thinking)
-- 16 opt-in MCP connectors
+- 19 opt-in MCP connectors
 - Free forever
 
 Download: https://claude.ai/download

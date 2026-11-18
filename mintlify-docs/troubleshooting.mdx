@@ -248,7 +248,7 @@ Restart the session. The SessionStart hook will populate the file on next launch
 2. Confirm credentials when prompted.
 3. Cmd+Q + reopen to load the new MCP entry.
 
-The full set of 16 opt-in connectors lives in the plugin's `CONNECTORS.md`.
+The full set of 19 opt-in connectors lives in the plugin's `CONNECTORS.md`.
 
 ## Performance issues
 
@@ -281,7 +281,7 @@ The full set of 16 opt-in connectors lives in the plugin's `CONNECTORS.md`.
 When you escalate an issue, include the output of these commands. They're the canonical diagnostic surface:
 
 ```bash
-node scripts/audit-counts.js --check          # Verify 50/17/8x16/2+16 counts match
+node scripts/audit-counts.js --check          # Verify 50/17/8x16/2+19 counts match
 node scripts/check-version-parity.js --check  # Confirm version is consistent across files
 npm test                                      # Run the full test suite
 ```
