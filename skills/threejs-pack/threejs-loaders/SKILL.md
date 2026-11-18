@@ -504,4 +504,4 @@ function animate() { renderer.render(scene, camera); } renderer.setAnimationLoop
 - Upstream: https://github.com/CloudAI-X/threejs-skills
 - Path: skills/threejs-loaders/
 - Pinned commit: 0e181866f095b5f06d005133876e926515390d95
-- License: MIT, see skills/threejs-pack/LICENSE.txt
+- License: MIT, Copyright (c) 2026 CloudAI-X; full text in `LICENSE.txt` beside this file

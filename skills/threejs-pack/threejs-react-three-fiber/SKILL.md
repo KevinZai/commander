@@ -492,4 +492,4 @@ Not WebGPU-safe: `Text` draws one untextured quad instead of glyphs (troika inje
 - Upstream: https://github.com/CloudAI-X/threejs-skills
 - Path: skills/threejs-react-three-fiber/
 - Pinned commit: 0e181866f095b5f06d005133876e926515390d95
-- License: MIT, see skills/threejs-pack/LICENSE.txt
+- License: MIT, Copyright (c) 2026 CloudAI-X; full text in `LICENSE.txt` beside this file
