@@ -286,10 +286,13 @@ test('install.sh honors CLAUDE_CONFIG_DIR and renders hook paths for it', () => 
     assert.strictEqual(readlinkSync(link), join(REPO_ROOT, 'bin', 'ccc.js'));
 
     // The same profile uninstalls cleanly, leaving the default profile alone
-    ok(uninstall(home, { CLAUDE_CONFIG_DIR: cfg }), 'uninstall');
+    const un = uninstall(home, { CLAUDE_CONFIG_DIR: cfg });
+    ok(un, 'uninstall');
     assert.ok(!existsSync(join(cfg, 'commands')) && !existsSync(join(cfg, 'skills')) && !existsSync(join(cfg, 'hooks')));
     assert.ok(existsSync(join(cfg, 'CLAUDE.md')), 'CLAUDE.md must be preserved');
-    assert.ok(!existsSync(link), 'the ccc link the install made is removed');
+    // The global ccc link may serve other profiles, so uninstall keeps it and names it.
+    assert.ok(lstatSync(link).isSymbolicLink(), 'the shared ccc link is kept');
+    assert.match(un.stdout, /the shared ccc command/);
   });
 });
 
@@ -689,7 +692,8 @@ test('install.sh refuses an unknown --mode before touching anything', () => {
 
 test('install.sh refuses a not-yet-existing CLAUDE_CONFIG_DIR that resolves to home or a parent of it', () => {
   withHome('ccc-install-dotdot-', (home) => {
-    for (const dir of [join(home, 'new', '..'), join(home, 'a', 'b', '..', '..', '..')]) {
+    // Raw strings: join() would collapse the .. before the installer sees it.
+    for (const dir of [home + '/new/..', home + '/a/b/../../..', home + '/missing/../sub/..', home + '\n']) {
       const res = run(INSTALL_SH, home, ['--force', '--mode=config', '--skip-deps'], { CLAUDE_CONFIG_DIR: dir });
       assert.notStrictEqual(res.status, 0, 'must refuse ' + dir);
     }

@@ -21,6 +21,11 @@ set -euo pipefail
 
 # Claude Code's config dir: CLAUDE_CONFIG_DIR when set, else ~/.claude.
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+# A tab or newline in the profile path is refused before anything else: $(...) would strip a trailing newline
+# after the guard checked the path with it (Codex #298), and the install plan is tab-separated.
+case "$CLAUDE_DIR" in
+  *$'\t'*|*$'\n'*) echo "ERROR: the config dir path must not contain tabs or newlines"; exit 1 ;;
+esac
 # Trailing slashes would let "$HOME/" slip past the string checks below.
 while [[ "$CLAUDE_DIR" == */ && "$CLAUDE_DIR" != "/" ]]; do CLAUDE_DIR="${CLAUDE_DIR%/}"; done
 [[ -n "${CLAUDE_DIR:-}" && "$CLAUDE_DIR" != "/" && "$CLAUDE_DIR" != "$HOME" ]] || { echo "ERROR: Invalid CLAUDE_DIR ($CLAUDE_DIR)"; exit 1; }
@@ -34,13 +39,16 @@ if command -v node &>/dev/null; then
     var fs = require("fs"), path = require("path");
     function physical(p) {
       var cur = path.isAbsolute(p) ? path.parse(p).root : fs.realpathSync(process.cwd());
-      var parts = p.split(/[\\/]+/).filter(Boolean), missing = false;
+      var parts = p.split(/[\\/]+/).filter(Boolean), missing = 0;
       for (var i = 0; i < parts.length; i++) {
         var c = parts[i];
         if (c === ".") continue;
-        if (c === "..") { cur = path.dirname(cur); continue; }
+        // After a missing component, .. climbs back through the missing ones; once none are left, the path is
+        // physical again and later components are resolved against the disk.
+        if (c === "..") { cur = path.dirname(cur); if (missing) missing--; continue; }
         var next = path.join(cur, c);
-        if (!missing) { try { cur = fs.realpathSync(next); continue; } catch (_e) { missing = true; } }
+        if (!missing) { try { cur = fs.realpathSync(next); continue; } catch (_e) { /* missing from here */ } }
+        missing++;
         cur = next;
       }
       return cur;
@@ -222,6 +230,12 @@ if (manifest) {
     if ((e.abs && !(e.type === 'symlink' && path.basename(e.abs) === 'ccc')) ||
         (e.type === 'mcp-server' && path.basename(String(e.file)) !== '.claude.json')) {
       result.kept.push(label(e) + ' (unexpected manifest entry)');
+      return;
+    }
+    // The global ccc link can be shared by several profiles, and older manifests may each claim it, so uninstalling
+    // one profile never removes it; it is named for the user instead (Codex #298).
+    if (e.abs && e.type === 'symlink' && path.basename(e.abs) === 'ccc') {
+      result.kept.push(e.abs + ' (the shared ccc command; remove it yourself if no other profile uses it)');
       return;
     }
     if (e.type === 'mcp-server') {

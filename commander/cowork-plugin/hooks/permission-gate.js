@@ -74,7 +74,7 @@ const DANGEROUS_PATTERNS = [
   // a search that quotes "rm -rf" next to ~ is also denied and must be run by hand. The bounded word count and the
   // lookahead gate keep matching linear on long inputs. Home also matches written out in full (/Users/me).
   new RegExp(String.raw`(?<![\w./-])(?=(?:\/(?:[\w.-]+\/)*)?rm\s)(?:\/(?:[\w.-]+\/)*)?rm\s+(?:(?:[^\s;&|]+\s+){0,64}?["']?(?:\/\*?|~\/?\*?|\$\{?HOME\}?\/?\*?` +
-    HOME_ALT + String.raw`)["']?(?=\s|$|[;&|)])|(?:[^\s;&|]+\s+){64})`, HOME_FLAGS),
+    HOME_ALT + String.raw`)["']?(?=\s|$|[;&|)<>])|(?:[^\s;&|]+\s+){64})`, HOME_FLAGS),
   /git\s+push\s+--force/,   // kept as-is so nothing denied before CC-654 is allowed now
   // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
   // `git` starts a word (a path like /usr/bin/git or a quoted `sh -c "git ..."` counts) and only global options
