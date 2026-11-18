@@ -304,9 +304,12 @@ export function renderNextContext(fromRoute, nextRoutes, host) {
  * matches are listed as options (from MEDIUM_THRESHOLD in auto mode, from
  * HINT_THRESHOLD in always mode). Side-effect skills, hidden skills (some
  * fan out further agents) and agents are never listed. Null when
- * nothing qualifies.
+ * nothing qualifies. When `forTask` is given (the task was matched to the
+ * worker from a queue, not read from its own payload), the block names that
+ * task and tells the worker to ignore it if the task is not its own, so a
+ * mis-assigned or stale entry is harmless.
  */
-export function renderSubagentContext(candidates, host, mode = 'auto') {
+export function renderSubagentContext(candidates, host, mode = 'auto', forTask = '') {
   const floor = mode === 'always' ? HINT_THRESHOLD : MEDIUM_THRESHOLD;
   const usable = candidates
     .filter((c) => c.score >= floor && autoFollowable(c.route) && !c.route.manual)
@@ -318,6 +321,9 @@ export function renderSubagentContext(candidates, host, mode = 'auto') {
   const lead = directive
     ? `Before starting, ${skillCall(top.route, host)} and follow it for this task: ${top.route.label}.`
     : 'If one of these fits your task, load it before you start.';
-  const text = `<ccc-skills for="subagent">\n${lead} Matching CCC skills: ${opts}.\n</ccc-skills>`;
+  const label = String(forTask || '').replace(/\s+/g, ' ').replace(/["<>]/g, '').trim().slice(0, 80);
+  const guard = label ? `For the task "${label}": ` : '';
+  const tail = label ? ' If that is not your task, ignore this block.' : '';
+  const text = `<ccc-skills for="subagent">\n${guard}${lead} Matching CCC skills: ${opts}.${tail}\n</ccc-skills>`;
   return text.length <= MAX_CONTEXT_CHARS ? text : `${text.slice(0, MAX_CONTEXT_CHARS - 15)}…</ccc-skills>`;
 }

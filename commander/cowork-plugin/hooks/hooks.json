@@ -184,8 +184,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-failure-logger.js\"",
-            "timeout": 3,
-            "async": true
+            "timeout": 3
           }
         ]
       }

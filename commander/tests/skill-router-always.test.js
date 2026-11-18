@@ -167,18 +167,18 @@ test('queue: expired entries, drops, missing type/session and off mode', async (
     const call = (id, e = env) => recordAgentCall({ session_id: 's2', tool_name: 'Agent', tool_use_id: id, tool_input: { prompt: 'Review this PR before I merge' } }, e);
     call('off1', { ...env, CCC_ROUTE_MODE: 'off' });
     const start = { session_id: 's2', agent_type: 'general-purpose' };
-    assert.equal(claimTask(start), '', 'nothing recorded while routing is off');
+    assert.equal(claimTask(start), null, 'nothing recorded while routing is off');
     call('d1');
     dropAgentCall({ session_id: 's2', tool_use_id: 'd1' });
-    assert.equal(claimTask(start), '', 'dropped call is not handed out');
+    assert.equal(claimTask(start), null, 'dropped call is not handed out');
     call('m1');
-    assert.equal(claimTask({ session_id: 's2' }), '', 'no type, no claim');
-    assert.equal(claimTask({ agent_type: 'general-purpose' }), '', 'no session, no claim');
+    assert.equal(claimTask({ session_id: 's2' }), null, 'no type, no claim');
+    assert.equal(claimTask({ agent_type: 'general-purpose' }), null, 'no session, no claim');
     // Age the queued entry past the TTL by renaming it with an old timestamp.
     const { renameSync } = await import('node:fs');
     const qdir = readdirSync(join(dir, 'commander', 'route-state')).map((d) => join(dir, 'commander', 'route-state', d)).find((d) => d.includes('s2'));
     for (const n of readdirSync(qdir)) renameSync(join(qdir, n), join(qdir, n.replace(/^\d+/, String(Date.now() - 120000).padStart(15, '0'))));
-    assert.equal(claimTask(start), '', 'expired entry is dropped');
+    assert.equal(claimTask(start), null, 'expired entry is dropped');
     assert.equal(readdirSync(qdir).length, 0, 'expired entry removed from disk');
   } finally {
     if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
@@ -189,4 +189,35 @@ test('queue: expired entries, drops, missing type/session and off mode', async (
 test('PreToolUse dispatcher does not queue a denied Agent call', () => {
   const src = readFileSync(join(HOOKS, 'orchestrator', 'pre-tool-use-dispatcher.js'), 'utf8');
   assert.match(src, /permissionDecision !== 'deny'\)\s*\{\s*try \{ recordAgentCall\(input\)/);
+});
+
+test('a queue-matched hint names its task; a worker with its own task takes only its own entry', async () => {
+  const { recordAgentCall } = await import('../cowork-plugin/hooks/subagent-skill-router.js');
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-own-'));
+  const prev = process.env.CCC_CONFIG_DIR;
+  process.env.CCC_CONFIG_DIR = dir;
+  const env = { CCC_CONFIG_DIR: dir };
+  try {
+    const call = (id, description, prompt) => recordAgentCall({ session_id: 's3', tool_name: 'Agent', tool_use_id: id, tool_input: { description, prompt } }, env);
+    call('a', 'Review PR 12', 'Review this PR before I merge');
+    call('b', 'Audit deps', 'Review this PR before I merge and list correctness bugs');
+    const start = { session_id: 's3', agent_type: 'general-purpose' };
+    // A worker carrying entry b's text consumes b, not the older a.
+    run({ ...start, description: 'Audit deps', prompt: 'Review this PR before I merge and list correctness bugs' }, env);
+    const out = ctx(run(start, env));
+    assert.match(out, /For the task "Review PR 12"/);
+    assert.match(out, /If that is not your task, ignore this block\./);
+    assert.equal(ctx(run(start, env)), undefined, 'queue drained');
+  } finally {
+    if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('failed Agent calls are dropped synchronously', () => {
+  const hooks = JSON.parse(readFileSync(join(HOOKS, 'hooks.json'), 'utf8')).hooks;
+  for (const event of ['PostToolUseFailure', 'PermissionDenied']) {
+    const h = hooks[event].flatMap((g) => g.hooks).find((x) => /logger\.js/.test(x.command));
+    assert.ok(h && !h.async, `${event} logger must run synchronously`);
+  }
 });

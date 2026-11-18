@@ -74,7 +74,8 @@ export function recordAgentCall(input = {}, env = process.env) {
     mkdirSync(dir, { recursive: true, mode: 0o700 });
     const name = `${String(Date.now()).padStart(15, '0')}-${process.pid}-${seq++}-${slug(input.tool_use_id) || 'call'}.json`;
     const tmp = join(dir, `.${name}.tmp`);
-    writeFileSync(tmp, JSON.stringify({ type: String(ti.subagent_type || DEFAULT_AGENT_TYPE), text }), { mode: 0o600 });
+    const label = firstString(ti.description, ti.prompt).trim().split('\n')[0].slice(0, 80);
+    writeFileSync(tmp, JSON.stringify({ type: String(ti.subagent_type || DEFAULT_AGENT_TYPE), text, label }), { mode: 0o600 });
     renameSync(tmp, join(dir, name));
   } catch {
     // routing state is best-effort
@@ -97,33 +98,36 @@ function ageOf(name) {
 }
 
 /**
- * SubagentStart: claim the oldest live queued call for this agent type, or ''.
- * Expired entries and leftover temp or claimed files are removed on the way;
- * a worker without a type or session id claims nothing.
+ * SubagentStart: claim the oldest live queued call for this agent type, as
+ * { text, label }, or null. A worker that already carries its own task text
+ * (`own`) claims only the entry with that exact text, so it never takes
+ * another worker's entry. Expired entries and leftover temp or claimed files
+ * are removed on the way; a worker without a type or session id claims nothing.
  */
-export function claimTask(input = {}) {
+export function claimTask(input = {}, own = '') {
   const type = String(input.agent_type || input.subagent_type || '');
-  if (!type || !slug(input.session_id)) return '';
+  if (!type || !slug(input.session_id)) return null;
   const dir = queueDir(input.session_id);
   let names;
-  try { names = readdirSync(dir).sort(); } catch { return ''; }
-  let text = '';
+  try { names = readdirSync(dir).sort(); } catch { return null; }
+  let claimed = null;
   for (const name of names) {
     const file = join(dir, name);
     if (!name.endsWith('.json') || ageOf(name) > QUEUE_TTL_MS) {
       if (ageOf(name) > QUEUE_TTL_MS || !(ageOf(name) >= 0)) try { unlinkSync(file); } catch {}
       continue;
     }
-    if (text) continue;
+    if (claimed) continue;
     let entry;
     try { entry = JSON.parse(readFileSync(file, 'utf8')); } catch { continue; }
     if ((entry.type || DEFAULT_AGENT_TYPE) !== type) continue;
+    if (own && entry.text !== own.slice(0, TEXT_MAX)) continue;
     // The rename is the claim: only one concurrent SubagentStart wins it.
     try { renameSync(file, `${file}.claimed`); } catch { continue; }
     try { unlinkSync(`${file}.claimed`); } catch {}
-    text = typeof entry.text === 'string' ? entry.text : '';
+    claimed = { text: typeof entry.text === 'string' ? entry.text : '', label: typeof entry.label === 'string' ? entry.label : '' };
   }
-  return text;
+  return claimed;
 }
 
 function savedRouteMode() {
@@ -153,12 +157,15 @@ export function run(input = {}, env = process.env) {
   try {
     if (!routingOn(env)) return emitSilent();
     const mode = routeMode(env, savedRouteMode());
-    // Always claim, so a worker that carries its own task still consumes its queue entry.
-    const claimed = claimTask(input);
-    const text = taskText(input) || claimed;
+    // A worker that carries its own task consumes only its own queue entry.
+    const own = taskText(input);
+    const claimed = claimTask(input, own);
+    const text = own || (claimed ? claimed.text : '');
+    // Queue-matched tasks are named in the block, so a mismatched worker ignores it.
+    const forTask = own ? '' : (claimed && (claimed.label || claimed.text)) || '';
     // A worker already told to use a specific skill needs no hint.
     if (!text.trim() || /(?:^|\s)[/$]ccc[\w-]*|commander:ccc/.test(text)) return emitSilent();
-    const context = renderSubagentContext(scoreRoutes(text, loadRoutes()), detectHost(env), mode);
+    const context = renderSubagentContext(scoreRoutes(text, loadRoutes()), detectHost(env), mode, forTask);
     return context ? emitModel('SubagentStart', context) : emitSilent();
   } catch {
     return emitSilent();
