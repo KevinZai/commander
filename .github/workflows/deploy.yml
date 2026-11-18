@@ -123,6 +123,9 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: superfly/flyctl-actions/setup-flyctl@98172f70657cb3e15db199af139be99bd3e61200 # master as of 2026-11-18 (latest tag 1.6 predates it)
+      # The image bundles the skill and agent catalog from data/ (gitignored); the Dockerfile fails without it.
+      - name: Bundle catalog
+        run: node apps/mcp-server-cloud/scripts/bundle-catalog.mjs
       - name: Deploy MCP cloud (canary)
         working-directory: apps/mcp-server-cloud
         run: flyctl deploy --strategy canary --app commander-mcp --remote-only
