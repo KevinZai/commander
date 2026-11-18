@@ -3335,7 +3335,7 @@ skills:
     source: plugin
     domain: ccc-build
     tier: free
-    description: Scaffold a new web app, API or CLI from a three-question spec, built by a background agent and verified. Use to start a new project or app.
+    description: Build against the sprint contract or scaffold a new app; an independent verifier checks the acceptance criteria. Use to build or start a project.
   - id: ccc-changelog
     name: ccc-changelog
     path: commander/cowork-plugin/skills/ccc-changelog/SKILL.md
@@ -3671,7 +3671,7 @@ skills:
     source: plugin
     domain: ccc-plan
     tier: free
-    description: Turn an idea, bug, refactor or Linear issue into a reviewed plan file with evals before coding. Use to plan a feature or scope work.
+    description: Turn an idea, bug or refactor into a reviewed plan and a sprint contract of acceptance criteria before coding. Use to plan or scope work.
   - id: ccc-plan-exec
     name: ccc-plan-exec
     path: commander/cowork-plugin/skills/ccc-plan-exec/SKILL.md
@@ -3832,7 +3832,7 @@ skills:
     source: plugin
     domain: ccc-start
     tier: free
-    description: "First-run Commander onboarding: detects the setup, offers new project, import, tour or skip, writes a start plan. Use just after install."
+    description: "First run: one question, then a finished result (repo x-ray or plan) in minutes; guided setup after. Use right after install or to get started."
   - id: ccc-suggest
     name: ccc-suggest
     path: commander/cowork-plugin/skills/ccc-suggest/SKILL.md
@@ -3990,6 +3990,9 @@ agents:
     tier: free
   - id: typescript-reviewer
     path: commander/cowork-plugin/agents/typescript-reviewer.md
+    tier: free
+  - id: verifier
+    path: commander/cowork-plugin/agents/verifier.md
     tier: free
 modes:
   - id: race

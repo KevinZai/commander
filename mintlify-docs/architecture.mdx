@@ -1,6 +1,6 @@
 ---
 title: "Architecture"
-description: "How CC Commander works: brain/hands separation, 22 specialist sub-agents, 28 lifecycle hooks, six plugin workflows, the HUD mod, and the Claude Agent SDK pattern underneath."
+description: "How CC Commander works: brain/hands separation, 23 specialist sub-agents, 28 lifecycle hooks, six plugin workflows, the HUD mod, and the Claude Agent SDK pattern underneath."
 ---
 
 ## Brain / Hands
@@ -25,7 +25,7 @@ CC Commander's sub-agent architecture follows the same pattern Anthropic describ
 
 The plugin itself requires no external server, no API key, and no network call. It runs fully offline via the plugin manifest — the Claude Agent SDK pattern is implemented as skill files and hook scripts that Claude Code executes natively.
 
-## 22 Specialist Sub-Agent Personas
+## 23 Specialist Sub-Agent Personas
 
 Each agent declares a model **alias** and an effort level in its frontmatter, so it tracks the newest model in its line. Skills invoke them automatically; browse them with `/ccc-browse`.
 

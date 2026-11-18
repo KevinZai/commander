@@ -8,7 +8,7 @@
 
 ## Desktop Plugin Commands (v8.1.6)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 93 plugin skills total, plus 22 specialist agents, 28 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 8 plugin evals.
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 93 plugin skills total, plus 23 specialist agents, 28 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 13 plugin evals.
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 
@@ -84,7 +84,7 @@ codex plugin add commander@commander-hub
 
 > 🧠 **The Commander Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
 
-### Sub-agent personas (22)
+### Sub-agent personas (23)
 
 Brain/hands architecture — each persona has a distinct role, model alias and voice. Skills delegate to these automatically.
 

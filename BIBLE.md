@@ -5,7 +5,7 @@
 > **Which document?** **BIBLE.md = learning guide (you are here).** CHEATSHEET.md = daily reference (quick lookup). SKILLS-INDEX.md = skill discovery (search by keyword/category).
 
 > **The competitive moat:** Claude Code has 500+ skills and 50+ plugins. Every beginner hits the same wall — **info paralysis**. CC Commander is the first guided PM layer that reads your project state, picks ONE next step, and names the exact tool to use (including competitor plugins when they're the right call). Every other plugin is a slice. CC Commander is the map.
-> **Latest: v8.1.6** adds `ccc hold set|clear|show`, the one writer of the lane's `fleet-hold.json`, and fixes `pr-wait` (time limit, hand-back when no AI reviewer arrives), the Codex mirror's executable bits and the Superfleet status line's time-zone parsing. The 8.1.5 release made the permission gate deny every force-push and remote-delete form, folds the context-warning hook into `context-guard` (46 handlers), fixes several hook, telemetry and session bugs, shows each lane's 7-day usage window next to the 5-hour one in the Superfleet status line and in `ccc checkin` (a new `usage` block), and adds nine on-demand PR-workflow skills adapted from t3dotgg/tstack (`/ccc-full-send`, `/ccc-babysit-pr`, `/ccc-council` and six more; now 32 model-visible, 61 on demand) with CCC's safety rules: no force-push, draft PRs and the full local suite before every push. v8.1.4 loaded most skills on demand, turned telemetry and outbound lookups off by default, closed the status-line injection hole, added saved auto-routing modes with an offline routing eval, and added a one-channel `/ccc-broadcast` option. v8.1.3 made CCC lane-aware: `ccc checkin --json` for the Fleet dispatch gate, per-lane state in `<config dir>/commander`, a green `ccc doctor` hook chain and a Superfleet status-line segment. The release before it fixed the status line: it reads the CCC version from the installed plugin and shows the lane from `CLAUDE_CONFIG_DIR`. The previous fix release brought a secret scan that cannot be silently disabled, session state keyed on the real session id, skill pickers that fit the tool schema, correct installer config dir and Sonnet 5.5 cost pricing. v8.1.0 added MCP catalog annotations and reliable cloud test startup. The October 2026 revamp remains included: `/ccc-codex` manages the Codex CLI from Claude, the Commander HUD mod draws a status band above the prompt, six plugin workflows ship as `/commander:<name>`, eight plugin evals guard the core skills, seven new hook events are wired (28 events, 46 handlers), and every model reference moved to the Claude 5.5 generation and the GPT-6 family. See [What's New in v8](#whats-new-in-v8). Earlier releases are in [CHANGELOG.md](CHANGELOG.md).
+> **Latest: v8.1.6** adds `ccc hold set|clear|show`, the one writer of the lane's `fleet-hold.json`, and fixes `pr-wait` (time limit, hand-back when no AI reviewer arrives), the Codex mirror's executable bits and the Superfleet status line's time-zone parsing. The 8.1.5 release made the permission gate deny every force-push and remote-delete form, folds the context-warning hook into `context-guard` (46 handlers), fixes several hook, telemetry and session bugs, shows each lane's 7-day usage window next to the 5-hour one in the Superfleet status line and in `ccc checkin` (a new `usage` block), and adds nine on-demand PR-workflow skills adapted from t3dotgg/tstack (`/ccc-full-send`, `/ccc-babysit-pr`, `/ccc-council` and six more; now 29 model-visible, 64 on demand) with CCC's safety rules: no force-push, draft PRs and the full local suite before every push. v8.1.4 loaded most skills on demand, turned telemetry and outbound lookups off by default, closed the status-line injection hole, added saved auto-routing modes with an offline routing eval, and added a one-channel `/ccc-broadcast` option. v8.1.3 made CCC lane-aware: `ccc checkin --json` for the Fleet dispatch gate, per-lane state in `<config dir>/commander`, a green `ccc doctor` hook chain and a Superfleet status-line segment. The release before it fixed the status line: it reads the CCC version from the installed plugin and shows the lane from `CLAUDE_CONFIG_DIR`. The previous fix release brought a secret scan that cannot be silently disabled, session state keyed on the real session id, skill pickers that fit the tool schema, correct installer config dir and Sonnet 5.5 cost pricing. v8.1.0 added MCP catalog annotations and reliable cloud test startup. The October 2026 revamp remains included: `/ccc-codex` manages the Codex CLI from Claude, the Commander HUD mod draws a status band above the prompt, six plugin workflows ship as `/commander:<name>`, eight plugin evals guard the core skills, seven new hook events are wired (28 events, 46 handlers), and every model reference moved to the Claude 5.5 generation and the GPT-6 family. See [What's New in v8](#whats-new-in-v8). Earlier releases are in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
@@ -19,7 +19,7 @@ One click-first skill for the whole Codex surface: `codex doctor`, model selecti
 
 ### Load on demand and safe defaults
 
-- **Claude sees 32 of the 93 plugin skills.** The 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus the skills their menus open are model-visible; the other 61 load on demand (`disable-model-invocation: true`). Type `/ccc-<name>` to open any of them; when a prompt matches one, the router offers it in a menu instead of invoking it. The skill listing dropped from 22,643 chars (283% of the 8,000-char budget, truncated) to 7,266 chars (90.8%); `npm run measure:listing` re-measures it and `npm run check:listing` fails the build if it goes over budget.
+- **Claude sees 29 of the 93 plugin skills.** The 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus the skills their menus open are model-visible; the other 64 load on demand (`disable-model-invocation: true`). Type `/ccc-<name>` to open any of them; when a prompt matches one, the router offers it in a menu instead of invoking it. The skill listing dropped from 22,643 chars (283% of the 8,000-char budget, truncated) to 7,266 chars (90.8%); `npm run measure:listing` re-measures it and `npm run check:listing` fails the build if it goes over budget.
 - **Skills keep your model.** No plugin skill pins `model:` or `effort:` any more, so the model and effort you picked stay in force; agents keep their own aliases when a skill delegates.
 - **Telemetry is opt-in.** Nothing is sent unless you set `CCC_TELEMETRY=1` (or `"telemetry": true` in `~/.commander/config.json`). `CCC_OFFLINE=1` (or `"offline": true`) blocks every call Commander makes itself: telemetry, the session-start update check and the CI ticker. The CI status lookup through your own `gh` login is opt-in with `CCC_CI_TICKER=1`. `ccc doctor` prints the current mode. The hosted server at `mcp.commanderplugin.com` is a separate service described in the [privacy policy](https://commanderplugin.com/privacy).
 - **Cost ceiling off by default.** `cost-ceiling-enforcer` only counts tool calls when `CCC_COST_CEILING=<units>` or `costCeiling` in the lane config is set (`0` or `off` disables it). When it trips it denies the tool call with a readable reason and names the lane config file it read.
@@ -90,7 +90,7 @@ Agents name an alias, never a pinned id, so they track the newest model in each 
 
 ### The Appendices
 - [CC Commander](#cc-commander) *(v8.1.6 — Desktop plugin + CLI, Desktop-first)*
-- [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 22 specialist sub-agent personas)*
+- [Built on Claude Agent SDK](#built-on-claude-agent-sdk) *(brain/hands + 23 specialist sub-agent personas)*
 - [Intelligence Layer Deep Dive](#intelligence-layer-deep-dive) *(v5.1.0 — 4 modules that make CCC smart)*
 - [CLAUDE.md Templates](#claudemd-templates)
 - [Skills Catalog](#skills-catalog)
@@ -502,9 +502,9 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 | `ccc-xray` | Project health scorecard with fix chips |
 | `ccc-yolo-setup` | Fewer approval prompts: auto permission mode, a vetted read-only allowlist and secret deny rules |
 
-**Plus 22 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
+**Plus 23 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, verifier, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
 
-**Plus 2 credential-free bundled MCPs** (context7, sequential-thinking) — 16 more opt-in via `/ccc-connect` (Tavily, Firecrawl, Exa, GitHub, Figma, Playwright, Notion, Zapier, Supabase, Slack, GDrive, and more) + 28 lifecycle hooks × 46 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, PermissionDenied, PreModelSwitch, Stop, PreCompact, SubagentStop, TeammateIdle, FileChanged, SessionEnd, and more). Plus the Commander HUD mod, 6 plugin workflows (`/commander:<name>`) and 8 plugin evals.
+**Plus 2 credential-free bundled MCPs** (context7, sequential-thinking) — 16 more opt-in via `/ccc-connect` (Tavily, Firecrawl, Exa, GitHub, Figma, Playwright, Notion, Zapier, Supabase, Slack, GDrive, and more) + 28 lifecycle hooks × 46 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, PermissionDenied, PreModelSwitch, Stop, PreCompact, SubagentStop, TeammateIdle, FileChanged, SessionEnd, and more). Plus the Commander HUD mod, 6 plugin workflows (`/commander:<name>`) and 13 plugin evals.
 
 ---
 
@@ -2688,7 +2688,7 @@ ECC is the **harness** (156 skills, 72 commands, 38 agents, lifecycle hooks). CC
 CC Commander follows a **brain/hands** separation:
 
 - **Brain (Claude):** Your main Claude Code session reads project context, routes intent, and makes decisions.
-- **Hands (CC Commander):** 22 specialist sub-agent personas execute the work — scoped, specialized, and disposable. 15 general-purpose personas plus 7 language-specific code reviewers (TypeScript, Python, Go, Rust, Java, Kotlin, C#).
+- **Hands (CC Commander):** 23 specialist sub-agent personas execute the work — scoped, specialized, and disposable. 16 general-purpose personas plus 7 language-specific code reviewers (TypeScript, Python, Go, Rust, Java, Kotlin, C#).
 
 When you run `/ccc-review`, Claude doesn't guess how to do a code review. It loads the `reviewer` persona (Opus, read-only tools, structured severity format) and delegates. When the reviewer finishes, the persona is gone. The next task starts fresh. Context stays clean because each sub-agent operates at full capacity instead of a generalist stretched thin.
 
@@ -2732,7 +2732,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v8.1.6* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 93 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 28 lifecycle hooks (46 handlers), the Commander HUD mod, 6 plugin workflows and 8 plugin evals. Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`), or in one step from the CLI with `/plugin install commander --marketplace KevinZai/commander`.
+> *v8.1.6* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 93 plugin skills, 23 specialist sub-agents, 2 bundled MCPs (16 opt-in), 28 lifecycle hooks (46 handlers), the Commander HUD mod, 6 plugin workflows and 13 plugin evals. Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`), or in one step from the CLI with `/plugin install commander --marketplace KevinZai/commander`.
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2746,7 +2746,7 @@ Claude Code session
   +-- /plugin install commander       (one-time, from marketplace)
   |
   +-- /ccc-build, /ccc-review, ...    (93 plugin skills)
-  +-- 22 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, go-reviewer, rust-reviewer, ...)
+  +-- 23 specialist sub-agents        (architect, reviewer, debugger, typescript-reviewer, go-reviewer, rust-reviewer, ...)
   +-- 2 bundled MCP servers (context7 + sequential-thinking)           (pre-wired: GitHub, Linear, Tavily, ...)
   +-- 28 lifecycle hooks               (SessionStart, Stop, PreToolUse, ...)
   +-- Commander HUD mod               (band above the prompt, /ccc-hud)
@@ -2791,7 +2791,7 @@ ccc --repair
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 93 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 28 lifecycle hooks (46 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 93 plugin skills, 23 agents, 2 bundled MCPs (16 opt-in), 28 lifecycle hooks (46 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 

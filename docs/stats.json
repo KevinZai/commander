@@ -7,6 +7,15 @@
     "skill_invocations": 0,
     "mcp_tool_calls": 0
   },
+  "weekly_active_installs": 0,
+  "activation": {
+    "window_days": 30,
+    "installs": 0,
+    "first_results": 0,
+    "rate": null,
+    "median_seconds_to_first_result": null,
+    "by_skill": []
+  },
   "top_skills": [],
   "top_agents": [],
   "top_hooks": [

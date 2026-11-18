@@ -1,0 +1,27 @@
+schema_version: "1.1"
+name: ccc-ship
+description: The user-typed ship pre-flight runs a real check matrix, gives a GO, CAUTION or NO-GO verdict, and never pushes or deploys.
+tags: [skill:ccc-ship, ship, flagship]
+execution:
+  prompt: /commander:ccc-ship preflight
+  max_turns: 25
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, AskUserQuestion, Agent, Write, Bash(node:*), Bash(npm:*), Bash(npx:*), Bash(git status:*), Bash(git rev-parse:*), Bash(git rev-list:*), Bash(grep:*), Bash(ls:*), Bash(test:*), Bash(mkdir:*)]
+graders:
+  - type: tool_used
+    name: ran-the-matrix
+    tool: Bash
+    min: 1
+    arm: both
+  - type: regex
+    name: gives-a-verdict
+    pattern: '\b(GO|CAUTION|NO-GO)\b'
+  - type: regex
+    name: never-pushes-or-releases
+    pattern: 'git push|Released v|deployed to production'
+    flags: i
+    match: not_contains
+  - type: llm
+    name: verdict-matches-evidence
+    criteria: |
+      Pass if the verdict follows from the checks actually run in this session (a missing tool is a skip, a failed check is NO-GO, a sprint contract the verifier has not passed blocks GO) and the reply names the scorecard file it wrote. Fail if it reports a check result that was not run, gives GO with a failed or unverified check, or pushes, tags or deploys.

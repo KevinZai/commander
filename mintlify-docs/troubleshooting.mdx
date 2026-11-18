@@ -14,7 +14,7 @@ Symptom → cause → fix → escalation. Every section follows the same shape s
   /ccc-doctor
   ```
 
-  It validates the plugin manifest, checks hook wiring, probes MCP servers, and reports drift between expected counts (93 skills / 22 agents / 28 hooks × 46 handlers / 2 bundled MCPs) and what's actually loaded.
+  It validates the plugin manifest, checks hook wiring, probes MCP servers, and reports drift between expected counts (93 skills / 23 agents / 28 hooks × 46 handlers / 2 bundled MCPs) and what's actually loaded.
 </Tip>
 
 ## Install issues
@@ -139,7 +139,7 @@ Then Cmd+Q, reopen, and reinstall:
 
 **Symptom:** Hovering a skill in autocomplete shows literal XML tags in the tooltip.
 
-**Cause:** Stale install from before the v5.1.0 XML strip pass across all 22 agents and skills.
+**Cause:** Stale install from before the v5.1.0 XML strip pass across every agent and skill.
 
 **Fix:** Update to the latest release: `/plugin update commander`. Cmd+Q + reopen to clear the tooltip cache.
 
@@ -155,7 +155,7 @@ Then Cmd+Q, reopen, and reinstall:
 
 1. Invoke the agent explicitly via `/ccc-browse` → pick the persona.
 2. For architecture work, use `/ccc-plan` first — planning automatically routes to `architect`.
-3. Run `/ccc-doctor` to confirm all 22 agents are loaded.
+3. Run `/ccc-doctor` to confirm all 23 agents are loaded.
 
 ### Model unavailable
 

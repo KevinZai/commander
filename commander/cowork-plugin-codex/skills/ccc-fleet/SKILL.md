@@ -134,7 +134,7 @@ Emit worker progress events and write a completion marker for every worker that 
 3. Merge worker branches back through the coordinator only. On a conflict, stop and report; never auto-resolve.
 4. Run the project's check command on the merged result and report its real output.
 5. Run the main-tree integrity check: `git status --porcelain | grep -v '^??'` on the main checkout must print nothing. Any tracked change outside the worker branches is a leak; stop and reconcile before reporting.
-6. If every worker succeeded, prune old fleet artifacts (references/runtime-contracts.md). Then invoke `$ccc-fleet-viz` once to render the final tree.
+6. If every worker succeeded, prune old fleet artifacts (references/runtime-contracts.md). Then render the final tree once: `$ccc-fleet-viz` is user-invoked only, so read `${CLAUDE_PLUGIN_ROOT}/skills/ccc-fleet-viz/SKILL.md` and follow it; do not call it through the Skill tool.
 
 ## Decision points
 
