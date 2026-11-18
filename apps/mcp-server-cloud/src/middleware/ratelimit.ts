@@ -5,7 +5,7 @@ import { env } from "../lib/env.js";
 import { getCallsUsed, getEffectiveCapStrict, reserveCall, touchLastSeen } from "../db/usage.js";
 import { logger } from "../lib/logger.js";
 import { applyPaywallCap, isPaidTier, isPaywallArmed, type AccountTier } from "../lib/paywall.js";
-import { TOOL_NAMES } from "../tools/index.js";
+import { billableCalls, readJsonBody, type Transport } from "../lib/request-body.js";
 
 const redis = new Redis({
   url: env.upstashRedisUrl,
@@ -54,40 +54,17 @@ export function surveyGateConfig(): { enabled: boolean; url: string | null } {
 }
 
 // ─── What counts as a billable call (Codex audit #20) ───────────────────────
-// Only a tool invocation for a known tool is billed: MCP `tools/call`, the
-// legacy JSON-RPC `commander_*` method form, or a /v1/call `{ tool }` body.
-// Protocol traffic (initialize, tools/list, notifications, SSE, pings) and
-// malformed or unknown-tool requests are not billed.
-const KNOWN_TOOLS = new Set<string>(TOOL_NAMES);
+// The body is read and parsed ONCE (readJsonBody, byte-limited while
+// streaming) and cached on the context; the handler dispatches that same
+// parsed value. billableCalls counts exactly what the transport dispatches, so
+// billing and dispatch cannot disagree. Protocol traffic and malformed,
+// oversized or unknown-tool requests are not billed; the handler answers them.
 
-function billableToolsIn(message: unknown): number {
-  if (!message || typeof message !== "object") return 0;
-  if (Array.isArray(message)) return message.reduce((n: number, m) => n + billableToolsIn(m), 0);
-  const m = message as Record<string, unknown>;
-  if (m.jsonrpc === "2.0" && typeof m.method === "string") {
-    if (m.method === "tools/call") {
-      const params = m.params as Record<string, unknown> | undefined;
-      return typeof params?.name === "string" && KNOWN_TOOLS.has(params.name) ? 1 : 0;
-    }
-    return KNOWN_TOOLS.has(m.method) ? 1 : 0;
-  }
-  return typeof m.tool === "string" && KNOWN_TOOLS.has(m.tool) ? 1 : 0;
-}
-
-/** Number of billable tool calls in this request (0 for protocol traffic). Leaves the body readable downstream. */
-export async function countBillableCalls(c: Context): Promise<number> {
+/** Number of billable tool calls in this request (0 for protocol traffic). */
+export async function countBillableCalls(c: Context, transport: Transport = "v1"): Promise<number> {
   if (c.req.method !== "POST") return 0;
-  let text: string;
-  try {
-    text = await c.req.raw.clone().text();
-  } catch {
-    return 0;
-  }
-  try {
-    return billableToolsIn(JSON.parse(text));
-  } catch {
-    return 0; // the handler answers malformed JSON with 400
-  }
+  const body = await readJsonBody(c);
+  return body.ok ? billableCalls(transport, body.value) : 0;
 }
 
 function storageUnavailable(c: Context, err: unknown) {
@@ -104,7 +81,17 @@ function storageUnavailable(c: Context, err: unknown) {
   );
 }
 
-export async function rateLimitMiddleware(c: Context, next: Next): Promise<Response | void> {
+/** Burst limit + monthly cap for a transport. /v1 and /mcp classify bodies the way they dispatch them. */
+export function createRateLimitMiddleware(transport: Transport) {
+  return (c: Context, next: Next) => rateLimit(c, next, transport);
+}
+
+/** The /v1 middleware (REST and legacy JSON-RPC bodies). */
+export const rateLimitMiddleware = createRateLimitMiddleware("v1");
+/** The /mcp streamable-HTTP middleware (JSON-RPC tools/call, single or batched). */
+export const mcpRateLimitMiddleware = createRateLimitMiddleware("mcp");
+
+async function rateLimit(c: Context, next: Next, transport: Transport): Promise<Response | void> {
   const auth = c.get("auth");
   if (!auth?.userId) {
     logger.error("rateLimitMiddleware invoked without auth context");
@@ -134,7 +121,7 @@ export async function rateLimitMiddleware(c: Context, next: Next): Promise<Respo
   }
 
   // 2. Protocol traffic is never billed and never touches quota storage.
-  const billable = await countBillableCalls(c);
+  const billable = await countBillableCalls(c, transport);
   if (billable === 0) {
     await next();
     return;

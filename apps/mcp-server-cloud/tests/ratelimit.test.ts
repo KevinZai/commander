@@ -5,8 +5,9 @@
  * Supabase and Upstash both speak HTTP via fetch, so global fetch is stubbed:
  * no network, no real services. Burst limiting is exercised only through its
  * fail-open path (Redis unreachable); the sliding-window script is Upstash's.
- * The reserve_call double mirrors migration 003_quota-reserve.sql: it only
- * increments while calls_used < cap.
+ * The reserve_call double mirrors reserve_call in supabase/migrations/
+ * 20261119000000_quota_reserve_and_stripe_claims.sql: it only increments while
+ * calls_used < cap.
  */
 
 import { describe, it, beforeEach, afterEach } from "node:test";
@@ -20,9 +21,10 @@ process.env.JWT_SECRET = "test-jwt-secret-min-32-characters-long"; // cp-secret-
 process.env.NODE_ENV = "test";
 
 const { Hono } = await import("hono");
-const { rateLimitMiddleware, surveyGateConfig, upgradeUrl, DEFAULT_UPGRADE_URL } = await import(
+const { rateLimitMiddleware, mcpRateLimitMiddleware, surveyGateConfig, upgradeUrl, DEFAULT_UPGRADE_URL } = await import(
   "../src/middleware/ratelimit.js"
 );
+const { readJsonBody, validateCallBody, MAX_CALL_BODY_BYTES } = await import("../src/lib/request-body.js");
 
 type State = {
   callsUsed: number;
@@ -66,14 +68,18 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   return new Response(null, { status: 204 }); // users.last_seen_at update
 }) as typeof fetch;
 
-function mkApp() {
+function mkApp(middleware = rateLimitMiddleware) {
   const app = new Hono();
   app.use("*", async (c, next) => {
     c.set("auth", { userId: "00000000-0000-0000-0000-000000000001", tier: "free" });
     await next();
   });
-  app.use("*", rateLimitMiddleware);
-  app.post("/", async (c) => c.json({ ok: true, echoed: await c.req.json().catch(() => null) }));
+  app.use("*", middleware);
+  // Handlers read the body the middleware already parsed (one read, one parse).
+  app.post("/", async (c) => {
+    const body = await readJsonBody(c);
+    return c.json({ ok: true, echoed: body.ok ? body.value : null });
+  });
   app.get("/", (c) => c.json({ ok: true }));
   return app;
 }
@@ -100,7 +106,7 @@ beforeEach(() => {
 });
 
 describe("what counts as a billable call", () => {
-  it("bills an MCP tools/call for a known tool, once, and leaves the body readable", async () => {
+  it("bills an MCP tools/call for a known tool, once, and hands the parsed body to the handler", async () => {
     state.callsUsed = 10;
     const res = await call();
     assert.equal(res.status, 200);
@@ -131,6 +137,74 @@ describe("what counts as a billable call", () => {
       assert.equal(res.headers.get("X-Commander-Calls-Used"), null);
     });
   }
+
+  it("does not bill a /v1 batch, which /v1/call rejects", async () => {
+    state.capRpcFails = true;
+    const res = await post([toolCall, toolCall]);
+    assert.equal(res.status, 200);
+    assert.equal(state.reserveCalls, 0);
+    assert.deepEqual(validateCallBody([toolCall]), { ok: false, error: "Body must be a JSON object" });
+  });
+
+  it("never dispatches a mixed-format body through the legacy { tool } path", async () => {
+    state.capRpcFails = true;
+    const mixed = { jsonrpc: "2.0", id: 1, method: "initialize", tool: "commander_list_skills", args: {} };
+    assert.equal((await post(mixed)).status, 200);
+    assert.equal(state.reserveCalls, 0, "not billed");
+    assert.equal(validateCallBody(mixed).ok, false, "and the /v1/call contract rejects it, so it is not run");
+  });
+
+  it("bills each tools/call in an /mcp batch, which the MCP transport dispatches", async () => {
+    const res = await mkApp(mcpRateLimitMiddleware).fetch(
+      new Request("http://test/", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify([toolCall, { ...toolCall, id: 2 }, { jsonrpc: "2.0", method: "notifications/initialized" }]),
+      })
+    );
+    assert.equal(res.status, 200);
+    assert.equal(state.reserveCalls, 2);
+  });
+
+  it("does not bill the legacy { tool } body on /mcp, which the transport does not dispatch", async () => {
+    state.capRpcFails = true;
+    const res = await mkApp(mcpRateLimitMiddleware).fetch(
+      new Request("http://test/", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ tool: "commander_list_skills" }),
+      })
+    );
+    assert.equal(res.status, 200);
+    assert.equal(state.reserveCalls, 0);
+  });
+
+  it("reads the body stream once and refuses an oversized body without billing", async () => {
+    state.capRpcFails = true;
+    const big = JSON.stringify({ tool: "commander_list_skills", args: { pad: "x".repeat(MAX_CALL_BODY_BYTES) } });
+    const app = new Hono();
+    app.use("*", async (c, next) => {
+      c.set("auth", { userId: "00000000-0000-0000-0000-000000000001", tier: "free" });
+      await next();
+    });
+    app.use("*", rateLimitMiddleware);
+    app.post("/", async (c) => {
+      const body = await readJsonBody(c);
+      return body.ok ? c.json({ ok: true }) : c.json({ error: body.error }, body.status);
+    });
+    // No content-length: the limit is enforced while streaming.
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(big));
+        controller.close();
+      },
+    });
+    const res = await app.fetch(
+      new Request("http://test/", { method: "POST", headers: { "content-type": "application/json" }, body: stream, duplex: "half" } as RequestInit)
+    );
+    assert.equal(res.status, 413);
+    assert.equal(state.reserveCalls, 0);
+  });
 
   it("does not bill a GET (SSE handshake)", async () => {
     const res = await mkApp().fetch(new Request("http://test/"));

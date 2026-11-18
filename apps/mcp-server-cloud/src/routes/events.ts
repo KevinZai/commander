@@ -15,6 +15,7 @@
 
 import { Hono } from "hono";
 import { logger } from "../lib/logger.js";
+import { readBodyWithLimit } from "../lib/request-body.js";
 
 // ─── Configuration ─────────────────────────────────────────────────────────
 const MAX_EVENTS_PER_BATCH = 50;
@@ -216,47 +217,8 @@ function validateEvent(raw: unknown): ValidationResult {
 }
 
 // ─── Bounded body reader ────────────────────────────────────────────────────
-// Enforces MAX_PAYLOAD_BYTES on the raw byte stream BEFORE JSON.parse, so an
-// oversized body is never fully buffered or parsed. A Content-Length above the
-// limit is rejected without reading; otherwise reading stops (and the stream
-// is cancelled) as soon as the running byte count passes the limit.
-type BodyRead = { ok: true; text: string } | { ok: false; status: 400 | 413; error: string };
-
-export async function readBodyWithLimit(req: Request, maxBytes: number): Promise<BodyRead> {
-  const tooLarge = { ok: false as const, status: 413 as const, error: `Payload exceeds ${maxBytes} byte limit` };
-  const declared = req.headers.get("content-length");
-  if (declared !== null && /^\d+$/.test(declared) && Number(declared) > maxBytes) return tooLarge;
-  if (!req.body) return { ok: false, status: 400, error: "Invalid JSON body" };
-
-  const reader = req.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      total += value.byteLength;
-      if (total > maxBytes) {
-        await reader.cancel().catch(() => undefined);
-        return tooLarge;
-      }
-      chunks.push(value);
-    }
-  } catch {
-    return { ok: false, status: 400, error: "Invalid JSON body" };
-  }
-  const bytes = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    bytes.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-  try {
-    return { ok: true, text: new TextDecoder("utf-8", { fatal: true }).decode(bytes) };
-  } catch {
-    return { ok: false, status: 400, error: "Invalid JSON body" };
-  }
-}
+// Shared with the tool-call path; see lib/request-body.ts.
+export { readBodyWithLimit } from "../lib/request-body.js";
 
 // ─── Router ─────────────────────────────────────────────────────────────────
 export const eventsRouter = new Hono();

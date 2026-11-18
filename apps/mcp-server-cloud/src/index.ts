@@ -9,7 +9,8 @@ import { env } from "./lib/env.js";
 import { logger } from "./lib/logger.js";
 import { initRegistry, getRegistryState, getCatalogHealth } from "./lib/registry.js";
 import { authMiddleware } from "./middleware/auth.js";
-import { rateLimitMiddleware } from "./middleware/ratelimit.js";
+import { mcpRateLimitMiddleware, rateLimitMiddleware } from "./middleware/ratelimit.js";
+import { readJsonBody, validateCallBody } from "./lib/request-body.js";
 import {
   TOOL_NAMES,
   buildToolCatalog,
@@ -240,75 +241,17 @@ mcp.get("/sse", (c) => {
   });
 });
 
-// ─── Request body validation ──────────────────────────────────────────────
-// Lightweight runtime check — we avoid adding zod as a runtime dep. Matches the
-// known TOOL_SCHEMAS shape and rejects malformed input fast.
-function validateCallBody(body: unknown):
-  | { ok: true; kind: "call"; tool: string; args: Record<string, unknown>; jsonrpcId?: unknown }
-  | { ok: true; kind: "list"; jsonrpcId: string | number }
-  | { ok: false; error: string } {
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return { ok: false, error: "Body must be a JSON object" };
-  }
-  const b = body as Record<string, unknown>;
-  if (b.jsonrpc === "2.0" && typeof b.method === "string") {
-    const params = b.params === undefined ? {} : b.params;
-    if (typeof params !== "object" || params === null || Array.isArray(params)) {
-      return { ok: false, error: "'params' must be an object" };
-    }
-
-    if (b.method === "tools/list") {
-      if (typeof b.id !== "string" && !(typeof b.id === "number" && Number.isFinite(b.id))) {
-        return { ok: false, error: "Missing or invalid JSON-RPC 'id' field" };
-      }
-      return { ok: true, kind: "list", jsonrpcId: b.id };
-    }
-
-    if (b.method === "tools/call") {
-      const p = params as Record<string, unknown>;
-      if (typeof p.name !== "string" || p.name.length === 0) {
-        return { ok: false, error: "Missing or invalid JSON-RPC 'params.name' field" };
-      }
-      const rawArgs = p.arguments ?? p.args ?? {};
-      if (typeof rawArgs !== "object" || rawArgs === null || Array.isArray(rawArgs)) {
-        return { ok: false, error: "JSON-RPC 'params.arguments' must be an object" };
-      }
-      return { ok: true, kind: "call", tool: p.name, args: rawArgs as Record<string, unknown>, jsonrpcId: b.id };
-    }
-
-    if (b.method.startsWith("commander_")) {
-      return { ok: true, kind: "call", tool: b.method, args: params as Record<string, unknown>, jsonrpcId: b.id };
-    }
-  }
-
-  if (typeof b.tool !== "string" || b.tool.length === 0) {
-    return { ok: false, error: "Missing or invalid 'tool' field" };
-  }
-  if (b.tool.length > 128) {
-    return { ok: false, error: "'tool' field too long" };
-  }
-  let args: Record<string, unknown> = {};
-  if (b.args !== undefined) {
-    if (typeof b.args !== "object" || b.args === null || Array.isArray(b.args)) {
-      return { ok: false, error: "'args' must be an object" };
-    }
-    args = b.args as Record<string, unknown>;
-  }
-  return { ok: true, kind: "call", tool: b.tool, args };
-}
-
 // ─── Tool call endpoint ────────────────────────────────────────────────────
 mcp.post("/call", async (c) => {
   const auth = c.get("auth") as AuthContext;
 
-  let rawBody: unknown;
-  try {
-    rawBody = await c.req.json();
-  } catch {
-    return c.json({ error: "Invalid JSON body" }, 400);
+  // The same parsed body the rate limiter billed (read once, byte-limited).
+  const body = await readJsonBody(c);
+  if (!body.ok) {
+    return c.json({ error: body.error }, body.status);
   }
 
-  const parsed = validateCallBody(rawBody);
+  const parsed = validateCallBody(body.value);
   if (!parsed.ok) {
     return c.json({ error: parsed.error }, 400);
   }
@@ -429,7 +372,7 @@ app.get("/.well-known/oauth-protected-resource/mcp", protectedResourceMetadata);
 // same burst + monthly-cap enforcement as /v1 — different wire protocol.
 const mcpStreamable = new Hono();
 mcpStreamable.use("*", mcpAuthMiddleware);
-mcpStreamable.use("*", rateLimitMiddleware);
+mcpStreamable.use("*", mcpRateLimitMiddleware);
 mcpStreamable.route(
   "/",
   createMcpTransportApp({ dispatchTool, recordCall })

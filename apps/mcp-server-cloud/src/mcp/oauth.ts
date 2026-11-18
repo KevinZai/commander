@@ -116,7 +116,10 @@ async function userBy(column: "user_id" | "email", value: string): Promise<OAuth
   return (data as OAuthUserRow | null) ?? null;
 }
 
-async function boundUserId(issuer: string, subject: string): Promise<string | null> {
+/** found: the persisted binding; none: confirmed absent; error: the lookup failed (fail closed). */
+type Binding = { status: "found"; userId: string } | { status: "none" } | { status: "error" };
+
+async function boundUserId(issuer: string, subject: string): Promise<Binding> {
   const { data, error } = await db
     .from("oauth_identities")
     .select("user_id")
@@ -124,22 +127,34 @@ async function boundUserId(issuer: string, subject: string): Promise<string | nu
     .eq("subject", subject)
     .maybeSingle();
   if (error) {
-    // Missing table (migration not applied) or backend error: fall through to
-    // the verified-claim paths, which never weaken the checks below.
-    logger.warn({ err: error }, "oauth_identities lookup failed");
-    return null;
+    // Missing table (migration not applied) or backend error. An outage must
+    // never look like "no binding": the subject may be bound to another user.
+    logger.error({ err: error }, "oauth_identities lookup failed; refusing OAuth resolution");
+    return { status: "error" };
   }
-  return (data as { user_id: string } | null)?.user_id ?? null;
+  const userId = (data as { user_id: string } | null)?.user_id;
+  return userId ? { status: "found", userId } : { status: "none" };
 }
 
-async function bindIdentity(issuer: string, subject: string, userId: string): Promise<void> {
+/** Binds (issuer, subject) to userId and confirms the PERSISTED binding names that user. A concurrent
+ *  binding to someone else, or a write or read failure, returns false so the caller refuses. */
+async function bindIdentity(issuer: string, subject: string, userId: string): Promise<boolean> {
   const { error } = await db
     .from("oauth_identities")
     .upsert(
       { issuer, subject, user_id: userId },
       { onConflict: "issuer,subject", ignoreDuplicates: true }
     );
-  if (error) logger.warn({ err: error, userId }, "oauth_identities bind failed (non-fatal)");
+  if (error) {
+    logger.error({ err: error, userId }, "oauth_identities bind failed; refusing OAuth resolution");
+    return false;
+  }
+  const persisted = await boundUserId(issuer, subject);
+  if (persisted.status !== "found" || persisted.userId !== userId) {
+    logger.warn({ userId, persisted: persisted.status }, "oauth_identities binding does not name the selected user");
+    return false;
+  }
+  return true;
 }
 
 export async function resolveOAuthSubject(payload: JWTPayload): Promise<AuthContext | null> {
@@ -147,22 +162,29 @@ export async function resolveOAuthSubject(payload: JWTPayload): Promise<AuthCont
   // jwtVerify already pinned `iss` to the configured issuer.
   const iss = typeof payload.iss === "string" && payload.iss ? payload.iss : env.oauthIssuerUrl;
 
-  // 1. Established issuer + subject binding.
-  if (sub) {
-    const boundId = await boundUserId(iss, sub);
-    if (boundId) {
-      const user = await userBy("user_id", boundId);
-      if (user) return toAuth(user, sub);
-      logger.warn({ boundId }, "OAuth binding points at a missing user");
-      return null;
-    }
+  // Every account is keyed by issuer + subject; a token without a subject
+  // cannot be bound, so it never authenticates (not even by verified email).
+  if (!sub) {
+    logger.warn("OAuth token has no subject; refusing");
+    return null;
+  }
+
+  // 1. Established issuer + subject binding. Only a confirmed absence falls
+  //    through to the claim-based paths; a failed lookup fails closed.
+  const binding = await boundUserId(iss, sub);
+  if (binding.status === "error") return null;
+  if (binding.status === "found") {
+    const user = await userBy("user_id", binding.userId);
+    if (user) return toAuth(user, sub);
+    logger.warn({ boundId: binding.userId }, "OAuth binding points at a missing user");
+    return null;
   }
 
   // 2. Issuer mints CC Commander user ids as `sub`.
-  if (sub && UUID_RE.test(sub)) {
+  if (UUID_RE.test(sub)) {
     const user = await userBy("user_id", sub);
     if (user) {
-      await bindIdentity(iss, sub, user.user_id);
+      if (!(await bindIdentity(iss, sub, user.user_id))) return null;
       return toAuth(user, sub);
     }
   }
@@ -170,15 +192,15 @@ export async function resolveOAuthSubject(payload: JWTPayload): Promise<AuthCont
   // 3. Email, only when the issuer vouches that the address is verified.
   const email = typeof payload.email === "string" && payload.email ? payload.email : undefined;
   if (email && !emailIsVerified(payload)) {
-    logger.warn({ hasSub: Boolean(sub) }, "OAuth email not verified by issuer; refusing email linking");
+    logger.warn("OAuth email not verified by issuer; refusing email linking");
   } else if (email) {
     const user = await userBy("email", email);
     if (user) {
-      if (sub) await bindIdentity(iss, sub, user.user_id);
+      if (!(await bindIdentity(iss, sub, user.user_id))) return null;
       return toAuth(user, email);
     }
   }
 
-  logger.warn({ hasSub: Boolean(sub), hasEmail: Boolean(email) }, "OAuth token not linked to a user");
+  logger.warn({ hasEmail: Boolean(email) }, "OAuth token not linked to a user");
   return null;
 }

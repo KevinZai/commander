@@ -35,7 +35,7 @@ type QueryLog = { table: string; op: string; filters: Record<string, unknown>; c
 function mockDb(
   t: TestContext,
   tables: Tables,
-  opts: { missingColumn?: string } = {}
+  opts: { missingColumn?: string; failSelect?: keyof Tables; failUpsert?: boolean; raceBindTo?: string } = {}
 ): QueryLog[] {
   const log: QueryLog[] = [];
   t.mock.method(db, "from", (table: keyof Tables) => {
@@ -52,6 +52,9 @@ function mockDb(
       },
       async maybeSingle() {
         log.push({ table, op: "select", filters: { ...filters }, columns });
+        if (opts.failSelect === table) {
+          return { data: null, error: { code: "57P01", message: "terminating connection" } };
+        }
         if (opts.missingColumn && columns.includes(opts.missingColumn)) {
           return { data: null, error: { code: "42703", message: `column ${opts.missingColumn} does not exist` } };
         }
@@ -60,6 +63,9 @@ function mockDb(
       },
       async upsert(row: Row) {
         log.push({ table, op: "upsert", filters: {}, row });
+        if (opts.failUpsert) return { error: { code: "57P01", message: "terminating connection" } };
+        // Another request bound this subject first; ignoreDuplicates keeps its row.
+        if (opts.raceBindTo) tables[table].push({ ...row, user_id: opts.raceBindTo });
         const exists = tables[table].some((r) => r.issuer === row.issuer && r.subject === row.subject);
         if (!exists) tables[table].push(row);
         return { error: null };
@@ -169,6 +175,42 @@ describe("OAuth subject resolution", () => {
     const auth = await resolveOAuthSubject({ iss: ISS, sub: USER_ID });
     assert.equal(auth?.userId, USER_ID);
     assert.equal(tables.oauth_identities.length, 1);
+  });
+
+  it("fails closed when the binding lookup errors: no email fallback", async (t) => {
+    const log = mockDb(
+      t,
+      { users: [{ ...victim }], oauth_identities: [{ issuer: ISS, subject: "auth0|owner", user_id: USER_ID }] },
+      { failSelect: "oauth_identities" }
+    );
+    const other = "other@example.com";
+    const auth = await resolveOAuthSubject({ iss: ISS, sub: "auth0|owner", email: other, email_verified: true });
+    assert.equal(auth, null, "an identity-table outage is an auth error, not 'no binding'");
+    assert.ok(!log.some((q) => q.table === "users"), "no users lookup after a failed binding lookup");
+    assert.ok(!log.some((q) => q.op === "upsert"), "no binding is written");
+  });
+
+  it("falls back to a verified email only after a confirmed empty binding lookup", async (t) => {
+    const tables: Tables = { users: [{ ...victim }], oauth_identities: [] };
+    const log = mockDb(t, tables);
+    const auth = await resolveOAuthSubject({ iss: ISS, sub: "auth0|new", email: victim.email, email_verified: true });
+    assert.equal(auth?.userId, USER_ID);
+    assert.equal(log[0].table, "oauth_identities", "the binding is checked first");
+  });
+
+  it("a token without a subject never authenticates, even with a verified email", async (t) => {
+    mockDb(t, { users: [{ ...victim }], oauth_identities: [] });
+    assert.equal(await resolveOAuthSubject({ iss: ISS, email: victim.email, email_verified: true }), null);
+  });
+
+  it("refuses when the binding write fails", async (t) => {
+    mockDb(t, { users: [{ ...victim }], oauth_identities: [] }, { failUpsert: true });
+    assert.equal(await resolveOAuthSubject({ iss: ISS, sub: "auth0|owner", email: victim.email, email_verified: true }), null);
+  });
+
+  it("refuses when a concurrent request bound the subject to a different user", async (t) => {
+    mockDb(t, { users: [{ ...victim }], oauth_identities: [] }, { raceBindTo: "8a68e2f2-0000-4000-8000-0000000000cc" });
+    assert.equal(await resolveOAuthSubject({ iss: ISS, sub: "auth0|owner", email: victim.email, email_verified: true }), null);
   });
 
   it("emailIsVerified accepts boolean true and the string 'true' only", () => {
