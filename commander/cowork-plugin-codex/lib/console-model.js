@@ -34,7 +34,7 @@
  * staleness signal the header exists to raise. The Memory tab shows its own
  * stamp. History IS included: it reads Commander's own logs.
  *
- * Memory is also the one section where absence is NORMAL: claude-mem is AGPL
+ * Memory is also the one section where absence is NORMAL: claude-mem is external
  * and never bundled, so most machines don't have it. `memory` is therefore
  * always an OBJECT carrying {available:false, unavailableReason} in that case —
  * a `null` section here keeps meaning strictly "this reader threw", which

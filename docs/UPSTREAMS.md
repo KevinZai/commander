@@ -49,7 +49,7 @@ All 15 bumps are fast-forwards of the old pin.
 | `context-mode` | mksglu/context-mode | Elastic License 2.0 | external install | 2026-11-18 | Wrapper only; nothing bundled |
 | `ccc-testing/plankton-code-quality` | alexfazio/plankton | MIT | — | 2026-03-08 | Up to date |
 | `spawn-manager` (mentions) | smtg-ai/claude-squad | AGPL-3.0 | reference only | — | Link only; no code copied |
-| `ccc-recall` (optional) | thedotmack/claude-mem | AGPL-3.0 | reference only | — | Not bundled, by policy |
+| `ccc-recall` (optional) | thedotmack/claude-mem | Apache-2.0 (AGPL-3.0 before 2026) | reference only | — | Not bundled; bundling needs Kevin's decision |
 | `mintlify` | mintlify.com | well-known | `skills-lock.json` hash | — | Not checked in this pass |
 
 ## Follow-ups

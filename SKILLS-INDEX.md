@@ -119,6 +119,7 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `acpx-patterns` | Pre-built acpx usage patterns for background, parallel, and crash-resilient sessions |
 | `acpx` | Use acpx as a headless ACP CLI for agent-to-agent communication, including prompt/exec/sessions workflows, session sc... |
 | `ad-creative` | When the user wants to generate, iterate, or scale ad creative — headlines, descriptions, primary text, or full ad ... |
+| `addyosmani-pack` | Optional MIT pack from addyosmani/agent-skills: a router plus 13 engineering-process skills (context engineering, doubt-, constraint- and source-driven development, deprecation and migration, observability, ADRs, idea refinement, interview-me, API design, DevTools browser testing, git workflow, code simplification). |
 | `advisor` | Anthropic Advisor Tool — pair a cheaper executor model with Opus for guidance. TRIGGER when: user asks about adviso... |
 | `agency-orchestrator` | Integrate with Agency Orchestrator for multi-agent DAG workflows — parallel research, code review pipelines, deploy... |
 | `ao` | Composio AO — spawn parallel agents with worktree isolation |
@@ -295,6 +296,7 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `task-commander` | Multi-agent orchestration — Claude manages ACP agents (Codex, OpenCode, Kimi, Pi) for complex tasks |
 | `taskmaster` | TaskMaster — structured PRD→task decomposition, complexity analysis, and implementation pipeline |
 | `teach-impeccable` | One-time setup that gathers design context for your project and saves it to your AI config file. Run once to establis... |
+| `threejs-pack` | Optional MIT pack from CloudAI-X/threejs-skills: a router plus 13 Three.js sub-skills (fundamentals, geometry, materials, lighting, textures, loaders, animation, shaders, postprocessing, interaction, performance, asset pipeline, React Three Fiber). |
 | `trading-analysis` | Market data analysis for Kevin's trading workspace. Fetches quotes via yf, |
 | `turborepo-monorepo` | (no description) |
 | `twilio-communications` | Build communication features with Twilio: SMS messaging, voice calls, WhatsApp Business API, and user verification (2... |

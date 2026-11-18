@@ -350,7 +350,7 @@ Detected from `package.json`, `Dockerfile`, `go.mod`, `.github/workflows/`, fram
 
 #### Tier 3: User intent (pattern match)
 
-Pattern-matches your last 5 prompts against the 467-skill catalog, cross-references the trending skills window (last 7 days), and boosts skills that succeeded in your past sessions. If a **third-party plugin** serves the intent better than CC Commander's own tools, it is named:
+Pattern-matches your last 5 prompts against the 576-skill catalog, cross-references the trending skills window (last 7 days), and boosts skills that succeeded in your past sessions. If a **third-party plugin** serves the intent better than CC Commander's own tools, it is named:
 
 - Recall-heavy intent ("what did I decide about X?") → **`claude-mem`**
 - Structured planning drift ("keep losing the thread") → **`superpowers`**
@@ -413,7 +413,7 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 
 ## The 93 Plugin Skills
 
-> *Every skill that ships with `/plugin install commander`. Not the 467-skill ecosystem — just the curated plugin surface.*
+> *Every skill that ships with `/plugin install commander`. Not the 576-skill ecosystem — just the curated plugin surface.*
 
 | Skill | What it does |
 |---|---|
@@ -504,7 +504,7 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 
 **Plus 22 specialist agents** (architect, security-auditor, performance-engineer, content-strategist, data-analyst, designer, product-manager, technical-writer, devops-engineer, qa-engineer, reviewer, builder, researcher, debugger, fleet-worker, typescript-reviewer, python-reviewer, go-reviewer, rust-reviewer, java-reviewer, kotlin-reviewer, csharp-reviewer) — each with a persona voice layer in `commander/cowork-plugin/rules/personas/`.
 
-**Plus 2 credential-free bundled MCPs** (context7, sequential-thinking) — 16 more opt-in via `/ccc-connect` (Tavily, Firecrawl, Exa, GitHub, Figma, Playwright, Notion, Zapier, Supabase, Slack, GDrive, and more) + 30 lifecycle hooks × 51 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, PermissionDenied, PreModelSwitch, Stop, PreCompact, SubagentStop, TeammateIdle, FileChanged, SessionEnd, and more). Plus the Commander HUD mod, 6 plugin workflows (`/commander:<name>`) and 8 plugin evals.
+**Plus 2 credential-free bundled MCPs** (context7, sequential-thinking) — 19 more opt-in via `/ccc-connect` (Tavily, Firecrawl, Exa, GitHub, Figma, Playwright, Notion, Zapier, Supabase, Slack, GDrive, and more) + 30 lifecycle hooks × 51 handlers (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, PermissionDenied, PreModelSwitch, Stop, PreCompact, SubagentStop, TeammateIdle, FileChanged, SessionEnd, and more). Plus the Commander HUD mod, 6 plugin workflows (`/commander:<name>`) and 8 plugin evals.
 
 ---
 
@@ -1475,12 +1475,12 @@ Skills are installed in tiers — smaller tiers load faster and save ~10k tokens
 | Essential | `--skills=essential` (default) | ~30 | Most developers — core workflows |
 | Recommended | `--skills=recommended` | ~100 | Active builders who use many domains |
 | Domain | `--skills=domain` | 11 routers | Load one ccc-domain per domain as needed |
-| Full | `--skills=full` | 467 | Legacy behavior — everything installed |
+| Full | `--skills=full` | 576 | Legacy behavior — everything installed |
 
 ```bash
 ./install.sh --skills=essential   # Default — saves ~10k tokens per session
 ./install.sh --skills=recommended # Good balance for full-time users
-./install.sh --skills=full        # All 467+ skills (original behavior)
+./install.sh --skills=full        # All 576+ skills (original behavior)
 ```
 
 Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skill mid-session with: `"use the skill-name skill"`.
@@ -1958,7 +1958,7 @@ CC Commander bundles **2 credential-free MCPs** out of the box (no setup needed)
 | `context7` | "use context7" | Latest library docs |
 | `sequential-thinking` | (used internally by agents) | Structured multi-step reasoning |
 
-**16 more connect via `/ccc-connect`** (opt-in, credentials required) — examples below. Which ones you have depends on what you've connected; these are not bundled or "always on":
+**19 more connect via `/ccc-connect`** (opt-in, credentials required) — examples below. Which ones you have depends on what you've connected; these are not bundled or "always on":
 
 | MCP | Say this... | For... |
 |-----|------------|--------|
@@ -2732,7 +2732,7 @@ You don't configure sub-agents. You don't pick them. The skills route automatica
 ---
 ## CC Commander
 
-> *v8.1.6* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 93 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (16 opt-in), 30 lifecycle hooks (51 handlers), the Commander HUD mod, 6 plugin workflows and 8 plugin evals. Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`), or in one step from the CLI with `/plugin install commander --marketplace KevinZai/commander`.
+> *v8.1.6* — **Primary surface: Claude Code Desktop (aka Cowork Desktop).** 93 plugin skills, 22 specialist sub-agents, 2 bundled MCPs (19 opt-in), 30 lifecycle hooks (51 handlers), the Commander HUD mod, 6 plugin workflows and 8 plugin evals. Click-first via AskUserQuestion. A CLI also exists for power users. Install via Settings → Plugin Marketplace → Add from GitHub (`KevinZai/commander`), or in one step from the CLI with `/plugin install commander --marketplace KevinZai/commander`.
 >
 > Cowork Desktop and Claude Code Desktop are the same app, two UI modes. The plugin works identically in both.
 
@@ -2787,11 +2787,11 @@ ccc --repair
 | **Level-based defaults** | Guided = `sonnet` / $5, Assisted = `opus` / $5, Power = `fable` / $10 |
 | **Project import** | Reads local CLAUDE.md without modifying .claude/ |
 | **Session tracking** | Persistent history across days/weeks |
-| **Skill browser** | Browse all 467+ skills from within Commander |
+| **Skill browser** | Browse all 576+ skills from within Commander |
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
-| **Desktop-first** | 93 plugin skills, 22 agents, 2 bundled MCPs (16 opt-in), 30 lifecycle hooks (51 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
+| **Desktop-first** | 93 plugin skills, 22 agents, 2 bundled MCPs (19 opt-in), 30 lifecycle hooks (51 handlers) — install via Settings → Plugin Marketplace in Claude Code Desktop / Cowork Desktop |
 | **AskUserQuestion chips** | Click-first UX — no menu traversal, no typing commands |
 | **Proactive intelligence** | After every action, suggests 3-4 contextual next steps |
 
@@ -3002,7 +3002,7 @@ This context is passed to the skill recommender and the dispatcher, so relevant 
 
 **File:** `commander/skill-browser.js`
 
-`recommendSkills(task, techStack)` ranks all 467+ skills using three signals:
+`recommendSkills(task, techStack)` ranks all 576+ skills using three signals:
 
 ```
 Stack match:    +10 pts per matching technology
@@ -3190,9 +3190,9 @@ CCC skills are fully compatible with this format. Cherry-pick individual skills 
 
 CCC does not replace these skills. It organizes and orchestrates them.
 
-- **Curation:** the 467 ecosystem skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
+- **Curation:** the 576 ecosystem skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
 - **Guidance:** The intent classifier reads your message and routes to the right skill automatically. You don't need to know which skill does what.
-- **Pre-wired MCPs:** 2 credential-free bundled MCP servers (context7 + sequential-thinking) ship out of the box; 16 more are opt-in via `/ccc-connect` (Tavily, GitHub, Linear, Supabase, Figma, etc.) when you need them.
+- **Pre-wired MCPs:** 2 credential-free bundled MCP servers (context7 + sequential-thinking) ship out of the box; 19 more are opt-in via `/ccc-connect` (Tavily, GitHub, Linear, Supabase, Figma, etc.) when you need them.
 - **Domain coherence:** 11 `ccc-*` domains group related skills into coherent workflows. `ccc-design` (41 skills) behaves like a single expert, not 41 separate prompts.
 - **Session memory:** The knowledge-capture hook learns from every session. Community skills are stateless. CCC accumulates.
 

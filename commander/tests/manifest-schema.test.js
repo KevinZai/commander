@@ -101,6 +101,26 @@ test('plugin.json has required field: description', function() {
   assert.ok(json.description && json.description.length > 0, 'plugin.json must have non-empty "description"');
 });
 
+// Cowork's plugin upload and GitHub marketplace sync reject both of these.
+test('plugin.json description is at most 500 characters (Cowork limit)', function() {
+  var json = JSON.parse(fs.readFileSync(PLUGIN_JSON, 'utf8'));
+  assert.ok(json.description.length <= 500, 'description is ' + json.description.length + ' chars, Cowork allows 500');
+});
+
+test('cowork-plugin package holds exactly one plugin.json (Cowork limit)', function() {
+  var pluginRoot = path.join(ROOT, 'commander', 'cowork-plugin');
+  var found = [];
+  (function walk(dir) {
+    fs.readdirSync(dir, { withFileTypes: true }).forEach(function(entry) {
+      if (entry.name === 'node_modules') return;
+      var full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name === 'plugin.json') found.push(path.relative(pluginRoot, full));
+    });
+  })(pluginRoot);
+  assert.deepStrictEqual(found, [path.join('.claude-plugin', 'plugin.json')]);
+});
+
 test('plugin.json has required field: author', function() {
   var json = JSON.parse(fs.readFileSync(PLUGIN_JSON, 'utf8'));
   assert.ok(json.author, 'plugin.json must have an "author" field');

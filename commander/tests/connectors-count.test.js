@@ -111,7 +111,7 @@ function laneWithPlugin(f) {
   fs.writeFileSync(path.join(install, '.claude-plugin', 'plugin.json'), JSON.stringify({ version: '8.1.2' }));
   fs.mkdirSync(path.join(install, 'skills', 'ccc'), { recursive: true });
   fs.writeFileSync(path.join(install, 'skills', 'ccc', 'SKILL.md'), '---\nname: ccc\n---\n');
-  fs.writeFileSync(path.join(install, 'CONNECTORS.md'), catalog(16));
+  fs.writeFileSync(path.join(install, 'CONNECTORS.md'), catalog(diag.EXPECTED_CONNECTOR_COUNT));
   fs.mkdirSync(path.join(f.configDir, 'plugins'), { recursive: true });
   fs.writeFileSync(path.join(f.configDir, 'plugins', 'installed_plugins.json'), JSON.stringify({
     version: 2, plugins: { 'commander@commander-hub': [{ scope: 'user', version: '8.1.2', installPath: install }] },
@@ -122,11 +122,11 @@ for (const n of [0, 16]) {
   test('doctor and checkin agree on N=' + n + ' configured connectors', (t) => {
     const f = laneFixture(t, { user: n });
     laneWithPlugin(f);
-    const d = diag.checkMcpAvailability(doctorRoot(t, catalog(16)), { env: f.env, cwd: f.cwd });
+    const d = diag.checkMcpAvailability(doctorRoot(t, catalog(diag.EXPECTED_CONNECTOR_COUNT)), { env: f.env, cwd: f.cwd });
     const c = checkin.buildCheckin({ root: ROOT, env: f.env, cwd: f.cwd, cli: false });
     assert.equal(d.status, 'ok', d.message);
-    assert.match(d.message, new RegExp('opt-in connectors: 16 · configured: ' + n + ' \\('));
-    assert.deepEqual(c.connectors, { catalog: 16, configured: { user: n, local: 0, project: 0, total: n } });
+    assert.match(d.message, new RegExp('opt-in connectors: ' + diag.EXPECTED_CONNECTOR_COUNT + ' · configured: ' + n + ' \\('));
+    assert.deepEqual(c.connectors, { catalog: diag.EXPECTED_CONNECTOR_COUNT, configured: { user: n, local: 0, project: 0, total: n } });
   });
 }
 

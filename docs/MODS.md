@@ -68,13 +68,12 @@ nothing else changes.
 ## Developing
 
 ```bash
-cd commander/cowork-plugin/mods/commander-hud
-claude plugin validate .   # lists the module's hooks: and calls:
-claude plugin test .       # runs tests/*.test.ts against the engine
+cd commander/cowork-plugin
+claude plugin validate .                    # lists the HUD module's hooks: and calls:
+claude plugin test mods/commander-hud       # runs tests/*.test.ts against the engine
 ```
 
-`.claude-plugin/plugin.json` in the mod folder exists only so the mod can be
-validated, tested, or loaded on its own with `claude --plugin-dir`. Inside
-Commander, the module loads through the main manifest's `hooks` entry
+The mod has no manifest of its own: Cowork accepts only one `plugin.json`
+per package. It loads through the main manifest's `hooks` entry
 (`./mods/commander-hud/hooks/hooks.json`). The test fixtures in
 `tests/fixtures.ts` are synthetic.

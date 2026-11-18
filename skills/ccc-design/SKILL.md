@@ -29,6 +29,7 @@ Codex: ask each picker as a plain-text question with the same options.
 | Routing and context | `design-router` (intent routing), `design-context` (brand, palette, fonts, motion preferences, performance budget) |
 | Animation and motion | `animate`, `motion-design`, `framer-motion-patterns`, `gsap-patterns`, `svg-animation` |
 | Visual effects | `interactive-visuals`, `particle-systems`, `generative-backgrounds`, `webgl-shader`, `retro-pixel`, `canvas-design` |
+| 3D and WebGL | 3D web, WebGL, Three.js, React Three Fiber requests: load `${CLAUDE_SKILL_DIR}/../threejs-pack/SKILL.md` (optional MIT pack, 13 sub-skills; installed by the full tier or `ccc --skills install threejs-pack`). If it is missing, say so and offer to install it |
 | Pages and systems | `frontend-design`, `landing-page-builder`, `interactive-landing`, `design-consultation`, `colorize`, `theme-factory` |
 | Output | `frontend-slides`, `screenshots`, `web-artifacts-builder` |
 | Look-book and capture | `looks` (named aesthetic directions), `capture` (video, HTML or live page into a reusable design prompt) |
@@ -64,7 +65,7 @@ Per-intent routing, "don't confuse with" pairs and the campaign chains: [referen
 
 4. **Pick a direction when polishing.** After `critique`, ask with AskUserQuestion (header "Direction"): 🟢 the direction the critique supports (more impact: `bolder` + `overdrive`, or calmer: `quieter` + `distill`) · the other direction · neither, fix the findings only. Never apply `bolder` and `quieter` to the same elements.
 
-5. **Load and run.** Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` for each step of the chain and follow it. For `looks`, the sub-skill reads the full look spec from `vendor/mengto-skills/` at apply time.
+5. **Load and run.** Read `${CLAUDE_SKILL_DIR}/<sub-skill>/SKILL.md` for each step of the chain and follow it. The 3D route is the exception: it is a sibling pack, so read `${CLAUDE_SKILL_DIR}/../threejs-pack/SKILL.md`. For `looks`, the sub-skill reads the full look spec from `vendor/mengto-skills/` at apply time.
 
 6. **Check performance before shipping motion.** Run `optimize` on any change that adds animation, WebGL or particles; prefer CSS when it achieves the same effect.
 

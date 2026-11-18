@@ -188,7 +188,7 @@ function generateRegistry() {
     { id: 'vendor:claude-reflect', name: 'claude-reflect', license: 'MIT', path: 'vendor/claude-reflect', status: 'reference-only', note: 'Reflection/migration patterns; at upstream HEAD. No user-facing mapping. Consider drop in v4.2.' },
     { id: 'vendor:rtk', name: 'rtk', license: 'Apache-2.0', path: 'vendor/rtk', status: 'reference-only', note: 'RTK token-kill CLI; Apache-2.0 with NOTICE.md. No user-facing mapping. Consider drop in v4.2.' },
     // PINNED — do not bump (license constraints)
-    { id: 'vendor:claude-mem', name: 'claude-mem', license: 'AGPL-3.0', path: 'vendor/claude-mem', status: 'pinned', note: 'AGPL-3.0 — submodule reference only, no code copy. DO NOT bump without re-audit.' },
+    { id: 'vendor:claude-mem', name: 'claude-mem', license: 'Apache-2.0', path: null, status: 'external', note: 'External opt-in, not a submodule and not bundled. Apache-2.0 since 2026 (earlier releases AGPL-3.0); bundling needs Kevin\'s decision and an Apache NOTICE section.' },
     { id: 'vendor:claude-code-ultimate-guide', name: 'claude-code-ultimate-guide', license: 'CC-BY-SA-4.0', path: 'vendor/claude-code-ultimate-guide', status: 'pinned', note: 'CC-BY-SA-4.0 — content license, derivatives must share-alike. Stay pinned.' },
   ];
 

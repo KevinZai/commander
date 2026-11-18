@@ -29,6 +29,11 @@ skills:
     domain: general
     tier: free
     description: "name: ad-creative"
+  - id: addyosmani-pack
+    path: skills/addyosmani-pack/SKILL.md
+    domain: general
+    tier: free
+    description: "name: addyosmani-pack"
   - id: advisor
     path: skills/advisor/SKILL.md
     domain: general
@@ -224,6 +229,11 @@ skills:
     domain: general
     tier: free
     description: "name: claude-peers-bible"
+  - id: claude-video
+    path: skills/claude-video/SKILL.md
+    domain: general
+    tier: free
+    description: "name: claude-video"
   - id: claudemd-auditor
     path: skills/claudemd-auditor/SKILL.md
     domain: general
@@ -239,6 +249,11 @@ skills:
     domain: general
     tier: free
     description: "name: cloudcli"
+  - id: codebase-memory-mcp
+    path: skills/codebase-memory-mcp/SKILL.md
+    domain: general
+    tier: free
+    description: "name: codebase-memory-mcp"
   - id: codex
     path: skills/codex/SKILL.md
     domain: general
@@ -349,6 +364,11 @@ skills:
     domain: general
     tier: free
     description: "name: developer-icons"
+  - id: diagram-design
+    path: skills/diagram-design/SKILL.md
+    domain: general
+    tier: free
+    description: "name: diagram-design"
   - id: dialectic-review
     path: skills/dialectic-review/SKILL.md
     domain: general
@@ -539,6 +559,11 @@ skills:
     domain: general
     tier: free
     description: "name: mcp-server-patterns"
+  - id: mempalace
+    path: skills/mempalace/SKILL.md
+    domain: general
+    tier: free
+    description: "name: mempalace"
   - id: metrics-dashboard
     path: skills/metrics-dashboard/SKILL.md
     domain: general
@@ -689,6 +714,11 @@ skills:
     domain: general
     tier: free
     description: "name: playground"
+  - id: ponytail
+    path: skills/ponytail/SKILL.md
+    domain: general
+    tier: free
+    description: "name: ponytail"
   - id: postgres-patterns
     path: skills/postgres-patterns/SKILL.md
     domain: general
@@ -714,6 +744,11 @@ skills:
     domain: general
     tier: free
     description: "name: python-patterns"
+  - id: qmd
+    path: skills/qmd/SKILL.md
+    domain: general
+    tier: free
+    description: "name: qmd"
   - id: realtime-architecture
     path: skills/realtime-architecture/SKILL.md
     domain: general
@@ -774,6 +809,11 @@ skills:
     domain: general
     tier: free
     description: "name: sales-enablement"
+  - id: science-pack
+    path: skills/science-pack/SKILL.md
+    domain: general
+    tier: free
+    description: "name: science-pack"
   - id: self-healing
     path: skills/self-healing/SKILL.md
     domain: general
@@ -844,6 +884,11 @@ skills:
     domain: general
     tier: free
     description: "name: spec-interviewer"
+  - id: specialist-pack
+    path: skills/specialist-pack/SKILL.md
+    domain: general
+    tier: free
+    description: "name: specialist-pack"
   - id: status-updates
     path: skills/status-updates/SKILL.md
     domain: general
@@ -889,6 +934,11 @@ skills:
     domain: general
     tier: free
     description: "name: teach-impeccable"
+  - id: threejs-pack
+    path: skills/threejs-pack/SKILL.md
+    domain: general
+    tier: free
+    description: "name: threejs-pack"
   - id: trading-analysis
     path: skills/trading-analysis/SKILL.md
     domain: general
@@ -1943,10 +1993,10 @@ vendors:
     note: RTK token-kill CLI; Apache-2.0 with NOTICE.md. No user-facing mapping. Consider drop in v4.2.
   - id: "vendor:claude-mem"
     name: claude-mem
-    license: AGPL-3.0
-    path: vendor/claude-mem
-    status: pinned
-    note: AGPL-3.0 — submodule reference only, no code copy. DO NOT bump without re-audit.
+    license: Apache-2.0
+    path: null
+    status: external
+    note: "External opt-in, not a submodule and not bundled. Apache-2.0 since 2026 (earlier releases AGPL-3.0); bundling needs Kevin's decision and an Apache NOTICE section."
   - id: "vendor:claude-code-ultimate-guide"
     name: claude-code-ultimate-guide
     license: CC-BY-SA-4.0
