@@ -60,10 +60,14 @@ const READ_ONLY_TOOLS = new Set([
 // The home directory as a literal operand, e.g. `rm -rf /Users/me` (escaped for a RegExp; empty when unknown or /).
 const HOME_LITERAL = (() => { try { return (process.env.HOME || homedir() || '').replace(/\/+$/, ''); } catch { return ''; } })();
 // One rm operand: quoted segments and backslash escapes are part of the word, so "a&b", 'a;b' or a\&b do not end it.
-const RM_WORD = String.raw`(?:'[^']*'|"[^"\\]*(?:\\.[^"\\]*)*"|\\.|[^\s;&|'"\\])+`;
+// An fd redirection (2>&1, >&2, &>file) is part of a word too, so it does not end the scan before the target.
+const RM_WORD = String.raw`(?:'[^']*'|"[^"\\]*(?:\\.[^"\\]*)*"|\\.|[<>]&|&>|[^\s;&|'"\\])+`;
+// Extra slashes and . or .. segments after a root or home target (//, /./, ~/., ~/..) still name the same or a
+// higher directory, so they are part of the target. A segment like ~/.config is not, because a boundary must follow.
+const DOTS = String.raw`(?:\/|\.{1,2}(?=\/|\s|$|[;&|)<>"'*]))*`;
 // Case-insensitive volumes (macOS, Windows): /Users/Me is the same directory as /Users/me.
 const HOME_FLAGS = process.platform === 'darwin' || process.platform === 'win32' ? 'i' : '';
-const HOME_ALT = HOME_LITERAL ? '|' + HOME_LITERAL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\/?\\*?' : '';
+const HOME_ALT = HOME_LITERAL ? '|' + HOME_LITERAL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + DOTS + '\\*?' : '';
 
 // Bash command patterns considered always-dangerous — always reject.
 // Ordinary deletes (rm -rf node_modules, rm -f build/tmp.log), git reset --hard and git clean are NOT here:
@@ -75,7 +79,7 @@ const DANGEROUS_PATTERNS = [
   // anywhere in a segment counts, whatever comes before it (a newline, then/do, sudo -u root, timeout 5, eval), so
   // a search that quotes "rm -rf" next to ~ is also denied and must be run by hand. The bounded word count and the
   // lookahead gate keep matching linear on long inputs. Home also matches written out in full (/Users/me).
-  new RegExp(String.raw`(?<![\w./-])(?=(?:[\w.-]*\/)*rm\s)(?:[\w.-]*\/)*rm\s+(?:(?:${RM_WORD}\s+){0,64}?["']?(?:\/\*?|~\/?\*?|\$\{?HOME\}?\/?\*?` +
+  new RegExp(String.raw`(?<![\w./-])(?=(?:[\w.-]*\/)*rm\s)(?:[\w.-]*\/)*rm\s+(?:(?:${RM_WORD}\s+){0,64}?["']?(?:\/${DOTS}\*?|~${DOTS}\*?|\$\{?HOME\}?${DOTS}\*?` +
     HOME_ALT + String.raw`)["']?(?=\s|$|[;&|)<>])|(?:${RM_WORD}\s+){64})`, HOME_FLAGS),
   /git\s+push\s+--force/,   // kept as-is so nothing denied before CC-654 is allowed now
   // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
