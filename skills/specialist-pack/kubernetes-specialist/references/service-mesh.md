@@ -5,9 +5,14 @@
 ## Istio Installation
 
 ```bash
-# Install Istio CLI
-curl -L https://istio.io/downloadIstio | sh -
-cd istio-*/ && export PATH="$PWD/bin:$PATH" && cd -
+# Install Istio CLI from a pinned release, checked against its published SHA-256.
+# CCC safety: never pipe a download into a shell; pick and review the version first.
+ISTIO_VERSION=<release from github.com/istio/istio/releases>
+f="istio-${ISTIO_VERSION}-linux-amd64.tar.gz"
+curl -fsSLO "https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/${f}"
+curl -fsSLO "https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/${f}.sha256"
+sha256sum -c "${f}.sha256"
+tar -xzf "$f" && export PATH="$PWD/istio-${ISTIO_VERSION}/bin:$PATH"
 
 # Install Istio with default profile
 istioctl install --set profile=default -y
@@ -318,9 +323,14 @@ spec:
 ## Linkerd Installation
 
 ```bash
-# Install Linkerd CLI
-curl --proto '=https' --tlsv1.2 -sSfL https://run.linkerd.io/install | sh
-export PATH=$HOME/.linkerd2/bin:$PATH
+# Install Linkerd CLI from a pinned release, checked against its published SHA-256.
+# CCC safety: never pipe a download into a shell; pick and review the version first.
+LINKERD_VERSION=<release tag from github.com/linkerd/linkerd2/releases>
+f="linkerd2-cli-${LINKERD_VERSION}-linux-amd64"
+curl -fsSLO "https://github.com/linkerd/linkerd2/releases/download/${LINKERD_VERSION}/${f}"
+curl -fsSLO "https://github.com/linkerd/linkerd2/releases/download/${LINKERD_VERSION}/${f}.sha256"
+sha256sum -c "${f}.sha256"
+install -m 0755 "$f" "$HOME/.local/bin/linkerd"
 
 # Validate cluster
 linkerd check --pre

@@ -147,8 +147,12 @@ spec:
 ### Submariner Installation
 
 ```bash
-# Install subctl
-curl -Ls https://get.submariner.io | bash
+# Install subctl from a pinned release of github.com/submariner-io/subctl.
+# CCC safety: never pipe a download into a shell. Download the release archive,
+# verify it against the checksum published with that release, then extract it.
+SUBCTL_VERSION=<release tag>
+curl -fsSLO "https://github.com/submariner-io/subctl/releases/download/${SUBCTL_VERSION}/subctl-${SUBCTL_VERSION}-linux-amd64.tar.xz"
+# verify the archive against the release's published checksum before extracting
 
 # Join clusters to broker
 subctl deploy-broker --kubeconfig kubeconfig-cluster1

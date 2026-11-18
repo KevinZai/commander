@@ -781,8 +781,11 @@ add_action('send_headers', function(): void {
     header('Referrer-Policy: strict-origin-when-cross-origin');
 
     // Content Security Policy (customize as needed)
+    // Nonce-based scripts: print $nonce on each inline <script nonce="..."> you enqueue.
+    // Avoid 'unsafe-inline' and 'unsafe-eval' for scripts; they defeat the XSS protection.
+    $nonce = base64_encode(random_bytes(16));
     $csp = "default-src 'self'; " .
-           "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google-analytics.com; " .
+           "script-src 'self' 'nonce-{$nonce}' https://www.google-analytics.com; " .
            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " .
            "font-src 'self' https://fonts.gstatic.com; " .
            "img-src 'self' data: https:; " .

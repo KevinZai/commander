@@ -29,8 +29,8 @@
   "clusters": [
     {
       "app": "myapp",
-      "stack": "production",
-      "enabled": true,
+      "stack": "staging",
+      "enabled": false,
       "regions": ["us-east-1", "us-west-2"],
       "meanTimeBetweenKillsInWorkDays": 2,
       "minTimeBetweenKillsInWorkDays": 1,
@@ -42,14 +42,17 @@
 
 ```bash
 #!/bin/bash
-# Simpl Chaos Monkey implementation
-
-INSTANCE_COUNT=5
+# Simple Chaos Monkey implementation
+# CCC safety: dry run by default. Name the test account's auto scaling group explicitly,
+# and set DRY_RUN=0 only with the user's go-ahead for this run. Never point it at production.
+set -euo pipefail
+ASG_NAME="${ASG_NAME:?set ASG_NAME to a test auto scaling group}"
+DRY_RUN="${DRY_RUN:-1}"
 KILL_PERCENTAGE=20
 
 # Get running instances from ASG
 INSTANCES=$(aws autoscaling describe-auto-scaling-groups \
-  --auto-scaling-group-names my-asg \
+  --auto-scaling-group-names "$ASG_NAME" \
   --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId' \
   --output text)
 
@@ -64,6 +67,7 @@ fi
 # Randomly select and terminate instances
 echo "$INSTANCES" | tr ' ' '\n' | shuf | head -n $TO_KILL | while read instance; do
   echo "Terminating instance: $instance"
+  if [ "$DRY_RUN" = "1" ]; then echo "  (dry run, not terminated)"; continue; fi
   aws ec2 terminate-instances --instance-ids "$instance"
   sleep 30  # Wait between terminations
 done
@@ -266,8 +270,8 @@ jobs:
       - name: Cleanup chaos resources
         if: always()
         run: |
-          kubectl delete chaosengine --all
-          kubectl delete chaosexperiments --all
+          # Delete only what this run created, never every chaos resource in the namespace.
+          kubectl delete -f .github/chaos/pod-delete-experiment.yaml --ignore-not-found
 
       - name: Report results to Slack
         if: failure()
