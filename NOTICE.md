@@ -38,3 +38,41 @@ The following plugin skills are adapted from [t3dotgg/tstack](https://github.com
 Vendor packages under `vendor/` are git submodules, each under its own license; the full table is in `vendor/LICENSE`.
 
 - claude-code-playground (`vendor/claude-code-playground`, https://github.com/anthropics/claude-code-playground) — owned by Anthropic, PBC — Apache License 2.0. Upstream describes it as an Anthropic DevRel playground, provided as-is and not an official Anthropic product.
+
+## MIT-Derived Skills (ponytail)
+
+`skills/ponytail/SKILL.md` is copied from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail), pinned at `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846`, unchanged except for an added Source section. MIT License, Copyright (c) 2026 DietrichGebert; the full text is in `skills/ponytail/LICENSE.txt`. `skills/mode-switcher/modes/ponytail.md` summarizes the same rules as a CC Commander mode.
+
+## Opt-in MIT add-ons (installed from upstream, not redistributed)
+
+These toolkit skills only describe how to install and route to upstream projects. No upstream source is copied into this distribution.
+
+- `skills/diagram-design` — [cathrynlavery/diagram-design](https://github.com/cathrynlavery/diagram-design), MIT; license and install steps reviewed at `f6db0decea96de66b901331a0f79a8d4b147ebae` ([LICENSE](https://github.com/cathrynlavery/diagram-design/blob/f6db0decea96de66b901331a0f79a8d4b147ebae/LICENSE))
+- `skills/claude-video` — [bradautomates/claude-video](https://github.com/bradautomates/claude-video), MIT; license and install steps reviewed at `03ceb42f7fa2c4439aca01752118044baabffb8f` ([LICENSE](https://github.com/bradautomates/claude-video/blob/03ceb42f7fa2c4439aca01752118044baabffb8f/LICENSE))
+- `skills/mempalace` — [MemPalace/mempalace](https://github.com/MemPalace/mempalace), MIT; license and install steps reviewed at `fec575bb4be04d4db244c2f724fa75ee6b9667ca` ([LICENSE](https://github.com/MemPalace/mempalace/blob/fec575bb4be04d4db244c2f724fa75ee6b9667ca/LICENSE))
+- `skills/qmd` — [tobi/qmd](https://github.com/tobi/qmd), MIT; license and install steps reviewed at `aa247d0ee2e5dc3b83e1270714c0f06ca94e2514` ([LICENSE](https://github.com/tobi/qmd/blob/aa247d0ee2e5dc3b83e1270714c0f06ca94e2514/LICENSE))
+- `skills/codebase-memory-mcp` — [DeusData/codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp), MIT; license and install steps reviewed at `08a7a586a41587c62079a4c3482d5a6068523480` ([LICENSE](https://github.com/DeusData/codebase-memory-mcp/blob/08a7a586a41587c62079a4c3482d5a6068523480/LICENSE)); installer pinned to release `v0.9.0`
+
+## MIT-Derived Skills (threejs-pack)
+
+`skills/threejs-pack/` holds 13 skills copied from [CloudAI-X/threejs-skills](https://github.com/CloudAI-X/threejs-skills), pinned at `0e181866f095b5f06d005133876e926515390d95`. MIT License, Copyright (c) 2026 CloudAI-X; the full text is in `skills/threejs-pack/LICENSE.txt`. Each SKILL.md ends with a Source section naming its upstream path. Each sub-skill folder also carries a copy of the license so it can be installed on its own. Local changes: `threejs-asset-pipeline` pins the gltf-transform (4.5.1) and gltfjsx (6.5.3) CLIs; `threejs-interaction` normalizes selection coordinates against the canvas instead of the window.
+
+## MIT-Derived Skills (addyosmani-pack)
+
+`skills/addyosmani-pack/` holds 13 skills copied from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), pinned at `39b723ceebf81474d0557c1fecd01eddab585563`. MIT License, Copyright (c) 2025 Addy Osmani; the full text is in `skills/addyosmani-pack/LICENSE.txt`. CC Commander changes are marked "CCC safety:" (git-workflow-and-versioning, constraint-driven-development and its floor-guard reference, browser-testing-with-devtools, doubt-driven-development). `DECISIONS.md` lists the 12 upstream skills left out and the Commander skill covering each.
+
+## MIT-Derived Skills (specialist-pack)
+
+`skills/specialist-pack/` holds 24 skills cherry-picked from four MIT repositories, with each license in `skills/specialist-pack/licenses/`: [Jeffallan/claude-skills](https://github.com/Jeffallan/claude-skills) at `67c1961b180dc92cf08983344627109e983e8f51` (18 skills), [wshobson/agents](https://github.com/wshobson/agents) at `9c61ab243def98f72da12abd41cfcf5bcd91af9d` (4), [VoltAgent/awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents) at `ed74d115b7fb7026a22a4f816a8e3250f425e3b4` (1, converted from a subagent to a skill) and [levnikolaevich/claude-code-skills](https://github.com/levnikolaevich/claude-code-skills) at `809845957a79a8e470d97a794ab7f19fa4f246b7` (1). `DECISIONS.md` lists what was added, skipped and edited. Local changes are marked "CCC safety:" in chaos-engineer, solidity-security, kubernetes-specialist and gitops-workflow; each sub-skill folder carries its source license; other fixes are listed in `skills/specialist-pack/DECISIONS.md`.
+
+## MIT-Derived Skills (science-pack)
+
+`skills/science-pack/` holds 48 skills copied from [K-Dense-AI/scientific-agent-skills](https://github.com/K-Dense-AI/scientific-agent-skills), pinned at `ec59a29a03d5c40f73ab40878df04860bc00e876`. Only skills whose own `license:` is MIT were taken; the repository license (MIT) is in `skills/science-pack/LICENSE.txt`. CC Commander changes (`disable-model-invocation: true`, "CCC safety:" notes before remote writes or sending data out) are listed in each Source section and in `DECISIONS.md`, which also lists every skill excluded by license, size or overlap. Each sub-skill folder carries the license so it can be installed on its own. Local changes: a "CCC safety:" consent note in pathway-enrichment; exa-search defines `SKILL_PATH` and reads only `EXA_API_KEY` instead of the whole `.env`; esm points its test runner at the upstream checkout.
+
+## MIT-Derived Skill (caveman)
+
+`skills/caveman/` derives from [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) as it was published under the MIT License (Copyright (c) 2026 Julius Brussee). Upstream was MIT from commit `af5375d` (2026-04-04) until commit `921eab8` relicensed the repository to Apache-2.0 on 2026-09-24. The closest upstream source is the first release, `af5375d` (`caveman/SKILL.md`, 2026-04-04; unchanged in substance through `d84127c`, 2026-04-06): about a fifth of Commander's lines match it, and the rest is Commander's own text. The MIT text is in `skills/caveman/LICENSE.txt`. CC Commander keeps the MIT-era text and does not sync later upstream changes; taking them would need an Apache-2.0 NOTICE section first.
+
+## MIT-Derived Skill (cloudflare-security-audit)
+
+`skills/ccc-security/cloudflare-security-audit/` is copied from [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) (`skills/security-audit/`), pinned at `c1c8a8c`. MIT License, Copyright (c) 2025-2026 Cloudflare, Inc.; the full text is in `skills/ccc-security/cloudflare-security-audit/LICENSE.txt`. CC Commander renamed it, set `disable-model-invocation`, added Next step and Source sections, and added one "CCC safety:" line requiring the skill directory to be the trusted install, outside the target; the rest of the body is unchanged.

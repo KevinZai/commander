@@ -22,7 +22,7 @@ process.on('unhandledRejection', function(reason) { _fatalHandler(reason instanc
 
 
 if (args.includes('--help') || args.includes('-h')) {
-  console.log('\n  CC Commander — 467 skills. One command. Your AI work, managed by AI.\n');
+  console.log('\n  CC Commander — 576 skills. One command. Your AI work, managed by AI.\n');
   console.log('  Usage:  ccc\n');
   console.log('  --version    Show version');
   console.log('  --test       Validate all modules');
@@ -297,6 +297,60 @@ if (args.includes('--skills')) {
   var skillsInstallDir = path.join(claudeConfigDir, 'skills');
   var skillsSourceDir = path.join(__dirname, '..', 'skills');
   var installManifestPath = path.join(claudeConfigDir, 'commander', 'install-manifest.json');
+  // Same guard as install.sh, applied after resolving links: neither the profile nor its
+  // skills directory may be /, the home directory, or a directory that contains home.
+  // Compare by device and inode, not path text, so case-insensitive filesystems
+  // (/Users vs /users on APFS) cannot slip past.
+  // bigint stats: large inode numbers (APFS, ZFS, NTFS file ids) do not lose precision.
+  function fileId(p) { try { var st = fs.statSync(p, { bigint: true }); return st.dev + ':' + st.ino; } catch (_e) { return null; } }
+  // Layered on top of the inode check: lexical and realpath comparisons, and roots.
+  // Fold case only where the filesystem usually does (macOS, Windows); elsewhere a
+  // case-only alias is caught by the dev+ino comparison, not the path text.
+  var foldCase = process.platform === 'darwin' || process.platform === 'win32';
+  function pathKey(p) { var k = path.resolve(p).replace(/[\\/]+$/, ''); return foldCase ? k.toLowerCase() : k; }
+  function realOrNull(p) { try { return fs.realpathSync.native(p); } catch (_e) { return null; } }
+  function isRootPath(p) {
+    var r = path.resolve(p);
+    if (path.parse(r).root === r) return true;
+    if (/^[A-Za-z]:[\\/]?$/.test(r)) return true;                 // another drive's root
+    if (/^(\\\\|\/\/)[^\\/]+[\\/][^\\/]+[\\/]?$/.test(r)) return true; // UNC share root
+    if (process.platform === 'win32' && path.win32.parse(r).root === r) return true;
+    return false;
+  }
+  function refuseProfile(p, why) {
+    console.error('Invalid CLAUDE_CONFIG_DIR: ' + p + ' ' + why + '; refusing to manage skills there.');
+    process.exit(1);
+  }
+  (function guardProfile() {
+    var homeRaw = os.homedir();
+    if (!homeRaw || !path.isAbsolute(homeRaw) || fileId(homeRaw) === null) {
+      refuseProfile(claudeConfigDir, 'cannot be checked because the home directory (' + (homeRaw || 'unset') + ') does not exist');
+    }
+    var homeAndAncestors = {};   // dev:ino ids
+    var homeKeys = {};           // lexical keys
+    // Walk the ancestors of both the logical home and the physical (realpath) home.
+    [path.resolve(homeRaw), realOrNull(homeRaw)].forEach(function(start) {
+      if (!start) return;
+      var cur = start;
+      while (true) {
+        var id = fileId(cur);
+        if (id) homeAndAncestors[id] = true;
+        homeKeys[pathKey(cur)] = true;
+        var up = path.dirname(cur);
+        if (up === cur) break;
+        cur = up;
+      }
+    });
+    [claudeConfigDir, skillsInstallDir].forEach(function(p) {
+      [p, realOrNull(p)].forEach(function(form) {
+        if (!form) return;
+        if (isRootPath(form)) refuseProfile(p, 'is a filesystem root');
+        if (homeKeys[pathKey(form)]) refuseProfile(p, 'is the home directory or a directory above it');
+        var id = fileId(form);
+        if (id && homeAndAncestors[id]) refuseProfile(p, 'is /, the home directory, or a directory above it');
+      });
+    });
+  })();
   var tiersFilePath = path.join(skillsSourceDir, '_tiers.json');
   var tiers = {};
   try { tiers = JSON.parse(fs.readFileSync(tiersFilePath, 'utf8')); } catch (_e) {}

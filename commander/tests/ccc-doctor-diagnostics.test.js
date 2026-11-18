@@ -59,9 +59,9 @@ function buildGoodFixture() {
       },
     })
   );
-  // CONNECTORS.md with a 16-row MCP catalog
+  // CONNECTORS.md with the expected-size MCP catalog
   var rows = [];
-  for (var i = 1; i <= 16; i++) rows.push('| Row' + i + ' | Cat | reason | No | install |');
+  for (var i = 1; i <= diag.EXPECTED_CONNECTOR_COUNT; i++) rows.push('| Row' + i + ' | Cat | reason | No | install |');
   writeFile(
     root,
     'commander/cowork-plugin/CONNECTORS.md',
@@ -344,7 +344,7 @@ test('ccc doctor on a fresh copy of the shipped hooks: hook chain ok (0 critical
 
 // --- 3. mcp-availability ----------------------------------------------------
 
-test('checkMcpAvailability: ok with 2 bundled + 16 connectors', function () {
+test('checkMcpAvailability: ok with 2 bundled + the expected connectors', function () {
   var root = buildGoodFixture();
   var r = diag.checkMcpAvailability(root, { env: { HOME: path.join(root, 'home') }, cwd: root });
   assert.strictEqual(r.status, 'ok', r.message);

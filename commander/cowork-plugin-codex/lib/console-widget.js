@@ -408,7 +408,7 @@ function renderSafetyTab(model, nowMs) {
   }${renderStamp(safety, nowMs)}`;
 }
 
-// Memory digest. claude-mem is optional and NOT bundled (AGPL vs MIT), so the
+// Memory digest. claude-mem is optional and NOT bundled (separate Apache-2.0 project), so the
 // missing case is the common one and renders as the ordinary zero-state card —
 // same muted styling as "no agents yet", never an error, never red.
 // Observation titles arrive already redacted and capped from memory-reader.js;

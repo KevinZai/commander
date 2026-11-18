@@ -39,6 +39,104 @@ skills:
     domain: general
     tier: free
     description: "When the user wants to generate, iterate, or scale ad creative — headlines, descriptions, primary text, or full ad variations — for any paid advertising platform. Also use when the user mentions 'ad copy variations,' 'ad creative,' 'generate headlines,' 'RSA headlines,' 'bulk ad copy,' 'ad..."
+  - id: addyosmani-pack
+    name: addyosmani-pack
+    path: skills/addyosmani-pack/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Engineering-discipline router for 13 MIT skills from addyosmani/agent-skills: API and interface contracts, Chrome DevTools browser testing, behavior-preserving simplification, a written quality bar, context engineering, deprecation and migration, ADRs and doc drift, fresh-context doubt review..."
+  - id: api-and-interface-design
+    name: api-and-interface-design
+    path: skills/addyosmani-pack/api-and-interface-design/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Guides stable API and interface design. Use when designing APIs, module boundaries, or any public interface. Use when creating REST or GraphQL endpoints, defining type contracts between modules, or establishing boundaries between frontend and backend.
+  - id: browser-testing-with-devtools
+    name: browser-testing-with-devtools
+    path: skills/addyosmani-pack/browser-testing-with-devtools/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Tests in real browsers via Chrome DevTools MCP. Use when building or debugging anything that runs in a browser. Use when you need to inspect the DOM, capture console errors, analyze network requests, profile performance, or verify visual output with real runtime data. Requires the...
+  - id: code-simplification
+    name: code-simplification
+    path: skills/addyosmani-pack/code-simplification/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Simplifies code for clarity. Use when refactoring code for clarity without changing behavior. Use when code works but is harder to read, maintain, or extend than it should be. Use when reviewing code that has accumulated unnecessary complexity. Use when asked to simplify, clean up, or reduce the...
+  - id: constraint-driven-development
+    name: constraint-driven-development
+    path: skills/addyosmani-pack/constraint-driven-development/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Establishes a project's quality bar as a written contract and stops agents quietly lowering it. Interviews the user on which dimensions matter, supplies sane default thresholds when they have no number in mind, records everything in CONSTRAINTS.md, and watches the diff for a weakened bar — new..."
+  - id: context-engineering
+    name: context-engineering
+    path: skills/addyosmani-pack/context-engineering/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Optimizes agent context setup. Use when starting a new session, when agent output quality degrades, when switching between tasks, or when you need to configure rules files and context for a project.
+  - id: deprecation-and-migration
+    name: deprecation-and-migration
+    path: skills/addyosmani-pack/deprecation-and-migration/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Manages deprecation and migration. Use when removing old systems, APIs, or features. Use when migrating users from one implementation to another. Use when migrating a database schema in production, such as renaming or dropping a column without downtime (expand/contract). Use when deciding...
+  - id: documentation-and-adrs
+    name: documentation-and-adrs
+    path: skills/addyosmani-pack/documentation-and-adrs/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Records decisions and documentation, and detects when documentation has drifted from the code it describes. Use when you need to document an architecture decision (ADR) or the reasoning behind a design choice, when changing public APIs, shipping features, when docs may be stale or out of sync...
+  - id: doubt-driven-development
+    name: doubt-driven-development
+    path: skills/addyosmani-pack/doubt-driven-development/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Subjects every non-trivial decision to a fresh-context adversarial review before it stands. Use when you want every assumption cross-examined before proceeding, when stress-testing a plan for hidden failure modes, when correctness matters more than speed, when working in unfamiliar code, when...
+  - id: git-workflow-and-versioning
+    name: git-workflow-and-versioning
+    path: skills/addyosmani-pack/git-workflow-and-versioning/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Structures git workflow practices. Use when making any code change. Use when committing, branching, resolving conflicts, splitting uncommitted work in a messy working tree into clean atomic commits, opening or reviewing a pull request (PR), pushing to a remote, or when you need to organize work...
+  - id: idea-refine
+    name: idea-refine
+    path: skills/addyosmani-pack/idea-refine/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Refines raw ideas into sharp, actionable concepts through structured divergent and convergent thinking. Use when an idea is still vague, when you need to stress-test assumptions before committing to a plan, or when you want to expand options before converging on one. Triggers on \"ideate\"..."
+  - id: interview-me
+    name: interview-me
+    path: skills/addyosmani-pack/interview-me/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Extracts what the user actually wants instead of what they think they should want. Achieves this through one-question-at-a-time interview until ~95% confidence about the underlying intent. Use when an ask is underspecified (\"build me X\" without \"for whom\" or \"why now\"), when the user explicitly..."
+  - id: observability-and-instrumentation
+    name: observability-and-instrumentation
+    path: skills/addyosmani-pack/observability-and-instrumentation/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Instruments code so production behavior is visible and diagnosable. Use when adding logging, metrics, tracing, or alerting. Use when shipping any feature that runs in production and you need evidence it works. Use when production issues are reported but you can't tell what happened from the..."
+  - id: source-driven-development
+    name: source-driven-development
+    path: skills/addyosmani-pack/source-driven-development/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Grounds every implementation decision in official documentation. Use when you want to verify an approach against the official docs before implementing it, or when you want authoritative, source-cited code free from outdated patterns. Use when building with any framework or library where...
   - id: advisor
     name: advisor
     path: skills/advisor/SKILL.md
@@ -1565,6 +1663,13 @@ skills:
     domain: ccc-security
     tier: free
     description: "Route application security work to one specialist sub-skill: security audit, prompt-injection defense, dependency audit, secrets scan, OWASP Top 10, CodeQL, variant analysis or incident response. Use when auditing, hardening or responding to a security issue in code."
+  - id: cloudflare-security-audit
+    name: cloudflare-security-audit
+    path: skills/ccc-security/cloudflare-security-audit/SKILL.md
+    source: ecosystem
+    domain: ccc-security
+    tier: free
+    description: Security guidance and vulnerability review for codebases, APIs, services, CLI tools, libraries, and daemons. Use for security questions, focused reviews, vulnerability research, security audits, or pen tests. Run the complete workflow only for explicit codebase audit or pen-test requests...
   - id: codeql-integration
     name: codeql-integration
     path: skills/ccc-security/codeql-integration/SKILL.md
@@ -1971,6 +2076,13 @@ skills:
     domain: general
     tier: free
     description: Master guide to Claude Peers — the built-in MCP server for multi-instance communication, coordination, and parallel development workflows
+  - id: claude-video
+    name: claude-video
+    path: skills/claude-video/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Let Claude watch a video: a URL or local file becomes timestamped frames and a transcript, via the MIT claude-video /watch plugin. Use when the user shares a video, screen recording, bug repro clip or talk and asks what happens in it. Claude Code and Codex only; not Cowork or Chat."
   - id: claudemd-auditor
     name: claudemd-auditor
     path: skills/claudemd-auditor/SKILL.md
@@ -1992,6 +2104,13 @@ skills:
     domain: general
     tier: free
     description: CloudCLI — bridge to web-based Claude Code sessions for mobile access
+  - id: codebase-memory-mcp
+    name: codebase-memory-mcp
+    path: skills/codebase-memory-mcp/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Commander's preferred code map: a local knowledge graph of code, docs, config and infrastructure with callers, impact and change-aware test selection, via the MIT codebase-memory-mcp server. Use when exploring an unfamiliar repo, tracing a call across services, or asking what a change could break."
   - id: codex
     name: codex
     path: skills/codex/SKILL.md
@@ -2146,6 +2265,13 @@ skills:
     domain: general
     tier: free
     description: Curated SVG tech stack icons for React/Next.js. TypeScript-first, SVGO-optimized, with light/dark/wordmark variants. Use when adding technology logos, stack badges, or brand icons to UI.
+  - id: diagram-design
+    name: diagram-design
+    path: skills/diagram-design/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Draw an architecture, flow, sequence, ER, timeline, quadrant, org chart or any of 50 diagram types as one self-contained HTML and SVG file in the project's brand, via the MIT diagram-design skill. Use when the user asks for a diagram, a chart of a system, or to import Mermaid, draw.io..."
   - id: dialectic-review
     name: dialectic-review
     path: skills/dialectic-review/SKILL.md
@@ -2601,6 +2727,13 @@ skills:
     domain: general
     tier: free
     description: Build MCP servers with Node/TypeScript SDK — tools, resources, prompts, Zod validation, stdio vs Streamable HTTP. Use Context7 or official MCP docs for latest API.
+  - id: mempalace
+    name: mempalace
+    path: skills/mempalace/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Local, verbatim cross-session memory with semantic search and Claude Code auto-save hooks, via the MIT MemPalace MCP server. Use when the user wants searchable long-term memory of past sessions and conversations, or an MIT alternative to claude-mem.
   - id: metrics-dashboard
     name: metrics-dashboard
     path: skills/metrics-dashboard/SKILL.md
@@ -2614,7 +2747,7 @@ skills:
     source: ecosystem
     domain: general
     tier: free
-    description: Switch between optimized workflow modes — design, saas, marketing, research, writing, night, yolo, unhinged, caveman, adhd, normal
+    description: Switch between optimized workflow modes — design, saas, marketing, research, writing, night, yolo, unhinged, caveman, adhd, ponytail, normal
   - id: monetization-strategy
     name: monetization-strategy
     path: skills/monetization-strategy/SKILL.md
@@ -2811,6 +2944,13 @@ skills:
     domain: general
     tier: free
     description: Connect to The Playground — a virtual social space where AI agents can meet, chat, and explore together. Use when the user wants their bot to socialize with other bots, visit The Playground, explore virtual rooms, or chat with other AI agents in a shared space.
+  - id: ponytail
+    name: ponytail
+    path: skills/ponytail/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Lazy senior dev mode: the smallest change that fully solves the task, and a reply a busy human understands in one read. Use on any coding task (writing, fixing, refactoring, reviewing, choosing dependencies) and when the user says \"ponytail\", \"be lazy\", \"simplest solution\", \"yagni\", or complains..."
   - id: postgres-patterns
     name: postgres-patterns
     path: skills/postgres-patterns/SKILL.md
@@ -2902,6 +3042,13 @@ skills:
     domain: general
     tier: free
     description: Pythonic idioms, PEP 8 standards, type hints, and best practices for building robust, efficient, and maintainable Python applications.
+  - id: qmd
+    name: qmd
+    path: skills/qmd/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: On-device search over markdown notes, docs, meeting transcripts and memory files, with BM25, vector search and local re-ranking, via the MIT qmd CLI and MCP server. Use when the user wants to search their notes or a docs folder, or when /ccc-recall or /ccc-knowledge needs a real search index.
   - id: realtime-architecture
     name: realtime-architecture
     path: skills/realtime-architecture/SKILL.md
@@ -2986,6 +3133,349 @@ skills:
     domain: general
     tier: free
     description: "When the user wants to create sales collateral, pitch decks, one-pagers, objection handling docs, or demo scripts. Also use when the user mentions 'sales deck,' 'pitch deck,' 'one-pager,' 'leave-behind,' 'objection handling,' 'deal-specific ROI analysis,' 'demo script,' 'talk track,' 'sales..."
+  - id: 13c-metabolic-flux
+    name: 13c-metabolic-flux
+    path: skills/science-pack/13c-metabolic-flux/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Estimates intracellular metabolic fluxes from steady-state carbon-13 isotope-tracing measurements using validated atom maps, mfapy isotope simulation, constrained multistart fitting, and flux-profile diagnostics. Use for 13C-MFA, carbon tracing, mass isotopomer distributions (MDVs/MIDs)...
+  - id: science-pack
+    name: science-pack
+    path: skills/science-pack/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Route scientific computing work to one specialist sub-skill: statistics and study design, lab data analysis, publication figures, literature search, bioinformatics and genomics, chemistry and materials, simulation, geospatial, neuroscience and imaging. Use when the user analyzes experimental or..."
+  - id: alphagenome
+    name: alphagenome
+    path: skills/science-pack/alphagenome/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Looks up precomputed AlphaGenome Atlas effects for any GRCh38 single-nucleotide variant (AVI score with Phred and 18 SHAP feature attributions, plus raw and quantile scores for RNA-seq, DNase, ATAC, ChIP-TF, ChIP-histone, CAGE, PRO-cap, splicing, polyadenylation and contact-map tracks), scores...
+  - id: bgpt-paper-search
+    name: bgpt-paper-search
+    path: skills/science-pack/bgpt-paper-search/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Searches BGPT scientific papers by topic or DOI and retrieves claim-level evidence extracted from full text, including experiments, reported statistics, scope, limitations, and provenance. Use for literature reviews, evidence synthesis, and finding experimental details beyond abstracts.
+  - id: bulk-rnaseq
+    name: bulk-rnaseq
+    path: skills/science-pack/bulk-rnaseq/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Prepares bulk RNA-seq FASTQ, Salmon, STAR or featureCounts output for gene-level differential expression. Covers nf-core/rnaseq and standalone quantification, biological replication, strandedness, reference provenance, validated count assembly and a PyDESeq2 handoff. Use for FASTQ-to-counts...
+  - id: cantera
+    name: cantera
+    path: skills/science-pack/cantera/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Runs Cantera homogeneous chemical reactors and evaluates ignition delay with mechanism provenance, conservation checks, and numerical refinement. Use for combustion kinetics, closed adiabatic ideal-gas constant-volume or constant-pressure ignition, temperature histories, or mechanism-specific...
+  - id: cellprofiler
+    name: cellprofiler
+    path: skills/science-pack/cellprofiler/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Runs reproducible CellProfiler microscopy pipelines for nuclear segmentation, cell counts, and per-object fluorescence measurements. Supports image/channel manifests, headless batch execution, segmentation overlays, and measurement QC for 2D fluorescence assays.
+  - id: cellxgene-census
+    name: cellxgene-census
+    path: skills/science-pack/cellxgene-census/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Queries the CZ CELLxGENE Census programmatically for versioned public single-cell and spatial transcriptomics data. Use when you need population-scale cell metadata, gene expression slices, Census summary counts, source H5AD URIs/downloads, embeddings, spatial Census data, or reference atlas...
+  - id: datalad
+    name: datalad
+    path: skills/science-pack/datalad/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Retrieves, versions, and publishes scientific datasets with DataLad and git-annex, and captures computational provenance with datalad run, rerun, and containers-run. Use when cloning or fetching data from OpenNeuro, DANDI, datasets.datalad.org, or any DataLad dataset; when a file in a dataset...
+  - id: deepchem
+    name: deepchem
+    path: skills/science-pack/deepchem/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Builds molecular property prediction and MoleculeNet workflows with DeepChem, including SMILES featurization, scaffold or grouped holdouts, masked labels, graph models and explicit pretrained encoder transfer. Used for ADMET, toxicity, solubility and chemistry ML when DeepChem data/model...
+  - id: diffdock
+    name: diffdock
+    path: skills/science-pack/diffdock/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Predicts protein-small-molecule binding poses with DiffDock and DiffDock-L from PDB or sequence plus SMILES/SDF/MOL2. Covers batch docking, pose triage, confidence interpretation, and validation. Use for molecular docking and virtual-screening pose generation, not binding-affinity prediction.
+  - id: esm
+    name: esm
+    path: skills/science-pack/esm/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Uses the Biohub esm Python SDK for ESM3 protein generation, ESMC embeddings, and ESMFold2 all-atom folding. Applies to local model inference and Biohub hosted clients, including former Forge workflows; distinguishes the separate legacy fair-esm distribution.
+  - id: exa-search
+    name: exa-search
+    path: skills/science-pack/exa-search/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Searches scientific and technical web content with Exa and extracts page or PDF text from URLs in batches. Supports scholarly discovery with the publication category and academic domain filters. Applies to requests to search the web, look up current research, fetch a page, or extract an article...
+  - id: experimental-design
+    name: experimental-design
+    path: skills/science-pack/experimental-design/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Designs experiments and studies BEFORE data is collected — choosing a design, randomizing, blocking, and laying out treatment combinations so results are interpretable. Use whenever someone is planning a study, asks how to assign subjects/samples to groups, mentions randomization, blocking...
+  - id: exploratory-data-analysis
+    name: exploratory-data-analysis
+    path: skills/science-pack/exploratory-data-analysis/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Performs bounded, local exploratory analysis of explicitly supported scientific files. Supports redacted CSV/TSV/JSON profiles; optional NumPy, HDF5, FASTA/FASTQ, and basic image metadata inspection; missingness/leakage audits; outlier and transformation sensitivity; and rigorous EDA report...
+  - id: flowkit
+    name: flowkit
+    path: skills/science-pack/flowkit/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Analyzes flow cytometry data with FlowKit, including spillover compensation, logicle and biexponential transforms, hierarchical gating, GatingML strategies, and supported FlowJo 10 workspaces. Use for reproducible gate counts, population percentages, gated fluorescence summaries, or reproducing...
+  - id: genomic-coordinates
+    name: genomic-coordinates
+    path: skills/science-pack/genomic-coordinates/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Converts genomic intervals between coordinate conventions, normalises and compares variant representations, and detects assembly or contig-naming mismatches before they corrupt an analysis. Used whenever coordinates cross a format, tool, or assembly boundary - converting between BED, GFF/GTF...
+  - id: geopandas
+    name: geopandas
+    path: skills/science-pack/geopandas/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Guidance and local audit tools for Python workflows that directly use GeoPandas GeoSeries, GeoDataFrame, spatial operations, or vector-data I/O.
+  - id: mageck
+    name: mageck
+    path: skills/science-pack/mageck/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Analyzes pooled CRISPR screen FASTQ reads and guide-count matrices with MAGeCK, validates guide libraries and contrasts, measures replicate and library QC, and produces gene hit rankings with effect sizes and FDR. Use for new knockout, CRISPRi, or CRISPRa screen analysis, enrichment or depletion...
+  - id: marine-carbonate-chemistry
+    name: marine-carbonate-chemistry
+    path: skills/science-pack/marine-carbonate-chemistry/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Solves seawater carbonate chemistry with PyCO2SYS for chemical oceanography, ocean acidification, and marine carbon-cycle research. Use for paired total alkalinity, dissolved inorganic carbon, pH, or seawater pCO2/fCO2 measurements; carbonate speciation; aragonite and calcite saturation; Revelle...
+  - id: molecular-dynamics
+    name: molecular-dynamics
+    path: skills/science-pack/molecular-dynamics/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Runs and analyzes molecular dynamics simulations with OpenMM and MDAnalysis. Sets up protein/small molecule systems, defines force fields, runs energy minimization and production MD, and analyzes trajectories (RMSD, RMSF, contact maps, free energy surfaces). For structural biology, drug binding...
+  - id: neurokit2
+    name: neurokit2
+    path: skills/science-pack/neurokit2/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Builds and audits reproducible NeuroKit2 research workflows for physiological time-series preprocessing, event/interval analysis, multimodal alignment, variability, and complexity. Use when code imports neurokit2 or needs its current APIs, schemas, and method-aware validation—not for diagnosis...
+  - id: nmrglue
+    name: nmrglue
+    path: skills/science-pack/nmrglue/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Processes calibrated one-dimensional complex NMR free-induction decays with nmrglue into phased spectra, peak candidates, and signed integration regions. Use for raw 1D NMR processing, ppm-axis verification, apodization, Fourier transformation, manual phasing, baseline correction, or...
+  - id: nwb-conversion
+    name: nwb-conversion
+    path: skills/science-pack/nwb-conversion/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Converts neuroscience acquisition data to Neurodata Without Borders files with NeuroConv and PyNWB, preserves metadata and timebases, checks evidence-based clock alignment, and produces schema validation, NWB Inspector findings and round-trip checks. Use for NWB conversion and synchronization of...
+  - id: ontology-term-resolution
+    name: ontology-term-resolution
+    path: skills/science-pack/ontology-term-resolution/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Resolves free-text scientific labels to ontology term IDs and validates existing CURIEs against the EBI Ontology Lookup Service (OLS4). Also looks up prefixes in Bioregistry, resolves compact identifiers via Identifiers.org, maps lab shorthand with ZOOMA, and builds Ontobee term pages. Use...
+  - id: opentrons-integration
+    name: opentrons-integration
+    path: skills/science-pack/opentrons-integration/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Authors, reviews, migrates, simulates, and troubleshoots official Opentrons Python Protocol API v2 protocols for Flex and OT-2 robots. Use for robot-specific liquid handling, deck and labware setup, pipettes, modules, runtime parameters, liquid classes, and Opentrons App analysis. Use pylabrobot...
+  - id: paper-lookup
+    name: paper-lookup
+    path: skills/science-pack/paper-lookup/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Searches 18 scholarly APIs for papers, preprints, citations, open-access full text, repository records, and journal OA status, and returns results with reproducible provenance. Covers PubMed, PMC, Europe PMC, bioRxiv, medRxiv, arXiv, OpenAlex, Crossref, Semantic Scholar, CORE, Unpaywall...
+  - id: pathway-enrichment
+    name: pathway-enrichment
+    path: skills/science-pack/pathway-enrichment/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Performs pathway and gene-set enrichment analysis on gene lists or ranked gene data and interprets the results. Used when the user has a set of genes (differentially expressed genes from PyDESeq2/Scanpy, CRISPR-screen hits, cluster marker genes, proteomics hits) and wants to know which...
+  - id: primer-design
+    name: primer-design
+    path: skills/science-pack/primer-design/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Designs and audits PCR and RT-qPCR primers with Primer3, explicit thermodynamic conditions, reference-based off-target amplification searches, and traceable sequence coordinates. Use for designing primer pairs, checking existing primers, exon-junction or isoform-specific assays, variant masking...
+  - id: pybamm
+    name: pybamm
+    path: skills/science-pack/pybamm/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Simulates lithium-ion battery charge, discharge and rest experiments with PyBaMM, records parameter-set provenance, checks mesh and solver sensitivity, and compares predicted voltage curves with measured cycling data. Use for SPM or DFN electrochemical battery modeling, C-rate protocols, voltage...
+  - id: pycalphad
+    name: pycalphad
+    path: skills/science-pack/pycalphad/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Computes finite-temperature CALPHAD equilibria, phase fractions, and phase compositions from thermodynamic TDB databases using pycalphad. Use for alloy phase stability, equilibrium temperature sweeps, tie lines, lever-rule checks, or reproducible phase-fraction calculations with explicit...
+  - id: pydeseq2
+    name: pydeseq2
+    path: skills/science-pack/pydeseq2/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Performs bulk RNA-seq differential expression analysis with PyDESeq2, including count validation, formula designs, explicit contrasts, Wald tests, FDR correction, coefficient-matched LFC shrinkage, and result visualization. Use for PyDESeq2 or Python DESeq2 workflows with biological replicates.
+  - id: pydicom
+    name: pydicom
+    path: skills/science-pack/pydicom/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Reads, inspects, writes, transforms, and preflights local DICOM datasets and pixel data. Applies to DICOM metadata, transfer syntaxes, compression plugins, frames, private elements, JSON, and bounded de-identification review.
+  - id: pymatgen
+    name: pymatgen
+    path: skills/science-pack/pymatgen/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Analyzes, validates, converts, and transforms materials structures and computed materials data with pymatgen. Use for local phase diagrams, symmetry sensitivity, electronic-structure I/O, and bounded Materials Project queries.
+  - id: pysam
+    name: pysam
+    path: skills/science-pack/pysam/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Provides Python/HTSlib workflows for genomic files. Used when reading, querying, filtering, or writing SAM/BAM/CRAM, VCF/BCF, FASTA/FASTQ, or tabix data with pysam, including pileup, coverage, indexing, and CRAM references.
+  - id: pyzotero
+    name: pyzotero
+    path: skills/science-pack/pyzotero/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Manages Zotero reference libraries using the pyzotero Python client: retrieves, creates, updates, and deletes items, collections, tags, and attachments via the Zotero Web API v3 or local API. Applies when working with Zotero libraries programmatically, managing bibliographic references..."
+  - id: qiime2-amplicon
+    name: qiime2-amplicon
+    path: skills/science-pack/qiime2-amplicon/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Processes paired-end 16S amplicon reads into QIIME 2 ASVs and taxonomy with retained artifact provenance. Checks paired FASTQ manifests, primer orientation diagnostics, predicted post-trimming overlap, sample IDs, runtime versions and read retention, and guides selection of compatible taxonomic...
+  - id: scientific-brainstorming
+    name: scientific-brainstorming
+    path: skills/science-pack/scientific-brainstorming/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Facilitates evidence-aware scientific ideation with independent generation, structured discussion, explicit assumptions, transparent evaluation, adversarial review, and decision logs. Use for early-stage research brainstorming or prioritizing candidate directions; hand off empirical validation...
+  - id: scientific-critical-thinking
+    name: scientific-critical-thinking
+    path: skills/science-pack/scientific-critical-thinking/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Evaluates scientific claims and evidence quality. Applies to experimental design validity, biases and confounders, statistical interpretation, evidence grading frameworks (GRADE, Cochrane Risk of Bias), and teaching critical analysis. Supports evidence appraisal and identifying flaws; formal...
+  - id: scientific-visualization
+    name: scientific-visualization
+    path: skills/science-pack/scientific-visualization/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Creates and audits truthful, accessible, publication-ready scientific figures with Matplotlib, Seaborn, or Plotly. Use it for figure design, multi-panel layouts, uncertainty and missing-data displays, color/contrast review, image metadata validation, and journal export planning.
+  - id: scientific-writing
+    name: scientific-writing
+    path: skills/science-pack/scientific-writing/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Drafts, revises, and audits scientific manuscripts or reports with explicit evidence provenance, reporting-guideline coverage, authorship accountability, confidentiality controls, and local consistency checks. Use for manuscript sections, references, declarations, tables, figures, or submission...
+  - id: scikit-survival
+    name: scikit-survival
+    path: skills/science-pack/scikit-survival/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Builds, evaluates, and audits right-censored or competing-risk survival workflows with scikit-survival, including leakage-safe preprocessing, model selection, probability prediction, and censoring-aware metrics.
+  - id: statistical-analysis
+    name: statistical-analysis
+    path: skills/science-pack/statistical-analysis/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Guided statistical analysis for research data - test selection, assumption checking, effect sizes, power analysis, Bayesian alternatives, and APA-formatted reporting. Use whenever a user wants to compare groups, test a hypothesis, analyze experimental or survey data, check statistical...
+  - id: statistical-power
+    name: statistical-power
+    path: skills/science-pack/statistical-power/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Calculates sample sizes and statistical power for study planning. Applies when someone asks \"how many subjects/samples/replicates do I need\", wants an a priori power analysis, a minimum detectable effect (MDE), a power curve, or needs to justify a sample size for a grant, IRB protocol, or..."
+  - id: tellurium
+    name: tellurium
+    path: skills/science-pack/tellurium/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Simulates biochemical kinetic models from SBML or Antimony with Tellurium and libRoadRunner, checks model units, compares deterministic parameter perturbations, and exports and replays SBML plus SED-ML COMBINE archives. Use for reaction-network time courses, kinetic parameters, concentration...
+  - id: tiledbvcf
+    name: tiledbvcf
+    path: skills/science-pack/tiledbvcf/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Stores and retrieves genomic variant calls with TileDB-VCF. Use for indexed single-sample VCF/BCF ingestion, incremental cohorts, region and sample queries, streaming results, allele statistics, QC, and VCF/BCF export locally or through TileDB Cloud.
+  - id: uncertainty-and-units
+    name: uncertainty-and-units
+    path: skills/science-pack/uncertainty-and-units/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Tracks physical units and propagates measurement uncertainty in scientific calculations using pint and uncertainties. Use for unit conversion and dimensional checking, GUM uncertainty budgets, Type A and Type B evaluation, coverage factors and expanded uncertainty, Monte Carlo propagation...
+  - id: vaex
+    name: vaex
+    path: skills/science-pack/vaex/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Processes large tabular scientific datasets with Vaex expressions, filtered views, streamed statistics, binned visualizations, and file conversion. Use for larger-than-RAM HDF5, Arrow, CSV, or Parquet analysis, virtual feature engineering, or Vaex ML preprocessing; distinguishes these operations...
+  - id: zarr-python
+    name: zarr-python
+    path: skills/science-pack/zarr-python/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Stores and queries chunked N-D scientific arrays with Zarr-Python 3, including codecs, sharding, S3/GCS storage, and NumPy/Dask/Xarray integration. Use for array layout, bounded I/O, format migration, or scientific metadata preservation.
   - id: self-healing
     name: self-healing
     path: skills/self-healing/SKILL.md
@@ -3084,6 +3574,181 @@ skills:
     domain: general
     tier: free
     description: "Structured spec interview for new features and projects. Asks 5-7 targeted questions using AskUserQuestion, then generates a formatted spec document. Use for ANY feature that will take more than 1 day of work. Always run in a SEPARATE session from execution. Based on Thariq Shihipar's (Claude..."
+  - id: specialist-pack
+    name: specialist-pack
+    path: skills/specialist-pack/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Route technology-specific work to one specialist sub-skill: Kubernetes, GitOps with ArgoCD or Flux, Rails, Django, FastAPI, NestJS, Angular, Spring Boot, .NET, C++, Elixir and Phoenix, GraphQL, Apache Spark, Salesforce Apex and LWC, WordPress, Shopify, embedded firmware and RTOS, Unity, Unreal..."
+  - id: angular-architect
+    name: angular-architect
+    path: skills/specialist-pack/angular-architect/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Generates Angular 17+ standalone components, configures advanced routing with lazy loading and guards, implements NgRx state management, applies RxJS patterns, and optimizes bundle performance. Use when building Angular 17+ applications with standalone components or signals, setting up NgRx...
+  - id: bash-defensive-patterns
+    name: bash-defensive-patterns
+    path: skills/specialist-pack/bash-defensive-patterns/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Master defensive Bash programming techniques for production-grade scripts. Use when writing robust shell scripts, CI/CD pipelines, or system utilities requiring fault tolerance and safety.
+  - id: chaos-engineer
+    name: chaos-engineer
+    path: skills/specialist-pack/chaos-engineer/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Designs chaos experiments, creates failure injection frameworks, and facilitates game day exercises for distributed systems — producing runbooks, experiment manifests, rollback procedures, and post-mortem templates. Use when designing chaos experiments, implementing failure injection frameworks...
+  - id: cpp-pro
+    name: cpp-pro
+    path: skills/specialist-pack/cpp-pro/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Writes, optimizes, and debugs C++ applications using modern C++20/23 features, template metaprogramming, and high-performance systems techniques. Use when building or refactoring C++ code requiring concepts, ranges, coroutines, SIMD optimization, or careful memory management — or when addressing...
+  - id: django-expert
+    name: django-expert
+    path: skills/specialist-pack/django-expert/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Use when building Django web applications or REST APIs with Django REST Framework. Invoke when working with settings.py, models.py, manage.py, or any Django project file. Creates Django models with proper indexes, optimizes ORM queries using select_related/prefetch_related, builds DRF...
+  - id: dotnet-core-expert
+    name: dotnet-core-expert
+    path: skills/specialist-pack/dotnet-core-expert/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Use when building .NET 8 applications with minimal APIs, clean architecture, or cloud-native microservices. Invoke for Entity Framework Core, CQRS with MediatR, JWT authentication, AOT compilation.
+  - id: elixir-expert
+    name: elixir-expert
+    path: skills/specialist-pack/elixir-expert/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Elixir and OTP specialist. Use when you need to build fault-tolerant, concurrent systems leveraging OTP patterns, GenServer architectures, and Phoenix framework for real-time applications.
+  - id: embedded-systems
+    name: embedded-systems
+    path: skills/specialist-pack/embedded-systems/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Use when developing firmware for microcontrollers, implementing RTOS applications, or optimizing power consumption. Invoke for STM32, ESP32, FreeRTOS, bare-metal, power optimization, real-time systems, configure peripherals, write interrupt handlers, implement DMA transfers, debug timing issues.
+  - id: fastapi-expert
+    name: fastapi-expert
+    path: skills/specialist-pack/fastapi-expert/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Use when building high-performance async Python APIs with FastAPI and Pydantic V2. Invoke to create REST endpoints, define Pydantic models, implement authentication flows, set up async SQLAlchemy database operations, add JWT authentication, build WebSocket endpoints, or generate OpenAPI...
+  - id: game-developer
+    name: game-developer
+    path: skills/specialist-pack/game-developer/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Use when building game systems, implementing Unity/Unreal Engine features, or optimizing game performance. Invoke to implement ECS architecture, configure physics systems and colliders, set up multiplayer networking with lag compensation, optimize frame rates to 60+ FPS targets, develop shaders...
+  - id: gitops-workflow
+    name: gitops-workflow
+    path: skills/specialist-pack/gitops-workflow/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Implement GitOps workflows with ArgoCD and Flux for automated, declarative Kubernetes deployments with continuous reconciliation. Use when implementing GitOps practices, automating Kubernetes deployments, or setting up declarative infrastructure management.
+  - id: godot-gdscript-patterns
+    name: godot-gdscript-patterns
+    path: skills/specialist-pack/godot-gdscript-patterns/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Master Godot 4 GDScript patterns including signals, scenes, state machines, and optimization. Use when building Godot games, implementing game systems, or learning GDScript best practices.
+  - id: graphql-architect
+    name: graphql-architect
+    path: skills/specialist-pack/graphql-architect/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Use when designing GraphQL schemas, implementing Apollo Federation, or building real-time subscriptions. Invoke for schema design, resolvers with DataLoader, query optimization, federation directives.
+  - id: kubernetes-specialist
+    name: kubernetes-specialist
+    path: skills/specialist-pack/kubernetes-specialist/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Use when deploying or managing Kubernetes workloads. Invoke to create deployment manifests, configure pod security policies, set up service accounts, define network isolation rules, debug pod crashes, analyze resource limits, inspect container logs, or right-size workloads. Use for Helm charts...
+  - id: ln-98-mutation-reliability-engineer
+    name: ln-98-mutation-reliability-engineer
+    path: skills/specialist-pack/ln-98-mutation-reliability-engineer/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Implements transactions, idempotency and interrupted-operation recovery; not schema migration or a mandatory background-job platform.
+  - id: nestjs-expert
+    name: nestjs-expert
+    path: skills/specialist-pack/nestjs-expert/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Creates and configures NestJS modules, controllers, services, DTOs, guards, and interceptors for enterprise-grade TypeScript backend applications. Use when building NestJS REST APIs or GraphQL services, implementing dependency injection, scaffolding modular architecture, adding JWT/Passport...
+  - id: rails-expert
+    name: rails-expert
+    path: skills/specialist-pack/rails-expert/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Rails 7+ specialist that optimizes Active Record queries with includes/eager_load, implements Turbo Frames and Turbo Streams for partial page updates, configures Action Cable for WebSocket connections, sets up Sidekiq workers for background job processing, and writes comprehensive RSpec test...
+  - id: salesforce-developer
+    name: salesforce-developer
+    path: skills/specialist-pack/salesforce-developer/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Writes and debugs Apex code, builds Lightning Web Components, optimizes SOQL queries, implements triggers, batch jobs, platform events, and integrations on the Salesforce platform. Use when developing Salesforce applications, customizing CRM workflows, managing governor limits, bulk processing...
+  - id: shopify-expert
+    name: shopify-expert
+    path: skills/specialist-pack/shopify-expert/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Builds and debugs Shopify themes (.liquid files, theme.json, sections), develops custom Shopify apps (shopify.app.toml, OAuth, webhooks), and implements Storefront API integrations for headless storefronts. Use when building or customizing Shopify themes, creating Hydrogen or custom React...
+  - id: solidity-security
+    name: solidity-security
+    path: skills/specialist-pack/solidity-security/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Master smart contract security best practices to prevent common vulnerabilities and implement secure Solidity patterns. Use when writing smart contracts, auditing existing contracts, or implementing security measures for blockchain applications.
+  - id: spark-engineer
+    name: spark-engineer
+    path: skills/specialist-pack/spark-engineer/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Use when writing Spark jobs, debugging performance issues, or configuring cluster settings for Apache Spark applications, distributed data processing pipelines, or big data workloads. Invoke to write DataFrame transformations, optimize Spark SQL queries, implement RDD pipelines, tune shuffle...
+  - id: spec-miner
+    name: spec-miner
+    path: skills/specialist-pack/spec-miner/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Reverse-engineering specialist that extracts specifications from existing codebases. Use when working with legacy or undocumented systems, inherited projects, or old codebases with no documentation. Invoke to map code dependencies, generate API documentation from source, identify undocumented...
+  - id: spring-boot-engineer
+    name: spring-boot-engineer
+    path: skills/specialist-pack/spring-boot-engineer/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Generates Spring Boot 3.x configurations, creates REST controllers, implements Spring Security 6 authentication flows, sets up Spring Data JPA repositories, and configures reactive WebFlux endpoints. Use when building Spring Boot 3.x applications, microservices, or reactive Java applications...
+  - id: wordpress-pro
+    name: wordpress-pro
+    path: skills/specialist-pack/wordpress-pro/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Develops custom WordPress themes and plugins, creates and registers Gutenberg blocks and block patterns, configures WooCommerce stores, implements WordPress REST API endpoints, applies security hardening (nonces, sanitization, escaping, capability checks), and optimizes performance through...
   - id: status-updates
     name: status-updates
     path: skills/status-updates/SKILL.md
@@ -3147,6 +3812,104 @@ skills:
     domain: general
     tier: free
     description: One-time setup that gathers design context for your project and saves it to your AI config file. Run once to establish persistent design guidelines.
+  - id: threejs-pack
+    name: threejs-pack
+    path: skills/threejs-pack/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Optional pack of 13 MIT-licensed Three.js skills: scene setup, geometry, materials, lighting, textures, loaders, animation, shaders, post-processing, interaction, performance, asset pipeline and React Three Fiber. Use when building 3D web experiences, WebGL or WebGPU scenes, Three.js code, React..."
+  - id: threejs-animation
+    name: threejs-animation
+    path: skills/threejs-pack/threejs-animation/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Keyframe, skeletal and morph-target animation, procedural motion and clip blending, on WebGL or with WebGPU and TSL. Use when animating objects, playing glTF animations, posing bones, driving morph targets, or mixing and crossfading clips.
+  - id: threejs-asset-pipeline
+    name: threejs-asset-pipeline
+    path: skills/threejs-pack/threejs-asset-pipeline/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Shrinking glTF assets for three.js with gltf-transform: inspect, validate and optimize commands, Draco, meshopt and quantization, KTX2, WebP and AVIF textures, the loader setup each output needs, and gltfjsx for React. Use when compressing, optimizing or validating 3D models before loading them."
+  - id: threejs-fundamentals
+    name: threejs-fundamentals
+    path: skills/threejs-pack/threejs-fundamentals/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Three.js scene setup: scenes and fog, cameras, the renderer and tone mapping, the animation loop, object hierarchies, transforms, core math and cleanup, on WebGL or with WebGPU and TSL. Use when creating a scene from scratch, configuring a camera or renderer, handling resize, or arranging objects."
+  - id: threejs-geometry
+    name: threejs-geometry
+    path: skills/threejs-pack/threejs-geometry/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Creating and shaping three.js geometry: built-in shapes, 3D text, vertex buffers and attributes, merging, instancing, batching, point clouds and lines, on WebGL or with WebGPU and TSL. Use when building 3D shapes or text, custom vertex data, custom meshes, instanced meshes, or point clouds."
+  - id: threejs-interaction
+    name: threejs-interaction
+    path: skills/threejs-pack/threejs-interaction/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Picking with raycasting, camera controls, transform gizmos, drag, hover and box selection for three.js, identical under WebGL and WebGPU. Use when handling mouse, touch or keyboard input, detecting clicks on 3D objects, adding camera controls, or making scene objects interactive.
+  - id: threejs-lighting
+    name: threejs-lighting
+    path: skills/threejs-pack/threejs-lighting/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Light types and physical units, shadow maps, HDR environment lighting, light probes, and lighting performance, on WebGL or with WebGPU and TSL. Use when adding or tuning lights, fixing shadow acne, setting up image-based lighting, or dimming an environment map.
+  - id: threejs-loaders
+    name: threejs-loaders
+    path: skills/threejs-pack/threejs-loaders/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Loading three.js assets: glTF with Draco, meshopt and KTX2 compression, other model formats, textures, HDR and EXR environments, progress, caching, cloning and disposal. Use when loading 3D models, textures or environment maps, or managing loading progress, on WebGL or with WebGPU and TSL."
+  - id: threejs-materials
+    name: threejs-materials
+    path: skills/threejs-pack/threejs-materials/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Choosing and configuring three.js materials - unlit, diffuse, specular, PBR, toon, point and line materials - shared properties like blending and stencil, environment response, and the WebGPU node-material and TSL equivalents. Use when styling meshes or tuning material behavior.
+  - id: threejs-performance
+    name: threejs-performance
+    path: skills/threejs-pack/threejs-performance/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Measuring and optimizing three.js speed: render statistics, memory counters, fewer draw calls via merging, instancing, batching and LOD, fill rate, shadows, CPU work per frame, shader stalls and GPU compute for particles, WebGL or WebGPU with TSL. Use when a scene is slow, janks or exceeds memory."
+  - id: threejs-postprocessing
+    name: threejs-postprocessing
+    path: skills/threejs-pack/threejs-postprocessing/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Three.js post-processing: composer pass chains, built-in renderer effects, and the WebGPU/TSL node pipeline — bloom, depth of field, ambient occlusion, custom screen effects. Use when adding visual effects, color grading, blur, glow, or screen-space shaders, on WebGL or with WebGPU and TSL."
+  - id: threejs-react-three-fiber
+    name: threejs-react-three-fiber
+    path: skills/threejs-pack/threejs-react-three-fiber/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Building three.js scenes from React with React Three Fiber and drei: renderer setup, the scene graph as JSX, frame-loop, state and loading hooks, pointer events, and adaptive performance, on WebGL or with WebGPU and TSL. Use when writing React components that render three.js."
+  - id: threejs-shaders
+    name: threejs-shaders
+    path: skills/threejs-pack/threejs-shaders/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Custom GLSL vertex and fragment shaders: uniforms, varyings, shader chunks, extending built-in materials, instanced attributes, plus the same effects as node materials with TSL on WebGPU. Use when writing a shader, a custom material or effect, moving vertices in a shader, or porting GLSL to TSL."
+  - id: threejs-textures
+    name: threejs-textures
+    path: skills/threejs-pack/threejs-textures/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Three.js textures: image loading, color spaces, UV channels and transforms, texture types from canvas to HDR and KTX2, render targets, texture memory. Use when working with images on materials, UV coordinates, cubemaps, render targets or texture optimization; on WebGL or with WebGPU and TSL."
   - id: trading-analysis
     name: trading-analysis
     path: skills/trading-analysis/SKILL.md
@@ -4429,7 +5192,7 @@ vendors:
     license: Apache-2.0
     path: null
     status: external
-    note: External opt-in (upstream relicensed to Apache-2.0); not a bundled submodule. Install separately.
+    note: "External opt-in, not a submodule and not bundled. Apache-2.0 since 2026 (earlier releases AGPL-3.0); bundling needs Kevin's decision and an Apache NOTICE section."
   - id: "vendor:claude-code-ultimate-guide"
     name: claude-code-ultimate-guide
     license: CC-BY-SA-4.0

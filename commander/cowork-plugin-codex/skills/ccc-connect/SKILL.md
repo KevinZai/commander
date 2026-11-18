@@ -50,13 +50,14 @@ Show this disclosure at the top of every $ccc-connect response:
    claude plugin list --available --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{for (const p of (JSON.parse(s).available||[])) if (p.name===process.argv[1]) console.log(p.pluginId)})' <connector-name>
    ```
 
-   Prefer, in order: **P** a Claude Code plugin (it carries its own MCP config and `userConfig`); **H** a remote HTTP MCP with OAuth; **S** a stdio MCP with a key captured by the user's own terminal. acpx is none of these; follow its section in the reference.
+   Prefer, in order: **P** a Claude Code plugin (it carries its own MCP config and `userConfig`); **H** a remote HTTP MCP with OAuth; **S** a stdio MCP with a key captured by the user's own terminal. **L** marks a local tool with no credential: skip the credential picker and key capture. acpx is none of these; follow its section in the reference.
 
 6. **Authorize the change.** Ask the install picker before the assistant runs any `claude plugin install` or `claude mcp add`; both change the user's Claude Code configuration. Path S wiring is run by the user, so it needs only the credential picker.
 
 7. **Wire it.**
    - **P — plugin with userConfig.** Run `claude plugin install <pluginId> --config <key>=<value>` for non-secret options only (repeat `--config`; fixed-choice `options` are validated). Then `claude plugin configure <plugin> --json` and report only which option names are unset. Secret options are entered by the user in the `/plugin` configure flow or with the `--values-stdin` template in the reference. A plugin with no options usually authenticates by OAuth in `/mcp`.
    - **H — OAuth MCP.** Run `claude mcp add --transport http <name> <url>`, then the user runs `claude mcp login <name>` (or authenticates from `/mcp`). No credential file is written.
+   - **L — local, no key.** After the install picker, run the commands from the reference (show any script URL first). No credential is captured or written.
    - **S — keyed MCP.** The user captures the secret in their own terminal with the command below, clicks Done, then runs the wiring command from the reference (it reads the file inside `$(...)`, so the value never appears in a command line).
 
    Credential capture (Path S), filled in with `<name>`, `<Connector>` and `<kind>` (`oauth` or `api-key`):
@@ -101,7 +102,7 @@ Project signals from step 1 move the 🟢 to another group, which is then listed
 
 | Group | Options |
 |---|---|
-| Research & observe | 🟢 Research — search, scraping, docs · Observability — errors and performance |
+| Research & observe | 🟢 Research — search, scraping, docs · Code map — local code graph · Observability — errors and performance |
 | Build & ship | 🟢 Backend — database, auth, storage · Hosting — deploys and previews · Cache / Queue — Redis and Kafka · Billing — payments |
 | Team & comms | 🟢 Tasks — issues and projects · Knowledge — pages and databases · Comms — channels and threads · Email — sending and inboxes |
 | Automate & design | 🟢 Automation — browsers and app actions · Design — files and components · Agent harness — external agent CLI |
@@ -117,10 +118,11 @@ With `stripe` in `package.json`, Billing takes the 🟢 in Build & ship and is l
 | Cache / Queue | Upstash [aff] — serverless Redis and Kafka (only option) |
 | Billing | Stripe — payments, subscriptions, invoices (only option) |
 | Tasks | GitHub — issues and PRs · Linear — issues, projects, cycles (first-class Commander integration) |
-| Knowledge | Notion — pages, databases, comments (only option) |
+| Knowledge | MemPalace — local searchable session memory, no key · Notion — pages, databases, comments · qmd — local search over notes and docs, no key |
 | Comms | Discord — community server · Slack — channels, threads |
 | Email | AgentMail — agent-native inbox · Resend [aff] — transactional email |
 | Research | Context7 — live library docs (already bundled; nothing to wire) · Exa — neural search · Firecrawl — scraping to markdown · Tavily — web search |
+| Code map | codebase-memory-mcp — local code graph, callers, impact, test selection; no key (only option) |
 | Observability | Sentry [aff] — errors, performance, releases (only option) |
 | Automation | Browserbase [aff] — remote headless browsers · n8n — self-hosted workflows · Playwright — local browser automation, no credential · Zapier — app actions |
 | Design | Figma — files, components, comments (only option) |
@@ -128,7 +130,7 @@ With `stripe` in `package.json`, Billing takes the 🟢 in Build & ship and is l
 
 No connector is pre-selected. Mark one 🟢 only when step 1 shows it already in use (an installed plugin or MCP server, or its package in `package.json`). Affiliate status never changes the order or the 🟢.
 
-**Arguments:** a category name (`tasks`, `backend`, `hosting`, `cache`, `knowledge`, `comms`, `observability`, `billing`, `automation`, `agent-harness`, `email`, `research`, `design`) opens its level-3 picker; `productivity` opens a level-2 picker with 🟢 Tasks, Knowledge, Comms; `dev` opens a level-2 picker with 🟢 Backend, Hosting, Observability, Billing; no argument opens level 1.
+**Arguments:** a category name (`tasks`, `backend`, `hosting`, `cache`, `knowledge`, `comms`, `observability`, `billing`, `automation`, `agent-harness`, `email`, `research`, `code-map`, `design`) opens its level-3 picker; `productivity` opens a level-2 picker with 🟢 Tasks, Knowledge, Comms; `dev` opens a level-2 picker with 🟢 Backend, Hosting, Observability, Billing; no argument opens level 1.
 
 **Install picker** (header "Install"): 🟢 **Install now** (runs the one install command shown) · **Show the command only** (the user runs it) · **Cancel**.
 

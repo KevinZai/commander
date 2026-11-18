@@ -375,7 +375,7 @@ function checkHookChain(root) {
 // --- 3. MCP availability ----------------------------------------------------
 
 var EXPECTED_MCP_SERVERS = ['context7', 'sequential-thinking'];
-var EXPECTED_CONNECTOR_COUNT = 16;
+var EXPECTED_CONNECTOR_COUNT = 19;
 
 // --- Connector counts: one source for `ccc doctor` and `ccc checkin` --------
 

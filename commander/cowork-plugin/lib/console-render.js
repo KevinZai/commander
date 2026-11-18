@@ -1246,7 +1246,7 @@ function renderSafetyTab(model, opts = {}) {
 // ---------------------------------------------------------------------------
 // Memory tab (v7.4.0 Phase 2)
 //
-// The store is claude-mem's, and claude-mem is AGPL-3.0 — Commander does not
+// The store is claude-mem's, and claude-mem is a separate Apache-2.0 project — Commander does not
 // bundle it, so NOT HAVING IT IS THE NORMAL CASE. That state renders as one
 // quiet hint card in ordinary muted styling: no red, no ⚠, no "error", and no
 // repeat nagging. Every title and project has already been redacted and capped
@@ -1254,7 +1254,7 @@ function renderSafetyTab(model, opts = {}) {
 // title never becomes a link, a command, or a chip payload.
 
 const MEMORY_INSTALL_HINT =
-  'Optional and separate: install claude-mem (npm install -g claude-mem) and this tab fills in. It is AGPL-licensed, which is why Commander does not bundle it.';
+  'Optional and separate: install claude-mem (npm install -g claude-mem) and this tab fills in. It is a separate Apache-2.0 project that you install yourself; Commander does not bundle it.';
 
 function renderMemoryUnavailableSection(reason) {
   return `<section aria-label="Memory">

@@ -118,7 +118,7 @@ Zero-state is normal: stat tiles show `—`, cards say how to start (`/ccc-spawn
 - Never publish without the step 4 consent, and never publish automatically; the auto-open hook only opens the inline widget.
 - Never move the published path: a new path is a new URL.
 - Never call the published page live or say it can send prompts. It changes only when republished, and it cannot reach this session. The inline widget cannot be shared.
-- Never treat a missing claude-mem store as an error or point to `/ccc-doctor` for it. Commander does not bundle claude-mem (AGPL-3.0; Commander is MIT).
+- Never treat a missing claude-mem store as an error or point to `/ccc-doctor` for it. Commander does not bundle claude-mem; it is a separate install.
 - Never invent history: there is no per-message content, no session summary, and nothing before the first `metrics.jsonl` row.
 
 ## See also

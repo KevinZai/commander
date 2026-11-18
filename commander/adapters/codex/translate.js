@@ -235,7 +235,7 @@ function codexDescription(claudeManifest) {
   const skills = m ? `${m[1]} plugin skills` : 'click-first plugin skills';
   const a = String(claudeManifest.description || '').match(/(\d+) specialist sub-?agents/);
   const agents = a ? `${a[1]} specialist subagents` : 'specialist subagents';
-  return (`Guided AI PM for Codex, running on the Commander Method: 12 enforceable gates (plan before build, verifier separate from worker, prove before alarm). ${skills} (click-first $ccc-* workflows incl. $ccc-codex for the Codex CLI), ${agents} generated as TOML, the Codex-supported hook subset, 2 bundled MCP servers + 16 opt-in. Built for GPT-6 Astra and GPT-6.1 Sol. Telemetry is off unless you opt in. MIT-licensed.`)
+  return (`Guided AI PM for Codex, running on the Commander Method: 12 enforceable gates (plan before build, verifier separate from worker, prove before alarm). ${skills} (click-first $ccc-* workflows incl. $ccc-codex for the Codex CLI), ${agents} generated as TOML, the Codex-supported hook subset, 2 bundled MCP servers + 19 opt-in. Built for GPT-6 Astra and GPT-6.1 Sol. Telemetry is off unless you opt in. MIT-licensed.`)
     .replace(/\n/g, ' ').replace(/"/g, '\\"');
 }
 

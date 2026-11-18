@@ -2,7 +2,7 @@
 //
 // Two properties matter more than the markup here.
 //
-// 1. ABSENCE IS NORMAL. claude-mem is AGPL-3.0 and deliberately not bundled, so
+// 1. ABSENCE IS NORMAL. claude-mem is a separate Apache-2.0 project and deliberately not bundled, so
 //    most machines will never have the store this tab reads. "Not installed"
 //    must resolve to a quiet card — never a throw, never an `errors` entry,
 //    never error styling — and the same goes for an empty telemetry dir on the
@@ -375,7 +375,7 @@ test('the memory artifact shows a quiet hint when claude-mem is absent', async (
 
   assert.ok(html.includes('claude-mem not detected'), 'names the state plainly');
   assert.ok(html.includes('npm install -g claude-mem'), 'says how to fix it');
-  assert.ok(html.includes('AGPL'), 'says why it is not bundled');
+  assert.ok(html.includes('Apache-2.0'), 'says why it is not bundled');
   assert.ok(html.includes('class="zero"'), 'ordinary muted zero-state styling');
   // Not an error, not a warning, not a staleness banner.
   assert.ok(!/stale-banner|permission-banner|⚠/.test(bodyOf(html)), 'no alarm styling');

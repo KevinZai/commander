@@ -156,11 +156,11 @@ Brain/hands architecture — each persona has a distinct role, model alias and v
 "audit auth as a workflow"   # one task, no toggle
 ```
 
-### Plugin MCP Servers (2 bundled + 16 opt-in)
+### Plugin MCP Servers (2 bundled + 19 opt-in)
 
 **Bundled (2, credential-free — ship in `.mcp.json`, zero setup):** Context7 (current library docs) and Sequential Thinking (multi-step reasoning).
 
-**Opt-in via `/ccc-connect` (16):** Linear, GitHub, Slack, Gmail, Google Calendar, Tavily, Google Drive, Supabase, Figma, Playwright, Notion, claude-mem, Exa, Firecrawl, Zapier and more — see `/ccc-connect` and `commander/cowork-plugin/CONNECTORS.md`.
+**Opt-in via `/ccc-connect` (19):** Linear, GitHub, Slack, Gmail, Google Calendar, Tavily, Google Drive, Supabase, Figma, Playwright, Notion, claude-mem, Exa, Firecrawl, Zapier and more — see `/ccc-connect` and `commander/cowork-plugin/CONNECTORS.md`.
 
 ### vs aider
 
@@ -721,14 +721,14 @@ Install only the skills you need — smaller tiers save ~10k tokens per session:
 ```bash
 ./install.sh --skills=essential   # ~30 core skills (default, saves ~10k tokens)
 ./install.sh --skills=recommended # ~100 skills for most developers
-./install.sh --skills=full        # All 467+ skills (legacy behavior)
+./install.sh --skills=full        # All 576+ skills (legacy behavior)
 ```
 
 | Tier | Count | When to use |
 |------|-------|------------|
 | `essential` | ~30 | Default — covers 90% of use cases |
 | `recommended` | ~100 | Active builders across multiple domains |
-| `full` | 467 | Legacy behavior, maximum coverage |
+| `full` | 576 | Legacy behavior, maximum coverage |
 
 You can always load an on-demand skill mid-session: `"use the skill-name skill"`
 

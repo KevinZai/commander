@@ -20,6 +20,8 @@ const EXPECTED_IDS = [
   'gpt-6-luna',
   'gpt-6-sol',
   'gpt-6.1-sol',
+  'gpt-6.2-astra',
+  'gpt-6.2-sol',
 ];
 
 test('models: registry lists the GPT-6 family plus legacy fallbacks with required fields', async () => {
@@ -30,9 +32,10 @@ test('models: registry lists the GPT-6 family plus legacy fallbacks with require
 
   for (const entry of CODEX_MODEL_REGISTRY) {
     assert.ok(['flagship', 'balanced', 'light'].includes(entry.tier), `${entry.id} tier`);
-    assert.ok(['6.1', '6', '5.6', '5.5'].includes(entry.family), `${entry.id} family`);
+    assert.ok(['6.2', '6.1', '6', '5.6', '5.5'].includes(entry.family), `${entry.id} family`);
     assert.ok(['current', 'legacy', 'retiring'].includes(entry.status), `${entry.id} status`);
-    assert.equal(entry.verified, '2026-10-13', `${entry.id} verified date`);
+    const verified = entry.family === '6.2' ? '2026-11-17' : '2026-10-13';
+    assert.equal(entry.verified, verified, `${entry.id} verified date`);
     assert.ok(entry.fallback === null || typeof entry.fallback === 'string', `${entry.id} fallback`);
     assert.ok(Object.isFrozen(entry), `${entry.id} frozen`);
   }
@@ -49,8 +52,8 @@ test('models: retired ids are absent', async () => {
 test('models: current entries carry tier, family and role', async () => {
   const { getModelEntry } = await import(adapterUrl('models.js'));
   const expected = {
-    'gpt-6-astra': { tier: 'flagship', family: '6', role: 'deep' },
-    'gpt-6.1-sol': { tier: 'balanced', family: '6.1', role: 'default' },
+    'gpt-6.2-astra': { tier: 'flagship', family: '6.2', role: 'deep' },
+    'gpt-6.2-sol': { tier: 'balanced', family: '6.2', role: 'default' },
     'gpt-6-sol': { tier: 'balanced', family: '6', role: 'bounded' },
     'gpt-6-luna': { tier: 'light', family: '6', role: 'bulk' },
   };
@@ -65,8 +68,10 @@ test('models: current entries carry tier, family and role', async () => {
 
 test('models: legacy and retiring entries are marked as such', async () => {
   const { getModelEntry } = await import(adapterUrl('models.js'));
-  for (const id of ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna']) {
+  for (const id of ['gpt-6-astra', 'gpt-6.1-sol', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna']) {
     assert.equal(getModelEntry(id).status, 'legacy', `${id} status`);
+    assert.equal(getModelEntry(id).role, undefined, `${id} has no routing role`);
+    assert.notEqual(getModelEntry(id).default, true, `${id} is not the default`);
   }
   const gpt55 = getModelEntry('gpt-5.5');
   assert.equal(gpt55.status, 'retiring');
@@ -74,17 +79,17 @@ test('models: legacy and retiring entries are marked as such', async () => {
   assert.equal(gpt55.fallback, null);
 });
 
-test('models: getDefaultModel returns gpt-6.1-sol and exactly one entry is default', async () => {
+test('models: getDefaultModel returns gpt-6.2-sol and exactly one entry is default', async () => {
   const { CODEX_MODEL_REGISTRY, getDefaultModel } = await import(adapterUrl('models.js'));
-  assert.equal(getDefaultModel().id, 'gpt-6.1-sol');
+  assert.equal(getDefaultModel().id, 'gpt-6.2-sol');
   assert.equal(CODEX_MODEL_REGISTRY.filter((entry) => entry.default === true).length, 1);
 });
 
 test('models: CODEX_ROUTING maps roles onto current registry ids', async () => {
   const { CODEX_ROUTING, getModelEntry } = await import(adapterUrl('models.js'));
   assert.deepEqual({ ...CODEX_ROUTING }, {
-    deep: 'gpt-6-astra',
-    default: 'gpt-6.1-sol',
+    deep: 'gpt-6.2-astra',
+    default: 'gpt-6.2-sol',
     bounded: 'gpt-6-sol',
     bulk: 'gpt-6-luna',
   });
@@ -99,21 +104,21 @@ test('models: CODEX_ROUTING maps roles onto current registry ids', async () => {
 test('models: resolveClaudeTier maps Claude aliases and ids to Codex roles', async () => {
   const { resolveClaudeTier } = await import(adapterUrl('models.js'));
 
-  assert.equal(resolveClaudeTier('fable'), 'gpt-6-astra');
-  assert.equal(resolveClaudeTier('claude-fable-5-2'), 'gpt-6-astra');
-  assert.equal(resolveClaudeTier('opus'), 'gpt-6.1-sol');
-  assert.equal(resolveClaudeTier('claude-opus-5-5'), 'gpt-6.1-sol');
+  assert.equal(resolveClaudeTier('fable'), 'gpt-6.2-astra');
+  assert.equal(resolveClaudeTier('claude-fable-5-2'), 'gpt-6.2-astra');
+  assert.equal(resolveClaudeTier('opus'), 'gpt-6.2-sol');
+  assert.equal(resolveClaudeTier('claude-opus-5-5'), 'gpt-6.2-sol');
   assert.equal(resolveClaudeTier('sonnet'), 'gpt-6-sol');
   assert.equal(resolveClaudeTier('claude-sonnet-5-5'), 'gpt-6-sol');
   assert.equal(resolveClaudeTier('haiku'), 'gpt-6-luna');
   assert.equal(resolveClaudeTier('claude-haiku-5-5'), 'gpt-6-luna');
-  assert.equal(resolveClaudeTier('Opus'), 'gpt-6.1-sol');
+  assert.equal(resolveClaudeTier('Opus'), 'gpt-6.2-sol');
 
   // Unknown / empty input falls back to the default role.
-  assert.equal(resolveClaudeTier('inherit'), 'gpt-6.1-sol');
-  assert.equal(resolveClaudeTier('some-future-model'), 'gpt-6.1-sol');
-  assert.equal(resolveClaudeTier(''), 'gpt-6.1-sol');
-  assert.equal(resolveClaudeTier(undefined), 'gpt-6.1-sol');
+  assert.equal(resolveClaudeTier('inherit'), 'gpt-6.2-sol');
+  assert.equal(resolveClaudeTier('some-future-model'), 'gpt-6.2-sol');
+  assert.equal(resolveClaudeTier(''), 'gpt-6.2-sol');
+  assert.equal(resolveClaudeTier(undefined), 'gpt-6.2-sol');
 });
 
 test('models: getModelEntry returns null for unknown id', async () => {
@@ -128,6 +133,7 @@ test('models: getModelsByFamily filters correctly', async () => {
     ['gpt-6-astra', 'gpt-6-luna', 'gpt-6-sol']
   );
   assert.deepEqual(getModelsByFamily('6.1').map((entry) => entry.id), ['gpt-6.1-sol']);
+  assert.deepEqual(getModelsByFamily('6.2').map((entry) => entry.id).sort(), ['gpt-6.2-astra', 'gpt-6.2-sol']);
   assert.deepEqual(
     getModelsByFamily('5.6').map((entry) => entry.id).sort(),
     ['gpt-5.6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra']
@@ -138,6 +144,9 @@ test('models: getModelsByFamily filters correctly', async () => {
 test('models: getFallbackChain walks fallback links until null, no cycles', async () => {
   const { CODEX_MODEL_REGISTRY, getFallbackChain, getModelEntry } = await import(adapterUrl('models.js'));
 
+  assert.deepEqual(getFallbackChain('gpt-6.2-astra'), [
+    'gpt-6.2-astra', 'gpt-6.2-sol', 'gpt-6-sol', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
+  ]);
   assert.deepEqual(getFallbackChain('gpt-6-astra'), [
     'gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-sol', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
   ]);
