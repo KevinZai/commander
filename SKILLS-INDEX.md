@@ -119,6 +119,7 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `acpx-patterns` | Pre-built acpx usage patterns for background, parallel, and crash-resilient sessions |
 | `acpx` | Use acpx as a headless ACP CLI for agent-to-agent communication, including prompt/exec/sessions workflows, session sc... |
 | `ad-creative` | When the user wants to generate, iterate, or scale ad creative — headlines, descriptions, primary text, or full ad ... |
+| `addyosmani-pack` | Optional MIT pack from addyosmani/agent-skills: a router plus 13 engineering-process skills (context engineering, doubt-, constraint- and source-driven development, deprecation and migration, observability, ADRs, idea refinement, interview-me, API design, DevTools browser testing, git workflow, code simplification). |
 | `advisor` | Anthropic Advisor Tool — pair a cheaper executor model with Opus for guidance. TRIGGER when: user asks about adviso... |
 | `agency-orchestrator` | Integrate with Agency Orchestrator for multi-agent DAG workflows — parallel research, code review pipelines, deploy... |
 | `ao` | Composio AO — spawn parallel agents with worktree isolation |
