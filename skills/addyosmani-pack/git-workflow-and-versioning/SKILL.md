@@ -218,7 +218,10 @@ Before every commit:
 # CCC safety: one errexit subshell, run on its own. Any failed step (git, the scanner,
 # tests, lint or the typecheck) stops the whole check with a nonzero exit.
 ( set -euo pipefail
-  cd "$(git rev-parse --show-toplevel)"   # fails outside a repository
+  pkg_dir=$PWD                                   # the package whose tests and lint run below
+  repo_root=$(git rev-parse --show-toplevel)     # its own statement: fails outside a repository
+  [ -n "$repo_root" ]
+  cd "$repo_root"
 
   # 1. Secrets first, before anything prints the patch. A git error stops here
   #    instead of reading as "no matches".
@@ -232,7 +235,9 @@ Before every commit:
   # 2. What you're about to commit (names and stats only)
   git diff --staged --stat
 
-  # 3-5. Tests, lint, and the project's own locked TypeScript (no registry or global fallback)
+  # 3-5. Tests, lint, and the project's own locked TypeScript (no registry or global fallback),
+  #      run from the package directory
+  cd "$pkg_dir"
   npm test
   npm run lint
   ./node_modules/.bin/tsc --noEmit
