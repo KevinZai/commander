@@ -206,7 +206,7 @@ test('a queue-matched hint names its task; a worker with its own task takes only
     run({ ...start, description: 'Audit deps', prompt: 'Review this PR before I merge and list correctness bugs' }, env);
     const out = ctx(run(start, env));
     assert.match(out, /For the task "Review PR 12"/);
-    assert.match(out, /If that is not your task, ignore this block\./);
+    assert.match(out, /if that is not your task, ignore this block\./);
     assert.equal(ctx(run(start, env)), undefined, 'queue drained');
   } finally {
     if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;

@@ -322,8 +322,8 @@ export function renderSubagentContext(candidates, host, mode = 'auto', forTask =
     ? `Before starting, ${skillCall(top.route, host)} and follow it for this task: ${top.route.label}.`
     : 'If one of these fits your task, load it before you start.';
   const label = String(forTask || '').replace(/\s+/g, ' ').replace(/["<>]/g, '').trim().slice(0, 80);
-  const guard = label ? `For the task "${label}": ` : '';
-  const tail = label ? ' If that is not your task, ignore this block.' : '';
-  const text = `<ccc-skills for="subagent">\n${guard}${lead} Matching CCC skills: ${opts}.${tail}\n</ccc-skills>`;
+  // The guard comes first so the length cap can never cut it off.
+  const guard = label ? `For the task "${label}" only; if that is not your task, ignore this block. ` : '';
+  const text = `<ccc-skills for="subagent">\n${guard}${lead} Matching CCC skills: ${opts}.\n</ccc-skills>`;
   return text.length <= MAX_CONTEXT_CHARS ? text : `${text.slice(0, MAX_CONTEXT_CHARS - 15)}…</ccc-skills>`;
 }

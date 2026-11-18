@@ -28,7 +28,7 @@ Handler counts per event, rebuilt from `hooks.json`. A handler = one command ent
 | PostToolUse | `mission-control-feed.js` (async) | `*` | Append tool events to the Mission Control event feed (never blocks) |
 | PostToolUse | `console-log-warn.js` | `Edit\|Write\|MultiEdit` | Warns about `console.log` statements after JS/TS file edits |
 | PostToolUse | `pr-link-notify.js` (async) | `Bash` | After `gh pr create` succeeds, surfaces the PR URL |
-| PostToolUseFailure | `post-tool-failure-logger.js` (async) | `*` | Logs failed tool name and error for knowledge capture and debugging |
+| PostToolUseFailure | `post-tool-failure-logger.js` | `*` | Logs failed tool name and error for knowledge capture and debugging; also drops the failed Agent call's queued subagent task (sync) |
 | Stop | `suggest-lightweight.js` | — | Lightweight end-of-turn suggestion pass |
 | Stop | `clickability-watch.js` | — | Observes the last assistant message for AskUserQuestion clickability violations → `clickability-violations.jsonl` (telemetry only, never blocks) |
 | Stop | `intent-classifier.js` | — | After a skill ran this turn, offers its `next[]` steps once as a menu (`decision: block`), at most once per 10 minutes per session (`CCC_ROUTE_NEXT_COOLDOWN_MIN`, `0` = every run; a run inside the cooldown is dropped, not deferred); never while `stop_hook_active`, muted by "Stop suggesting next steps" or `CCC_ROUTE_NEXT=off` |

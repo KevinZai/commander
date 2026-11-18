@@ -93,6 +93,14 @@ export function dropAgentCall(input = {}) {
   } catch {}
 }
 
+// A payload may carry only the prompt or only the description, while the
+// entry stores both joined by a newline.
+function sameTask(stored, own) {
+  if (typeof stored !== 'string') return false;
+  const o = own.slice(0, TEXT_MAX).trim();
+  return !!o && (stored === o || stored.split('\n').includes(o) || stored.includes(o));
+}
+
 function ageOf(name) {
   return Date.now() - Number(name.replace(/^\./, '').split('-')[0]);
 }
@@ -121,7 +129,7 @@ export function claimTask(input = {}, own = '') {
     let entry;
     try { entry = JSON.parse(readFileSync(file, 'utf8')); } catch { continue; }
     if ((entry.type || DEFAULT_AGENT_TYPE) !== type) continue;
-    if (own && entry.text !== own.slice(0, TEXT_MAX)) continue;
+    if (own && !sameTask(entry.text, own)) continue;
     // The rename is the claim: only one concurrent SubagentStart wins it.
     try { renameSync(file, `${file}.claimed`); } catch { continue; }
     try { unlinkSync(`${file}.claimed`); } catch {}
