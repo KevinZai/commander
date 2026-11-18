@@ -18,7 +18,8 @@
 // under /mcp). healthCheck() uses that when the server has it and otherwise
 // falls back to the initialize handshake as the liveness signal.
 //
-// Credentials: the ambient Commander bearer (CCC_MCP_TOKEN / COMMANDER_TOKEN)
+// Credentials: the ambient Commander bearer (CCC_MCP_TOKEN / COMMANDER_TOKEN, else
+// the plugin's sensitive `mcp_token` userConfig option; lib/plugin-options.js)
 // and env-expanded headers are bound to user-approved HTTPS origins (or
 // loopback HTTP): the hosted default, ~/.claude/mcp.json's `cc-commander` url
 // and `allowedOrigins`, CCC_MCP_URL and CCC_MCP_ALLOWED_ORIGINS. A project's
@@ -28,6 +29,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { setting } = require('./plugin-options.js');
 
 const LOG_DIR = path.join(require('./lane-state').stateDir(), 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'passthrough.jsonl');
@@ -194,7 +196,7 @@ function approvedOrigins(userCfg) {
     add(userCfg.url);
     if (Array.isArray(userCfg.allowedOrigins)) userCfg.allowedOrigins.forEach(add);
   }
-  if (process.env.CCC_MCP_URL) add(process.env.CCC_MCP_URL);
+  if (setting('mcp_url')) add(setting('mcp_url'));
   String(process.env.CCC_MCP_ALLOWED_ORIGINS || '')
     .split(',')
     .map((v) => v.trim())
@@ -240,7 +242,7 @@ function buildHeaders(cfg, opts) {
       headers[k] = v;
     }
   }
-  const token = approved ? process.env.CCC_MCP_TOKEN || process.env.COMMANDER_TOKEN : '';
+  const token = approved ? setting('mcp_token') || '' : '';
   for (const k of Object.keys(headers)) {
     if (k.toLowerCase() !== 'authorization') continue;
     if (token || !/^Bearer\s+\S/.test(String(headers[k]))) delete headers[k];
@@ -269,7 +271,7 @@ function resolveTarget() {
   };
 
   const projectEndpoint = project ? resolveEndpoint(project.url) : null;
-  const envEndpoint = process.env.CCC_MCP_URL ? resolveEndpoint(process.env.CCC_MCP_URL) : null;
+  const envEndpoint = setting('mcp_url') ? resolveEndpoint(setting('mcp_url')) : null;
   const userEndpoint = user ? resolveEndpoint(user.url) : null;
   let endpoint = null;
   let source = null;
@@ -296,7 +298,7 @@ function resolveTarget() {
   if (source === 'project') {
     Object.assign(merged, buildHeaders(project, { scope: 'project', approved: false }));
   }
-  const token = credentialed ? process.env.CCC_MCP_TOKEN || process.env.COMMANDER_TOKEN : '';
+  const token = credentialed ? setting('mcp_token') || '' : '';
   for (const k of Object.keys(merged)) {
     const lower = k.toLowerCase();
     if ((lower === 'authorization' && token) || (!credentialed && CREDENTIAL_HEADERS.has(lower))) delete merged[k];

@@ -38,7 +38,7 @@ import { computeConfidence } from './lib/confidence.mjs';
 import { appendSuggestion, readSuggestions } from '../lib/suggestions.js';
 import fs from 'node:fs';
 import path from 'node:path';
-import { stateDir } from '../lib/lane-state.js';
+import { stateDir, hookDataDir, readableHookDataPath } from '../lib/lane-state.js';
 import { isCiTickerEnabled } from '../lib/network-mode.js';
 import os from 'node:os';
 import { execFileSync, spawn } from 'node:child_process';
@@ -49,7 +49,10 @@ import { projectSlug as slugFor, readResults } from './lib/test-results.mjs';
 const STATE_DIR = stateDir();
 const LOG_FILE = path.join(STATE_DIR, 'suggest-log.jsonl');
 const VIOLATIONS_FILE = path.join(STATE_DIR, 'clickability-violations.jsonl');
-const VIOLATIONS_SEEN_FILE = path.join(STATE_DIR, 'clickability-last-seen.json');
+// Hook-private markers (read only by this hook) live in ${CLAUDE_PLUGIN_DATA} when the host sets it, so they
+// survive plugin updates; reads fall back to the copy an earlier release wrote to the lane dir.
+const PRIVATE_DIR = hookDataDir();
+const VIOLATIONS_SEEN_FILE = path.join(PRIVATE_DIR, 'clickability-last-seen.json');
 
 // ---------------------------------------------------------------------------
 // Per-project state keying (codex finding 10, CC-1386 W4 item 1).
@@ -321,8 +324,9 @@ function maybeLoopNudge(lastState, cwd = process.cwd()) {
     const loopStateFile = path.join(process.cwd(), '.claude', 'loop-state', 'ccc-suggest.json');
     if (fs.existsSync(loopStateFile)) return null; // loop already armed
 
-    const markerFile = path.join(STATE_DIR, `loop-nudge-${new Date().toISOString().slice(0, 10)}`);
-    if (fs.existsSync(markerFile)) return null; // already nudged today
+    const markerName = `loop-nudge-${new Date().toISOString().slice(0, 10)}`;
+    const markerFile = path.join(PRIVATE_DIR, markerName);
+    if (fs.existsSync(readableHookDataPath(markerName))) return null; // already nudged today
 
     let turnCount = 0;
     try {
@@ -332,7 +336,7 @@ function maybeLoopNudge(lastState, cwd = process.cwd()) {
     const stateIsStale = lastState && (Date.now() - new Date(lastState.timestamp).getTime()) > 86400000;
     if (turnCount < 5 && !stateIsStale) return null;
 
-    try { fs.mkdirSync(STATE_DIR, { recursive: true }); } catch {}
+    try { fs.mkdirSync(PRIVATE_DIR, { recursive: true }); } catch {}
     try { fs.writeFileSync(markerFile, '', { flag: 'wx' }); } catch { return null; }
 
     return '💡 Consider arming the always-on PM loop: /ccc-suggest loop — improve/scope/audit lenses every tick, anti-nag state file.';
@@ -365,7 +369,7 @@ function maybeClickabilityReminder() {
   try {
     if (!fs.existsSync(VIOLATIONS_FILE)) return null;
     const lastSeen = (() => {
-      try { return JSON.parse(fs.readFileSync(VIOLATIONS_SEEN_FILE, 'utf8')).ts || 0; } catch { return 0; }
+      try { return JSON.parse(fs.readFileSync(readableHookDataPath('clickability-last-seen.json'), 'utf8')).ts || 0; } catch { return 0; }
     })();
     const st = fs.statSync(VIOLATIONS_FILE);
     if (st.mtimeMs <= lastSeen) return null;
@@ -375,7 +379,7 @@ function maybeClickabilityReminder() {
     const lines = raw.split('\n').filter(Boolean);
     const last = lines.length ? JSON.parse(lines[lines.length - 1]) : null;
     try {
-      fs.mkdirSync(STATE_DIR, { recursive: true });
+      fs.mkdirSync(PRIVATE_DIR, { recursive: true });
       fs.writeFileSync(VIOLATIONS_SEEN_FILE, JSON.stringify({ ts: Date.now() }));
     } catch {}
     if (!last) return null;
@@ -433,14 +437,14 @@ function maybeSpawnNudge(promptText) {
     const signal = detectIsolationSignal(promptText);
     if (!signal) return null;
 
-    const seenFile = path.join(STATE_DIR, 'spawn-nudge-seen.json');
+    const seenFile = path.join(PRIVATE_DIR, 'spawn-nudge-seen.json');
     const key = signal.phrase.toLowerCase().replace(/\s+/g, ' ').trim();
     let last = '';
-    try { last = JSON.parse(fs.readFileSync(seenFile, 'utf8')).key || ''; } catch {}
+    try { last = JSON.parse(fs.readFileSync(readableHookDataPath('spawn-nudge-seen.json'), 'utf8')).key || ''; } catch {}
     if (key === last) return null; // same phrase already nudged — don't nag
 
     try {
-      fs.mkdirSync(STATE_DIR, { recursive: true });
+      fs.mkdirSync(PRIVATE_DIR, { recursive: true });
       fs.writeFileSync(seenFile, JSON.stringify({ key, ts: Date.now() }));
     } catch {}
 
@@ -679,18 +683,21 @@ function computeTickerSignals(now = Date.now()) {
   return out;
 }
 
+function tickerSignalSeenName(key) {
+  return `ticker-signal-seen-${String(key).replace(/[^a-zA-Z0-9_.-]/g, '_')}.json`;
+}
+
 function tickerSignalSeenFile(key) {
-  const safe = String(key).replace(/[^a-zA-Z0-9_.-]/g, '_');
-  return path.join(STATE_DIR, `ticker-signal-seen-${safe}.json`);
+  return path.join(PRIVATE_DIR, tickerSignalSeenName(key));
 }
 
 function alreadyNudgedTickerSignal(key) {
-  return fs.existsSync(tickerSignalSeenFile(key));
+  return fs.existsSync(readableHookDataPath(tickerSignalSeenName(key)));
 }
 
 function recordTickerSignalNudge(key) {
   try {
-    fs.mkdirSync(STATE_DIR, { recursive: true });
+    fs.mkdirSync(PRIVATE_DIR, { recursive: true });
     fs.writeFileSync(tickerSignalSeenFile(key), JSON.stringify({ ts: Date.now() }), { flag: 'wx' });
   } catch { /* already exists or write failed — fine either way */ }
 }

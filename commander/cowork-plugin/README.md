@@ -152,6 +152,8 @@ Commander runs locally: hooks, skills and state live on your machine, and no cre
 | Bundled MCP servers (`context7`, `sequential-thinking`) start through `npx -y`, which fetches each package from the npm registry when Claude Code first launches it (servers start with the session, not on first use) | On | Remove the server from `.mcp.json` |
 | Bundled Context7 MCP queries `context7.com` | Only when used | Remove the server from `.mcp.json` |
 
+**Plugin settings.** `/config` (or `claude plugin configure commander`) sets the same switches without editing files: `telemetry`, `offline`, `cost_ceiling`, `mcp_url`, and `mcp_token` (masked and kept in your credential store). An environment variable you already set (`CCC_TELEMETRY`, `CCC_OFFLINE`, `CCC_COST_CEILING`, `CCC_MCP_URL`, `CCC_MCP_TOKEN` / `COMMANDER_TOKEN`) still works and wins over the setting, except that offline-on and telemetry-off win from either source. The bundled MCP servers load deferred (`alwaysLoad: false`): only their tool names reach the model until a task needs a tool. Hook markers that only the hooks read live in the plugin's data directory, which Claude Code keeps across updates and removes on uninstall.
+
 `CCC_OFFLINE=1` (or `"offline": true` in `~/.commander/config.json`) blocks every call above that Commander makes itself, and makes `ccusage` use cached pricing. `ccc doctor` prints the current mode. `"disableAllHooks": true` in `settings.json` turns every hook off.
 
 ## Connected tools

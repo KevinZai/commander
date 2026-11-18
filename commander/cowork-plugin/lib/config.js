@@ -4,7 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { envFlag } from './network-mode.js';
+import { isTelemetryEnabled as networkTelemetryEnabled } from './network-mode.js';
 
 const CONFIG_DIR = path.join(os.homedir(), '.commander');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
@@ -49,15 +49,11 @@ export function writeConfig(config) {
   }
 }
 
-// Telemetry is opt-in: CCC_OFFLINE=1 or offline:true wins, CCC_TELEMETRY=0/1
-// beats the config file, otherwise only telemetry:true enables it.
+// Telemetry is opt-in: CCC_OFFLINE=1 or offline:true wins, CCC_TELEMETRY=0/1 (or the
+// plugin's `telemetry` userConfig option) beats the config file, otherwise only
+// telemetry:true enables it. network-mode.js is the single implementation.
 export function isTelemetryEnabled() {
-  if (envFlag(process.env.CCC_OFFLINE) === true) return false;
-  const flag = envFlag(process.env.CCC_TELEMETRY);
-  if (flag !== undefined) return flag;
-  const config = readConfig();
-  if (config.offline === true) return false;
-  return config.telemetry === true;
+  return networkTelemetryEnabled(process.env, { homeDir: os.homedir() });
 }
 
 // Disable telemetry

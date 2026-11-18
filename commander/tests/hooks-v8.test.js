@@ -76,16 +76,50 @@ describe('hooks.json v8 registrations', () => {
     assert.ok(!('WorktreeRemove' in cfg.hooks));
   });
 
-  it('every handler: quoted shell form, no args/onFailure, timeout <= 15 s', () => {
+  it('every handler: quoted shell form, no args, timeout <= 15 s', () => {
     for (const [event, groups] of Object.entries(cfg.hooks)) {
       for (const g of groups) {
         for (const h of g.hooks) {
           assert.match(h.command, /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/hooks\/[\w./-]+\.js"$/, `${event}: ${h.command}`);
           assert.ok(!('args' in h), `${event}: Codex cannot run exec-form args`);
-          assert.ok(!('onFailure' in h), `${event}: onFailure is not used`);
           assert.ok(h.timeout >= 1 && h.timeout <= 15, `${event}: timeout ${h.timeout}`);
         }
       }
+    }
+  });
+
+  // Code Mode refuses a tool call whose PreToolUse hook fails or times out, even with onFailure unset
+  // (code.claude.com/docs/en/code-mode#tool-call-refused-by-a-hook). Advisory handlers opt out with
+  // onFailure: "continue"; the safety handlers keep failing closed. scripts/build-codex.js strips the
+  // field from the Codex mirror (Codex has no onFailure, facts §3.3).
+  const SAFETY = new Set(['orchestrator/pre-tool-use-dispatcher.js', 'config-protection.js', 'permission-gate.js']);
+  const fileOf = (h) => /\/hooks\/([\w./-]+\.js)"$/.exec(h.command)[1];
+
+  it('onFailure is only ever "continue", and only on advisory handlers', () => {
+    for (const [event, groups] of Object.entries(cfg.hooks)) {
+      for (const h of groups.flatMap((g) => g.hooks)) {
+        if (!('onFailure' in h)) continue;
+        assert.equal(h.onFailure, 'continue', `${event}: ${fileOf(h)} onFailure`);
+        assert.ok(!SAFETY.has(fileOf(h)), `${event}: safety handler ${fileOf(h)} must fail closed`);
+      }
+    }
+  });
+
+  it('every synchronous advisory PreToolUse / UserPromptSubmit handler fails open (onFailure: "continue")', () => {
+    for (const event of ['PreToolUse', 'UserPromptSubmit']) {
+      for (const h of cfg.hooks[event].flatMap((g) => g.hooks)) {
+        if (h.async || SAFETY.has(fileOf(h))) continue;
+        assert.equal(h.onFailure, 'continue', `${event}: ${fileOf(h)}`);
+      }
+    }
+  });
+
+  it('the safety handlers stay registered without onFailure: "continue"', () => {
+    const all = Object.values(cfg.hooks).flat().flatMap((g) => g.hooks);
+    for (const file of SAFETY) {
+      const hs = all.filter((h) => fileOf(h) === file);
+      assert.ok(hs.length >= 1, `${file} registered`);
+      for (const h of hs) assert.notEqual(h.onFailure, 'continue', file);
     }
   });
 

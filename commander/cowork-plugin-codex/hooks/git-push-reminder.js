@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { track } from '../lib/telemetry.mjs';
 import { emitUser } from './lib/emit.mjs';
+import { isMainModule } from './lib/code-mode.mjs';
 /**
  * git-push-reminder.js
  * Hook: PreToolUse (Bash)
@@ -103,31 +104,70 @@ function shellSegments(cmd) {
   return segments;
 }
 
+// git's global options that take the next word as their value (`git -C app push`, `git -c k=v push`).
+const GIT_GLOBAL_TAKES_VALUE = new Set([
+  '-C', '-c', '--git-dir', '--work-tree', '--namespace', '--config-env', '--super-prefix', '--attr-source', '--shallow-file',
+]);
+const LEGACY_PUSH = /\bgit\s+push\b/;
+
+function expandHome(p) {
+  return p.replace(/^~(?=\/|$)/, os.homedir());
+}
+
 /**
- * The protected branch a force-push in `cmd` would overwrite, or ''. Reads `git push`
- * directly and inside `sh|bash|zsh -c '<script>'`; a segment that hides its push in one
- * word (eval, xargs, nested quoting) gets the substring check. `cwd` is where the command
- * starts; a `cd <dir>` segment moves it.
+ * Where `push` sits in one simple command, and the directory git runs in: `git push`,
+ * `/usr/bin/git push`, `env X=1 git push` and `git -C <dir> -c k=v push` all count.
+ * Returns { at, dir } or null.
  */
-function forcePushTarget(cmd, cwd, resolveBranch, depth = 0) {
+function locatePush(tokens, dir) {
+  for (let g = 0; g < tokens.length; g++) {
+    if (path.basename(tokens[g]) !== 'git') continue;
+    let gitDir = dir;
+    let i = g + 1;
+    while (i < tokens.length && tokens[i].startsWith('-')) {
+      const t = tokens[i];
+      if (t === '-C' && tokens[i + 1] !== undefined) gitDir = path.resolve(gitDir, expandHome(tokens[i + 1]));
+      i += GIT_GLOBAL_TAKES_VALUE.has(t) ? 2 : 1;
+    }
+    if (tokens[i] === 'push') return { at: i, dir: gitDir };
+  }
+  return null;
+}
+
+/**
+ * Every part of a compound command (`a && b; c | d`, subshells, `sh -c '<script>'`) is
+ * checked on its own, so `cd 'app' && git push` (the form Code Mode hands PreToolUse,
+ * code.claude.com/docs/en/code-mode#permission-checks) is seen like a bare `git push`.
+ * Returns { push, target }: whether any part pushes, and the protected branch a force-push
+ * would overwrite ('' when none). A segment that hides its push in one word (eval, xargs,
+ * nested quoting) gets the substring checks. `cwd` is where the command starts; a
+ * `cd <dir>` segment moves it.
+ */
+function analyzePush(cmd, cwd, resolveBranch, depth = 0) {
   let dir = cwd;
+  let push = false;
   for (const tokens of shellSegments(cmd)) {
     if (tokens[0] === 'cd' && tokens[1]) {
-      dir = path.resolve(dir, tokens[1].replace(/^~(?=\/|$)/, os.homedir()));
+      dir = path.resolve(dir, expandHome(tokens[1]));
       continue;
     }
     const c = tokens.indexOf('-c');
     if (depth < 2 && SHELLS.has(path.basename(tokens[0] || '')) && c > 0 && tokens[c + 1] !== undefined) {
-      const inner = forcePushTarget(tokens[c + 1], dir, resolveBranch, depth + 1);
-      if (inner) return inner;
+      const inner = analyzePush(tokens[c + 1], dir, resolveBranch, depth + 1);
+      if (inner.target) return inner;
+      push = push || inner.push;
       continue;
     }
-    const at = tokens.findIndex((t, i) => t === 'push' && path.basename(tokens[i - 1] || '') === 'git');
-    if (at < 0) {
-      const legacy = tokens.join(' ').match(LEGACY_FORCE_MAIN);
-      if (legacy) return legacy[2];
+    const found = locatePush(tokens, dir);
+    if (!found) {
+      const joined = tokens.join(' ');
+      if (LEGACY_PUSH.test(joined)) push = true;
+      const legacy = joined.match(LEGACY_FORCE_MAIN);
+      if (legacy) return { push: true, target: legacy[2] };
       continue;
     }
+    push = true;
+    const { at } = found;
     let force = false;
     let tags = false;
     let everyBranch = false;
@@ -140,7 +180,7 @@ function forcePushTarget(cmd, cwd, resolveBranch, depth = 0) {
       if (t.startsWith('-')) { if (FORCE_FLAG.test(t)) force = true; continue; }
       positional.push(t);
     }
-    if (force && everyBranch) return 'every branch (main/master included)';
+    if (force && everyBranch) return { push, target: 'every branch (main/master included)' };
     // The first positional is the repository; it overrides --repo when both are given.
     const refspecs = positional.slice(1);
     // A leading `+` forces only its own refspec; flags force every destination. With no
@@ -149,11 +189,21 @@ function forcePushTarget(cmd, cwd, resolveBranch, depth = 0) {
       ? refspecs.filter((r) => force || r.startsWith('+')).map((r) => r.replace(/^\+/, '').split(':').pop().replace(/^refs\/heads\//, ''))
       : force && !tags ? ['HEAD'] : [];
     for (const dest of forced) {
-      const branch = dest === 'HEAD' ? resolveBranch(dir) : dest;
-      if (PROTECTED.test(branch)) return branch;
+      const branch = dest === 'HEAD' ? resolveBranch(found.dir) : dest;
+      if (PROTECTED.test(branch)) return { push, target: branch };
     }
   }
-  return '';
+  return { push, target: '' };
+}
+
+/** The protected branch a force-push in `cmd` would overwrite, or ''. */
+export function forcePushTarget(cmd, cwd, resolveBranch) {
+  return analyzePush(cmd, cwd, resolveBranch).target;
+}
+
+/** True when any part of `cmd` runs `git push`. */
+export function hasGitPush(cmd, cwd = process.cwd()) {
+  return analyzePush(cmd, cwd, () => '').push || LEGACY_PUSH.test(String(cmd));
 }
 
 async function main() {
@@ -177,9 +227,9 @@ async function main() {
     }
 
     const cmd = String(input.tool_input?.command || '');
-    if (/\bgit\s+push\b/.test(cmd)) {
+    const { push, target } = analyzePush(cmd, input.cwd || process.cwd(), currentBranch);
+    if (push || LEGACY_PUSH.test(cmd)) {
       console.error('[CCC] git push detected — review your diff with: git diff @{push}..HEAD');
-      const target = forcePushTarget(cmd, input.cwd || process.cwd(), currentBranch);
       if (target) {
         process.stdout.write(JSON.stringify(emitUser(
           `[CCC] WARNING: force-push to ${target} detected — confirm this is intentional`
@@ -194,4 +244,4 @@ async function main() {
   process.stdout.write(JSON.stringify({ continue: true }) + '\n');
 }
 
-main();
+if (isMainModule(import.meta.url)) main();

@@ -6,7 +6,8 @@
       "args": [
         "-y",
         "@upstash/context7-mcp@4.3.0"
-      ]
+      ],
+      "alwaysLoad": false
     },
     "sequential-thinking": {
       "type": "stdio",
@@ -14,7 +15,8 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-sequential-thinking@1.0.0"
-      ]
+      ],
+      "alwaysLoad": false
     }
   }
 }

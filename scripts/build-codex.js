@@ -42,7 +42,7 @@ function hookEventDisposition(event, hookMap = HOOK_EVENT_MAP) {
 
 // Plugin-only Claude surfaces with no Codex equivalent. Never copied into the
 // mirror, even if a later edit adds them to SUPPORT_DIRS.
-const CLAUDE_ONLY_DIRS = new Set(['mods', 'evals', 'workflows']);
+const CLAUDE_ONLY_DIRS = new Set(['mods', 'evals', 'workflows', 'monitors']);
 
 const SUPPORT_DIRS = ['hooks', 'lib', 'menus', 'rules', 'scripts'];
 

@@ -53,7 +53,7 @@ import {
 } from './lib/route-scorer.mjs';
 import { fleetRouteEnabled, matchFleetIntent, fleetTools, checkinLine, renderFleetContext } from './lib/fleet-intent.mjs';
 import { join } from 'node:path';
-import { stateDir, readablePath } from '../lib/lane-state.js';
+import { stateDir, readablePath, hookDataDir, readableHookDataPath } from '../lib/lane-state.js';
 import { existsSync, writeFileSync, mkdirSync, readFileSync, appendFileSync, openSync, readSync, fstatSync, closeSync, renameSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { isCodeModePoll, POLL_PASS } from './lib/code-mode.mjs';
 
@@ -66,6 +66,13 @@ const FABLE_PLANNING_VERBS = ['design', 'architect', 'plan', 'migrate', 'refacto
 
 function commanderDir() {
   return stateDir();
+}
+
+// Hook-private state (the daily Fable marker, per-session routing state) lives in ${CLAUDE_PLUGIN_DATA}
+// when the host sets it, so it survives plugin updates without crowding the shared lane dir. Reads fall
+// back to the lane copy an earlier release wrote.
+function privateDir() {
+  return hookDataDir();
 }
 
 // The user's saved routing preference (/ccc-settings → config.json routeMode).
@@ -88,9 +95,9 @@ function checkFableNudge(prompt) {
 
     // Check marker file (once per day keyed by date)
     const today = new Date().toISOString().slice(0, 10);
-    const markerDir = commanderDir();
+    const markerDir = privateDir();
     const markerFile = join(markerDir, `fable-nudge-${today}`);
-    if (existsSync(markerFile)) return null;
+    if (existsSync(readableHookDataPath(`fable-nudge-${today}`))) return null;
 
     // Write marker before returning so concurrent calls don't double-fire
     try { mkdirSync(markerDir, { recursive: true }); } catch (_) {}
@@ -107,14 +114,17 @@ function checkFableNudge(prompt) {
 
 // ── Per-session routing state (no prompt content) ─────────────────────────
 
+function stateSlug(sessionId) {
+  return String(sessionId || 'default').replace(/[^\w-]/g, '').slice(0, 80) || 'default';
+}
+
 function stateFile(sessionId) {
-  const slug = String(sessionId || 'default').replace(/[^\w-]/g, '').slice(0, 80) || 'default';
-  return join(commanderDir(), 'route-state', `${slug}.json`);
+  return join(privateDir(), 'route-state', `${stateSlug(sessionId)}.json`);
 }
 
 function loadState(sessionId) {
   try {
-    return JSON.parse(readFileSync(stateFile(sessionId), 'utf8'));
+    return JSON.parse(readFileSync(readableHookDataPath(join('route-state', `${stateSlug(sessionId)}.json`)), 'utf8'));
   } catch {
     return {};
   }
@@ -138,7 +148,7 @@ const STATE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // Session state is only useful while a session is live; drop week-old files.
 function pruneState() {
   try {
-    const dir = join(commanderDir(), 'route-state');
+    const dir = join(privateDir(), 'route-state');
     const cutoff = Date.now() - STATE_TTL_MS;
     for (const name of readdirSync(dir)) {
       const file = join(dir, name);
