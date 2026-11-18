@@ -13,13 +13,13 @@ Opt-in add-on, and Commander's preferred code mapper. [DeusData/codebase-memory-
 macOS and Linux:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash
-codebase-memory-mcp install            # registers the MCP server for the clients you pick
+curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash -s -- --skip-config
+codebase-memory-mcp install --no-hooks   # registers the MCP server without CBM hooks
 ```
 
 Windows: use `install.ps1` from the upstream README. Show the user the script URL before running it; do not pipe it to a shell without their go-ahead.
 
-`install` also adds CBM context hooks by default. To keep Commander's hooks as the only hooks, run `codebase-memory-mcp install --no-hooks`. Check first with `claude mcp list`.
+`--skip-config` stops the bootstrap script from configuring clients (and adding CBM context hooks) on its own; the second command then registers the server with `--no-hooks`, so Commander's hooks stay the only hooks. Check first with `claude mcp list`.
 
 ## Routing
 
