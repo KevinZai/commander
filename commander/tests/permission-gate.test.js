@@ -302,7 +302,8 @@ describe('permission-gate: dangerous operations → always reject', () => {
       'rm -rf ~>/dev/null', 'rm -rf /<input', 'rm -rf "$HOME">log',
       'rm -rf "a&b" ~', "rm -rf 'a;b' ~", 'rm -rf "a|b" /', 'rm -rf a\\&b ~', './rm -rf ~', 'bin/rm -rf /',
       'rm -rf build 2>&1 ~', 'rm -rf 2>&1 ~', 'rm -rf &>/dev/null ~', 'rm -rf ~//', 'rm -rf ~/./', 'rm -rf //', 'rm -rf /./',
-      'rm -rf ~/..', 'rm -rf /..', 'rm -rf ~/.', 'rm -rf ~/../me', 'rm -rf ~/x/../*', 'rm -rf /tmp/../*', 'rm -rf "$HOME"/a/..']) {
+      'rm -rf ~/..', 'rm -rf /..', 'rm -rf ~/.', 'rm -rf ~/../me', 'rm -rf ~/x/../*', 'rm -rf /tmp/../*', 'rm -rf "$HOME"/a/..',
+      'rm -rf ~/"Arts & Crafts"/..', 'rm -rf "$HOME"/"Arts & Crafts"/../*', 'rm -rf ~/Arts\\ \\&\\ Crafts/..', 'rm -rf /../tmp/x', 'rm -rf ~/../*']) {
       const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'test-session-dangerous-001' });
       assert.equal(r.exitCode, 0, `Deny must exit 0 (stdout on exit 1 is discarded), got ${r.exitCode}`);
       const decision = r.parsed?.hookSpecificOutput?.decision;
@@ -313,7 +314,7 @@ describe('permission-gate: dangerous operations → always reject', () => {
 
   it('denies rm on the home directory written out in full, but not on a folder inside it', () => {
     const home = '/home/gate-test.user';
-    for (const command of [`rm -rf ${home}`, `rm -rf ${home}/`, `/bin/rm -r build ${home}/*`, `rm -rf ${home}//`, `rm -rf ${home}/./`]) {
+    for (const command of [`rm -rf ${home}/"Arts & Crafts"/..`, `rm -rf ${home}/x/../*`, `rm -rf ${home}`, `rm -rf ${home}/`, `/bin/rm -r build ${home}/*`, `rm -rf ${home}//`, `rm -rf ${home}/./`]) {
       const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'home-literal' }, { HOME: home });
       assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny', `${command} must be denied`);
     }
