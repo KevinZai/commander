@@ -132,7 +132,10 @@ export function scoreRoutes(prompt, routes = loadRoutes()) {
   return candidates;
 }
 
-const ROUTE_MODES = ['off', 'suggest', 'auto'];
+const ROUTE_MODES = ['off', 'suggest', 'auto', 'always'];
+
+// always: below the menu threshold, a prompt that still touches a skill gets a one-line hint.
+export const HINT_THRESHOLD = 0.3;
 
 function validMode(value) {
   const mode = String(value || '').trim().toLowerCase();
@@ -140,9 +143,11 @@ function validMode(value) {
 }
 
 /**
- * Route mode: off | suggest | auto. A valid CCC_ROUTE_MODE wins, then the
+ * Route mode: off | suggest | auto | always. A valid CCC_ROUTE_MODE wins, then the
  * lane's saved `routeMode` preference (config.json, set by /ccc-settings),
- * then auto. Unknown values are ignored.
+ * then auto. Unknown values are ignored. `always` is the power-user mode:
+ * a clear match runs as in auto, a likely match runs its top skill instead of
+ * offering a menu, and a weak match gets a one-line hint (tier "hint").
  */
 export function routeMode(env = process.env, saved = null) {
   return validMode(env.CCC_ROUTE_MODE) || validMode(saved) || 'auto';
@@ -151,12 +156,14 @@ export function routeMode(env = process.env, saved = null) {
 export function tierFor(candidates, mode = 'auto') {
   if (mode === 'off' || !candidates.length) return 'low';
   const [top, second] = candidates;
-  if (top.score < MEDIUM_THRESHOLD) return 'low';
+  if (top.score < MEDIUM_THRESHOLD) return mode === 'always' && top.score >= HINT_THRESHOLD ? 'hint' : 'low';
   const clearWinner = top.score >= HIGH_THRESHOLD && top.score - (second ? second.score : 0) >= HIGH_MARGIN;
   // Topic scores alone cannot authorize an auto-run. Curated patterns must
   // express a request to do this skill's job, not merely name its subject.
   // Manual (disable-model-invocation) skills and agents never auto-run.
-  if (clearWinner && top.patternHits > 0 && mode === 'auto' && top.route.kind === 'skill' && !top.route.manual) return 'high';
+  // always mode never auto-runs a side-effect skill, even on a clear match.
+  if (mode === 'always' && SIDE_EFFECT_SKILLS.has(top.route.id)) return 'medium';
+  if (clearWinner && top.patternHits > 0 && (mode === 'auto' || mode === 'always') && top.route.kind === 'skill' && !top.route.manual) return 'high';
   return 'medium';
 }
 
@@ -198,16 +205,66 @@ function clamp(text) {
   return text.length <= MAX_CONTEXT_CHARS ? text : `${text.slice(0, MAX_CONTEXT_CHARS - 14)}…</ccc-route>`;
 }
 
+// Skills that act outside the conversation: deploys, pushes, publishing,
+// tracker, fleet or memory writes, settings, long loops. `always` mode never
+// tells the model to run these on its own, visible or hidden; it still offers
+// them as a menu. Visible ones keep auto mode's strict high-tier rule.
+export const SIDE_EFFECT_SKILLS = new Set([
+  'ccc-deploy', 'ccc-rollback', 'ccc-full-send', 'ccc-full-stop', 'ccc-ship', 'ccc-yolo-setup',
+  'ccc-night-mode', 'ccc-nightwatch', 'ccc-broadcast', 'ccc-upgrade', 'ccc-update', 'ccc-file-pr',
+  'ccc-takeover', 'ccc-babysit-pr', 'ccc-loop', 'ccc-sol-loop', 'ccc-spawn', 'ccc-linear',
+  'ccc-linear-board', 'ccc-tasks', 'ccc-connect', 'ccc-settings', 'ccc-hermes', 'ccc-relay',
+  'ccc-domains', 'ccc-ultracode', 'ccc-pr-comments', 'ccc-console', 'ccc-mission-control',
+  'ccc-fleet', 'ccc-orchestrate', 'ccc-codex', 'ccc-memory', 'ccc-session', 'ccc-save-session',
+  'ccc-resume-session', 'ccc-handoff', 'ccc-standup', 'ccc-smb-ops', 'ccc-ci', 'ccc-infra',
+  'ccc-modernize', 'ccc-council', 'ccc-triage', 'ccc-harden', 'ccc-content', 'ccc-safety',
+  'ccc-usage', 'ccc-knowledge', 'ccc-adhd', 'ccc-fable', 'ccc-ecc', 'ccc-prompt-fix',
+  'ccc-claudemd', 'ccc-plan-exec', 'ccc-debate', 'ccc-e2e', 'ccc-doc-sync', 'ccc-agent-writing',
+  'ccc-deploy-check', 'ccc-fleet-viz', 'ccc-makeover',
+]);
+
+// Hidden (disable-model-invocation) skills that only read and advise, so
+// `always` mode may follow them by reading their SKILL.md. An allowlist: a
+// hidden skill is never followed unless it is named here.
+export const FOLLOWABLE_HIDDEN_SKILLS = new Set(['ccc-brainstorm', 'ccc-code-review', 'ccc-changelog']);
+
+const PLUGIN_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+
+/** A hidden skill the model may follow by reading its file (always mode only). */
+export function followable(route) {
+  return route.kind === 'skill' && !!route.manual && FOLLOWABLE_HIDDEN_SKILLS.has(route.id) && !SIDE_EFFECT_SKILLS.has(route.id);
+}
+
+/** May `always` mode tell the model to run this route without asking? */
+export function autoFollowable(route) {
+  if (route.kind !== 'skill' || SIDE_EFFECT_SKILLS.has(route.id)) return false;
+  return !route.manual || followable(route);
+}
+
+function skillCall(route, host) {
+  if (route.manual) return `read ${join(PLUGIN_ROOT, 'skills', route.id, 'SKILL.md')} (hidden from the Skill tool)`;
+  return host === 'codex' ? `use the ${route.id} skill` : `invoke Skill commander:${route.id}`;
+}
+
 /** The <ccc-route> block for the model, or null for the low tier. */
-export function renderRouteContext(candidates, tier, host) {
+export function renderRouteContext(candidates, tier, host, mode = 'auto') {
   if (tier === 'low' || !candidates.length) return null;
   // Weak tail candidates only add menu noise.
   const top3 = candidates.slice(0, 3).filter((c, i) => i === 0 || c.score >= MIN_LISTED_SCORE);
   const list = top3.map((c) => `${invokeText(c.route, host)} ${c.score.toFixed(2)}`).join(' | ');
   let body;
-  if (tier === 'high') {
+  if (tier === 'hint') {
+    const usable = top3.filter((c) => autoFollowable(c.route));
+    if (!usable.length) return null;
+    const opts = usable.map((c) => optionText(c.route, host)).join('; ');
+    body = `CCC skills that may help: ${opts}. If one fits the task, load it before you start; otherwise just answer.`;
+  } else if (tier !== 'high' && mode === 'always' && autoFollowable(top3[0].route)) {
     const top = top3[0].route;
-    const how = host === 'codex' ? `use the ${top.id} skill` : `invoke Skill commander:${top.id}`;
+    const alts = top3.slice(1).map((c) => invokeText(c.route, host)).join(', ');
+    body = `Likely match: ${skillCall(top, host)} now and follow it (${top.label}). Say so in one line, unless it plainly does not fit${alts ? `; then consider ${alts}` : ''}. Skip skills for a quick factual answer.`;
+  } else if (tier === 'high') {
+    const top = top3[0].route;
+    const how = skillCall(top, host);
     body = `Clear match: ${how} now (${top.label}). Say so in one line first. Skip it if the user only wants a quick answer.`;
   } else if (top3[0].route.manual) {
     // Hidden (disable-model-invocation) skill: the host blocks Skill calls to
@@ -239,3 +296,34 @@ export function renderNextContext(fromRoute, nextRoutes, host) {
   return text.length <= MAX_CONTEXT_CHARS ? text : `${text.slice(0, MAX_CONTEXT_CHARS - 13)}…</ccc-next>`;
 }
 
+
+/**
+ * The <ccc-skills> block for a subagent's task, so fleet and workflow workers
+ * use the right skills too. Same gates as the parent router: only a high-tier
+ * match (score, margin and an intent pattern) is a directive; otherwise the
+ * matches are listed as options (from MEDIUM_THRESHOLD in auto mode, from
+ * HINT_THRESHOLD in always mode). Side-effect skills, hidden skills (some
+ * fan out further agents) and agents are never listed. Null when
+ * nothing qualifies. When `forTask` is given (the task was matched to the
+ * worker from a queue, not read from its own payload), the block names that
+ * task and tells the worker to ignore it if the task is not its own, so a
+ * mis-assigned or stale entry is harmless.
+ */
+export function renderSubagentContext(candidates, host, mode = 'auto', forTask = '') {
+  const floor = mode === 'always' ? HINT_THRESHOLD : MEDIUM_THRESHOLD;
+  const usable = candidates
+    .filter((c) => c.score >= floor && autoFollowable(c.route) && !c.route.manual)
+    .slice(0, 3);
+  if (!usable.length) return null;
+  const [top] = usable;
+  const opts = usable.map((c) => `${invokeText(c.route, host)}: ${c.route.label}`).join('; ');
+  const directive = candidates[0] === top && tierFor(candidates, mode) === 'high';
+  const lead = directive
+    ? `Before starting, ${skillCall(top.route, host)} and follow it for this task: ${top.route.label}.`
+    : 'If one of these fits your task, load it before you start.';
+  const label = String(forTask || '').replace(/\s+/g, ' ').replace(/["<>]/g, '').trim().slice(0, 80);
+  // The guard comes first so the length cap can never cut it off.
+  const guard = label ? `For the task "${label}" only; if that is not your task, ignore this block. ` : '';
+  const text = `<ccc-skills for="subagent">\n${guard}${lead} Matching CCC skills: ${opts}.\n</ccc-skills>`;
+  return text.length <= MAX_CONTEXT_CHARS ? text : `${text.slice(0, MAX_CONTEXT_CHARS - 15)}…</ccc-skills>`;
+}

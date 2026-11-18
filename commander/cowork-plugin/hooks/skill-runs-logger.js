@@ -12,6 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
+import { isCodeModePoll } from './lib/code-mode.mjs';
 
 const OK = JSON.stringify({ continue: true, suppressOutput: true }) + '\n';
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -100,6 +101,7 @@ async function main() {
   try {
     const input = await readInput();
     if (!input) return;
+    if (isCodeModePoll(input)) return;   // Code Mode output, not a user prompt: log nothing (finally writes the pass-through)
 
     const prompt =
       (typeof input.prompt === 'string' && input.prompt) ||

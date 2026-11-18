@@ -368,6 +368,13 @@ After designing an API:
 - [ ] The in-flight-duplicate response is a deliberate choice (409, wait, or 202) rather than whatever falls out
 - [ ] Key retention outlives the longest retry path, including dead-letter replay
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another addyosmani engineering skill: back to the `addyosmani-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), path `skills/api-and-interface-design/`

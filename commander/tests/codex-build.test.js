@@ -119,7 +119,7 @@ test('codex plugin build artifact', async (t) => {
   await t.test('never copies Claude-only mods/, evals/ or workflows/', async () => {
     const files = await listFiles(OUTPUT_DIR);
     const offenders = files.filter((file) =>
-      file.split(path.sep).some((part) => ['mods', 'evals', 'workflows'].includes(part))
+      file.split(path.sep).some((part) => ['mods', 'evals', 'workflows', 'monitors'].includes(part))
     );
     assert.deepEqual(offenders, []);
   });

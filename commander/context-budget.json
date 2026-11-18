@@ -1,0 +1,12 @@
+{
+  "description": "Model-visible context budget for the Commander plugin, in approximate tokens. Measured by scripts/context-budget.js; --check fails CI above budget_tokens. Raise the budget only on purpose (--write --rebase) and say why in the commit.",
+  "method": "chars / 3.6",
+  "budget_tokens": 3816,
+  "measured_tokens": 3469,
+  "parts": {
+    "skill_listing": 2019,
+    "agent_listing": 1371,
+    "mcp_tool_definitions": 0,
+    "hook_injected": 79
+  }
+}

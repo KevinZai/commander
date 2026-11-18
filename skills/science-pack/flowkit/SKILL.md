@@ -180,6 +180,13 @@ A single template export does not preserve every sample-specific override.
 - [FlowKit publication](https://doi.org/10.3389/fimmu.2021.768541): cite the
   software and version in scientific methods when used for analysis.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

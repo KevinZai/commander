@@ -10,9 +10,9 @@ A guided AI project manager for Claude Code. `/ccc` reads your project, recommen
 
 | What ships in v8.1.6 | Count |
 |---|---|
-| Plugin skills (`/ccc-*`) | 93: 32 model-visible, 61 on demand |
-| Specialist agents | 22 |
-| Lifecycle hooks | 30 hook events, 51 handlers |
+| Plugin skills (`/ccc-*`) | 93: 29 model-visible, 64 on demand |
+| Specialist agents | 23 |
+| Lifecycle hooks | 28 hook events, 47 handlers |
 | Bundled MCP servers | 2 bundled MCP (`context7`, `sequential-thinking`), +19 opt-in via `/ccc-connect` |
 | Plugin workflows / evals | 6 / 8 |
 | Ecosystem catalog | 576 skills across 11 CCC domains |
@@ -60,7 +60,7 @@ Update with `claude plugin marketplace update commander-hub && claude plugin upd
 
 ## Load on demand
 
-Claude sees 32 skills: the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus the skills their menus open. The other 61 set `disable-model-invocation: true`: their descriptions stay out of Claude's context, and you open any of them by typing `/ccc-<name>`. When a prompt matches an on-demand skill, the router offers it as a menu choice instead of invoking it.
+Claude sees 29 skills: the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus the skills their menus open. The other 64 set `disable-model-invocation: true`: their descriptions stay out of Claude's context, and you open any of them by typing `/ccc-<name>`. When a prompt matches an on-demand skill, the router offers it as a menu choice instead of invoking it.
 
 Session-start context, measured in CC-2112 with js-tiktoken cl100k as a proxy:
 

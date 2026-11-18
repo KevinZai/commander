@@ -352,6 +352,13 @@ After setting up context, confirm:
 - [ ] During long sessions, context is actively managed: failed attempts and replaced drafts removed, live error and task definition protected
 - [ ] Task-critical content (current error, active constraint) is positioned last in context, not buried under background material
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another addyosmani engineering skill: back to the `addyosmani-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), path `skills/context-engineering/`

@@ -1,7 +1,7 @@
 schema_version: "1.1"
 name: ccc-plan
 description: The planning flow starts from a feature idea and produces spec questions or a plan with checkable acceptance criteria.
-tags: [skill:ccc-plan, planning]
+tags: [skill:ccc-plan, planning, flagship]
 execution:
   prompt: Use CC Commander to plan this feature - add a dark-mode toggle to the settings page of a small web app. Keep it short.
   max_turns: 15

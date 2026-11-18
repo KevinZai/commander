@@ -134,6 +134,13 @@ bundled helper and the reference's native examples were exercised against stable
 No remote thermodynamic calculation or database-fetch API is used. `Database` loads a
 local path, file-like object, or TDB text; a URL is not a supported download shortcut.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

@@ -305,6 +305,8 @@ options:
     description: "Keep the report; nothing else runs."
 ```
 
+On "Fix local state", tell the user to type `$ccc-tuneup` (it is user-invoked only, so do not call it through the Skill tool).
+
 ## Done when
 
 - The Step 1 probe ran and every report row holds a value or `n/a`; no row is guessed.

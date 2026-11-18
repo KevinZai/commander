@@ -297,6 +297,13 @@ argocd app sync my-app --force
 
 - `kubernetes-specialist` (this pack) - For manifests, Helm and cluster setup; see its `references/gitops.md`
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another specialist skill: back to the `specialist-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repo: https://github.com/wshobson/agents

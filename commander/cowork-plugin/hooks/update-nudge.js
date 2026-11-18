@@ -3,7 +3,8 @@
  * update-nudge.js
  * Hook: SessionStart (async: true — never blocks session startup)
  *
- * Compares the installed plugin.json version against GitHub main and tells
+ * Compares the installed plugin manifest version (.claude-plugin/ on Claude,
+ * .codex-plugin/ in the Codex mirror) against GitHub main and tells
  * the MODEL (not a direct terminal print) to surface an update nudge, once
  * per 24h. Silent on ANY failure — offline, malformed JSON, missing
  * plugin.json, fetch timeout, cache-write failure — never surfaces as an
@@ -28,7 +29,7 @@ import { emitModel, emitSilent } from './lib/emit.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const REMOTE_URL = 'https://raw.githubusercontent.com/KevinZai/commander/main/commander/cowork-plugin/.claude-plugin/plugin.json';
+const REMOTE_BASE = 'https://raw.githubusercontent.com/KevinZai/commander/main/commander';
 const FETCH_TIMEOUT_MS = 3000;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h — also the "don't repeat the nudge" window
 const MARKETPLACE = 'commander-hub';
@@ -76,12 +77,38 @@ function cacheFilePath(env) {
   return join(stateDir(env), 'update-nudge.json');
 }
 
+// The same handler ships in the Claude plugin and in the generated Codex mirror. Each host has its own
+// manifest path, upstream manifest and update command; the mirror has no .claude-plugin/, so the host is
+// whichever manifest exists under the plugin root (Claude first). Codex sets CLAUDE_PLUGIN_ROOT as an
+// alias too, so the env var alone cannot tell the hosts apart.
+const HOSTS = Object.freeze([
+  Object.freeze({
+    id: 'claude',
+    manifest: ['.claude-plugin', 'plugin.json'],
+    remoteUrl: `${REMOTE_BASE}/cowork-plugin/.claude-plugin/plugin.json`,
+  }),
+  Object.freeze({
+    id: 'codex',
+    manifest: ['.codex-plugin', 'plugin.json'],
+    remoteUrl: `${REMOTE_BASE}/cowork-plugin-codex/.codex-plugin/plugin.json`,
+  }),
+]);
+
+/** { host, version } from the first host manifest found under the plugin root; throws when none is valid. */
 async function readLocalVersion(env) {
   const pluginRoot = resolvePluginRoot(env);
-  const raw = await readFile(join(pluginRoot, '.claude-plugin', 'plugin.json'), 'utf8');
-  const parsed = JSON.parse(raw);
-  if (!isValidVersion(parsed.version)) throw new Error('invalid local plugin version');
-  return parsed.version;
+  for (const host of HOSTS) {
+    let raw;
+    try {
+      raw = await readFile(join(pluginRoot, ...host.manifest), 'utf8');
+    } catch {
+      continue; // not this host
+    }
+    const parsed = JSON.parse(raw);
+    if (!isValidVersion(parsed.version)) throw new Error('invalid local plugin version');
+    return { host, version: parsed.version };
+  }
+  throw new Error('no plugin manifest');
 }
 
 async function readCache(env) {
@@ -110,7 +137,13 @@ function defaultFetchText(url, timeoutMs) {
   });
 }
 
-function nudgeMessage(installed, latest) {
+function nudgeMessage(installed, latest, hostId = 'claude') {
+  if (hostId === 'codex') {
+    return [
+      `⬆️ CC Commander v${latest} is available (installed v${installed}).`,
+      `Tell the user: run "codex plugin marketplace upgrade" (for a local-path ${MARKETPLACE} marketplace, git pull its checkout instead), then restart Codex to apply.`,
+    ].join(' ');
+  }
   return [
     `⬆️ CC Commander v${latest} is available (installed v${installed}).`,
     `Tell the user: run "claude plugin marketplace update ${MARKETPLACE} && claude plugin update ${PLUGIN_ID}", then restart Claude Code / Cowork Desktop to apply.`,
@@ -125,7 +158,7 @@ function nudgeMessage(installed, latest) {
 export async function run({ env = process.env, fetchText = defaultFetchText, now = Date.now } = {}) {
   try {
     if (isOffline(env)) return emitSilent();
-    const localVersion = await readLocalVersion(env);
+    const { host, version: localVersion } = await readLocalVersion(env);
     const cache = await readCache(env);
     const nowMs = now();
 
@@ -149,7 +182,7 @@ export async function run({ env = process.env, fetchText = defaultFetchText, now
 
     let remoteVersion;
     try {
-      const body = await fetchText(REMOTE_URL, FETCH_TIMEOUT_MS);
+      const body = await fetchText(host.remoteUrl, FETCH_TIMEOUT_MS);
       const parsed = JSON.parse(body);
       if (!isValidVersion(parsed.version)) throw new Error('invalid remote version');
       remoteVersion = parsed.version;
@@ -174,7 +207,7 @@ export async function run({ env = process.env, fetchText = defaultFetchText, now
 
     if (!outdated) return emitSilent();
 
-    return emitModel('SessionStart', nudgeMessage(localVersion, remoteVersion));
+    return emitModel('SessionStart', nudgeMessage(localVersion, remoteVersion, host.id));
   } catch {
     return emitSilent();
   }

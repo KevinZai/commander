@@ -13,6 +13,8 @@ import { join } from 'node:path';
 import { readablePath, stateDir } from '../../lib/lane-state.js';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { sessionKey } from '../lib/session-key.mjs';
+import { activeSessionFile, pruneStaleActiveSessions } from '../lib/active-session.mjs';
 
 // This file lives in hooks/_archive/, so the plugin root is two levels up and
 // the repo root four. The old paths (one/three levels up) predate the move to
@@ -32,8 +34,9 @@ const PLUGIN_JSON = [
  * Returns the output JSON object instead of writing to stdout.
  * Caller may pass { home, cwd } overrides; defaults read from process.env / process.cwd().
  */
-export async function run({ home, cwd: _cwd } = {}) {
+export async function run({ home, input = {}, cwd } = {}) {
   const laneEnv = home ? { ...process.env, HOME: home } : process.env;
+  const key = sessionKey(input);
   const CCC_DIR = stateDir(laneEnv);
   const SESSIONS_DIR = join(CCC_DIR, 'sessions');
   const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
@@ -70,8 +73,9 @@ export async function run({ home, cwd: _cwd } = {}) {
       } catch {}
     }
 
+    // Archives only (<date>-<hex>.json): live per-session records and cost counters are not finished sessions.
     const sessions = await readdir(SESSIONS_DIR).catch(() => []);
-    const sessionCount = sessions.filter(f => f.endsWith('.json')).length;
+    const sessionCount = sessions.filter(f => /^\d{4}-\d{2}-\d{2}-[0-9a-f]+\.json$/.test(f)).length;
 
     const knowledge = await readdir(KNOWLEDGE_DIR).catch(() => []);
     const knowledgeCount = knowledge.length;
@@ -93,13 +97,16 @@ export async function run({ home, cwd: _cwd } = {}) {
       }
     } catch {}
 
-    const activeFile = join(SESSIONS_DIR, 'active-session.json');
+    // One live record per session (Codex audit #25): a parallel session's
+    // SessionStart can no longer overwrite this one, nor its SessionEnd remove it.
     try {
-      await writeFile(activeFile, JSON.stringify({
-        startedAt: new Date().toISOString(),
-        status: 'active',
-      }, null, 2));
+      const record = { sessionId: key, startedAt: new Date().toISOString(), status: 'active' };
+      const where = (input && typeof input.cwd === 'string' && input.cwd) || cwd;
+      if (where) record.cwd = where;
+      await writeFile(activeSessionFile(SESSIONS_DIR, key), JSON.stringify(record, null, 2));
     } catch {}
+    // Records of sessions that crashed before SessionEnd: removed after 30 idle days.
+    await pruneStaleActiveSessions(SESSIONS_DIR, { skipKey: key, maxAgeMs: 30 * 24 * 60 * 60 * 1000 }).catch(() => 0);
 
     // First run = CCC's own state.json did not exist before this session, not
     // an empty ~/.claude/sessions (anyone who used Claude Code before
@@ -129,111 +136,14 @@ export async function run({ home, cwd: _cwd } = {}) {
   }
 }
 
-const CCC_DIR = stateDir();
-const SESSIONS_DIR = join(CCC_DIR, 'sessions');
-const KNOWLEDGE_DIR = join(CCC_DIR, 'knowledge');
-const STATE_FILE = join(CCC_DIR, 'state.json');
-const STATE_SRC = readablePath('state.json');
-
+// Standalone entry: same behavior as the orchestrator path (stdin payload in, one JSON line out).
 async function main() {
-  try {
-    for (const dir of [CCC_DIR, SESSIONS_DIR, KNOWLEDGE_DIR]) {
-      if (!existsSync(dir)) await mkdir(dir, { recursive: true });
-    }
-
-    // Read plugin version
-    let pluginVersion = 'unknown';
-    try {
-      const pluginJson = JSON.parse(await readFile(PLUGIN_JSON, 'utf8'));
-      pluginVersion = pluginJson.version || pluginVersion;
-    } catch {}
-
-    // Read current package version (authoritative source for version transitions)
-    let packageVersion = pluginVersion;
-    try {
-      const pkgJson = JSON.parse(await readFile(PKG_JSON, 'utf8'));
-      packageVersion = pkgJson.version || packageVersion;
-    } catch {}
-
-    // Seed state.json on first run (idempotent — never clobber existing state)
-    const isFirstRun = !existsSync(STATE_SRC);
-    if (isFirstRun) {
-      try {
-        await writeFile(STATE_FILE, JSON.stringify({
-          onboardingCompleted: false,
-          firstRunAt: new Date().toISOString(),
-          installedVersion: pluginVersion,
-          last_seen_version: packageVersion === 'unknown' ? null : packageVersion,
-        }, null, 2));
-      } catch {}
-    }
-
-    const sessions = await readdir(SESSIONS_DIR).catch(() => []);
-    const sessionCount = sessions.filter(f => f.endsWith('.json')).length;
-
-    const knowledge = await readdir(KNOWLEDGE_DIR).catch(() => []);
-    const knowledgeCount = knowledge.length;
-
-    // Determine onboarding status and version-transition
-    let onboardingCompleted = false;
-    let versionTransition = false;
-    try {
-      const state = JSON.parse(await readFile(STATE_SRC, 'utf8'));
-      onboardingCompleted = !!state.onboardingCompleted;
-      const lastSeen = state.last_seen_version;
-      // 'unknown' (no manifest found) is no signal: no nudge, never stored as last_seen_version.
-      if (!isFirstRun && packageVersion !== 'unknown' && lastSeen && lastSeen !== packageVersion) {
-        versionTransition = true;
-        // Update last_seen_version so nudge only fires once per upgrade
-        const updated = { ...state, last_seen_version: packageVersion };
-        await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
-      } else if (!isFirstRun && packageVersion !== 'unknown' && !lastSeen) {
-        // Backfill field for existing installs — treat as no transition
-        const updated = { ...state, last_seen_version: packageVersion };
-        await writeFile(STATE_FILE, JSON.stringify(updated, null, 2));
-      }
-    } catch {}
-
-    // Detect if this is the user's first-ever Claude session (no prior session history)
-    const activeFile = join(SESSIONS_DIR, 'active-session.json');
-    try {
-      await writeFile(activeFile, JSON.stringify({
-        startedAt: new Date().toISOString(),
-        status: 'active',
-      }, null, 2));
-    } catch {}
-
-    // Auto-prompt /ccc-start on CCC's first run when onboarding is not completed
-    if (!onboardingCompleted && isFirstRun) {
-      console.log(JSON.stringify({
-        continue: true,
-        suppressOutput: false,
-        status: '👋 Welcome to CC Commander! Run /ccc-start for a 60-second tour.',
-      }));
-      return;
-    }
-
-    // Version-transition nudge — fires once per upgrade, never on first run
-    if (versionTransition) {
-      console.log(JSON.stringify({
-        continue: true,
-        suppressOutput: false,
-        status: `CC Commander updated to ${packageVersion}. Run /ccc-changelog to see what's new.`,
-      }));
-      return;
-    }
-
-    const onboardingStatus = onboardingCompleted ? 'complete' : 'pending';
-    const status = `CCC ${pluginVersion} | Sessions: ${sessionCount} | Knowledge: ${knowledgeCount} entries | Onboarding: ${onboardingStatus}`;
-
-    console.log(JSON.stringify({
-      continue: true,
-      suppressOutput: false,
-      status,
-    }));
-  } catch {
-    console.log(JSON.stringify({ continue: true, suppressOutput: true }));
-  }
+  const chunks = [];
+  for await (const chunk of process.stdin) chunks.push(chunk);
+  let input = {};
+  try { input = JSON.parse(Buffer.concat(chunks).toString('utf8').trim() || '{}'); } catch {}
+  const out = await run({ input, cwd: process.cwd() });
+  console.log(JSON.stringify(out));
 }
 
 // Only run when invoked directly (preserve standalone behavior)

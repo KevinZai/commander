@@ -234,6 +234,13 @@ After applying interview-me:
 - [ ] Upon receiving explicit confirmation, stopped the turn immediately without invoking tools or starting downstream work
 - [ ] Any handoff to a downstream skill (`idea-refine`, `spec-driven-development`) was framed in terms of the confirmed intent, not the original underspecified ask
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another addyosmani engineering skill: back to the `addyosmani-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), path `skills/interview-me/`

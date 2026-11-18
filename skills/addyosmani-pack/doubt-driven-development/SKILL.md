@@ -251,6 +251,13 @@ After applying doubt-driven development:
 - [ ] In non-interactive mode, cross-model was skipped and the skip was announced
 - [ ] Any external CLI invocation was preceded by a PATH check, a working-binary test, syntax confirmation with the user, and explicit authorization to run
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another addyosmani engineering skill: back to the `addyosmani-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), path `skills/doubt-driven-development/`

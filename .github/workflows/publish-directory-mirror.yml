@@ -1,12 +1,16 @@
 # Publishes the standalone `cc-commander` plugin tree (DIRECTORY.md, CC-2114) to
-# KevinZai/cc-commander-plugin on every v* tag.
+# KevinZai/cc-commander-plugin. It runs only after the Release workflow (whose
+# first job is the release gate) completed successfully for a v* tag, so a tag
+# never updates the mirror before, or independently of, the release checks. A
+# manual run (workflow_dispatch) runs the same release gate first.
 #
 # Kevin-only setup, before the first run:
 #   1. Create the PUBLIC repo KevinZai/cc-commander-plugin with a `main` branch
 #      (one initial commit, e.g. a placeholder README).
 #   2. Add a repository secret MIRROR_PUSH_TOKEN to KevinZai/commander: a
 #      fine-grained token with Contents: read/write on cc-commander-plugin only.
-# Until the secret exists the publish job prints a notice and exits 0.
+# Until the secret exists the publish job FAILS (a skipped distribution must be
+# visible, not a green run).
 #
 # History policy: the mirror is updated with a normal fast-forward commit per
 # tag. No force-push, no orphan commits.
@@ -14,46 +18,69 @@
 name: Publish directory mirror
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  # After a Release workflow run the gate has already passed there, so this job
+  # only runs for a manual dispatch.
+  gate:
+    name: Release gate (manual runs)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          submodules: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Release gate
+        run: node scripts/release-gate.js
+
   publish:
     name: Build and push cc-commander mirror
+    needs: gate
+    # gate is skipped for workflow_run; the triggering Release run must have succeeded for a tag.
+    if: >-
+      ${{ !cancelled() && needs.gate.result != 'failure' && (
+        github.event_name == 'workflow_dispatch' ||
+        (github.event.workflow_run.conclusion == 'success' &&
+         github.event.workflow_run.event == 'push' &&
+         startsWith(github.event.workflow_run.head_branch, 'v'))) }}
     runs-on: ubuntu-latest
     env:
       MIRROR_REPO: KevinZai/cc-commander-plugin
       MIRROR_PUSH_TOKEN: ${{ secrets.MIRROR_PUSH_TOKEN }}
+      # The tag and commit the mirror reflects (the run's own ref for a manual dispatch).
+      MIRROR_REF_NAME: ${{ github.event.workflow_run.head_branch || github.ref_name }}
+      MIRROR_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
-      - name: Check mirror token
-        id: token
+      - name: Require mirror token
         run: |
           if [ -z "$MIRROR_PUSH_TOKEN" ]; then
-            echo "::notice::MIRROR_PUSH_TOKEN is not set; skipping mirror publish. Kevin must create $MIRROR_REPO and add the secret."
-            echo "present=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "present=true" >> "$GITHUB_OUTPUT"
+            echo "::error::MIRROR_PUSH_TOKEN is not set; the directory mirror was NOT published. Create $MIRROR_REPO and add the secret."
+            exit 1
           fi
 
-      - uses: actions/checkout@v4
-        if: steps.token.outputs.present == 'true'
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - uses: actions/setup-node@v4
-        if: steps.token.outputs.present == 'true'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
 
       - name: Build mirror tree
-        if: steps.token.outputs.present == 'true'
         run: node scripts/build-directory-mirror.js --out "$RUNNER_TEMP/mirror"
 
       - name: Push mirror to main
-        if: steps.token.outputs.present == 'true'
         run: |
           set -euo pipefail
           git clone --branch main "https://x-access-token:${MIRROR_PUSH_TOKEN}@github.com/${MIRROR_REPO}.git" "$RUNNER_TEMP/clone"
@@ -69,5 +96,5 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -q -m "Mirror KevinZai/commander ${GITHUB_REF_NAME} (${GITHUB_SHA::8})"
+          git commit -q -m "Mirror KevinZai/commander ${MIRROR_REF_NAME} (${MIRROR_SHA::8})"
           git push origin main

@@ -2,7 +2,7 @@
 // Telemetry client tests
 // Verifies opt-out, batching, property scrubbing, and anon-id persistence
 
-import { test, mock } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert';
 import fs from 'fs';
 import path from 'path';
@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 
-test('Telemetry: opt-out via CCC_TELEMETRY=0 is recognized', async (t) => {
+test('Telemetry: opt-out via CCC_TELEMETRY=0 is recognized', async () => {
   const originalEnv = process.env.CCC_TELEMETRY;
   process.env.CCC_TELEMETRY = '0';
 
@@ -29,7 +29,7 @@ test('Telemetry: opt-out via CCC_TELEMETRY=0 is recognized', async (t) => {
   }
 });
 
-test('Telemetry: anon-id persists across calls', async (t) => {
+test('Telemetry: anon-id persists across calls', async () => {
   const tempDir = path.join(os.tmpdir(), `ccc-test-${Date.now()}`);
   try {
     // Create temp config dir
@@ -60,7 +60,7 @@ test('Telemetry: anon-id persists across calls', async (t) => {
   }
 });
 
-test('Telemetry: property scrubbing filters sensitive keys', async (t) => {
+test('Telemetry: property scrubbing filters sensitive keys', async () => {
   const SENSITIVE_PATTERN = /prompt|content|path|file|cwd|secret|password|key|token/i;
 
   const testCases = [
@@ -87,7 +87,7 @@ test('Telemetry: property scrubbing filters sensitive keys', async (t) => {
   }
 });
 
-test('Telemetry: config file read/write', async (t) => {
+test('Telemetry: config file read/write', async () => {
   const tempDir = path.join(os.tmpdir(), `ccc-config-test-${Date.now()}`);
   try {
     fs.mkdirSync(tempDir, { recursive: true });
@@ -110,7 +110,7 @@ test('Telemetry: config file read/write', async (t) => {
   }
 });
 
-test('Telemetry: batch event structure', async (t) => {
+test('Telemetry: batch event structure', async () => {
   const event = {
     name: 'hook_fired',
     distinct_id: '550e8400-e29b-41d4-a716-446655440000',
@@ -131,7 +131,7 @@ test('Telemetry: batch event structure', async (t) => {
   assert(/^\d{4}-\d{2}-\d{2}T/.test(event.timestamp), 'timestamp must be ISO format');
 });
 
-test('Telemetry: rate limit validation', async (t) => {
+test('Telemetry: rate limit validation', async () => {
   // Whitelist of allowed events
   const ALLOWED_EVENTS = new Set([
     'hook_fired',

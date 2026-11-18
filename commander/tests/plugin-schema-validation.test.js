@@ -238,9 +238,9 @@ test('skills: no description contains angle brackets', () => {
 
 const AGENTS_DIR = path.join(PLUGIN_DIR, 'agents');
 
-test('agents: total count is 22', () => {
+test('agents: total count is 23', () => {
   const files = fs.readdirSync(AGENTS_DIR).filter(f => f.endsWith('.md'));
-  assert.equal(files.length, 22);
+  assert.equal(files.length, 23);
 });
 
 test('agents: every .md has frontmatter with name + description + model + effort', () => {

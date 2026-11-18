@@ -41,7 +41,7 @@ Vendor packages under `vendor/` are git submodules, each under its own license; 
 
 ## MIT-Derived Skills (ponytail)
 
-`skills/ponytail/SKILL.md` is copied from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail), pinned at `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846`, unchanged except for an added Source section. MIT License, Copyright (c) 2026 DietrichGebert; the full text is in `skills/ponytail/LICENSE.txt`. `skills/mode-switcher/modes/ponytail.md` summarizes the same rules as a CC Commander mode.
+`skills/ponytail/SKILL.md` is copied from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail), pinned at `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846`, with three CC Commander changes: a `disable-model-invocation: true` frontmatter line (ponytail runs only when invoked, not on every coding task), an added "Next step" section pointing to the ponytail mode and `/ccc-review`, and an added Source section that carries the MIT notice and a CCC safety note on installing the upstream plugin. MIT License, Copyright (c) 2026 DietrichGebert; the full text is in `skills/ponytail/LICENSE.txt`. `skills/mode-switcher/modes/ponytail.md` summarizes the same rules as a CC Commander mode.
 
 ## Opt-in MIT add-ons (installed from upstream, not redistributed)
 

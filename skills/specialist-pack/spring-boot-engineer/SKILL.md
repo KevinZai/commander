@@ -199,6 +199,13 @@ Maintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant a
 
 [Documentation](https://jeffallan.github.io/claude-skills/skills/backend/spring-boot-engineer/)
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another specialist skill: back to the `specialist-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repo: https://github.com/Jeffallan/claude-skills

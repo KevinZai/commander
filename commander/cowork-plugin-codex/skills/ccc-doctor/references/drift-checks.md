@@ -22,6 +22,8 @@ checkout), not against the user's `~/.claude/` state, except where noted.
 | `version-parity` | `package.json` and `plugin.json` versions match. The full check is `node scripts/check-version-parity.js`. |
 | `critical-files` | `CHANGELOG.md`, `README.md`, `LICENSE`, `package.json` and `commander/core/registry.yaml` exist. |
 | `network-mode` | Informational, always `ok`: shows telemetry, offline and ci-ticker on/off from `CCC_TELEMETRY`, `CCC_OFFLINE`, `CCC_CI_TICKER` and `~/.commander/config.json` (`lib/network-mode.js`). Reads user env and config. |
+| `secret-guard` | `lib/secret-patterns.json` exists, parses, has a `patterns` array, and every regex compiles. `secret-leak-guard.js` fails open: a missing or invalid file lets every tool call through, and a regex that does not compile is skipped silently, so `fail` here means the guard is checking nothing. |
+| `code-mode` | Report only. Whether `CLAUDE_CODE_EXPERIMENTAL_CODE_MODE` is on (shell, or `env` in the lane's user `settings.json`; a `0` in either place wins), the `claude --version` (2.1.323+, 2.1.326+ with agent teams), and the known blockers from [the Code Mode docs](https://code.claude.com/docs/en/code-mode#code-mode-doesnt-start): `apiKeyHelper`, `ANTHROPIC_AUTH_TOKEN` or an auth header in `ANTHROPIC_CUSTOM_HEADERS`, OpenTelemetry export, `DISABLE_TELEMETRY` and the other feature-flag switches, cloud-provider or gateway variables, and a non-Anthropic `ANTHROPIC_BASE_URL`. Never changes a setting. Reads user env and settings. |
 
 The expected values (bundled server names, connector row count, agent tiers)
 are constants exported by `diagnostics.js`; read them there instead of copying

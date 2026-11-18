@@ -8,8 +8,8 @@ const ROWS = [
   ['Plan quality',           'flat',    'reviewed', 6],
   ['Code review coverage',   '0%',     '100%',    9],
   ['Spec → ship handoffs',   'manual', 'automatic', 7],
-  ['Specialist coverage',    '1 agent','22 agents', 9],
-  ['Lifecycle hooks',        '0',     '30 × 51 handlers', 8],
+  ['Specialist coverage',    '1 agent','23 agents', 9],
+  ['Lifecycle hooks',        '0',     '30 × 47 handlers', 8],
   ['Skill library',          'ad-hoc', '93 curated', 8],
   ['Audit on commit',        '—',     'always',   7],
 ];

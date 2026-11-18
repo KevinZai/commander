@@ -11,11 +11,6 @@
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/git-truth.js\"",
             "timeout": 6
           },
@@ -58,22 +53,26 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/suggest-ticker.js\"",
-            "timeout": 2
+            "timeout": 2,
+            "onFailure": "continue"
           },
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/intent-classifier.js\"",
-            "timeout": 5
+            "timeout": 5,
+            "onFailure": "continue"
           },
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-guard.js\"",
-            "timeout": 3
+            "timeout": 3,
+            "onFailure": "continue"
           },
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit.js\"",
-            "timeout": 5
+            "timeout": 5,
+            "onFailure": "continue"
           },
           {
             "type": "command",
@@ -101,19 +100,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.js\"",
-            "timeout": 3,
-            "async": true
-          },
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/cost-ceiling-enforcer.js\"",
-            "timeout": 3
-          },
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/secret-leak-guard.js\"",
-            "timeout": 5
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/pre-tool-use-dispatcher.js\"",
+            "timeout": 8
           }
         ]
       },
@@ -133,7 +121,8 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/doc-file-warning.js\"",
-            "timeout": 3
+            "timeout": 3,
+            "onFailure": "continue"
           }
         ]
       },
@@ -143,7 +132,8 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/git-push-reminder.js\"",
-            "timeout": 3
+            "timeout": 3,
+            "onFailure": "continue"
           }
         ]
       }
@@ -194,20 +184,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-failure-logger.js\"",
-            "timeout": 3,
-            "async": true
-          }
-        ]
-      }
-    ],
-    "PostToolBatch": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/knowledge-capture.js\"",
-            "timeout": 5,
-            "async": true
+            "timeout": 3
           }
         ]
       }
@@ -288,6 +265,11 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/subagent-start-tracker.js\"",
             "timeout": 3,
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/subagent-skill-router.js\"",
+            "timeout": 3
           }
         ]
       }
@@ -393,17 +375,6 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stale-claude-md-nudge.js\"",
             "timeout": 3
-          }
-        ]
-      }
-    ],
-    "Setup": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js\"",
-            "timeout": 10
           }
         ]
       }

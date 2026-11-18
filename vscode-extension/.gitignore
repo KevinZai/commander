@@ -6,3 +6,5 @@ node_modules/
 !*.config.js
 .DS_Store
 .vscode-test/
+!scripts/*.js
+!test/*.js

@@ -16,11 +16,12 @@ import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
 import { emitSilent } from './lib/emit.mjs';
+import { dropAgentCall } from './subagent-skill-router.js';
 
 const clip = (v, n) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, n);
 
 // Auto mode tends to deny exactly the commands that carry credentials, so the
-// snippet and the classifier reason are redacted with the same pattern set
+// classifier reason is redacted with the same pattern set
 // lib/safety-snapshot.js applies before anything reaches disk.
 const SECRET_PATTERNS = [
   /sk-[a-zA-Z0-9_-]{8,}/g,
@@ -31,6 +32,13 @@ const SECRET_PATTERNS = [
   /(?:api[_-]?key|token|secret|password|passwd|authorization)(\s*[:=]\s*|\s+)[\x27"]?[A-Za-z0-9._~+\/=-]{6,}/gi,
 ];
 const redact = (v, n) => SECRET_PATTERNS.reduce((s, re) => s.replace(re, '[redacted]'), clip(v, n));
+
+// First real program token: skips VAR=value assignments, keeps only a bare basename.
+function programName(cmd) {
+  const first = cmd.trim().split(/\s+/).find((t) => t && !/^[A-Za-z_]\w*=/.test(t)) || '';
+  const base = first.replace(/^["']+|["']+$/g, '').split('/').pop();
+  return /^[\w.+-]{1,40}$/.test(base) ? base : '';
+}
 
 async function readInput() {
   const chunks = [];
@@ -56,8 +64,13 @@ function buildRow(input, now = new Date()) {
   };
   if (input.reason) row.reason = redact(input.reason, 160);
   if (input.mcp_server) row.mcpServer = clip(input.mcp_server, 64);
+  // Command text is never logged: auto mode denies exactly the commands that carry credentials.
+  // Only the program name is kept, as in permission-gate.js.
   const cmd = input.tool_input?.command;
-  if (toolName === 'Bash' && typeof cmd === 'string') row.commandSnippet = redact(cmd, 120);
+  if (toolName === 'Bash' && typeof cmd === 'string') {
+    const program = programName(cmd);
+    if (program) row.program = program;
+  }
   return row;
 }
 
@@ -72,6 +85,8 @@ async function main() {
       // Logging failure must never affect the session.
     }
   }
+  // A denied Agent/Task call never starts its subagent: drop its queued task.
+  dropAgentCall(input);
   process.stdout.write(JSON.stringify(emitSilent()) + '\n');
 }
 

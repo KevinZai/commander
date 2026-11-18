@@ -1,5 +1,5 @@
-// scene-agents.jsx — "22 specialist agents"
-// 12s: empty grid → roster of 22 agents pop in with portraits → highlight a few → council formation
+// scene-agents.jsx — "23 specialist agents"
+// 12s: empty grid → roster of 23 agents pop in with portraits → highlight a few → council formation
 
 const AGENTS_DUR = 12;
 
@@ -73,7 +73,7 @@ const AgentsScene = () => {
         <div style={{ width:26, height:26, borderRadius:6, background:'#181818', border:'1px solid rgba(245,245,240,.14)', display:'grid', placeItems:'center', color:'#FF6B47' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l5 5-5 5M16 22h8"/></svg>
         </div>
-        <span><b style={{color:'#F5F5F0',fontWeight:500}}>cc-commander</b> <span style={{color:'#6E6E68',margin:'0 6px'}}>·</span> 22 specialist agents</span>
+        <span><b style={{color:'#F5F5F0',fontWeight:500}}>cc-commander</b> <span style={{color:'#6E6E68',margin:'0 6px'}}>·</span> 23 specialist agents</span>
       </div>
 
       {/* INTRO 0–2.4s */}
@@ -93,7 +93,7 @@ const AgentsScene = () => {
               fontFamily:'"Inter",sans-serif', fontSize:88, fontWeight:600,
               color:'#F5F5F0', letterSpacing:'-.025em', lineHeight:1.0,
             }}>
-              <span style={{color:'#FF6B47'}}>22</span> specialists.
+              <span style={{color:'#FF6B47'}}>23</span> specialists.
             </div>
             <div style={{
               fontFamily:'"Inter",sans-serif', fontSize:30, fontWeight:500,
@@ -109,7 +109,7 @@ const AgentsScene = () => {
       <Sprite start={2.2} end={9.6} keepMounted>
         {({ progress, localTime }) => {
           const op = animate({from:0,to:1,start:0,end:0.08})(progress);
-          // 6 cols × 3 rows (22 cells, 1 placeholder for council badge in last)
+          // 6 cols × 3 rows (23 cells, 1 placeholder for council badge in last)
           const cellsPerRow = 6;
           const cellW = 168, cellH = 116, gap = 14;
           const totalW = cellsPerRow*cellW + (cellsPerRow-1)*gap;
@@ -126,7 +126,7 @@ const AgentsScene = () => {
                 letterSpacing:'.12em', textTransform:'uppercase',
                 display:'flex', gap:18,
               }}>
-                <span><span style={{color:'#FF6B47'}}>●</span> 22 agents</span>
+                <span><span style={{color:'#FF6B47'}}>●</span> 23 agents</span>
                 <span style={{color:'#6E6E68'}}>·</span>
                 <span>spawnable on demand</span>
                 <span style={{color:'#6E6E68'}}>·</span>
@@ -169,7 +169,7 @@ const AgentsScene = () => {
                     </div>
                     <div style={{ fontSize:12, color:'#A8A8A0', marginTop:2 }}>{role}</div>
                     <div style={{ position:'absolute', right:10, top:10, fontFamily:'"JetBrains Mono",monospace', fontSize:10, color:'#6E6E68', letterSpacing:'.06em' }}>
-                      {String(i+1).padStart(2,'0')}/22
+                      {String(i+1).padStart(2,'0')}/23
                     </div>
                   </div>
                 );

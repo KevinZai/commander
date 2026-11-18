@@ -65,7 +65,7 @@ var MANIFESTS = {
 };
 
 // apps/mcp-server-cloud versions independently of the plugin: any change under
-// it auto-deploys to Fly (deploy-mcp.yml / deploy.yml path triggers), so a
+// it auto-deploys to Fly (deploy.yml path triggers), so a
 // plugin release may ship without bumping it (CC-2126, 8.1.6). Its manifests
 // must agree with EACH OTHER (bump-version.js still writes all three) and may
 // lag root but never run ahead of it.

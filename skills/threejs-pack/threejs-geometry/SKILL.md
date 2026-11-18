@@ -499,6 +499,13 @@ scene.add(mesh);
 - `threejs-loaders` - glTF and other formats that bring their own geometry.
 - `threejs-performance` - choosing between merging, instancing, batching and LOD by measured draw calls.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another Three.js skill: back to the `threejs-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: https://github.com/CloudAI-X/threejs-skills

@@ -11,6 +11,7 @@ allowed-tools:
   - AskUserQuestion
   - Artifact
 argument-hint: "[skill or workflow name to drill into, e.g. plan | codex | fleet | audit] [--html]"
+disable-model-invocation: true
 ---
 
 # $ccc-cheatsheet — the live Commander map

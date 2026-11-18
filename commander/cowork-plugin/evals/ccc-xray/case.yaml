@@ -1,0 +1,26 @@
+schema_version: "1.1"
+name: ccc-xray
+description: A quick x-ray reads the repo, scores each area 0-100 and ends with one fix-first call, without editing anything.
+tags: [skill:ccc-xray, health, flagship]
+execution:
+  prompt: Use CC Commander to give this repo a quick health x-ray. Quick scan is fine.
+  max_turns: 20
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion, Bash, REPL]
+graders:
+  - type: tool_used
+    name: xray-skill-invoked
+    tool: Skill
+    input_match: '"skill":\s*"(commander:)?ccc-xray"'
+  - type: regex
+    name: scored-scorecard
+    pattern: 'Overall|\b\d{1,3}\b.{0,20}(healthy|acceptable|needs attention|critical)'
+    flags: i
+  - type: regex
+    name: one-fix-first-call
+    pattern: 'fix .{1,40} first'
+    flags: i
+  - type: llm
+    name: evidence-backed-scores
+    criteria: |
+      Pass if every scored row cites a concrete finding taken from a command or file in this run (a file count, a missing directory, an audit result) or is marked n/a, and the reply ends with exactly one fix-first recommendation. Fail if scores appear without findings, if it claims to have changed files, or if it recommends several areas equally.

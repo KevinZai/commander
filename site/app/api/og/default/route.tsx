@@ -64,7 +64,7 @@ export function GET() {
         >
           {[
             { value: "62", label: "skills" },
-            { value: "22", label: "agents" },
+            { value: "23", label: "agents" },
             { value: "9", label: "hooks" },
           ].map((s) => (
             <div

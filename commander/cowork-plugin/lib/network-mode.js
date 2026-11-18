@@ -18,6 +18,11 @@
  *     beats the config file.
  *   CCC_CI_TICKER=1 opts in to the CI status lookup via the user's own `gh`.
  *
+ * The plugin's userConfig options `offline` and `telemetry` (exported to hooks
+ * as CLAUDE_PLUGIN_OPTION_OFFLINE / _TELEMETRY, lib/plugin-options.js) count
+ * as a second source with the same rule: either source saying offline makes
+ * it offline, and either saying telemetry off keeps it off.
+ *
  * An unreadable or malformed config file counts as "not opted in".
  * CommonJS (like lane-state.js) so both the ESM hooks and the CJS CLI
  * (`ccc doctor`) can load it.
@@ -26,6 +31,7 @@
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
+var pluginOptions = require('./plugin-options.js');
 
 function homeOf(env) {
   return env.HOME || env.USERPROFILE || os.homedir();
@@ -60,14 +66,16 @@ function envFlag(value) {
 function isOffline(env, options) {
   var e = env || process.env;
   if (envFlag(e.CCC_OFFLINE) === true) return true;
+  if (envFlag(pluginOptions.pluginOption('offline', e)) === true) return true;
   return readConfig(e, options).offline === true;
 }
 
 function isTelemetryEnabled(env, options) {
   var e = env || process.env;
   if (isOffline(e, options)) return false;
-  var flag = envFlag(e.CCC_TELEMETRY);
-  if (flag !== undefined) return flag;
+  var flags = [envFlag(e.CCC_TELEMETRY), envFlag(pluginOptions.pluginOption('telemetry', e))];
+  if (flags.indexOf(false) !== -1) return false;   // an explicit off from either source wins
+  if (flags.indexOf(true) !== -1) return true;
   return readConfig(e, options).telemetry === true;
 }
 

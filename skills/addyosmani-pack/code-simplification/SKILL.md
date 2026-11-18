@@ -330,6 +330,13 @@ After completing a simplification pass:
 - [ ] No dead code was left behind (unused imports, unreachable branches)
 - [ ] A teammate or review agent would approve the change as a net improvement
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another addyosmani engineering skill: back to the `addyosmani-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), path `skills/code-simplification/`

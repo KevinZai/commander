@@ -383,6 +383,13 @@ For every release (anything with consumers):
 - [ ] The release is tagged, and the version is derived from the tag, not hand-edited out of sync
 - [ ] The changelog has a curated, human-readable entry grouped by impact for this version
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another addyosmani engineering skill: back to the `addyosmani-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), path `skills/git-workflow-and-versioning/`

@@ -270,7 +270,7 @@ describe('no partner promos in hooks or the status line', () => {
     const home = makeHome();
     const sessions = path.join(home, '.claude', 'commander', 'sessions');
     fs.mkdirSync(sessions, { recursive: true });
-    fs.writeFileSync(path.join(sessions, 'active-session.json'), JSON.stringify({ startedAt: new Date().toISOString() }));
+    fs.writeFileSync(path.join(sessions, 'active-session-cc2111.json'), JSON.stringify({ startedAt: new Date().toISOString() }));
     const r = spawnSync(process.execPath, [path.join(PLUGIN, 'hooks', 'session-end.js')], {
       input: JSON.stringify({ session_id: 'cc2111' }),
       env: cleanEnv({ HOME: home, USERPROFILE: home }),

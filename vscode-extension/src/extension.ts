@@ -41,7 +41,7 @@ async function openSkillPicker() {
   );
 
   if (pick) {
-    openInDesktopOrPrompt(pick.command);
+    await openInDesktopOrPrompt(pick.command);
   }
 }
 
@@ -62,28 +62,28 @@ async function openAgentPicker() {
 
   if (pick) {
     const prompt = `Use the @${pick.label} agent to help with this task. Full agent info: ${pick.detail}`;
-    openInDesktopOrPrompt(prompt);
+    await openInDesktopOrPrompt(prompt);
   }
 }
 
 async function openSkill(skillId: string, command: string, label: string) {
   vscode.window.showInformationMessage(`Opening skill: ${label}`);
-  openInDesktopOrPrompt(command);
+  await openInDesktopOrPrompt(command);
 }
 
 async function openAgent(agentId: string, label: string) {
   const agent = agents.find(a => a.id === agentId);
   if (!agent) return;
   const prompt = `Use the @${label} agent to help with this task.`;
-  openInDesktopOrPrompt(prompt);
+  await openInDesktopOrPrompt(prompt);
 }
 
 async function openCommandHub() {
-  openInDesktopOrPrompt('/ccc');
+  await openInDesktopOrPrompt('/ccc');
 }
 
 async function openBible() {
-  vscode.env.openExternal(vscode.Uri.parse('https://github.com/KevinZai/commander/blob/main/BIBLE.md'));
+  await openUrl('https://github.com/KevinZai/commander/blob/main/BIBLE.md');
 }
 
 async function installDesktop() {
@@ -102,30 +102,50 @@ async function installDesktop() {
   );
 
   if (action?.label === 'Open Claude Code Desktop') {
-    vscode.env.openExternal(vscode.Uri.parse('https://claude.ai/download'));
+    await openUrl('https://claude.ai/download');
   } else if (action?.label === 'View Documentation') {
-    vscode.env.openExternal(vscode.Uri.parse('https://github.com/KevinZai/commander#readme'));
+    await openUrl('https://github.com/KevinZai/commander#readme');
   }
 }
 
-function openInDesktopOrPrompt(prompt: string) {
+// vscode.env.openExternal resolves false (it does not reject) when the target
+// could not be opened, so a resolved value must be checked, not just a rejection.
+async function openUrl(url: string): Promise<boolean> {
+  let opened = false;
+  try {
+    opened = await vscode.env.openExternal(vscode.Uri.parse(url));
+  } catch {
+    opened = false;
+  }
+  if (!opened) {
+    vscode.window.showWarningMessage(`CC Commander: could not open ${url}. Copy the link into your browser.`);
+  }
+  return opened;
+}
+
+async function openInDesktopOrPrompt(prompt: string) {
   const cfg = vscode.workspace.getConfiguration('ccCommander');
   const openInDesktop = cfg.get<boolean>('openInDesktop', true);
 
-  if (openInDesktop) {
-    // Attempt to open in Claude Code Desktop via URI scheme
-    const uri = vscode.Uri.parse(`vscode://anthropic.claude-code/?prompt=${encodeURIComponent(prompt)}`);
-    vscode.env.openExternal(uri).then(
-      () => {
-        // Success - opened in Desktop
-      },
-      () => {
-        // Fallback: insert into active editor
-        insertIntoEditor(prompt);
-      }
+  if (!openInDesktop) {
+    insertIntoEditor(prompt);
+    return;
+  }
+
+  // Attempt to open in Claude Code Desktop via URI scheme
+  const uri = vscode.Uri.parse(`vscode://anthropic.claude-code/?prompt=${encodeURIComponent(prompt)}`);
+  let opened = false;
+  try {
+    opened = await vscode.env.openExternal(uri);
+  } catch {
+    opened = false;
+  }
+  if (!opened) {
+    // openExternal resolves false when nothing handled the link: say so and keep the command usable.
+    try { await vscode.env.clipboard.writeText(prompt); } catch { /* clipboard unavailable */ }
+    vscode.window.showWarningMessage(
+      `CC Commander: Claude Code Desktop did not open. Copied to clipboard: ${prompt}`
     );
-  } else {
-    // Insert into editor
     insertIntoEditor(prompt);
   }
 }

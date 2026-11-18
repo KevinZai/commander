@@ -124,6 +124,13 @@ sheet and negative-control list in the analysis handoff; the count checksum cann
 - [Input formats](https://sourceforge.net/p/mageck/wiki/input/)
 - [Output field meanings](https://sourceforge.net/p/mageck/wiki/output/)
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

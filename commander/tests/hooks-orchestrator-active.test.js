@@ -9,7 +9,6 @@ const HOOKS_JSON = path.join(__dirname, '..', 'cowork-plugin', 'hooks', 'hooks.j
 // Paths are quoted so a plugin root containing a space (Cowork Desktop:
 // ~/Library/Application Support/...) doesn't word-split at hook exec.
 const ORCHESTRATOR_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/session-start-orchestrator.js"';
-const LICENSE_CHECK_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/license-check.js"';
 const GIT_TRUTH_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/git-truth.js"';
 const UPDATE_NUDGE_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/update-nudge.js"';
 const CONSOLE_AUTOPEN_COMMAND = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/console-autopen.js"';
@@ -18,6 +17,7 @@ const FORMER_SESSION_START_HANDLERS = [
   'stale-claude-md-nudge.js',
   'post-compact-recovery.js',
   'suggest-ticker.js',
+  'license-check.js', // no-op removed with lib/license.js (Fable audit P3)
 ];
 
 function readHooksConfig() {
@@ -33,22 +33,21 @@ function sessionStartCommands(config) {
 test('hooks.json registers exactly one SessionStart entry group', () => {
   const config = readHooksConfig();
 
-  // One entry group (array of length 1) containing orchestrator + license-check
-  // + git-truth + update-nudge + console-autopen.
+  // One entry group (array of length 1) containing orchestrator + git-truth
+  // + update-nudge + console-autopen.
   assert.equal(config.hooks.SessionStart.length, 1);
-  // That group has exactly five hooks.
-  assert.equal(sessionStartCommands(config).length, 5);
+  // That group has exactly four hooks.
+  assert.equal(sessionStartCommands(config).length, 4);
 });
 
 // The list is retyped on purpose: SessionStart is the most expensive event to
 // get wrong (it runs before the user has done anything), so adding a handler
 // here is a reviewed change rather than something a test silently absorbs.
-test('SessionStart entry contains orchestrator, license-check, git-truth, update-nudge, console-autopen', () => {
+test('SessionStart entry contains orchestrator, git-truth, update-nudge, console-autopen', () => {
   const config = readHooksConfig();
 
   assert.deepEqual(sessionStartCommands(config), [
     ORCHESTRATOR_COMMAND,
-    LICENSE_CHECK_COMMAND,
     GIT_TRUTH_COMMAND,
     UPDATE_NUDGE_COMMAND,
     CONSOLE_AUTOPEN_COMMAND,

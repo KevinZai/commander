@@ -38,7 +38,7 @@ if [ ! -f "$STATE" ] || ! grep -q '"onboardingCompleted": *true' "$STATE" 2>/dev
 fi
 ```
 
-- Output contains `ONBOARDING_NEEDED`: reply with one line, "Welcome to CC Commander. First run, so starting the guided setup.", invoke the `ccc-start` skill with the Skill tool, and stop. Do not show the hub picker on first run.
+- Output contains `ONBOARDING_NEEDED`: reply with one line, "Welcome to CC Commander. First run: one question, then a finished result.", invoke the `ccc-start` skill with the Skill tool, and stop. Do not show the hub picker on first run.
 - Otherwise continue to step 2.
 - Bash unavailable: skip the gate and continue; do not guess onboarding state.
 
@@ -54,7 +54,8 @@ If `$ARGUMENTS` matches a row below, invoke that skill with the Skill tool and s
 | `plan` · `xray` · `linear` · `fleet` · `connect` · `tuneup` · `browse` | `ccc-more` with the same argument (it dispatches directly) |
 | `codex` | `$ccc-codex` is user-invoked only (Codex CLI: doctor, models, plugins, mcp, agents, cloud, remote, review, update, import, config): tell the user to type `$ccc-codex` and stop |
 | `workflows` · `audit` · `deep-review` · `migrate` · `prompt-audit` · `release-audit` | `ccc-more` with the same argument (plugin workflows page) |
-| `cheatsheet` · `start` · `doctor` · `update` | `ccc-cheatsheet` · `ccc-start` · `ccc-doctor` · `ccc-update` |
+| `start` · `doctor` · `update` | `ccc-start` · `ccc-doctor` · `ccc-update` |
+| `cheatsheet` | `$ccc-cheatsheet` is user-invoked only: read `${CLAUDE_PLUGIN_ROOT}/skills/ccc-cheatsheet/SKILL.md` and follow it in this session; do not call it through the Skill tool |
 
 Any other argument: keep it, continue to step 3, and echo it in the context strip as "You said: `<arg>` — pick the closest intent."
 

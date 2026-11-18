@@ -1,10 +1,10 @@
 ---
 title: "Hooks 2026 — 30 Events"
-description: "Commander registers 30 Claude Code lifecycle hook events with 51 handlers. Seven new events were introduced in v8.0.0. Full registry, the events Commander leaves alone, and the 12-event Codex mirror."
+description: "Commander registers 28 Claude Code lifecycle hook events with 47 handlers. Seven new events were introduced in v8.0.0. Full registry, the events Commander leaves alone, and the 12-event Codex mirror."
 ---
 
 <Note>
-  **Introduced in v8.0.0.** Seven events Claude Code added since August are now wired: `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged`. The registry grew from 23 events to **30 events · 51 handlers**. Existing handlers are unchanged.
+  **Introduced in v8.0.0.** Seven events Claude Code added since August are now wired: `PermissionDenied`, `PreModelSwitch`, `PostModelSwitch`, `TeammateIdle`, `CwdChanged`, `DirectoryAdded` and `FileChanged`. The registry grew from 23 events to **30 events · 47 handlers**. Existing handlers are unchanged.
 </Note>
 
 ## Full hook registry (current)
@@ -13,14 +13,13 @@ Rebuilt from the plugin's [`hooks/hooks.json`](https://github.com/KevinZai/comma
 
 | Event | Handlers | Scripts | Purpose |
 |-------|----------|---------|---------|
-| `SessionStart` | 5 | `session-start-orchestrator.js` (one process running session-start, the stale-CLAUDE.md nudge, post-compact recovery and the Fable-armed nudge), `license-check.js`, `git-truth.js`, `update-nudge.js`, `console-autopen.js` | Seed session state, return `watchPaths` for the project's `CLAUDE.md` files, post-compact recovery, git credential refresh (opt-in), update nudge, console auto-open |
+| `SessionStart` | 4 | `session-start-orchestrator.js` (one process running session-start, the stale-CLAUDE.md nudge, post-compact recovery and the Fable-armed state line), `git-truth.js`, `update-nudge.js`, `console-autopen.js` | Seed session state, return `watchPaths` for the project's `CLAUDE.md` files, post-compact recovery, git credential refresh (opt-in), update nudge, console auto-open |
 | `SessionEnd` | 2 | `session-save.js`, `session-end.js` | Persist the session and write a summary to the knowledge directory |
 | `UserPromptSubmit` | 5 | `suggest-ticker.js`, `intent-classifier.js`, `context-guard.js`, `user-prompt-submit.js`, `skill-runs-logger.js` | Ambient suggestion tick, skill routing, context budget warnings, prompt logging, skill-run telemetry |
 | `UserPromptExpansion` | 1 | `prompt-expansion-guard.js` | Pass-through guard for expanded prompt templates |
-| `PreToolUse` | 6 | `cost-tracker.js`, `cost-ceiling-enforcer.js`, `secret-leak-guard.js`, `config-protection.js` (Edit/Write), `doc-file-warning.js` (Write), `git-push-reminder.js` (Bash) | Accumulate cost, deny with a reason over the tool-call ceiling (off unless `CCC_COST_CEILING` or `costCeiling` in the lane config is set), scan arguments for leaked secrets, protect config files, warn on scratch markdown, pre-push reminder |
-| `PostToolUse` | 4 | `knowledge-capture.js`, `mission-control-feed.js`, `console-log-warn.js` (Edit/Write), `pr-link-notify.js` (Bash) | Capture file-touch observations, feed Mission Control, warn on `console.log`, surface new PR links |
+| `PreToolUse` | 4 | `pre-tool-use-dispatcher.js` (one process running `cost-tracker.js`, `cost-ceiling-enforcer.js` and `secret-leak-guard.js`), `config-protection.js` (Edit/Write), `doc-file-warning.js` (Write), `git-push-reminder.js` (Bash) | Accumulate cost, deny with a reason over the tool-call ceiling (off unless `CCC_COST_CEILING` or `costCeiling` in the lane config is set), scan arguments for leaked secrets, protect config files, warn on scratch markdown, pre-push reminder |
+| `PostToolUse` | 4 | `knowledge-capture.js`, `mission-control-feed.js`, `console-log-warn.js` (Edit/Write), `pr-link-notify.js` (Bash) | Capture file-touch observations and per-project test/lint results, feed Mission Control, warn on `console.log`, surface new PR links |
 | `PostToolUseFailure` | 1 | `post-tool-failure-logger.js` | Log failed tool calls for `/ccc-safety` |
-| `PostToolBatch` | 1 | `knowledge-capture.js` | Batch-level knowledge capture after multi-tool sequences |
 | `PermissionRequest` | 2 | `permission-gate.js`, `mission-control-feed.js` | Permission relay and Mission Control event feed |
 | `PermissionDenied` | 1 | `permission-denied-logger.js` | **New in v8.** Records auto-mode denials in the same journal `permission-gate.js` writes, so `/ccc-safety` counts them as blocked. Never asks for a retry |
 | `PreModelSwitch` | 1 | `model-switch-logger.js` | **New in v8.** Logs the requested switch. Never returns a decision, so your own or managed policy wins |
@@ -40,19 +39,20 @@ Rebuilt from the plugin's [`hooks/hooks.json`](https://github.com/KevinZai/comma
 | `ConfigChange` | 1 | `config-protection.js` | Warn when protected config changes mid-session |
 | `InstructionsLoaded` | 1 | `stale-claude-md-nudge.js` | Warn when a stale project `CLAUDE.md` is loaded |
 | `FileChanged` | 1 | `stale-claude-md-nudge.js` (matcher `CLAUDE.md`) | **New in v8.** Re-checks a `CLAUDE.md` when it changes on disk. The watcher is seeded by the SessionStart `watchPaths` |
-| `CwdChanged` | 1 | `session-state-sync.js` | **New in v8.** Keeps `active-session.json` pointed at the current working directory |
+| `CwdChanged` | 1 | `session-state-sync.js` | **New in v8.** Keeps this session's `active-session-<session_id>.json` pointed at the current working directory |
 | `DirectoryAdded` | 1 | `session-state-sync.js` | **New in v8.** Records directories added to the session |
-| `Setup` | 1 | `license-check.js` | One-time initialization slot (an explicit no-op — core is free forever) |
 
-**Total: 30 events · 51 handlers**
+**Total: 28 events · 47 handlers**
 
 ## Events Commander deliberately leaves alone
 
-Claude Code exposes three events beyond the 30 Commander registers. Each is skipped on purpose:
+Claude Code exposes five events beyond the 28 Commander registers. Each is skipped on purpose:
 
 - **`WorktreeCreate`** is not a telemetry hook. Registering one *replaces* git worktree creation: the hook itself must create the working copy and print its path, and if it fails or prints nothing, worktree creation fails. A plugin that only wanted to observe would break `/ccc-fleet`, `isolation: worktree` subagents and every workflow that runs in a worktree.
 - **`WorktreeRemove`** has the same shape: exit 0 counts as "removed" and git's own cleanup is skipped, so an observing hook would leak worktrees.
 - **`MessageDisplay`** rewrites what is shown for a message. Commander has nothing to change there.
+- **`Setup`** had only a no-op license check, removed because it spent a process and checked nothing. Core is free forever.
+- **`PostToolBatch`** delivers a `tool_calls[]` array with no top-level `tool_name`, so the knowledge-capture handler registered there recorded nothing. `PostToolUse` already captures each call.
 
 ## Codex mirror: 12 events
 

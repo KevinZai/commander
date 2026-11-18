@@ -114,6 +114,13 @@ on unseen cell types. It was skipped in the current review because no engine was
 - [Headless batch processing](https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.8/help/other_batch.html): command-line execution.
 - [Current application download](https://cellprofiler.org/releases) and [PyPI distribution](https://pypi.org/project/cellprofiler/): distinct release targets.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

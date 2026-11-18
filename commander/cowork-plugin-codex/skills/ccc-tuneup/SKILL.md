@@ -8,6 +8,7 @@ allowed-tools:
   - AskUserQuestion
   - mcp__ccd_session__spawn_task
 argument-hint: "[--check | --fix | --aggressive]"
+disable-model-invocation: true
 ---
 
 # $ccc-tuneup — Safe local setup optimizer

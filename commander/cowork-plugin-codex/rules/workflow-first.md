@@ -40,4 +40,13 @@ If the transcript reads like a control tower (decisions in, conclusions out), th
 
 If subagents or workflows are unavailable (usage limit, harness without the Workflow tool), keep the shape and swap the engine: hand the same fan-out to `codex exec --json` workers on their own budget, or run the steps sequentially, and keep the lead context as the verifying control plane.
 
+## 6. Code Mode fan-out
+
+Code Mode (Claude Code CLI, experimental; on when the session exposes the `REPL` tool) lets one JavaScript program make many tool calls. For a repo-wide read (x-ray checks, review context, audit inventories):
+
+- When `REPL` is available, write one program that batches the independent calls, filters and counts their output in code, and returns one compact JSON object (counts, top-N lists, `path:line` anchors). Never return raw command output or whole files.
+- Keep each call guarded (`try`/`catch`, a missing tool becomes `null`), because a call that fails or that a hook refuses must not abort the batch.
+- Without `REPL` (Desktop, Codex, Code Mode off), use the skill's normal path: one Bash call with every check guarded, or the plugin workflow. The output shape stays the same, so later steps do not branch.
+- Code Mode changes how calls are made, not what is allowed: permission prompts, hooks and the skill's read-only or write limits still apply.
+
 **Bottom line:** delegate the doing, keep the deciding.

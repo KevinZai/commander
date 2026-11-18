@@ -164,12 +164,12 @@ describe('permission-gate: reject autofix write without CCC_AUTOFIX_APPROVED', (
 });
 
 // ============================================================================
-// Case 2b (v7.3.0, W2+/codex 13): CCC_AUTOFIX_APPROVED=1 logs a distinct
-// 'approved-autofix' decision — not the generic 'approved' — so Safety's
-// "auto-fixed" bucket (safety-snapshot.js's classifyDecision) has a real
-// signal. Uses an isolated HOME so the log file is deterministic to read.
+// Case 2b: PermissionRequest is not the final decision, so a request the gate
+// lets through is logged as 'requested' / 'requested-autofix', never as an
+// approval or an applied fix (Codex audit #26). Uses an isolated HOME so the
+// log file is deterministic to read.
 // ============================================================================
-describe('permission-gate: approved-autofix telemetry (v7.3.0)', () => {
+describe('permission-gate: requested (not approved) telemetry', () => {
   function makeHome() {
     return fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-permission-gate-'));
   }
@@ -183,7 +183,7 @@ describe('permission-gate: approved-autofix telemetry (v7.3.0)', () => {
       .map((line) => JSON.parse(line));
   }
 
-  it('logs decision:"approved-autofix" (not "approved") when CCC_AUTOFIX_APPROVED=1 allows an autofix write', () => {
+  it('logs decision:"requested-autofix" when CCC_AUTOFIX_APPROVED=1 lets an autofix write through', () => {
     const home = makeHome();
     const r = runGate(
       {
@@ -199,7 +199,7 @@ describe('permission-gate: approved-autofix telemetry (v7.3.0)', () => {
 
     const entries = readGateLog(home);
     assert.equal(entries.length, 1);
-    assert.equal(entries[0].decision, 'approved-autofix');
+    assert.equal(entries[0].decision, 'requested-autofix');
     assert.equal(entries[0].toolName, 'Write');
     assert.equal(entries[0].sessionId, 'test-session-autofix-log');
   });
@@ -220,7 +220,7 @@ describe('permission-gate: approved-autofix telemetry (v7.3.0)', () => {
     assert.equal(entries[0].decision, 'rejected-autofix');
   });
 
-  it('a normal (non-autofix) approval still logs the generic "approved" decision, unchanged', () => {
+  it('a normal (non-autofix) pass-through logs "requested", never "approved"', () => {
     const home = makeHome();
     runGate(
       {
@@ -233,7 +233,7 @@ describe('permission-gate: approved-autofix telemetry (v7.3.0)', () => {
 
     const entries = readGateLog(home);
     assert.equal(entries.length, 1);
-    assert.equal(entries[0].decision, 'approved');
+    assert.equal(entries[0].decision, 'requested');
   });
 });
 
@@ -293,28 +293,99 @@ describe('permission-gate: missing payload → fail open', () => {
 // Case 5: Dangerous operation → always reject
 // ============================================================================
 describe('permission-gate: dangerous operations → always reject', () => {
-  it('denies Bash rm -rf command (exit 0 + deny decision)', () => {
-    const r = runGate({
-      tool_name: 'Bash',
-      tool_input: { command: 'rm -rf /tmp/project' },
-      session_id: 'test-session-dangerous-001',
-    });
-    assert.equal(r.exitCode, 0, `Deny must exit 0 (stdout on exit 1 is discarded), got ${r.exitCode}`);
-    const decision = r.parsed?.hookSpecificOutput?.decision;
-    assert.equal(decision?.behavior, 'deny', 'rm -rf must be denied');
-    assert.ok(
-      decision?.message?.includes('dangerous') || decision?.message?.includes('Dangerous'),
-      `deny message should indicate danger. Got: ${decision?.message}`
-    );
+  it('denies rm -rf on the filesystem root or home (exit 0 + deny decision)', () => {
+    for (const command of ['rm -rf /', 'rm -rf ~', 'sudo rm -rf / --no-preserve-root', 'rm -rf "$HOME"', 'rm -rf /*',
+      '/bin/rm -rf /', '/usr/bin/rm -rf ~', 'rm -rf build ~', 'rm -rf ./tmp "$HOME"', 'rm -r -f -- node_modules /',
+      'cd x && rm -rf ~', 'bash -c "rm -rf /"', 'FOO=1 sudo -E rm -rf /', 'echo hi | xargs rm -rf ~', 'x=$(rm -rf /)',
+      'cd /tmp\nrm -rf /', 'echo start\nrm -rf ~', 'if x; then rm -rf ~; fi', 'for d in a; do rm -rf /; done', '! rm -rf ~',
+      'sudo -u root rm -rf /', 'nice -n 10 rm -rf ~', 'timeout 5 rm -rf ~', 'eval rm -rf ~', 'eval "rm -rf ~"', 'watch rm -rf ~',
+      'rm -rf ~>/dev/null', 'rm -rf /<input', 'rm -rf "$HOME">log',
+      'rm -rf "a&b" ~', "rm -rf 'a;b' ~", 'rm -rf "a|b" /', 'rm -rf a\\&b ~', './rm -rf ~', 'bin/rm -rf /',
+      'rm -rf build 2>&1 ~', 'rm -rf 2>&1 ~', 'rm -rf &>/dev/null ~', 'rm -rf ~//', 'rm -rf ~/./', 'rm -rf //', 'rm -rf /./',
+      'rm -rf ~/..', 'rm -rf /..', 'rm -rf ~/.', 'rm -rf ~/../me', 'rm -rf ~/x/../*', 'rm -rf /tmp/../*', 'rm -rf "$HOME"/a/..',
+      'rm -rf ~/"Arts & Crafts"/..', 'rm -rf "$HOME"/"Arts & Crafts"/../*', 'rm -rf ~/Arts\\ \\&\\ Crafts/..', 'rm -rf /../tmp/x', 'rm -rf ~/../*',
+      'rm -rf "$HOME/Arts & Crafts/.."', 'rm -rf "$HOME/Arts & Crafts/../fixture.txt"', 'rm -rf "$HOME/Arts & Crafts"/..',
+      'rm -rf "$HOME/Arts & Crafts"/../*', "rm -rf '/tmp/a b/../..'", 'rm -rf "/tmp/a & b/../.."', 'rm -rf "$HOME/.."',
+      'rm -rf ~/"Arts & Crafts/.."', 'rm -rf ~/"Arts & Crafts/.."/*', 'rm -rf $HOME/"Arts & Crafts/.."', "rm -rf ~/'Arts & Crafts/..'",
+      'rm -rf /tmp/"a & b/../.."', 'rm -rf ~/"a|b/.."', 'rm -rf /tmp/"a (b)/../.."']) {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'test-session-dangerous-001' });
+      assert.equal(r.exitCode, 0, `Deny must exit 0 (stdout on exit 1 is discarded), got ${r.exitCode}`);
+      const decision = r.parsed?.hookSpecificOutput?.decision;
+      assert.equal(decision?.behavior, 'deny', `${command} must be denied`);
+      assert.match(decision?.message || '', /[Dd]angerous/);
+    }
   });
 
-  it('denies git reset --hard', () => {
-    const r = runGate({
-      tool_name: 'Bash',
-      tool_input: { command: 'git reset --hard HEAD~3' },
-    });
-    assert.equal(r.exitCode, 0);
+  it('denies rm on the home directory written out in full, but not on a folder inside it', () => {
+    const home = '/home/gate-test.user';
+    for (const command of [`rm -rf ${home}/"Arts & Crafts"/..`, `rm -rf ${home}/x/../*`, `rm -rf ${home}`, `rm -rf ${home}/`, `/bin/rm -r build ${home}/*`, `rm -rf ${home}//`, `rm -rf ${home}/./`]) {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'home-literal' }, { HOME: home });
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny', `${command} must be denied`);
+    }
+    for (const command of [`rm -rf ${home}/project`, `rm -rf ${home}x`, 'rm -rf /home/gate-testXuser',
+      'rm -rf x && cd ~', 'rm -rf x; cd /', 'rm -rf ~/proj', 'rm -rf node_modules', 'rm -rf dist/ out/',
+      'rm -rf ~/.config/x', 'rm -rf ~/.cache', 'rm -rf /.hidden', 'rm -rf build 2>&1', 'rm -rf ./dist >/dev/null 2>&1', 'rm -rf ../build', 'rm -rf ~/..foo', 'rm -rf /tmp/a..b',
+      'rm -rf "$HOME/Arts & Crafts/old"', 'rm -rf "/tmp/a & b"', "rm -rf '/tmp/x..y'",
+      'rm -rf ~/"Arts & Crafts/x"', 'rm -rf ./"a & b/.."', 'rm -rf "a & b"; ls ..']) {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'home-literal' }, { HOME: home });
+      assert.notEqual(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny', `${command} must not be hard-denied`);
+    }
+  });
+
+  it('denies rm with more than 64 operands, and stays fast on a long slash path', () => {
+    const many = 'rm -rf ' + Array.from({ length: 70 }, (_, i) => 'f' + i).join(' ') + ' ~';
+    assert.equal(runGate({ tool_name: 'Bash', tool_input: { command: many }, session_id: 'many' }).parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+    const t = Date.now();
+    const r = runGate({ tool_name: 'Bash', tool_input: { command: '/a'.repeat(60000) + '; rm -rf ~' }, session_id: 'long' });
     assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+    assert.ok(Date.now() - t < 4000, 'long input decided well inside the 5 s hook timeout, took ' + (Date.now() - t) + ' ms');
+  });
+
+  it('stays fast on many .. segments followed by an unclosed quote or backslash', () => {
+    for (const command of [
+      'rm -rf ' + '/..'.repeat(60000) + '"x',
+      'rm -rf ' + '/..'.repeat(60000) + '\\',
+      'rm -rf "' + '/..'.repeat(60000),
+      "rm -rf '/x'" + '/..'.repeat(60000) + "'x",
+    ]) {
+      const t = Date.now();
+      const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'dotdot-long' });
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+      assert.ok(Date.now() - t < 2000, 'decided quickly, took ' + (Date.now() - t) + ' ms');
+    }
+  });
+
+  // Audit #27: neither the denial reason nor the log may carry the command text.
+  it('logs the rule id, tool and program name only, and never echoes the command', () => {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-gate-secret-'));
+    try {
+      const command = 'DB_PASSWORD=hunter2hunter2 rm -rf / --token sk-live-ABCDEFGHIJKLMNOP';
+      const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'secret-session' },
+        { HOME: home, USERPROFILE: home, CCC_TELEMETRY: '0', MCP_DISABLED: '1' });
+      const decision = r.parsed?.hookSpecificOutput?.decision;
+      assert.equal(decision?.behavior, 'deny');
+      assert.match(decision.message, /rule rm-root-or-home/);
+      for (const leak of ['hunter2', 'sk-live', 'DB_PASSWORD']) assert.ok(!r.stdout.includes(leak), `denial must not echo ${leak}`);
+      const log = path.join(home, '.claude', 'commander', 'analytics', 'permission-gate.jsonl');
+      const text = fs.readFileSync(log, 'utf8');
+      for (const leak of ['hunter2', 'sk-live', 'DB_PASSWORD']) assert.ok(!text.includes(leak), `log must not contain ${leak}`);
+      const row = JSON.parse(text.trim().split('\n').pop());
+      assert.equal(row.decision, 'rejected-dangerous');
+      assert.equal(row.toolName, 'Bash');
+      assert.equal(row.rule, 'rm-root-or-home');
+      assert.equal(row.commandHead, 'rm');
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  // Audit P0 (2026-11-18): routine deletes go to the user's own prompt instead of a hard deny
+  it('returns no decision for routine destructive commands so the user decides', () => {
+    for (const command of ['rm -rf /tmp/project', 'rm -rf node_modules && npm ci', 'rm -f build/tmp.log', 'git reset --hard HEAD~3', 'git clean -fd', 'git commit -m "drop rm -rf usage"']) {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.deepEqual(r.parsed, {}, `${command} must return an empty decision, got ${r.stdout}`);
+    }
   });
 
   it('denies git push --force', () => {
@@ -461,8 +532,9 @@ describe('permission-gate: always outputs valid JSON', () => {
       assert.ok(r.parsed !== null, `Payload ${i + 1} should produce parseable JSON. Got: ${r.stdout}`);
       const isApprove = typeof r.parsed.continue === 'boolean';
       const isDeny = r.parsed.hookSpecificOutput?.decision?.behavior === 'deny';
+      const isDeferred = Object.keys(r.parsed).length === 0;
       assert.ok(
-        isApprove || isDeny,
+        isApprove || isDeny || isDeferred,
         `output must be an approve (boolean continue) or a deny decision. Got: ${JSON.stringify(r.parsed)}`
       );
     });

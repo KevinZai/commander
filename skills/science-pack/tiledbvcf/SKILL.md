@@ -284,6 +284,13 @@ controls, and deployment obligations require the current account/service terms.
 - [TileDB Cloud client release](https://pypi.org/project/tiledb-cloud/0.14.4/)
 - [Verification details and known release issues](references/verification.md)
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

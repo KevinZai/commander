@@ -139,6 +139,13 @@ and their own checks; do not relabel this helper's result as one of them.
 - [Upstream ignition example](https://cantera.org/stable/examples/python/reactors/non_ideal_shock_tube.html)
   uses a species mass-fraction peak; its delay definition differs from this helper's dT/dt peak.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

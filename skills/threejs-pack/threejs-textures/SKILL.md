@@ -499,6 +499,13 @@ mesh.visible = true;
 - `threejs-lighting` — environment lighting and light units.
 - `threejs-asset-pipeline` — encoding a model's textures to KTX2, WebP or AVIF with gltf-transform.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another Three.js skill: back to the `threejs-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: https://github.com/CloudAI-X/threejs-skills

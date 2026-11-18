@@ -160,6 +160,13 @@ search/lookup returned a legacy-schema record, not a V4 fixture. Paid
 authentication, filtered search behavior, and host-specific configuration were
 not tested.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

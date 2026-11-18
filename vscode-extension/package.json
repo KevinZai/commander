@@ -105,8 +105,10 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "gen:skills": "node scripts/generate-skills.js",
+    "check:skills": "node scripts/generate-skills.js --check",
     "pretest": "npm run compile",
-    "test": "node ./out/test/runTest.js",
+    "test": "node --test test/smoke.test.js",
     "lint": "tsc --noEmit"
   },
   "devDependencies": {
