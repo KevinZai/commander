@@ -29,7 +29,7 @@ description: "Optional pack of 13 MIT-licensed Three.js skills: scene setup, geo
 
 1. Identify the task from the table; read that sub-skill's `SKILL.md` and follow its examples.
 2. Chain neighbours when needed: loaders then asset-pipeline for heavy models, materials then lighting then textures for look work, any visual feature then performance before shipping.
-3. For page-level design, motion or polish around the 3D canvas, route through `${CLAUDE_SKILL_DIR}/../ccc-design/SKILL.md`.
+3. For page-level design, motion or polish around the 3D canvas, route through `${CLAUDE_SKILL_DIR}/../ccc-design/SKILL.md` if that file exists. A standalone pack install may not have it: then say `ccc-design` is not installed and keep to the 3D sub-skills.
 
 ## Next step
 
