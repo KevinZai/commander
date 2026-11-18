@@ -215,26 +215,28 @@ This pattern catches wrong assumptions early and gives reviewers a clear map of 
 Before every commit:
 
 ```bash
-# 1. Ensure no secrets first (lists matching file names only — any output means review them).
-# CCC safety: scan before printing the patch, so a staged secret never lands in the transcript.
-# Any match stops here: review those files before going on.
-if git diff --staged -i -G'password|secret|api_key|token' --name-only | grep -q .; then
-  echo "stop: staged changes match a secret pattern; review the files above"; exit 1
-fi
-# Keyword search misses most credentials; run the redacting scanner on the staged tree too.
-gitleaks git --staged --redact --no-banner || { echo "stop: gitleaks finding"; exit 1; }
+# CCC safety: one errexit subshell, run on its own. Any failed step (git, the scanner,
+# tests, lint or the typecheck) stops the whole check with a nonzero exit.
+( set -euo pipefail
+  cd "$(git rev-parse --show-toplevel)"   # fails outside a repository
 
-# 2. Then check what you're about to commit (names and stats; open individual files only after step 1 is clean)
-git diff --staged --stat
+  # 1. Secrets first, before anything prints the patch. A git error stops here
+  #    instead of reading as "no matches".
+  matches=$(git diff --staged -i -G'password|secret|api_key|token' --name-only)
+  if [ -n "$matches" ]; then
+    printf '%s\n' "$matches"; echo "stop: staged files match a secret pattern; review them"; exit 1
+  fi
+  # Keyword search misses most credentials; the redacting scanner covers the staged tree.
+  gitleaks git --staged --redact --no-banner
 
-# 3. Run tests
-npm test
+  # 2. What you're about to commit (names and stats only)
+  git diff --staged --stat
 
-# 4. Run linting
-npm run lint
-
-# 5. Run type checking (locked local TypeScript, no registry fetch)
-npx --no-install tsc --noEmit
+  # 3-5. Tests, lint, and the project's own locked TypeScript (no registry or global fallback)
+  npm test
+  npm run lint
+  ./node_modules/.bin/tsc --noEmit
+)
 ```
 
 Automate this with git hooks:

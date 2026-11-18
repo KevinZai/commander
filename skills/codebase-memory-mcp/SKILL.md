@@ -17,8 +17,9 @@ macOS and Linux:
 ( set -euo pipefail
   f=$(mktemp); trap 'rm -f "$f"' EXIT
   curl -fsSL --proto '=https' -o "$f" https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/v0.9.0/install.sh
-  # SHA-256 of that installer, reviewed 2026-11-18 (macOS: shasum -a 256 -c -)
-  echo "90ef82a3da3336ddc2c3851ad56822067b161856f24cd88cbd405fe423af6a66  $f" | sha256sum -c -
+  # SHA-256 of that installer, reviewed 2026-11-18. Linux has sha256sum; macOS has shasum.
+  if command -v sha256sum >/dev/null; then sum() { sha256sum -c -; }; else sum() { shasum -a 256 -c -; }; fi
+  echo "90ef82a3da3336ddc2c3851ad56822067b161856f24cd88cbd405fe423af6a66  $f" | sum
   d="$HOME/.local/bin"
   CBM_DOWNLOAD_URL=https://github.com/DeusData/codebase-memory-mcp/releases/download/v0.9.0 bash "$f" --skip-config --dir="$d"
   "$d/codebase-memory-mcp" --version   # the binary this block just installed, not whatever is first on PATH
