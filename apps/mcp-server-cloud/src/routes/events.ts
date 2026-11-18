@@ -215,14 +215,61 @@ function validateEvent(raw: unknown): ValidationResult {
   };
 }
 
+// ─── Bounded body reader ────────────────────────────────────────────────────
+// Enforces MAX_PAYLOAD_BYTES on the raw byte stream BEFORE JSON.parse, so an
+// oversized body is never fully buffered or parsed. A Content-Length above the
+// limit is rejected without reading; otherwise reading stops (and the stream
+// is cancelled) as soon as the running byte count passes the limit.
+type BodyRead = { ok: true; text: string } | { ok: false; status: 400 | 413; error: string };
+
+export async function readBodyWithLimit(req: Request, maxBytes: number): Promise<BodyRead> {
+  const tooLarge = { ok: false as const, status: 413 as const, error: `Payload exceeds ${maxBytes} byte limit` };
+  const declared = req.headers.get("content-length");
+  if (declared !== null && /^\d+$/.test(declared) && Number(declared) > maxBytes) return tooLarge;
+  if (!req.body) return { ok: false, status: 400, error: "Invalid JSON body" };
+
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel().catch(() => undefined);
+        return tooLarge;
+      }
+      chunks.push(value);
+    }
+  } catch {
+    return { ok: false, status: 400, error: "Invalid JSON body" };
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return { ok: true, text: new TextDecoder("utf-8", { fatal: true }).decode(bytes) };
+  } catch {
+    return { ok: false, status: 400, error: "Invalid JSON body" };
+  }
+}
+
 // ─── Router ─────────────────────────────────────────────────────────────────
 export const eventsRouter = new Hono();
 
 eventsRouter.post("/", async (c) => {
-  // Parse JSON body
+  // Streaming byte limit first, then parse.
+  const raw = await readBodyWithLimit(c.req.raw, MAX_PAYLOAD_BYTES);
+  if (!raw.ok) {
+    return c.json({ error: raw.error }, raw.status);
+  }
   let body: unknown;
   try {
-    body = await c.req.json();
+    body = JSON.parse(raw.text);
   } catch {
     return c.json({ error: "Invalid JSON body" }, 400);
   }
@@ -248,8 +295,9 @@ eventsRouter.post("/", async (c) => {
     );
   }
 
-  // Payload size cap
-  const payloadSize = JSON.stringify(body).length;
+  // Second, decoded-schema cap: UTF-8 bytes of the parsed value re-serialised
+  // (string length would undercount multibyte characters).
+  const payloadSize = Buffer.byteLength(JSON.stringify(body), "utf8");
   if (payloadSize > MAX_PAYLOAD_BYTES) {
     return c.json({ error: `Payload exceeds ${MAX_PAYLOAD_BYTES} byte limit` }, 413);
   }
@@ -321,6 +369,6 @@ eventsRouter.post("/", async (c) => {
 });
 
 // Exported for tests
-export { validateEvent, checkRateLimit, ALLOWED_EVENTS, scrubProperties, SCRUB_ALLOWLIST, SENSITIVE_PATTERN };
+export { MAX_PAYLOAD_BYTES, validateEvent, checkRateLimit, ALLOWED_EVENTS, scrubProperties, SCRUB_ALLOWLIST, SENSITIVE_PATTERN };
 // Read by the /metrics handler in index.ts.
 export { getTelemetryCounters };

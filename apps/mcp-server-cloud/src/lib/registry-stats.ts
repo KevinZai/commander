@@ -7,7 +7,7 @@ import { existsSync } from "node:fs";
 import { readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getRegistryState } from "./registry.js";
+import { getCatalogHealth, getRegistryState } from "./registry.js";
 import { TOOL_NAMES } from "../tools/index.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../");
@@ -37,14 +37,20 @@ export function getToolCount(): number {
 }
 
 export function getEcosystemSkillCount(): number {
-  // Skills tracked in commander/core/registry.yaml — the broad CCC catalog.
-  return getRegistryState().skillsLoaded;
+  // Registry rows with `source: ecosystem` (the CLI toolkit catalog); plugin
+  // rows are counted separately so the two bases are never summed by accident.
+  return getCatalogHealth().ecosystemSkills;
 }
 
 export function getPluginSkillCount(): number {
   if (cachedPluginSkills !== null) return cachedPluginSkills;
-  cachedPluginSkills = countMarkdownDirs(PLUGIN_SKILLS_DIR);
-  return cachedPluginSkills;
+  // The image has no plugin source tree; the baked catalog carries the count.
+  const scanned = countMarkdownDirs(PLUGIN_SKILLS_DIR);
+  if (scanned > 0) {
+    cachedPluginSkills = scanned;
+    return scanned;
+  }
+  return getCatalogHealth().pluginSkills;
 }
 
 export function getAgentCount(): number {

@@ -7,7 +7,7 @@ import { logger as honoLogger } from "hono/logger";
 import { cors } from "hono/cors";
 import { env } from "./lib/env.js";
 import { logger } from "./lib/logger.js";
-import { initRegistry, getRegistryState } from "./lib/registry.js";
+import { initRegistry, getRegistryState, getCatalogHealth } from "./lib/registry.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { rateLimitMiddleware } from "./middleware/ratelimit.js";
 import {
@@ -81,16 +81,36 @@ app.use(
 );
 
 // ─── Health check (no auth) ────────────────────────────────────────────────
+// Readiness, not liveness: 503 when the catalog is empty (zero skills or zero
+// agents), has no local source, or a listed skill body is unreadable, so Fly
+// and the Docker HEALTHCHECK refuse an image that would serve hints instead of
+// content. `catalog.counting_basis` says what `skills_loaded` counts.
 app.get("/health", (c) => {
   const reg = getRegistryState();
-  return c.json({
-    status: "ok",
-    version: SERVER_VERSION,
-    skills_loaded: reg.skillsLoaded,
-    agents_loaded: reg.agentsLoaded,
-    uptime_seconds: reg.uptimeSeconds,
-    last_refreshed: reg.lastRefreshed,
-  });
+  const catalog = getCatalogHealth();
+  return c.json(
+    {
+      status: catalog.ok ? "ok" : "unavailable",
+      version: SERVER_VERSION,
+      skills_loaded: catalog.skillsLoaded,
+      agents_loaded: catalog.agentsLoaded,
+      uptime_seconds: reg.uptimeSeconds,
+      last_refreshed: reg.lastRefreshed,
+      catalog: {
+        counting_basis: "hosted_catalog",
+        counting_note:
+          "skills_loaded counts every skill row in the hosted catalog (commander/core/registry.yaml `skills:`) = plugin_skills (commander/cowork-plugin/skills) + ecosystem_skills (the CLI toolkit's skills/).",
+        source: catalog.source,
+        release: catalog.release,
+        git_commit: catalog.gitCommit,
+        plugin_skills: catalog.pluginSkills,
+        ecosystem_skills: catalog.ecosystemSkills,
+        skills_missing_content: catalog.skillsMissingContent,
+        problems: catalog.problems,
+      },
+    },
+    catalog.ok ? 200 : 503
+  );
 });
 
 // ─── OpenAI Apps SDK domain verification (no auth) ─────────────────────────
@@ -303,7 +323,9 @@ mcp.post("/call", async (c) => {
 
   const reqId = c.get("reqId");
   // PRIVACY: `args` are NOT logged here and NOT sent to any third party at any point in this
-  // handler. Tool inputs are processed transiently, server-side, and are NOT stored or retained.
+  // handler. Tool inputs are processed transiently and NOT retained, with one disclosed
+  // exception: commander_notes_pin stores the note text (see tools/notes-pin.ts for the
+  // retention window and the delete action).
   logger.info({ userId: auth.userId, tool, reqId }, "Tool call");
   const t0 = Date.now();
 

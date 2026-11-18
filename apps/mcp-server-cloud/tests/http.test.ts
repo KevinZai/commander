@@ -395,7 +395,8 @@ function assertAnnotatedCatalog(tools: Array<Record<string, unknown>>) {
     assert.equal(tool.description, TOOL_SCHEMAS[name].description);
     assert.deepEqual(tool.inputSchema, TOOL_SCHEMAS[name].inputSchema);
     assert.equal(annotations.readOnlyHint, READ_ONLY_TOOLS.includes(name), name);
-    assert.equal(annotations.destructiveHint, false, name);
+    // notes_pin's action "delete" removes the caller's stored notes.
+    assert.equal(annotations.destructiveHint, name === "commander_notes_pin", name);
     assert.equal(annotations.idempotentHint, name !== "commander_notes_pin", name);
     assert.equal(annotations.openWorldHint, OPEN_WORLD_TOOLS.includes(name), name);
   }
@@ -431,8 +432,14 @@ function mockCatalogBackends(t: TestContext, callsUsed = 0, burstRemaining = 59)
     };
     return query;
   });
-  t.mock.method(db, "rpc", async (name: string) => {
+  let used = callsUsed;
+  t.mock.method(db, "rpc", async (name: string, args?: { p_cap?: number }) => {
     rpcCalls.push(name);
+    if (name === "reserve_call") {
+      const allowed = used < (args?.p_cap ?? 0);
+      if (allowed) used++;
+      return { data: [{ allowed, calls_used: used }], error: null };
+    }
     return { data: name === "get_effective_cap" ? 1000 : null, error: null };
   });
   return { tables, rpcCalls };
@@ -466,13 +473,13 @@ describe("tool annotations and JSON-RPC discovery", () => {
     for (const id of ["catalog-1", 0]) {
       const response = await fetchApp("/v1/call", rpcRequest({ jsonrpc: "2.0", id, method: "tools/list" }));
       assert.equal(response.status, 200);
-      assert.equal(response.headers.get("x-commander-calls-cap"), "1000");
+      assert.equal(response.headers.get("x-commander-calls-cap"), null, "protocol requests are not billed");
       const body = await response.json();
       assert.deepEqual(body, { jsonrpc: "2.0", id, result: { tools: discovery.tools } });
       assertAnnotatedCatalog(body.result.tools);
     }
     assert.ok(tables.includes("users"), "auth must still query the user");
-    assert.ok(tables.includes("usage_counters"), "rate limiting must still check usage");
+    assert.ok(!tables.includes("usage_counters"), "tools/list must not touch quota storage");
   });
 
   it("tools/list still requires authentication", async () => {
@@ -480,10 +487,14 @@ describe("tool annotations and JSON-RPC discovery", () => {
     assert.equal(response.status, 401);
   });
 
-  it("tools/list still enforces the monthly quota", async (t) => {
+  it("the monthly quota applies to tools/call, not to tools/list", async (t) => {
     mockCatalogBackends(t, 1000);
-    const response = await fetchApp("/v1/call", rpcRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" }));
-    assert.equal(response.status, 429);
+    const list = await fetchApp("/v1/call", rpcRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" }));
+    assert.equal(list.status, 200);
+    const call = await fetchApp("/v1/call", rpcRequest({
+      jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "commander_list_skills", arguments: {} },
+    }));
+    assert.equal(call.status, 429);
   });
 
   it("tools/list still enforces burst protection", async (t) => {
@@ -494,19 +505,35 @@ describe("tool annotations and JSON-RPC discovery", () => {
     assert.match((await response.json()).error, /slow down/);
   });
 
-  it("tools/list still enforces the feedback gate", async (t) => {
+  it("a configured feedback gate applies to tools/call", async (t) => {
+    process.env.CCC_SURVEY_GATE = "1";
+    process.env.CCC_SURVEY_URL = "https://commanderplugin.com/survey";
+    t.after(() => {
+      delete process.env.CCC_SURVEY_GATE;
+      delete process.env.CCC_SURVEY_URL;
+    });
     const { tables } = mockCatalogBackends(t, 19);
-    const response = await fetchApp("/v1/call", rpcRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" }));
+    const response = await fetchApp("/v1/call", rpcRequest({
+      jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "commander_list_skills", arguments: {} },
+    }));
     assert.equal(response.status, 402);
-    assert.equal((await response.json()).error, "Survey required");
+    const body = await response.json();
+    assert.equal(body.error, "Survey required");
+    assert.equal(body.surveyUrl, "https://commanderplugin.com/survey");
     assert.ok(tables.includes("surveys"));
   });
 
-  it("tools/list retains usage accounting", async (t) => {
+  it("usage is reserved once per tools/call and never for tools/list", async (t) => {
     const { rpcCalls } = mockCatalogBackends(t);
-    const response = await fetchApp("/v1/call", rpcRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" }));
-    assert.equal(response.status, 200);
-    assert.equal(rpcCalls.filter((name) => name === "increment_usage").length, 1);
+    const list = await fetchApp("/v1/call", rpcRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" }));
+    assert.equal(list.status, 200);
+    assert.equal(rpcCalls.filter((name) => name === "reserve_call").length, 0);
+    const call = await fetchApp("/v1/call", rpcRequest({
+      jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "commander_list_skills", arguments: {} },
+    }));
+    assert.equal(call.status, 200);
+    assert.equal(call.headers.get("x-commander-calls-used"), "1");
+    assert.equal(rpcCalls.filter((name) => name === "reserve_call").length, 1);
   });
 
   it("tools/list rejects invalid params and request IDs", async (t) => {
@@ -569,22 +596,73 @@ describe("network-backed tool effects", () => {
     assert.deepEqual(requests.sort(), ["GET /rest/v1/usage_counters", "POST /rest/v1/rpc/get_effective_cap"]);
   });
 
-  it("notes_pin inserts a new remote note on each call without overwriting", async (t) => {
+  it("notes_pin inserts a new remote note on each call without overwriting, and discloses storage", async (t) => {
     const inserts: unknown[] = [];
+    const purges: string[] = [];
     t.mock.method(globalThis, "fetch", async (input: string | URL | Request, init?: RequestInit) => {
-      assert.equal(String(input), "https://test.supabase.co/rest/v1/feedback");
+      const url = new URL(String(input));
+      assert.equal(url.pathname, "/rest/v1/feedback");
+      if (init?.method === "DELETE") {
+        // Retention purge: only this user's notes older than the window.
+        assert.equal(url.searchParams.get("user_id"), `eq.${auth.userId}`);
+        assert.equal(url.searchParams.get("category"), "eq.note");
+        assert.match(url.searchParams.get("created_at") ?? "", /^lt\./);
+        purges.push(url.search);
+        return new Response(null, { status: 204 });
+      }
       assert.equal(init?.method, "POST");
       assert.doesNotMatch(new Headers(init?.headers).get("Prefer") ?? "", /resolution=/);
       inserts.push(JSON.parse(String(init?.body)));
-      return new Response(null, { status: 201 });
+      return Response.json([{ id: "11111111-1111-4111-8111-111111111111" }], { status: 201 });
     });
 
     for (let call = 0; call < 2; call += 1) {
-      const result = await dispatchTool("commander_notes_pin", { note: "Audit note" }, auth) as { pinned: boolean };
+      const result = await dispatchTool("commander_notes_pin", { note: "Audit note" }, auth) as {
+        pinned: boolean; note_id: string; retention_days: number; storage: string;
+      };
       assert.equal(result.pinned, true);
+      assert.equal(result.note_id, "11111111-1111-4111-8111-111111111111");
+      assert.equal(result.retention_days, 90);
+      assert.match(result.storage, /Stored server-side/);
+      assert.match(result.storage, /"action": "delete"/);
     }
     const expected = { user_id: auth.userId, category: "note", content: "Audit note", sentiment: "neutral" };
     assert.deepEqual(inserts, [expected, expected]);
+    assert.equal(purges.length, 2);
+  });
+
+  it("notes_pin action delete removes only the caller's notes (all, or one by id)", async (t) => {
+    const deletes: URLSearchParams[] = [];
+    t.mock.method(globalThis, "fetch", async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(String(input));
+      assert.equal(url.pathname, "/rest/v1/feedback");
+      assert.equal(init?.method, "DELETE");
+      if (!url.searchParams.has("created_at")) deletes.push(url.searchParams);
+      return new Response(null, { status: 204, headers: { "Content-Range": "*/3" } });
+    });
+
+    const all = await dispatchTool("commander_notes_pin", { action: "delete" }, auth) as { deleted: number; scope: string };
+    assert.deepEqual(all, { deleted: 3, scope: "all", message: "All of your pinned notes were deleted from the hosted store." });
+    const id = "22222222-2222-4222-8222-222222222222";
+    const one = await dispatchTool("commander_notes_pin", { action: "delete", note_id: id }, auth) as { scope: string };
+    assert.equal(one.scope, "one");
+    assert.equal(deletes.length, 2);
+    for (const params of deletes) {
+      assert.equal(params.get("user_id"), `eq.${auth.userId}`);
+      assert.equal(params.get("category"), "eq.note");
+    }
+    assert.equal(deletes[0].get("id"), null);
+    assert.equal(deletes[1].get("id"), `eq.${id}`);
+
+    const bad = await dispatchTool("commander_notes_pin", { action: "delete", note_id: "../x" }, auth) as Record<string, unknown>;
+    assert.ok("error" in bad || bad.ok === false);
+  });
+
+  it("the notes_pin tool description discloses persistence, retention and deletion", () => {
+    const description = TOOL_SCHEMAS.commander_notes_pin.description;
+    assert.match(description, /STORES your input/);
+    assert.match(description, /90 days/);
+    assert.match(description, /"action": "delete"/);
   });
 });
 
