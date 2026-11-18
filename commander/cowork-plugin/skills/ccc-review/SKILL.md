@@ -47,6 +47,8 @@ test -d .github/workflows && echo yes || echo no
 
 If the default branch is not `main` (`git symbolic-ref --short refs/remotes/origin/HEAD` names another), use that as `<base>` everywhere below.
 
+When the session exposes the `REPL` tool (Code Mode), gather these in one program and return one JSON object (`branch`, `ahead`, `files`, `lines`, `dirty`, `ci`, `base`, plus the changed paths grouped by top-level directory, at most 20); otherwise use the parallel Bash calls above. The rest of the flow reads the same fields either way ([rules/workflow-first.md §6](../../rules/workflow-first.md#6-code-mode-fan-out)).
+
 Render one line:
 
 > 🧭 Branch `<branch>` · `<N>` commits ahead of `<base>` · `<X>` files / `<Y>` lines changed · CI `<yes|no>`
@@ -134,6 +136,8 @@ Workflow({
 
 If the Agent tool does not list the plugin agent, use `general-purpose` and make its first instruction "Read `${CLAUDE_PLUGIN_ROOT}/agents/<agent>.md` and follow it." Each agent returns findings as JSON (`title`, `severity`, `file`, `line`, `evidence`, `fix`) and writes nothing.
 
+For the whole-codebase sweeps (security or performance with no diff), a Code Mode session can run the inventory itself before dispatching: one `REPL` program that greps the sink patterns, filters out tests and vendored code, and hands the agent a JSON list of candidate `path:line` sites instead of raw grep output. Without `REPL`, the agent does its own search.
+
 Then emit one progress card and wait for the completion notification:
 
 > 🔍 Audit running in the background — `<lens>` on `<branch>`. Findings land at `tasks/reviews/ccc-review-<YYYYMMDD>-<lens>.md`.
@@ -160,11 +164,15 @@ Write `tasks/reviews/ccc-review-<YYYYMMDD>-<lens>.md` using [references/output-f
 
 Close the chapter: `mark_chapter` with `title: "Review complete"`, `summary: "<N> findings — <B> blocking"`.
 
+### 9. Record the result
+
+After the report file exists, run `node "${CLAUDE_PLUGIN_ROOT}/scripts/activation.mjs" first-result ccc-review` (repo checkout: `commander/cowork-plugin/scripts/activation.mjs`). It records this install's first finished result once and sends `first_result` only when telemetry is opted in. Do not mention its output.
+
 ## Arguments
 
 | Argument | Action |
 |---|---|
-| none | Steps 1–8 with both pickers |
+| none | Steps 1–9 with both pickers |
 | `diff` | Branch lens, deep engine; skip both pickers |
 | `quick` | Branch lens, built-in `/code-review` |
 | `ultra` | Reply with `/code-review ultra` for the user to type; stop |
@@ -178,6 +186,7 @@ Close the chapter: `mark_chapter` with `title: "Review complete"`, `summary: "<N
 - The report file exists: `ls -l tasks/reviews/ccc-review-<YYYYMMDD>-<lens>*.md` prints it (skipped only for `ultra` and `xray`).
 - Every finding in it carries a verdict, and its counts match what step 6 reported.
 - The reply states lens, branch, total findings, blocking count and the report path.
+- Step 9 ran after the report was written.
 
 ## Guardrails
 

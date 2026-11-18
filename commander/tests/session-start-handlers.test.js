@@ -12,11 +12,53 @@ const { pathToFileURL } = require('node:url');
 const HOOKS = path.join(__dirname, '..', 'cowork-plugin', 'hooks');
 const load = (f) => import(pathToFileURL(path.join(HOOKS, f)).href);
 
-test('fable-armed-nudge: run() emits the user-visible reminder', async () => {
+// Codex audit #37: the line reports the persisted fableMethod flag, never a blanket "armed".
+const fableHome = (state) => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-fable-'));
+  if (state !== undefined) {
+    fs.mkdirSync(path.join(home, '.claude', 'commander'), { recursive: true });
+    fs.writeFileSync(path.join(home, '.claude', 'commander', 'state.json'), typeof state === 'string' ? state : JSON.stringify(state));
+  }
+  return home;
+};
+
+test('fable-armed-nudge: no state.json reports not armed', async () => {
   const { run } = await load('fable-armed-nudge.js');
-  const r = await run({ env: {} });
+  const r = await run({ env: { HOME: fableHome() } });
   assert.equal(r.continue, true);
-  assert.match(r.systemMessage, /Commander Method armed/);
+  assert.match(r.systemMessage, /Commander Method: not armed/);
+  assert.doesNotMatch(r.systemMessage, /armed:|Method armed/);
+});
+
+test('fable-armed-nudge: stored on flag says so, and that it is not yet applied this session', async () => {
+  const { run } = await load('fable-armed-nudge.js');
+  const r = await run({ env: { HOME: fableHome({ other: 1, fableMethod: { armed: true, since: '2026-11-01T10:00:00.000Z' } }) } });
+  assert.match(r.systemMessage, /flag: on since 2026-11-01/);
+  assert.match(r.systemMessage, /not yet applied this session/);
+  assert.match(r.systemMessage, /\/ccc-fable audit/);
+});
+
+test('fable-armed-nudge: disarmed flag reports off', async () => {
+  const { run } = await load('fable-armed-nudge.js');
+  const r = await run({ env: { HOME: fableHome({ fableMethod: { armed: false, since: '2026-11-02T10:00:00.000Z' } }) } });
+  assert.match(r.systemMessage, /Commander Method: off since 2026-11-02/);
+  assert.doesNotMatch(r.systemMessage, /flag: on/);
+});
+
+test('fable-armed-nudge: unreadable state.json is reported as unknown', async () => {
+  const { run } = await load('fable-armed-nudge.js');
+  const r = await run({ env: { HOME: fableHome('{ not json') } });
+  assert.match(r.systemMessage, /armed state unknown/);
+});
+
+test('fable-armed-nudge: reads the lane state dir first (CCC_CONFIG_DIR)', async () => {
+  const { run } = await load('fable-armed-nudge.js');
+  const home = fableHome({ fableMethod: { armed: false } });
+  const lane = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-fable-lane-'));
+  fs.mkdirSync(path.join(lane, 'commander'), { recursive: true });
+  fs.writeFileSync(path.join(lane, 'commander', 'state.json'), JSON.stringify({ fableMethod: { armed: true } }));
+  const r = await run({ env: { HOME: home, CCC_CONFIG_DIR: lane } });
+  assert.match(r.systemMessage, /flag: on/);
 });
 
 test('fable-armed-nudge: CCC_FABLE_NUDGE_DISABLE=1 silences it', async () => {

@@ -29,6 +29,13 @@ Check first: if `claude plugin list` already shows `watch`, skip the install.
 - Works in Claude Code (Desktop Code tab, VS Code, terminal) and Codex. It does **not** run in Claude Chat or Cowork, so the Desktop plugin should offer it only in a Code session.
 - Needs `ffmpeg` and `yt-dlp` locally. Transcription without captions uses a local model or the user's own Groq or OpenAI key; never supply one for them.
 
+## Next step
+
+- 🟢 Install: walks through the reviewed install steps above, with your OK
+- Check consent: confirms which backend the video goes to before any upload
+- Pick another skill: `/ccc-suggest` recommends one
+- Done: you continue manually
+
 ## License
 
 MIT, see the upstream repository.

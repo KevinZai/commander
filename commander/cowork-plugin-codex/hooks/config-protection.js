@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * config-protection.js
- * Hook: PreToolUse (Edit/Write/MultiEdit) + ConfigChange
+ * Hook: PreToolUse (Edit/Write/MultiEdit; Codex apply_patch) + ConfigChange
  * PreToolUse: blocks modifications to linter/formatter config files. Agents
  * frequently modify these to make checks pass instead of fixing the actual
  * code. This hook steers the agent back to fixing the source.
@@ -14,6 +14,7 @@
 import { track } from '../lib/telemetry.mjs';
 import { emitUser, emitSilent, emitDeny } from './lib/emit.mjs';
 import path from 'node:path';
+import { editTargets, isFileEditTool } from './lib/edit-targets.mjs';
 
 const PROTECTED_FILES = new Set([
   // ESLint
@@ -87,19 +88,16 @@ async function main() {
     }
 
     const toolName = input.tool_name || input.toolName || '';
-    if (!['Edit', 'Write', 'MultiEdit'].includes(toolName)) {
+    if (!isFileEditTool(toolName)) {
       process.stdout.write(JSON.stringify({ continue: true }) + '\n');
       return;
     }
 
-    const filePath = input.tool_input?.file_path || input.tool_input?.file || '';
-    if (!filePath) {
-      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-      return;
-    }
-
-    const basename = path.basename(filePath);
-    if (PROTECTED_FILES.has(basename)) {
+    // Every file the call writes: one for a Claude edit, one per file op (and rename target) for a Codex patch.
+    const basename = editTargets(input)
+      .map((target) => path.basename(target.path))
+      .find((name) => PROTECTED_FILES.has(name));
+    if (basename) {
       const stopReason = `CCC CONFIG GUARD: Modifying ${basename} is blocked. ` +
         `Fix the source code to satisfy linter/formatter rules instead of weakening ` +
         `the config. If this is a legitimate config change, disable the ` +

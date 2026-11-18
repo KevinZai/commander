@@ -93,7 +93,7 @@ const query = `
 
 ```bash
 # Create new Hydrogen project
-npm create @shopify/hydrogen@latest -- --template demo-store
+npm create @shopify/hydrogen@5.0.40 -- --template demo-store
 
 # Project structure
 hydrogen-storefront/

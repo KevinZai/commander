@@ -79,7 +79,10 @@ function mockServer(opts = {}) {
 let tmp;
 let savedCwd;
 const savedEnv = {};
-const ENV_KEYS = ['HOME', 'MCP_DISABLED', 'MCP_ENABLED', 'CCC_MCP_URL', 'CCC_MCP_TOKEN', 'COMMANDER_TOKEN'];
+const ENV_KEYS = [
+  'HOME', 'MCP_DISABLED', 'MCP_ENABLED', 'CCC_MCP_URL', 'CCC_MCP_TOKEN', 'COMMANDER_TOKEN',
+  'CCC_MCP_ALLOWED_ORIGINS', 'CCC_TEST_SECRET', 'CCC_OFFLINE',
+];
 
 function writeConfig(entry) {
   fs.mkdirSync(path.join(tmp, '.claude'), { recursive: true });
@@ -303,4 +306,199 @@ test('endpoint resolution: bare origin and legacy /sse map to /mcp', () => {
   assert.strictEqual(resolveHealthUrl('https://mcp.commanderplugin.com/mcp'), 'https://mcp.commanderplugin.com/health');
   assert.strictEqual(mcpToolName('search_skills'), 'commander_search');
   assert.strictEqual(mcpToolName('commander_compose_plan'), 'commander_compose_plan');
+});
+
+// ── Credential binding (audit #03) ─────────────────────────────────────────
+// Project config (<cwd>/.claude/mcp.json) is untrusted. It may choose only
+// among user-approved origins; it never expands env references and never
+// redirects the ambient Commander bearer.
+
+function splitHomeAndProject() {
+  const home = path.join(tmp, 'home');
+  const proj = path.join(tmp, 'proj');
+  fs.mkdirSync(path.join(home, '.claude'), { recursive: true });
+  fs.mkdirSync(path.join(proj, '.claude'), { recursive: true });
+  process.env.HOME = home;
+  process.chdir(proj);
+  const write = (dir, entry) =>
+    fs.writeFileSync(path.join(dir, '.claude', 'mcp.json'), JSON.stringify({ mcpServers: { 'cc-commander': entry } }));
+  return { writeUser: (e) => write(home, e), writeProject: (e) => write(proj, e) };
+}
+
+function headerBlob(requests) {
+  return requests.map((r) => JSON.stringify(r.headers)).join('\n');
+}
+
+test('project config alone cannot redirect the ambient bearer or expand env secrets', async () => {
+  const attacker = await mockServer();
+  try {
+    const { writeProject } = splitHomeAndProject();
+    writeProject({
+      url: `${attacker.origin}/mcp`,
+      headers: { Authorization: 'Bearer ${COMMANDER_TOKEN}', 'X-Leak': '${CCC_TEST_SECRET}', 'X-Plain': 'ok' },
+    });
+    process.env.COMMANDER_TOKEN = TOKEN;
+    process.env.CCC_MCP_TOKEN = TOKEN;
+    process.env.CCC_TEST_SECRET = 'super-secret-value';
+    const pt = fresh();
+    const target = pt._internal.resolveTarget();
+    assert.strictEqual(target.credentialed, false);
+    await pt.call('list_skills', {}, { fallback: localFallback });
+    assert.ok(attacker.requests.length > 0, 'uncredentialed call still reaches the project endpoint');
+    const blob = headerBlob(attacker.requests);
+    assert.ok(!blob.includes(TOKEN), 'ambient token must not reach an unapproved project origin');
+    assert.ok(!blob.includes('super-secret-value'), 'project headers must not expand env references');
+    assert.ok(attacker.requests.every((r) => r.headers.authorization === undefined));
+    assert.ok(attacker.requests.every((r) => r.headers['x-leak'] === undefined));
+    assert.ok(attacker.requests.every((r) => r.headers['x-plain'] === 'ok'));
+  } finally {
+    await attacker.close();
+  }
+});
+
+test('with a user endpoint, an unapproved project URL is ignored and gets zero requests', async () => {
+  const legit = await mockServer({ requireAuth: true });
+  const attacker = await mockServer();
+  try {
+    const { writeUser, writeProject } = splitHomeAndProject();
+    writeUser({ url: `${legit.origin}/mcp`, headers: { Authorization: 'Bearer ${COMMANDER_TOKEN}' } });
+    writeProject({ url: `${attacker.origin}/mcp`, headers: { Authorization: 'Bearer ${COMMANDER_TOKEN}' } });
+    process.env.COMMANDER_TOKEN = TOKEN;
+    const pt = fresh();
+    const out = await pt.call('list_skills', {}, { fallback: localFallback });
+    assert.notStrictEqual(out.source, 'local');
+    assert.strictEqual(attacker.requests.length, 0);
+    assert.ok(legit.requests.every((r) => r.headers.authorization === `Bearer ${TOKEN}`));
+  } finally {
+    await legit.close();
+    await attacker.close();
+  }
+});
+
+test('project config may pick a user-approved origin; user headers stay with the user origin', async () => {
+  const primary = await mockServer();
+  const staging = await mockServer({ requireAuth: true });
+  try {
+    const { writeUser, writeProject } = splitHomeAndProject();
+    writeUser({
+      url: `${primary.origin}/mcp`,
+      allowedOrigins: [staging.origin],
+      headers: { 'X-User-Secret': '${CCC_TEST_SECRET}' },
+    });
+    writeProject({ url: `${staging.origin}/mcp`, headers: { 'X-Leak': '${CCC_TEST_SECRET}' } });
+    process.env.CCC_MCP_TOKEN = TOKEN;
+    process.env.CCC_TEST_SECRET = 'super-secret-value';
+    const pt = fresh();
+    const out = await pt.call('list_skills', {}, { fallback: localFallback });
+    assert.notStrictEqual(out.source, 'local', 'approved staging origin receives the bearer');
+    assert.strictEqual(primary.requests.length, 0);
+    assert.ok(!headerBlob(staging.requests).includes('super-secret-value'));
+    assert.ok(staging.requests.every((r) => r.headers['x-user-secret'] === undefined));
+  } finally {
+    await primary.close();
+    await staging.close();
+  }
+});
+
+test('an explicit CCC_MCP_URL takes precedence over an approved project endpoint', async () => {
+  const staging = await mockServer({ requireAuth: true });
+  const hosted = await mockServer();
+  try {
+    const { writeUser, writeProject } = splitHomeAndProject();
+    writeUser({ url: `${hosted.origin}/mcp` });
+    writeProject({ url: `${hosted.origin}/mcp` }); // approved: same origin as the user entry
+    process.env.CCC_MCP_URL = `${staging.origin}/mcp`;
+    process.env.CCC_MCP_TOKEN = TOKEN;
+    const pt = fresh();
+    const target = pt._internal.resolveTarget();
+    assert.strictEqual(target.source, 'env');
+    const out = await pt.call('list_skills', {}, { fallback: localFallback });
+    assert.notStrictEqual(out.source, 'local');
+    assert.strictEqual(hosted.requests.length, 0, 'tool arguments never go to the project-named origin');
+    assert.ok(staging.requests.length > 0);
+  } finally {
+    await staging.close();
+    await hosted.close();
+  }
+});
+
+test('credential headers never follow a redirect to another origin', async () => {
+  const attacker = await mockServer();
+  const redirector = http.createServer((req, res) => {
+    res.writeHead(307, { location: `${attacker.origin}/mcp` });
+    res.end();
+  });
+  await new Promise((r) => redirector.listen(0, '127.0.0.1', r));
+  const origin = `http://127.0.0.1:${redirector.address().port}`;
+  try {
+    const { writeUser } = splitHomeAndProject();
+    writeUser({ url: `${origin}/mcp`, headers: { 'X-API-Key': '${CCC_TEST_SECRET}' } });
+    process.env.CCC_TEST_SECRET = 'super-secret-value';
+    process.env.CCC_MCP_TOKEN = TOKEN;
+    const pt = fresh();
+    const out = await pt.call('list_skills', {}, { fallback: localFallback });
+    assert.strictEqual(out.source, 'local', 'a redirect is a failure; the local fallback answers');
+    assert.strictEqual(attacker.requests.length, 0, 'the redirect target receives nothing');
+  } finally {
+    await new Promise((r) => redirector.close(r));
+    await attacker.close();
+  }
+});
+
+test('CCC_MCP_ALLOWED_ORIGINS approves a project origin for the bearer', async () => {
+  const srv = await mockServer({ requireAuth: true });
+  try {
+    const { writeProject } = splitHomeAndProject();
+    writeProject({ url: `${srv.origin}/mcp` });
+    process.env.CCC_MCP_TOKEN = TOKEN;
+    process.env.CCC_MCP_ALLOWED_ORIGINS = `https://other.example, ${srv.origin}`;
+    const pt = fresh();
+    const out = await pt.call('list_skills', {}, { fallback: localFallback });
+    assert.notStrictEqual(out.source, 'local');
+  } finally {
+    await srv.close();
+  }
+});
+
+test('skill-browser listSkillsEnhanced: project config gets no bearer and remote paths are dropped', async () => {
+  const attacker = await mockServer();
+  try {
+    const { writeProject } = splitHomeAndProject();
+    writeProject({ url: `${attacker.origin}/mcp`, headers: { Authorization: 'Bearer ${COMMANDER_TOKEN}' } });
+    process.env.COMMANDER_TOKEN = TOKEN;
+    fresh();
+    const browserPath = path.join(__dirname, '..', 'commander', 'skill-browser.js');
+    delete require.cache[require.resolve(browserPath)];
+    const browser = require(browserPath);
+    const emptyDir = path.join(tmp, 'no-skills');
+    fs.mkdirSync(emptyDir);
+    const skills = await browser.listSkillsEnhanced({ useMcp: true, dirs: [emptyDir] });
+    assert.ok(attacker.requests.length > 0);
+    assert.ok(!headerBlob(attacker.requests).includes(TOKEN));
+    const remote = skills.find((s) => s.name === 'remote-skill');
+    assert.ok(remote, 'remote skills still merge');
+    assert.strictEqual(remote.path, '');
+    assert.strictEqual(remote.source, 'mcp');
+  } finally {
+    await attacker.close();
+  }
+});
+
+test('only HTTPS (or loopback HTTP) origins can be approved; project headers carry no secrets', () => {
+  splitHomeAndProject();
+  const { secureOrigin, approvedOrigins, buildHeaders } = fresh()._internal;
+  assert.strictEqual(secureOrigin('http://evil.example/mcp'), null);
+  assert.strictEqual(secureOrigin('https://user:pw@evil.example/mcp'), null);
+  assert.strictEqual(secureOrigin('https://Mcp.Example.com:443/x'), 'https://mcp.example.com');
+  assert.strictEqual(secureOrigin('http://127.0.0.1:8080/mcp'), 'http://127.0.0.1:8080');
+  const set = approvedOrigins({ url: 'http://plain.example/mcp', allowedOrigins: ['https://ok.example'] });
+  assert.ok(set.has('https://mcp.commanderplugin.com'));
+  assert.ok(set.has('https://ok.example'));
+  assert.ok(!set.has('http://plain.example'));
+  process.env.CCC_TEST_SECRET = 'super-secret-value';
+  const projectHeaders = buildHeaders(
+    { headers: { A: '${CCC_TEST_SECRET}', Authorization: 'Bearer literal', Cookie: 'c=1', B: 'b' } },
+    { scope: 'project', approved: false }
+  );
+  assert.deepStrictEqual(projectHeaders, { B: 'b' });
 });

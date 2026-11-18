@@ -199,7 +199,7 @@ test('--patch fixes simple count and version mismatches', function() {
   var readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
   assert.match(readme, new RegExp('v' + contract.version.replace(/\./g, '\\.')));
   assert.match(readme, new RegExp(contract.plugin_skills + ' plugin skills'));
-  assert.match(readme, /22 specialist agents/);
+  assert.match(readme, new RegExp(contract.specialist_agents + ' specialist agents'));
   assert.match(readme, new RegExp(contract.lifecycle_hooks + ' lifecycle hooks \\(' + contract.hook_handlers + ' handlers\\)'));
   assert.match(readme, /2 pre-configured MCP servers \+19 opt-in/);
   assert.match(readme, new RegExp(contract.ecosystem_skills + '\\+ skills across 11 CCC domains'));
@@ -208,20 +208,17 @@ test('--patch fixes simple count and version mismatches', function() {
   assert.strictEqual(check.status, 0, check.stdout + check.stderr);
 });
 
-test('mcp-server-cloud keeps its own version: --check accepts it and --patch leaves it, fixing only description counts (CC-2126)', function() {
-  var contract = readJson(CONTRACT_PATH);
-  var root = makeFixture({
-    'apps/mcp-server-cloud/package.json': JSON.stringify({
-      name: 'cc-commander-mcp-cloud',
-      version: '0.0.1',
-      description: '50 plugin skills.',
-    }, null, 2) + '\n',
-  });
+test('mcp-server-cloud package.json is not a count surface: --check ignores it and --patch never edits it (CC-2126, Grok audit S1)', function() {
+  var cloudJson = JSON.stringify({
+    name: 'cc-commander-mcp-cloud',
+    version: '0.0.1',
+    description: '50 plugin skills.',
+  }, null, 2) + '\n';
+  var root = makeFixture({ 'apps/mcp-server-cloud/package.json': cloudJson });
   var patch = spawnCheck(['--root', root, '--patch']);
   assert.strictEqual(patch.status, 0, patch.stdout + patch.stderr);
-  var cloud = readJson(path.join(root, 'apps/mcp-server-cloud/package.json'));
-  assert.strictEqual(cloud.version, '0.0.1', '--patch must not bump the independent cloud version');
-  assert.strictEqual(cloud.description, contract.plugin_skills + ' plugin skills.');
+  // Any edit under apps/mcp-server-cloud/** triggers the Fly deploy workflows.
+  assert.strictEqual(fs.readFileSync(path.join(root, 'apps/mcp-server-cloud/package.json'), 'utf8'), cloudJson);
   var check = spawnCheck(['--root', root, '--check']);
   assert.strictEqual(check.status, 0, check.stdout + check.stderr);
 });

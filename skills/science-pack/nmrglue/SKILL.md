@@ -138,6 +138,13 @@ See the [v0.12 processing source](https://github.com/jjhelmus/nmrglue/blob/v0.12
 Multidimensional processing, nonuniform sampling, automated assignment, and experimental vendor imports remain outside
 this helper's validated scope.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

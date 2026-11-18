@@ -9,6 +9,8 @@
  *
  * OFF BY DEFAULT. It runs only when a ceiling is set explicitly:
  *   CCC_COST_CEILING=<units>  (wins; 0 or "off" disables a configured ceiling)
+ *   the plugin's `cost_ceiling` userConfig option (same values; used when the
+ *                             variable is unset, lib/plugin-options.js)
  *   "costCeiling": <units>    in <lane config dir>/commander/config.json
  * Budget units: 5.00 == 500 tool calls.
  *
@@ -22,9 +24,13 @@
 import { track } from '../lib/telemetry.mjs';
 import { emitDeny, emitUser } from './lib/emit.mjs';
 import { sessionKey } from './lib/session-key.mjs';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { updateJson } from './lib/atomic-json.mjs';
 import { join } from 'node:path';
 import { readablePath, stateDir } from '../lib/lane-state.js';
+import { setting, settingSource } from '../lib/plugin-options.js';
+import { isMainModule } from './lib/code-mode.mjs';
+import { readStdinJson } from './lib/session-key.mjs';
 
 const CCC_DIR = stateDir();
 const CONFIG_FILE = readablePath('config.json');
@@ -38,32 +44,21 @@ function envCeiling(value) {
   return Number.isFinite(n) && n >= 0 ? n : undefined;
 }
 
-async function main() {
+export async function run(input = {}) {
   track('hook_fired', { hook: 'PreToolUse', handler: 'cost-ceiling-enforcer' });
-  let input = {};
-  try {
-    const chunks = [];
-    for await (const chunk of process.stdin) chunks.push(chunk);
-    const raw = Buffer.concat(chunks).toString('utf8').trim();
-    // Malformed payloads fail open; session_id keys the shared budget file.
-    if (raw) input = JSON.parse(raw);
-  } catch {
-    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-    return;
-  }
 
   const COST_FILE = join(CCC_DIR, 'sessions', `active-cost-${sessionKey(input)}.json`);
 
   try {
     // Explicit override — always allow, stay silent
     if (process.env.CCC_COST_OVERRIDE === '1') {
-      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-      return;
+      return { continue: true };
     }
 
     // Explicit ceiling only: env first, then the lane config. Unset == off.
-    let ceiling = envCeiling(process.env.CCC_COST_CEILING);
-    const source = ceiling === undefined ? `"costCeiling" in ${CONFIG_FILE}` : 'CCC_COST_CEILING';
+    let ceiling = envCeiling(setting('cost_ceiling'));
+    const from = settingSource('cost_ceiling');
+    const source = ceiling === undefined ? `"costCeiling" in ${CONFIG_FILE}` : from === 'userConfig' ? 'the cost_ceiling plugin option' : 'CCC_COST_CEILING';
     if (ceiling === undefined) {
       try {
         const config = JSON.parse(await readFile(CONFIG_FILE, 'utf8'));
@@ -75,8 +70,7 @@ async function main() {
       }
     }
     if (!ceiling) {
-      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-      return;
+      return { continue: true };
     }
 
     // Read current session budget (session-keyed file from cost-tracker.js)
@@ -93,15 +87,24 @@ async function main() {
 
       // Warn-then-block: first crossing emits a visible warning and lets the
       // call through; every subsequent call blocks until override/raise.
+      // Compare-and-set under the counter's lock: of two concurrent calls that
+      // cross together, exactly one claims the warning and the other is denied.
+      let claimedWarning = false;
       if (costData && !costData.ceilingWarnedAt) {
-        costData.ceilingWarnedAt = new Date().toISOString();
-        try { await writeFile(COST_FILE, JSON.stringify(costData, null, 2)); } catch {}
-        process.stdout.write(JSON.stringify(emitUser(
+        try {
+          await updateJson(COST_FILE, (current) => {
+            if (current.ceilingWarnedAt) return undefined;
+            claimedWarning = true;
+            return { ...current, ceilingWarnedAt: new Date().toISOString() };
+          });
+        } catch {}
+      }
+      if (claimedWarning) {
+        return emitUser(
           `⚠️ CCC tool-call budget ceiling reached: ${costData.toolCalls} calls >= ${ceilingCalls}-call limit ` +
           `(budget unit $${ceiling.toFixed(2)}, not real spend). The NEXT tool call will be blocked — ` +
           `set CCC_COST_OVERRIDE=1, or raise or remove ${source}, to continue.`
-        )) + '\n');
-        return;
+        );
       }
 
       const reason = `CCC tool-call budget ceiling: ${Math.round(currentCost / 0.01)} calls >= ${ceilingCalls}-call limit ` +
@@ -109,15 +112,19 @@ async function main() {
         `This tool call was blocked. To continue: set CCC_COST_OVERRIDE=1, raise or remove ${source}, ` +
         `or start a new session.`;
 
-      process.stdout.write(JSON.stringify(emitDeny(reason)) + '\n');
-      return;
+      return emitDeny(reason);
     }
 
-    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
+    return { continue: true };
   } catch {
     // Fail open — never block on error
-    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
+    return { continue: true };
   }
 }
 
-main();
+// Standalone entry (hooks.json may still call this file directly); the PreToolUse dispatcher imports run() instead.
+if (isMainModule(import.meta.url)) {
+  readStdinJson().then(run).catch(() => ({ continue: true })).then((out) => {
+    process.stdout.write(JSON.stringify(out) + '\n');
+  });
+}

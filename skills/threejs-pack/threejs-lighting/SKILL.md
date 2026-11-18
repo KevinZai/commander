@@ -482,6 +482,13 @@ Colored shadows: with `renderer.shadowMap.transmitted = true`, casters write col
 - threejs-postprocessing — bloom and other light-adjacent effects.
 - threejs-fundamentals — renderer setup, tone mapping and exposure for physically scaled lights and HDR environments.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another Three.js skill: back to the `threejs-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: https://github.com/CloudAI-X/threejs-skills

@@ -39,7 +39,7 @@ Each individual hook file still works standalone (`node hooks/session-start.js` 
 
 ## Current wiring (live)
 
-The orchestrator is the **first** entry in `hooks.json`'s SessionStart array, followed by `license-check.js`, `git-truth.js`, `update-nudge.js`, and `console-autopen.js` as separate handlers:
+The orchestrator is the **first** entry in `hooks.json`'s SessionStart array, followed by `git-truth.js`, `update-nudge.js`, and `console-autopen.js` as separate handlers:
 
    ```json
    {

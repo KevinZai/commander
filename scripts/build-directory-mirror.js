@@ -165,6 +165,11 @@ const IDENTITY_REWRITES = [
     /https:\/\/raw\.githubusercontent\.com\/KevinZai\/commander\/main\/commander\/cowork-plugin\/\.claude-plugin\/plugin\.json/g,
     'https://raw.githubusercontent.com/KevinZai/cc-commander-plugin/main/.claude-plugin/plugin.json',
   ],
+  // update-nudge.js builds the Claude manifest URL from REMOTE_BASE; the mirror publishes it at the repo root.
+  [
+    /`\$\{REMOTE_BASE\}\/cowork-plugin\/\.claude-plugin\/plugin\.json`/g,
+    "'https://raw.githubusercontent.com/KevinZai/cc-commander-plugin/main/.claude-plugin/plugin.json'",
+  ],
   [/commander@commander-hub/g, 'cc-commander@claude-community'],
   [/commander-hub\/commander(?!\/cowork-plugin)(?![\w-])/g, 'claude-community/cc-commander'],
   [/\/plugin marketplace add KevinZai\/commander/g, '/plugin marketplace add anthropics/claude-plugins-community'],

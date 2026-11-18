@@ -41,6 +41,13 @@ CLI and MCP only (macOS and Linux; on native Windows the npm global bin layout d
 - The first query downloads GGUF models (hundreds of MB). Say so before the first search, and never start it on a metered or offline machine (`CCC_OFFLINE=1`).
 - With the default local models, indexing and search stay on the device. CCC safety: if the qmd config points embeddings or re-ranking at a remote endpoint, document chunks and queries leave the machine; tell the user and ask before indexing.
 
+## Next step
+
+- 🟢 Install: walks through the pinned install above, with your OK
+- Local only: sets qmd up without remote embeddings
+- Pick another skill: `/ccc-suggest` recommends one
+- Done: you continue manually
+
 ## License
 
 MIT, see the upstream repository.

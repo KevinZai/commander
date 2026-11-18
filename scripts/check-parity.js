@@ -49,7 +49,7 @@ const SURFACES = [
   'bin/kc.js',
   'commander/plugins.js',
   'commander/core/registry.yaml',
-  'apps/mcp-server-cloud/src/tools/update.ts',
+  // apps/mcp-server-cloud/** is not scanned: edits there trigger the Fly deploy (Grok audit S1).
   'commander/cowork-plugin/README.md',
   'commander/cowork-plugin/lib/banner.txt',
   'commander/cowork-plugin/skills/ccc/references/main-menu.json',

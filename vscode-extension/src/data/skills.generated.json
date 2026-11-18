@@ -1,0 +1,560 @@
+[
+  {
+    "id": "ccc",
+    "name": "ccc",
+    "description": "Commander home: reads project context, then routes to build, review, ship or the More menu in one or two clicks. Use when asked where to start.",
+    "command": "/ccc"
+  },
+  {
+    "id": "ccc-adhd",
+    "name": "ccc-adhd",
+    "description": "Answer-first output: the fix, then command, then file:line, context last. Toggle on, off or status; stacks with caveman. Based on ayghri/i-have-adhd (MIT). Use when the user wants the answer first.",
+    "command": "/ccc-adhd"
+  },
+  {
+    "id": "ccc-adopt",
+    "name": "ccc-adopt",
+    "description": "Merge Commander conventions and a stack-tailored skill and agent list into an existing CLAUDE.md, with backup and diff approval first.",
+    "command": "/ccc-adopt"
+  },
+  {
+    "id": "ccc-agent-writing",
+    "name": "ccc-agent-writing",
+    "description": "Draft a spec, PRD, PR description, README section, runbook or technical doc that a reader can act on without a follow-up question: named reader, answer first, typed structure, self-test. Use when the user says write a spec, draft a PRD, write the PR description, or document this.",
+    "command": "/ccc-agent-writing"
+  },
+  {
+    "id": "ccc-babysit-pr",
+    "name": "ccc-babysit-pr",
+    "description": "Monitor a pull request through review and CI with a read-only watcher, handle bot and reviewer feedback, and report when it is ready. Use when the user asks to monitor, watch, or babysit a PR.",
+    "command": "/ccc-babysit-pr"
+  },
+  {
+    "id": "ccc-brainstorm",
+    "name": "ccc-brainstorm",
+    "description": "Design-first ideation gate: three parallel agents propose a simple, a scalable and a user-delight approach, rendered as a tradeoff matrix, then you pick a direction. No code is written. Use when the user asks how to build X, which approach to take, is torn between options, or types /ccc-brainstorm.",
+    "command": "/ccc-brainstorm"
+  },
+  {
+    "id": "ccc-broadcast",
+    "name": "ccc-broadcast",
+    "description": "Relay build, deploy, CI, task and cost outcomes as short scrubbed summaries to a connected team chat or email, so non-developers see what shipped. Use when the user wants the team, owner or a client told when a deploy, build or run finishes, or types /ccc-broadcast.",
+    "command": "/ccc-broadcast"
+  },
+  {
+    "id": "ccc-browse",
+    "name": "ccc-browse",
+    "description": "Browse every Commander skill, agent and domain: a searchable catalog or pickers four at a time, then launch one. Use when asked what Commander can do.",
+    "command": "/ccc-browse"
+  },
+  {
+    "id": "ccc-build",
+    "name": "ccc-build",
+    "description": "Scaffold a new web app, API or CLI from a three-question spec, built by a background agent and verified. Use to start a new project or app.",
+    "command": "/ccc-build"
+  },
+  {
+    "id": "ccc-changelog",
+    "name": "ccc-changelog",
+    "description": "Summarize what changed in the latest CC Commander release, or a named version, from CHANGELOG.md in a short scan-friendly digest. Use when asking what's new, what changed, show the changelog, release notes, or after the SessionStart update nudge.",
+    "command": "/ccc-changelog"
+  },
+  {
+    "id": "ccc-cheatsheet",
+    "name": "ccc-cheatsheet",
+    "description": "Live map of the installed Commander: skills, workflows, menus, agents, hooks and MCP servers as a Mermaid flow with a picker. Use for a command map.",
+    "command": "/ccc-cheatsheet"
+  },
+  {
+    "id": "ccc-ci",
+    "name": "ccc-ci",
+    "description": "Diagnose CI and deploy failures: pull the failing run's log, classify the cause, propose a fix, and follow runs with /loop or a Routine; optional signed-webhook push mode. Use when CI is red, a deploy failed, a prod approval waits, or the user wants pipeline events in the session.",
+    "command": "/ccc-ci"
+  },
+  {
+    "id": "ccc-claudemd",
+    "name": "ccc-claudemd",
+    "description": "Audit a project CLAUDE.md against the real codebase for stale paths, dead commands, missing context and token waste, then apply fixes only after picker approval. Use when asking to audit, clean up or optimize CLAUDE.md or project instructions, or when the suggest engine flags it as stale.",
+    "command": "/ccc-claudemd"
+  },
+  {
+    "id": "ccc-code-review",
+    "name": "ccc-code-review",
+    "description": "Alias for /ccc-review: forwards a code, PR or diff review request with its arguments to the canonical review workflow. Use when the user types /ccc-code-review or asks to review code, a PR, a file or a diff by this name.",
+    "command": "/ccc-code-review"
+  },
+  {
+    "id": "ccc-codex",
+    "name": "ccc-codex",
+    "description": "Manage the OpenAI Codex CLI: doctor, models, plugins, MCP servers, custom agents, cloud tasks, remote control, reviews, updates, import and config, backing up config first. Use when the user asks to check, set up or manage Codex.",
+    "command": "/ccc-codex"
+  },
+  {
+    "id": "ccc-connect",
+    "name": "ccc-connect",
+    "description": "Opt-in connector wizard with affiliate disclosure: pick a service (Supabase, Linear, Vercel, Sentry, Notion, Slack, Stripe, research tools and more) and wire it as a plugin with userConfig, an OAuth MCP or a keyed MCP without secrets in chat. Use when connecting an MCP server or service.",
+    "command": "/ccc-connect"
+  },
+  {
+    "id": "ccc-console",
+    "name": "ccc-console",
+    "description": "Open the Commander Console inline (agents, usage, safety, memory, history, launch chips, prompt bar) or publish one tab as a private snapshot page after consent. Use when the user asks what is going on, wants the console, or types /ccc-console.",
+    "command": "/ccc-console"
+  },
+  {
+    "id": "ccc-content",
+    "name": "ccc-content",
+    "description": "Draft blog posts, social threads, email campaigns, landing-page copy and docs in three questions, with an optional brief, review and scheduling pipeline. Use when the user asks to write a post, thread, newsletter, email campaign or marketing copy, repurpose a URL, or types /ccc-content.",
+    "command": "/ccc-content"
+  },
+  {
+    "id": "ccc-council",
+    "name": "ccc-council",
+    "description": "Get a read-only review or feedback from delegates on three providers, with scores per round and honest reporting when one is missing. Use when the user says \"council\" or wants multi-provider feedback on a change or plan.",
+    "command": "/ccc-council"
+  },
+  {
+    "id": "ccc-data",
+    "name": "ccc-data",
+    "description": "Data router: ETL pipelines, SQL optimization, dashboards, ML, data quality, analytics, reports, vector search. Use to build, query or visualize data.",
+    "command": "/ccc-data"
+  },
+  {
+    "id": "ccc-debate",
+    "name": "ccc-debate",
+    "description": "Adversarial multi-agent debate: lens agents (security, performance, architecture, product, contrarian) argue and cross-examine one design, plan or diff, then a judge rules ship, revise or block. Use when a decision is costly to reverse, a diff touches auth or billing, or the user types /ccc-debate.",
+    "command": "/ccc-debate"
+  },
+  {
+    "id": "ccc-deploy",
+    "name": "ccc-deploy",
+    "description": "Deploy the current build to Vercel, Fly.io, Cloudflare, GitHub Pages, npm, or a package deploy script, verify the live URL, and draft post-deploy notes. Use when a build is ready to go live or the user says deploy, push to production, or publish the package.",
+    "command": "/ccc-deploy"
+  },
+  {
+    "id": "ccc-deploy-check",
+    "name": "ccc-deploy-check",
+    "description": "Pre-deploy readiness gate: tests, build, debug logs, secrets, TODOs, lockfile and destructive-migration checks with a GO, CAUTION or NO-GO verdict, plus risk and rollback plan in power mode. Use when asking ready to ship, should I deploy, is it safe, deploy check, or pre-deploy.",
+    "command": "/ccc-deploy-check"
+  },
+  {
+    "id": "ccc-design",
+    "name": "ccc-design",
+    "description": "UI design: landing pages, component systems, polish passes, Figma to code, screenshot to UI. Use to design, restyle, polish or animate a UI.",
+    "command": "/ccc-design"
+  },
+  {
+    "id": "ccc-devops",
+    "name": "ccc-devops",
+    "description": "DevOps router: CI/CD, zero-downtime deploys, Docker, AWS, Terraform, monitoring, networking, runbooks. Use to set up, harden or plan infrastructure.",
+    "command": "/ccc-devops"
+  },
+  {
+    "id": "ccc-doc-sync",
+    "name": "ccc-doc-sync",
+    "description": "Sync skill, agent and hook-handler counts and the version string across Commander docs from contract.json and package.json, with a --check drift gate for CI. Use when counts or the version changed, after adding a skill, agent or handler, or when a doc-count check fails.",
+    "command": "/ccc-doc-sync"
+  },
+  {
+    "id": "ccc-doctor",
+    "name": "ccc-doctor",
+    "description": "Paste-ready Commander health report: install mode, versions, cache, settings, MCP servers, plugin validation. Use when Commander misbehaves.",
+    "command": "/ccc-doctor"
+  },
+  {
+    "id": "ccc-domains",
+    "name": "ccc-domains",
+    "description": "Alias for /ccc-learn: opens the domain picker to browse and load a skill domain such as design, marketing, SaaS, testing, DevOps or security. Use when the user types /ccc-domains, says 'domain skills' or 'show categories', or asks which skills exist for a field.",
+    "command": "/ccc-domains"
+  },
+  {
+    "id": "ccc-e2e",
+    "name": "ccc-e2e",
+    "description": "Pre-release assessment that fans out via /ccc-fleet into up to three isolated workers (QA audit, unit tests, Playwright E2E) running /ccc-testing lanes, then writes a severity-ranked PASS or FAIL verdict. Use when about to tag a release, after a large merge, or asking is this ready.",
+    "command": "/ccc-e2e"
+  },
+  {
+    "id": "ccc-ecc",
+    "name": "ccc-ecc",
+    "description": "Selective ECC loader: pick one Everything Claude Code skill, agent or hook from the vendored checkout and symlink or copy only that component into ~/.claude, with a backup, never the full harness. Use when the user wants a single ECC component without installing ECC.",
+    "command": "/ccc-ecc"
+  },
+  {
+    "id": "ccc-fable",
+    "name": "ccc-fable",
+    "description": "Arm, check, audit or disarm the Commander Method: the PM loop, 12 checkable gates, workflow-first posture and verifier separation, persisted in Commander state. Use when the user says fable on/off/status/audit or wants verification-gated, orchestrated work.",
+    "command": "/ccc-fable"
+  },
+  {
+    "id": "ccc-file-pr",
+    "name": "ccc-file-pr",
+    "description": "File a concise draft pull request with a clear title, a problem-first description, and the local test results. Use when the user asks to file, open, or create a PR.",
+    "command": "/ccc-file-pr"
+  },
+  {
+    "id": "ccc-fleet",
+    "name": "ccc-fleet",
+    "description": "Run parallel agents on one task: worktree fan-out, pipeline, review panel, background run or team, then verify. Use to split work across agents.",
+    "command": "/ccc-fleet"
+  },
+  {
+    "id": "ccc-fleet-viz",
+    "name": "ccc-fleet-viz",
+    "description": "Show a /ccc-fleet run as a live tree of workers with status, branches and a Mermaid diagram until all finish. Use for fleet progress.",
+    "command": "/ccc-fleet-viz"
+  },
+  {
+    "id": "ccc-full-send",
+    "name": "ccc-full-send",
+    "description": "Take a change from its current state to a merged PR unattended: prove it, get independent review, file a draft PR, babysit it, and merge through the full local gate. Use only when the user says 'full send'.",
+    "command": "/ccc-full-send"
+  },
+  {
+    "id": "ccc-full-stop",
+    "name": "ccc-full-stop",
+    "description": "Do the full-send work (prove, review, draft PR, babysit), then stop with the PR ready for the user to merge, never merging. Use only when the user clearly asks for the full-stop workflow, never for 'full stop' used as emphasis.",
+    "command": "/ccc-full-stop"
+  },
+  {
+    "id": "ccc-handoff",
+    "name": "ccc-handoff",
+    "description": "Write a dense handoff file and tell the user to resume in a new chat before a long context degrades output quality. Use when a chunk of work is done, the topic is about to switch, the model starts forgetting context, or a long orchestration run is mid-flight.",
+    "command": "/ccc-handoff"
+  },
+  {
+    "id": "ccc-harden",
+    "name": "ccc-harden",
+    "description": "Pre-launch production hardening audit across hosting, GitHub, error tracking, analytics, payments, secrets/PII headers and Cloudflare. Read-only by default; per-pillar fixes only with approval. Findings stay local. Use when preparing a launch or security review, or after config changes.",
+    "command": "/ccc-harden"
+  },
+  {
+    "id": "ccc-hermes",
+    "name": "ccc-hermes",
+    "description": "Optional bridge between Claude Code and a local Hermes agent gateway: chat channels can wake a Claude Code session, and Claude Code can post progress or accept escalations over MCP. Use when the user runs a Hermes gateway and wants channel triggers, progress posts or hand-offs.",
+    "command": "/ccc-hermes"
+  },
+  {
+    "id": "ccc-infra",
+    "name": "ccc-infra",
+    "description": "Dev services status: probes the local services you declare in an optional services.json, plus Claude MCP connections and Codex CLI health, and recommends the next action. Use when the user asks for infrastructure or service status, whether a dev server is up, or why an MCP is down.",
+    "command": "/ccc-infra"
+  },
+  {
+    "id": "ccc-knowledge",
+    "name": "ccc-knowledge",
+    "description": "Search, browse and add lessons in the local CC Commander knowledge base: recent lessons, topic search, category view, stats and file-edit captures. Use when the user asks what we learned, wants past lessons, the knowledge base, or types /ccc-knowledge.",
+    "command": "/ccc-knowledge"
+  },
+  {
+    "id": "ccc-learn",
+    "name": "ccc-learn",
+    "description": "Pick a Commander skill domain (design, marketing, SaaS, DevOps, SEO, testing, security, data) and hand off to its router. Use to explore domains.",
+    "command": "/ccc-learn"
+  },
+  {
+    "id": "ccc-linear",
+    "name": "ccc-linear",
+    "description": "View your open Linear issues, pick one to work on (moves it to In Progress and creates a branch), create a new issue, or see a board overview, all from pickers. Use when the user types /ccc-linear, asks for their Linear issues or tickets, or wants to start work from a ticket.",
+    "command": "/ccc-linear"
+  },
+  {
+    "id": "ccc-linear-board",
+    "name": "ccc-linear-board",
+    "description": "Publish a team's Linear issues as a private Kanban page whose cards update in place from a shared data store, or ask the user to type /ccc-linear to view, pick or create issues in chat. Use when the user asks for a Linear board page, a sprint board to share, or types /ccc-linear-board.",
+    "command": "/ccc-linear-board"
+  },
+  {
+    "id": "ccc-loop",
+    "name": "ccc-loop",
+    "description": "Pick the right loop primitive (turn, /goal, /loop interval or self-paced, ScheduleWakeup, Routines via /schedule), gate it, give it an independent verifier and a state file. Use when the user wants recurring, polling, run-until-done or unattended agent work.",
+    "command": "/ccc-loop"
+  },
+  {
+    "id": "ccc-makeover",
+    "name": "ccc-makeover",
+    "description": "Score project health with /ccc-xray, apply the top fixes one at a time with your OK, and show a before/after report card. Use to fix top issues.",
+    "command": "/ccc-makeover"
+  },
+  {
+    "id": "ccc-marketing",
+    "name": "ccc-marketing",
+    "description": "Marketing router: brand context, content, CRO, email and ads, growth experiments, competitor intel, pricing, launches. Use for marketing campaigns.",
+    "command": "/ccc-marketing"
+  },
+  {
+    "id": "ccc-memory",
+    "name": "ccc-memory",
+    "description": "Keep durable project memory in two tiers: CLAUDE.md for always-loaded facts and a memory/ directory of dated notes, decisions, gotchas and preferences loaded on demand. Use when recording a decision, root cause, correction or preference future sessions must keep.",
+    "command": "/ccc-memory"
+  },
+  {
+    "id": "ccc-mission-control",
+    "name": "ccc-mission-control",
+    "description": "Agent mission control: who is working on what, as a local live dashboard, a plain-English status, suggestion triage, or a private snapshot page whose task board updates in place. Use when the user asks what agents are doing, wants a status board, or types /ccc-mission-control.",
+    "command": "/ccc-mission-control"
+  },
+  {
+    "id": "ccc-mobile",
+    "name": "ccc-mobile",
+    "description": "Mobile router: React Native/Expo, Flutter, SwiftUI or Compose builds, mobile testing, ASO, push and deep links. Use for an iOS or Android app.",
+    "command": "/ccc-mobile"
+  },
+  {
+    "id": "ccc-modernize",
+    "name": "ccc-modernize",
+    "description": "Bring an old PR up to date by merging its base into it, and judge honestly whether the idea still belongs: MODERNIZE, REWORK or CLOSE. Use when asked to update, rebase or \"modernize\" a stale pull request.",
+    "command": "/ccc-modernize"
+  },
+  {
+    "id": "ccc-more",
+    "name": "ccc-more",
+    "description": "Commander's second-page menu: plan, x-ray, Codex, fleet, Linear, connectors, tune-up, catalog and audit workflows. Use when the user picks More tools.",
+    "command": "/ccc-more"
+  },
+  {
+    "id": "ccc-night-mode",
+    "name": "ccc-night-mode",
+    "description": "Spec-first autonomous build that runs overnight or immediately in multi-cycle build and independent-review loops, checkpointing status each cycle and stopping at a budget. Use when the user says night mode, yolo mode, overnight build, or build while I sleep.",
+    "command": "/ccc-night-mode"
+  },
+  {
+    "id": "ccc-nightwatch",
+    "name": "ccc-nightwatch",
+    "description": "Remote permission relay for unattended runs: risk-classify each tool call, auto-allow reads, send risky calls to your phone via Telegram or Discord for a tap, hard-deny destructive ones. Use when the user wants to approve from phone, remote YOLO, or run overnight with a safety leash.",
+    "command": "/ccc-nightwatch"
+  },
+  {
+    "id": "ccc-onboard",
+    "name": "ccc-onboard",
+    "description": "Contributor first-hour plan for the current repository: reads CLAUDE.md, BIBLE.md and package.json, checks required tools, asks the contributor's role, and returns a five-step checklist plus five real starter resources. Use when someone new joins a repo or types /ccc-onboard.",
+    "command": "/ccc-onboard"
+  },
+  {
+    "id": "ccc-orchestrate",
+    "name": "ccc-orchestrate",
+    "description": "Write a goal file, run it on a separate executor (Codex GPT-6 or a Sonnet subagent) in an isolated worktree, then verify every acceptance criterion. Use when a task benefits from a different executor and independent verification.",
+    "command": "/ccc-orchestrate"
+  },
+  {
+    "id": "ccc-plan",
+    "name": "ccc-plan",
+    "description": "Turn an idea, bug, refactor or Linear issue into a reviewed plan file with evals before coding. Use to plan a feature or scope work.",
+    "command": "/ccc-plan"
+  },
+  {
+    "id": "ccc-plan-exec",
+    "name": "ccc-plan-exec",
+    "description": "Plan cheap, execute capable: a fast model drafts the loop (steps, per-step body, verify condition), a capable model runs each step in an isolated worktree with an independent verifier. Use when work repeats one body over many items, or the user says plan-exec, write a loop, or types /ccc-plan-exec.",
+    "command": "/ccc-plan-exec"
+  },
+  {
+    "id": "ccc-pr-comments",
+    "name": "ccc-pr-comments",
+    "description": "Format agent-authored GitHub comments with a model attribution note and a direct style. Use when posting any GitHub comment on the user's behalf: PR comments, inline review comments, replies to bots, or a dismissal reason.",
+    "command": "/ccc-pr-comments"
+  },
+  {
+    "id": "ccc-prompt-fix",
+    "name": "ccc-prompt-fix",
+    "description": "Diagnose a prompt against the six prompt-quality patterns and return a tighter rewrite with the reason for each change, a 0-6 score, or the best matching prompt from the Commander prompt library. Use when the user asks to fix, sharpen, improve or score a prompt, or wants a prompt for a task.",
+    "command": "/ccc-prompt-fix"
+  },
+  {
+    "id": "ccc-qa",
+    "name": "ccc-qa",
+    "description": "Pre-ship QA pass: runs unit, integration and E2E suites, coverage delta and a flaky-test audit. Use to run all tests or check ship readiness.",
+    "command": "/ccc-qa"
+  },
+  {
+    "id": "ccc-recall",
+    "name": "ccc-recall",
+    "description": "Search past saved sessions and curated memory notes for an earlier fix, decision or file, and answer with the source file and date cited. Use when asking didn't we solve this before, what did we decide about X, or when a bug first appeared.",
+    "command": "/ccc-recall"
+  },
+  {
+    "id": "ccc-relay",
+    "name": "ccc-relay",
+    "description": "Chain independent loop sessions (spec, build, review, then a human-gated merge) that hand off through a durable state file, tracker status or reaction, each link separately gated and verified. Use when the user types /ccc-relay, wants the Finn Loop, or wants auto-chained loops.",
+    "command": "/ccc-relay"
+  },
+  {
+    "id": "ccc-research",
+    "name": "ccc-research",
+    "description": "Cited multi-source research before building: compare options, find prior art, define a spec, or summarize large docs or codebases.",
+    "command": "/ccc-research"
+  },
+  {
+    "id": "ccc-resume-session",
+    "name": "ccc-resume-session",
+    "description": "Resume a saved session file: read it fully, then brief state, blockers and next step before any work. Use when continuing earlier work.",
+    "command": "/ccc-resume-session"
+  },
+  {
+    "id": "ccc-review",
+    "name": "ccc-review",
+    "description": "Code review of the current branch or PR, or a security, performance or whole-project audit, with a severity-rated report. Use for PR review.",
+    "command": "/ccc-review"
+  },
+  {
+    "id": "ccc-rollback",
+    "name": "ccc-rollback",
+    "description": "Roll production back by picking a known-good commit or tag, creating atomic git revert commits, pushing them, redeploying through the /ccc-deploy runners, and verifying health. Use when a deploy is bad, production is broken, or the user asks to revert or roll back a release.",
+    "command": "/ccc-rollback"
+  },
+  {
+    "id": "ccc-saas",
+    "name": "ccc-saas",
+    "description": "SaaS router: scaffold, auth, database, API, frontend, Stripe billing, webhooks, multi-tenancy, feature flags, metrics. Use to build or bill a SaaS.",
+    "command": "/ccc-saas"
+  },
+  {
+    "id": "ccc-safety",
+    "name": "ccc-safety",
+    "description": "Safety deck: dangerous actions Commander's hooks blocked, auto-fixes applied, and the tools that fail most, narrated here or published as a private snapshot page after consent. Use when the user asks what the guardrails caught, why tools fail, or types /ccc-safety.",
+    "command": "/ccc-safety"
+  },
+  {
+    "id": "ccc-save-session",
+    "name": "ccc-save-session",
+    "description": "Save the session to a reloadable file: decisions, files, failures and why, exact next step. Use when ending a session or near context limits.",
+    "command": "/ccc-save-session"
+  },
+  {
+    "id": "ccc-security",
+    "name": "ccc-security",
+    "description": "Security audit: OWASP Top 10, secrets, dependency CVEs, prompt-injection defense, CodeQL, incident response. Use for any security check.",
+    "command": "/ccc-security"
+  },
+  {
+    "id": "ccc-seo",
+    "name": "ccc-seo",
+    "description": "SEO router: technical audit and fixes, AI search optimization, content clusters, analytics, programmatic pages, backlinks. Use to improve SEO.",
+    "command": "/ccc-seo"
+  },
+  {
+    "id": "ccc-session",
+    "name": "ccc-session",
+    "description": "Alias that routes session work to the canonical skills: save the current session with /ccc-save-session, or reload a saved one with /ccc-resume-session. Use when the user says resume session, continue where I left off, save this session, or types /ccc-session.",
+    "command": "/ccc-session"
+  },
+  {
+    "id": "ccc-settings",
+    "name": "ccc-settings",
+    "description": "Settings hub: Commander preferences (name, level, cost ceiling, auto-routing, theme, animations, launch mode, Linear, reset) plus Claude Code permission mode, effort, models and workflow size, written with a backup. Use when the user says settings, configure, change theme, set effort, auto mode.",
+    "command": "/ccc-settings"
+  },
+  {
+    "id": "ccc-ship",
+    "name": "ccc-ship",
+    "description": "Ship menu: run a parallel pre-flight matrix with a GO, CAUTION or NO-GO scorecard, cut a tagged release with changelog, deploy to a platform, or roll back the last deploy, each gated by a picker. Use when the user says ship it, pre-flight, cut a release, tag a version, or roll back.",
+    "command": "/ccc-ship"
+  },
+  {
+    "id": "ccc-smb-ops",
+    "name": "ccc-smb-ops",
+    "description": "Small-business back office from a bank CSV or a typed list: 13-week cash-flow forecast, invoicing and AR chasing, payroll planning, CRM cleanup, expense tracking, and a Monday owner brief. Use when an owner asks about cash, unpaid invoices, payroll, contacts, spending, or the weekly picture.",
+    "command": "/ccc-smb-ops"
+  },
+  {
+    "id": "ccc-sol-loop",
+    "name": "ccc-sol-loop",
+    "description": "Review a change in a bounded loop with an OpenAI reviewer through the Codex CLI, answer each finding with the smallest fix, and stop at agreement or budget. Use when the user says \"sol loop\" or wants a second-provider review before or after a PR.",
+    "command": "/ccc-sol-loop"
+  },
+  {
+    "id": "ccc-spawn",
+    "name": "ccc-spawn",
+    "description": "Spin self-contained work off on demand: a background subagent, a separate session (Cowork spawn_task chip or CLI /spawn peer), or an independent expert pass; routes fan-outs to /ccc-fleet and chains to /ccc-relay. Use when the user types /ccc-spawn or wants a task done outside this thread.",
+    "command": "/ccc-spawn"
+  },
+  {
+    "id": "ccc-standup",
+    "name": "ccc-standup",
+    "description": "Write a yesterday / today / blockers standup from your commits, PRs, tracker issues and Commander session notes, or from rough notes you type. Use when the user asks for a standup, daily update, morning check-in, what did I do yesterday, or a team update.",
+    "command": "/ccc-standup"
+  },
+  {
+    "id": "ccc-start",
+    "name": "ccc-start",
+    "description": "First-run Commander onboarding: detects the setup, offers new project, import, tour or skip, writes a start plan. Use just after install.",
+    "command": "/ccc-start"
+  },
+  {
+    "id": "ccc-suggest",
+    "name": "ccc-suggest",
+    "description": "Recommends the one next /ccc-* skill or workflow from project state, with reasons and alternatives. Use when asked what next or when stuck.",
+    "command": "/ccc-suggest"
+  },
+  {
+    "id": "ccc-systematic-debugging",
+    "name": "ccc-systematic-debugging",
+    "description": "Root-cause debugging: reproduce, hypothesize, then fix once with a failing test first. Use for a bug, a failing or flaky test, or an unknown error.",
+    "command": "/ccc-systematic-debugging"
+  },
+  {
+    "id": "ccc-takeover",
+    "name": "ccc-takeover",
+    "description": "Take over an existing PR, branch or agent thread and finish its original goal while preserving contributor credit. Use when the user asks to take over a PR, branch or thread, or requests a takeover.",
+    "command": "/ccc-takeover"
+  },
+  {
+    "id": "ccc-tasks",
+    "name": "ccc-tasks",
+    "description": "Track work in one markdown file, tasks/todo.md, with checkboxes, P0-P3 priorities and status marks; no database, service or sync. Use when the user asks for a todo list, wants to track personal or side-session tasks, or types /ccc-tasks.",
+    "command": "/ccc-tasks"
+  },
+  {
+    "id": "ccc-testing",
+    "name": "ccc-testing",
+    "description": "Write or plan tests: TDD, E2E, visual, load, regression, evals and verification, in an isolated worktree. Use to add tests or a test strategy.",
+    "command": "/ccc-testing"
+  },
+  {
+    "id": "ccc-triage",
+    "name": "ccc-triage",
+    "description": "Triage a GitHub repo's open issues and PRs with the gh CLI: flag stale, unlabeled and CI-failing items, propose labels and next actions, apply labels one confirmed item at a time, or summarize the backlog. Use when a maintainer asks to triage issues or PRs, label the backlog, or wants a digest.",
+    "command": "/ccc-triage"
+  },
+  {
+    "id": "ccc-tuneup",
+    "name": "ccc-tuneup",
+    "description": "Audit and safely optimize the local Commander setup: versions, junk, count drift, hooks, settings, MCP, cost. Read-only first; asks before any fix.",
+    "command": "/ccc-tuneup"
+  },
+  {
+    "id": "ccc-ultracode",
+    "name": "ccc-ultracode",
+    "description": "Run deep, multi-agent work as adversarially verified workflows: repo audits, branch reviews, migrations, fleets. Explains the /effort ultracode toggle and launches the bundled Commander workflows. Use when the user types /ccc-ultracode or wants depth over speed on repo-wide work.",
+    "command": "/ccc-ultracode"
+  },
+  {
+    "id": "ccc-update",
+    "name": "ccc-update",
+    "description": "Update the installed Commander plugin: detect install mode and versions, give the exact update commands, verify after restart. Use when outdated.",
+    "command": "/ccc-update"
+  },
+  {
+    "id": "ccc-upgrade",
+    "name": "ccc-upgrade",
+    "description": "Maintainer-only vendor submodule updater: audits every submodule under vendor/ against upstream, shows commits and files behind, then updates the picked ones one at a time with audit checks and one commit each. Use when asked to update vendors, refresh submodules or check vendor drift.",
+    "command": "/ccc-upgrade"
+  },
+  {
+    "id": "ccc-usage",
+    "name": "ccc-usage",
+    "description": "Usage and cost deck: estimated savings from routing to cheaper models, cost per day and cost by app, narrated here or published as a private snapshot page after consent. Use when the user asks what agent work costs, how much was saved, or types /ccc-usage.",
+    "command": "/ccc-usage"
+  },
+  {
+    "id": "ccc-xray",
+    "name": "ccc-xray",
+    "description": "Project health scorecard: quality, docs, tests, deps, security, performance, CI and context cost, scored 0-100. Use for a repo audit or health check.",
+    "command": "/ccc-xray"
+  },
+  {
+    "id": "ccc-yolo-setup",
+    "name": "ccc-yolo-setup",
+    "description": "Cut approval prompts safely: keep auto permission mode, add a vetted read-only allowlist plus secret deny rules, back up settings, and set bypassPermissions only with explicit consent. Use when the user says yolo setup, reduce prompts, fewer approvals, or skip permissions.",
+    "command": "/ccc-yolo-setup"
+  }
+]

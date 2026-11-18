@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * permission-gate.js
- * Hook: PermissionRequest (Codex Desktop only)
+ * Hook: PermissionRequest (Claude Code and Codex Desktop)
  *
  * Gates /ccc-review autofix writes and other destructive tool calls behind
  * explicit user approval in Codex Desktop's native approval dialog.
@@ -12,7 +12,8 @@
  * Behavior:
  *   - Read-only tool calls (Read, Glob, Grep, Bash reads) → auto-approve (exit 0)
  *   - /ccc-review autofix writes → reject unless CCC_AUTOFIX_APPROVED=1 env flag
- *   - Explicitly dangerous operations (rm -rf, git reset --hard) → reject always
+ *   - Explicitly dangerous operations (rm -rf on / or ~, force push, device writes) → reject always
+ *   - Routine destructive commands (rm -rf <dir>, git reset --hard, git clean) → no decision; the user's prompt decides
  *   - Missing/malformed payload → fail open (approve) to avoid blocking sessions
  *
  * Payload shape (Codex PermissionRequest):
@@ -36,6 +37,7 @@
 import { track } from '../lib/telemetry.mjs';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { homedir } from 'node:os';
 import { stateDir } from '../lib/lane-state.js';
 
 function denyDecision(message) {
@@ -55,11 +57,48 @@ const READ_ONLY_TOOLS = new Set([
   'TodoRead', 'NotebookRead',
 ]);
 
-// Bash command patterns considered always-dangerous — always reject
+// The home directory as a literal operand, e.g. `rm -rf /Users/me` (escaped for a RegExp; empty when unknown or /).
+const HOME_LITERAL = (() => { try { return (process.env.HOME || homedir() || '').replace(/\/+$/, ''); } catch { return ''; } })();
+// One rm operand: quoted segments and backslash escapes are part of the word, so "a&b", 'a;b' or a\&b do not end it.
+// An fd redirection (2>&1, >&2, &>file) is part of a word too, so it does not end the scan before the target.
+const RM_WORD = String.raw`(?:'[^']*'|"[^"\\]*(?:\\.[^"\\]*)*"|\\.|[<>]&|&>|[^\s;&|'"\\])+`;
+// Extra slashes and . or .. segments after a root or home target (//, /./, ~/., ~/..) still name the same or a
+// higher directory, so they are part of the target. A segment like ~/.config is not, because a boundary must follow.
+// An absolute or home path with a .. segment anywhere (~/x/../*, /tmp/../*) can climb back up, so it is denied too.
+const DOTS = String.raw`(?:\/|\.{1,2}(?=\/|\s|$|[;&|)<>"'*]))*`;
+// One piece of a path operand for the .. check: a quoted segment, an escape, or a plain character, so a folder
+// named "Arts & Crafts" or Arts\ \&\ Crafts does not end the path before its .. segment.
+const PATH_SEG = String.raw`(?:'[^']*'|"[^"\\]*(?:\\.[^"\\]*)*"|\\.|[^\s;&|<>'"\\])`;
+// A word that opens with a quote ("$HOME/Arts & Crafts/..", '/tmp/a b/../x', "$HOME/a b"/..): the path starts just
+// after the quote, and the .. segment may sit inside the quoted part or after it. Spaces and & inside the quotes
+// are part of the path.
+const DQ_BODY = String.raw`(?:[^"\\]|\\.)`;
+const QUOTED_DOTDOT = [
+  String.raw`(?<=")(?:\$\{?HOME\}?)?(?:\/${DQ_BODY}*?)?\/\.\.(?=[\/"])[^"]*"[^\s;&|<>]*`,
+  String.raw`(?<=")(?:\$\{?HOME\}?)?\/${DQ_BODY}*"${PATH_SEG}*?\/\.\.(?=\/|\s|$|[;&|)<>"'*])[^\s;&|<>]*`,
+  String.raw`(?<=')(?:\/[^']*?)?\/\.\.(?=[\/'])[^']*\'[^\s;&|<>]*`,
+  String.raw`(?<=')\/[^']*'${PATH_SEG}*?\/\.\.(?=\/|\s|$|[;&|)<>"'*])[^\s;&|<>]*`,
+].join('|');
+// Case-insensitive volumes (macOS, Windows): /Users/Me is the same directory as /Users/me.
+const HOME_FLAGS = process.platform === 'darwin' || process.platform === 'win32' ? 'i' : '';
+const HOME_RE = HOME_LITERAL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// The literal home path: itself (with extra slashes or dots), or with a .. segment anywhere after it.
+const HOME_ALT = HOME_LITERAL
+  ? '|' + HOME_RE + String.raw`\/(?:${PATH_SEG}*?\/)?\.\.(?=\/|\s|$|[;&|)<>"'*])[^\s;&|<>]*` + '|' + HOME_RE + DOTS + '\\*?'
+  : '';
+
+// Bash command patterns considered always-dangerous — always reject.
+// Ordinary deletes (rm -rf node_modules, rm -f build/tmp.log), git reset --hard and git clean are NOT here:
+// they go to REVIEW_PATTERNS, which return no decision so the user's own approval prompt decides (audit P0, 2026-11-18).
+// rm stays a hard deny only when it targets the filesystem root or the home directory.
 const DANGEROUS_PATTERNS = [
-  /rm\s+-[rRf]+\s/,
-  /rm\s+--recursive/i,
-  /git\s+reset\s+--hard/,
+  // rm by name or by path (/bin/rm), with the root or home as any of its next 64 operands, or with more than 64
+  // operands (too many to check, so denied). This fails closed: rm
+  // anywhere in a segment counts, whatever comes before it (a newline, then/do, sudo -u root, timeout 5, eval), so
+  // a search that quotes "rm -rf" next to ~ is also denied and must be run by hand. The bounded word count and the
+  // lookahead gate keep matching linear on long inputs. Home also matches written out in full (/Users/me).
+  new RegExp(String.raw`(?<![\w./-])(?=(?:[\w.-]*\/)*rm\s)(?:[\w.-]*\/)*rm\s+(?:(?:${RM_WORD}\s+){0,64}?["']?(?:(?:\/|~["']?\/|\$\{?HOME\}?["']?\/)(?:${PATH_SEG}*?\/)?\.\.(?=\/|\s|$|[;&|)<>"'*])[^\s;&|<>]*|${QUOTED_DOTDOT}|\/${DOTS}\*?|~${DOTS}\*?|\$\{?HOME\}?${DOTS}\*?` +
+    HOME_ALT + String.raw`)["']?(?=\s|$|[;&|)<>])|(?:${RM_WORD}\s+){64})`, HOME_FLAGS),
   /git\s+push\s+--force/,   // kept as-is so nothing denied before CC-654 is allowed now
   // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
   // `git` starts a word (a path like /usr/bin/git or a quoted `sh -c "git ..."` counts) and only global options
@@ -68,7 +107,6 @@ const DANGEROUS_PATTERNS = [
   // A bare `:` (matching branches, quoted or followed by a separator) is not a delete.
   // git takes any unambiguous prefix of a long option (--forc, --dele), so prefixes of those four deny too.
   /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|-[a-zA-Z]|--(?:git-dir|work-tree|namespace|config-env|attr-source|shallow-file|super-prefix)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b[^;&|\n]*\s["']?(?:--(?:fo(?:r(?:ce?)?)?|de(?:l(?:e(?:te?)?)?)?|mi(?:r(?:r(?:or?)?)?)?|pr(?:u(?:ne?)?)?)\b|-[a-zA-Z]*[fd][a-zA-Z]*\b|\+\S|:["']?[^\s"';&|)])/,
-  /git\s+clean\s+-[fdx]/,
   /chmod\s+-R\s+777/,
   /:\s*>\s*\/etc\//,       // truncate system files
   /dd\s+if=.*of=/,         // disk wipe
@@ -76,6 +114,27 @@ const DANGEROUS_PATTERNS = [
   /shred\s+/,
   />\s*\/dev\/sd[a-z]/,    // overwrite block device
 ];
+
+// Stable rule ids, parallel to DANGEROUS_PATTERNS. Denials and logs name the rule, never the command text.
+const DANGEROUS_RULE_IDS = [
+  'rm-root-or-home', 'git-push-force', 'git-push-force-or-delete', 'chmod-recursive-777',
+  'truncate-etc', 'dd-disk-wipe', 'mkfs', 'shred', 'block-device-write',
+];
+const NESTED_EXPANSION_RULE_ID = 'git-push-nested-expansion';
+
+// Destructive but routine: no decision is returned, so Claude Code (or Codex Desktop) shows its own approval prompt
+// and the user decides. Matching here is only logged, never denied.
+const REVIEW_PATTERNS = [
+  /rm\s+-[rRf]+\s/,
+  /rm\s+--recursive/i,
+  /git\s+reset\s+--hard/,
+  /git\s+clean\s+-[fdx]/,
+];
+
+function needsReview(toolInput) {
+  const cmd = toolInput?.command || toolInput?.cmd || '';
+  return typeof cmd === 'string' && REVIEW_PATTERNS.some(pat => pat.test(cmd));
+}
 
 // /ccc-review autofix write operations: Write, Edit, MultiEdit to source files
 // These require explicit CCC_AUTOFIX_APPROVED=1 flag or context.phase !== 'autofix'
@@ -107,9 +166,10 @@ const GIT_PUSH = /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|-[a-zA-Z]|--(?:git-di
 const QUOTED_BRACE = { '{': '\uE000', ',': '\uE001', '}': '\uE002' };
 
 function shellView(cmd, { glue = false, params = 'unset', subs = 'text' } = {}) {
-  // glue: whitespace that the shell keeps inside one word (quoted or escaped) becomes `_`, so `-C "a b" push` keeps -C's value one word.
+  // glue: whitespace and operators (; & | < > ( )) that the shell keeps inside one word (quoted or escaped) become `_`, so `-C "a b" push`
+  // keeps -C's value one word and ~/"a & b/.." stays one rm operand.
   // Quoted or escaped { , } are literal for bash, so they become private-use characters that expandBraces() leaves alone.
-  const lit = (t) => { const kept = t.replace(/[{,}]/g, (b) => QUOTED_BRACE[b]); return glue ? kept.replace(/\s/g, '_') : kept; };
+  const lit = (t) => { const kept = t.replace(/[{,}]/g, (b) => QUOTED_BRACE[b]); return glue ? kept.replace(/[\s;&|<>()]/g, '_') : kept; };
   let out = '';
   const bodies = [];   // each substitution's text on its own: bash runs it whatever text follows it
   const stack = [{ kind: 'top', parens: 0 }];   // top | sub ($(...)) | bt (`...`) | dq ("...") | param (${x:-word})
@@ -185,19 +245,33 @@ function expandBraces(view) {
   return view;
 }
 
-function isDangerousCommand(toolInput) {
+function dangerousRule(toolInput) {
   const cmd = toolInput?.command || toolInput?.cmd || '';
-  if (typeof cmd !== 'string') return false;
+  if (typeof cmd !== 'string') return null;
   const joined = cmd.replace(/\\\r?\n/g, '');   // the shell drops a backslash-newline: `+\<newline>main` is `+main`
-  if (DANGEROUS_PATTERNS.some(pat => pat.test(joined))) return true;   // raw first: nothing denied before shellView is allowed now
+  const ruleOf = (text) => { const i = DANGEROUS_PATTERNS.findIndex(pat => pat.test(text)); return i < 0 ? null : DANGEROUS_RULE_IDS[i]; };
+  const raw = ruleOf(joined);   // raw first: nothing denied before shellView is allowed now
+  if (raw) return raw;
   let views;
   const modes = [];
   for (const glue of [false, true]) for (const params of ['unset', 'word', 'empty']) for (const subs of ['text', 'empty', 'stub']) modes.push({ glue, params, subs });
-  try { views = modes.flatMap(m => shellView(joined, m)).map(v => expandBraces(v.replace(/\0/g, ''))); } catch { return false; }   // a view that cannot be built never overrides the raw check above
-  if (views.some(view => DANGEROUS_PATTERNS.some(pat => pat.test(view)))) return true;
+  try { views = modes.flatMap(m => shellView(joined, m)).map(v => expandBraces(v.replace(/\0/g, ''))); } catch { return null; }   // a view that cannot be built never overrides the raw check above
+  for (const view of views) { const id = ruleOf(view); if (id) return id; }
   // A nested expansion inside ${...} has mixed outcomes the views above do not enumerate (Codex r11: ${x:-${y} ${z-a}-f}), so a
   // command that runs git push next to one is denied outright: fail closed, the user runs it by hand
-  return NESTED_EXPANSION.test(joined) && views.some(view => GIT_PUSH.test(view));
+  return NESTED_EXPANSION.test(joined) && views.some(view => GIT_PUSH.test(view)) ? NESTED_EXPANSION_RULE_ID : null;
+}
+
+function isDangerousCommand(toolInput) {
+  return dangerousRule(toolInput) !== null;
+}
+
+// Only the program name reaches the log: full commands can carry tokens (audit P2, 2026-11-18).
+function commandHead(cmd) {
+  // Skip leading VAR=value assignments (they can hold a credential) and keep only a bare program basename.
+  const first = String(cmd).trim().split(/\s+/).find(t => t && !/^[A-Za-z_]\w*=/.test(t)) || '';
+  const base = first.replace(/^["']+|["']+$/g, '').split('/').pop();
+  return /^[\w.+-]{1,40}$/.test(base) ? base : '';
 }
 
 async function logDecision(entry) {
@@ -247,20 +321,37 @@ async function main() {
 
   // 2. Dangerous bash commands → always reject (exit 0 + deny decision;
   //    exit 1 would discard stdout and silently approve)
-  if (toolName === 'Bash' && isDangerousCommand(toolInput)) {
+  const dangerRule = toolName === 'Bash' ? dangerousRule(toolInput) : null;
+  if (dangerRule) {
     const cmd = toolInput?.command || toolInput?.cmd || '';
     await logDecision({
       timestamp: new Date().toISOString(),
       sessionId,
       decision: 'rejected-dangerous',
       toolName,
-      commandSnippet: cmd.slice(0, 120),
+      rule: dangerRule,
+      commandHead: commandHead(cmd),
     });
+    // Command text is never echoed: it can carry a credential and lands in the transcript.
     process.stdout.write(JSON.stringify(denyDecision(
-      `CCC PERMISSION GATE: Dangerous operation blocked — "${cmd.slice(0, 80)}" ` +
+      `CCC PERMISSION GATE: Dangerous operation blocked (rule ${dangerRule}) ` +
       `matched a destructive command pattern. ` +
       `Review the command and run manually if you are certain it is safe.`
     )) + '\n');
+    return;
+  }
+
+  // 2b. Routine destructive commands → no decision: the user's own prompt decides
+  if (toolName === 'Bash' && needsReview(toolInput)) {
+    const cmd = toolInput?.command || toolInput?.cmd || '';
+    await logDecision({
+      timestamp: new Date().toISOString(),
+      sessionId,
+      decision: 'deferred-to-user',
+      toolName,
+      commandHead: commandHead(cmd),
+    });
+    process.stdout.write('{}\n');   // no decision and no continue flag: the normal approval prompt is shown
     return;
   }
 
@@ -282,15 +373,14 @@ async function main() {
       )) + '\n');
       return;
     }
-    // CCC_AUTOFIX_APPROVED=1 — the autofix write is allowed. Log a distinct
-    // `approved-autofix` decision (not the generic 'approved' below) so
-    // Safety's "auto-fixed" bucket (safety-snapshot.js's classifyDecision)
-    // has a real signal to count instead of being permanently empty (v7.3.0,
-    // W2+/codex 13).
+    // CCC_AUTOFIX_APPROVED=1 — the gate lets the autofix write through to the
+    // normal permission flow. PermissionRequest is not the final decision (the
+    // user or a later rule can still deny it), so this is logged as
+    // `requested-autofix`, not as an applied fix (Codex audit #26).
     await logDecision({
       timestamp: new Date().toISOString(),
       sessionId,
-      decision: 'approved-autofix',
+      decision: 'requested-autofix',
       toolName,
       skill: context.skill || '/ccc-review',
       phase: context.phase || 'autofix',
@@ -299,11 +389,13 @@ async function main() {
     return;
   }
 
-  // Default: approve
+  // Default: no objection from the gate. The request continues to the normal
+  // permission flow, whose outcome this hook never sees, so it is logged as
+  // `requested`, not `approved` (Codex audit #26).
   await logDecision({
     timestamp: new Date().toISOString(),
     sessionId,
-    decision: 'approved',
+    decision: 'requested',
     toolName,
   });
   process.stdout.write(JSON.stringify({ continue: true }) + '\n');

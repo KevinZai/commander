@@ -20,9 +20,10 @@
 //                  background process, cache ≤10 min (never blocks the hook).
 //                  Opt-in: only with CCC_CI_TICKER=1 and not CCC_OFFLINE=1;
 //                  otherwise 'unknown' and no `gh` process is spawned.
-//   testsStatus  — last test-command outcome cached by knowledge-capture.js
-//                  (PostToolUse) in ~/.claude/commander/last-test-result.json
-//   lintStatus / securityAlerts — same PostToolUse cache (lint/audit kinds)
+//   testsStatus  — last test-command outcome recorded by knowledge-capture.js
+//                  (PostToolUse) for THIS workspace at its CURRENT git
+//                  revision (hooks/lib/test-results.mjs)
+//   lintStatus / securityAlerts — same PostToolUse record (lint/audit kinds)
 //
 // Environment overrides:
 //   CCC_SUGGEST_DISABLE=1   — fully disable ambient mode
@@ -37,18 +38,21 @@ import { computeConfidence } from './lib/confidence.mjs';
 import { appendSuggestion, readSuggestions } from '../lib/suggestions.js';
 import fs from 'node:fs';
 import path from 'node:path';
-import { stateDir } from '../lib/lane-state.js';
+import { stateDir, hookDataDir, readableHookDataPath } from '../lib/lane-state.js';
 import { isCiTickerEnabled } from '../lib/network-mode.js';
 import os from 'node:os';
-import crypto from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { isCodeModePoll, POLL_PASS } from './lib/code-mode.mjs';
+import { projectSlug as slugFor, readResults } from './lib/test-results.mjs';
 
 const STATE_DIR = stateDir();
 const LOG_FILE = path.join(STATE_DIR, 'suggest-log.jsonl');
-const TEST_CACHE_FILE = path.join(STATE_DIR, 'last-test-result.json');
 const VIOLATIONS_FILE = path.join(STATE_DIR, 'clickability-violations.jsonl');
-const VIOLATIONS_SEEN_FILE = path.join(STATE_DIR, 'clickability-last-seen.json');
+// Hook-private markers (read only by this hook) live in ${CLAUDE_PLUGIN_DATA} when the host sets it, so they
+// survive plugin updates; reads fall back to the copy an earlier release wrote to the lane dir.
+const PRIVATE_DIR = hookDataDir();
+const VIOLATIONS_SEEN_FILE = path.join(PRIVATE_DIR, 'clickability-last-seen.json');
 
 // ---------------------------------------------------------------------------
 // Per-project state keying (codex finding 10, CC-1386 W4 item 1).
@@ -68,12 +72,10 @@ const VIOLATIONS_SEEN_FILE = path.join(STATE_DIR, 'clickability-last-seen.json')
 // legacy path (pre-compact.js, ccc-suggest/SKILL.md, ccc-claudemd/SKILL.md)
 // are outside this hook's ownership — flagged separately, not fixed here.
 //
-// TEST/lint/audit caches (last-test-result.json) and the cross-hook JSONL
-// feeds (subagent-runs / agent-runs / tasks / tool-failures / violations)
-// are written by OTHER hooks this file doesn't own — moving only the READ
-// side here would silently break those signals (the writer would keep
-// writing the global path forever), which is worse than today's leak. Left
-// global; a matching fix belongs with whichever hook owns each writer.
+// Test/lint/audit outcomes are per workspace and git revision too
+// (hooks/lib/test-results.mjs, shared with their writer knowledge-capture.js;
+// Codex audit #25). The cross-hook JSONL feeds (subagent-runs / agent-runs /
+// tasks / tool-failures / violations) are still lane-wide.
 const PROJECTS_DIR = path.join(STATE_DIR, 'projects');
 
 /** cwd per the hook contract: payload.cwd first, process.cwd() fallback. */
@@ -86,11 +88,7 @@ export function resolveCwd(payload) {
 
 /** basename(cwd) + '-' + 8-char sha256(cwd) — stable, filesystem-safe. */
 export function projectSlug(cwd) {
-  const safeCwd = typeof cwd === 'string' && cwd ? cwd : process.cwd();
-  const rawBase = path.basename(safeCwd) || 'root';
-  const base = rawBase.replace(/[^a-zA-Z0-9_.-]/g, '_').slice(0, 60) || 'root';
-  const hash = crypto.createHash('sha256').update(safeCwd).digest('hex').slice(0, 8);
-  return `${base}-${hash}`;
+  return slugFor(typeof cwd === 'string' && cwd ? cwd : process.cwd());
 }
 
 /** ~/.claude/commander/projects/<slug>/ for the given cwd. */
@@ -199,21 +197,10 @@ export function ciStatusCached(cacheFile, { env = process.env, spawnFn = spawn }
   return status;
 }
 
-/** Test/lint/audit outcomes cached by knowledge-capture.js (PostToolUse). */
-function toolResultCache() {
-  const out = { testsStatus: 'unknown', lintStatus: 'unknown', securityAlerts: 0 };
-  try {
-    const cache = JSON.parse(fs.readFileSync(TEST_CACHE_FILE, 'utf8'));
-    const now = Date.now();
-    for (const kind of ['test', 'lint', 'audit']) {
-      const entry = cache[kind];
-      if (!entry || !entry.ts || now - new Date(entry.ts).getTime() > TEST_CACHE_MAX_AGE_MS) continue;
-      if (kind === 'test') out.testsStatus = entry.status;
-      if (kind === 'lint') out.lintStatus = entry.status;
-      if (kind === 'audit' && entry.status === 'failing') out.securityAlerts = 1;
-    }
-  } catch {}
-  return out;
+/** Test/lint/audit outcomes knowledge-capture.js recorded for this workspace at its current revision. */
+function toolResultCache(cwd) {
+  const r = readResults(STATE_DIR, cwd, { maxAgeMs: TEST_CACHE_MAX_AGE_MS });
+  return { testsStatus: r.test, lintStatus: r.lint, securityAlerts: r.audit === 'failing' ? 1 : 0 };
 }
 
 export function computeState(promptText = '', cwd = process.cwd()) {
@@ -228,7 +215,7 @@ export function computeState(promptText = '', cwd = process.cwd()) {
 
   // Real, cached signals (see header) — never a blocking network call.
   const ciStatus = ciStatusCached(projectCiCacheFile(cwd));
-  const { testsStatus, lintStatus, securityAlerts } = toolResultCache();
+  const { testsStatus, lintStatus, securityAlerts } = toolResultCache(cwd);
   const lintErrors = lintStatus === 'failing' ? 1 : 0;
 
   // CLAUDE.md age (days) — consumed by /ccc-suggest + suggest-lightweight.
@@ -337,8 +324,9 @@ function maybeLoopNudge(lastState, cwd = process.cwd()) {
     const loopStateFile = path.join(process.cwd(), '.claude', 'loop-state', 'ccc-suggest.json');
     if (fs.existsSync(loopStateFile)) return null; // loop already armed
 
-    const markerFile = path.join(STATE_DIR, `loop-nudge-${new Date().toISOString().slice(0, 10)}`);
-    if (fs.existsSync(markerFile)) return null; // already nudged today
+    const markerName = `loop-nudge-${new Date().toISOString().slice(0, 10)}`;
+    const markerFile = path.join(PRIVATE_DIR, markerName);
+    if (fs.existsSync(readableHookDataPath(markerName))) return null; // already nudged today
 
     let turnCount = 0;
     try {
@@ -348,7 +336,7 @@ function maybeLoopNudge(lastState, cwd = process.cwd()) {
     const stateIsStale = lastState && (Date.now() - new Date(lastState.timestamp).getTime()) > 86400000;
     if (turnCount < 5 && !stateIsStale) return null;
 
-    try { fs.mkdirSync(STATE_DIR, { recursive: true }); } catch {}
+    try { fs.mkdirSync(PRIVATE_DIR, { recursive: true }); } catch {}
     try { fs.writeFileSync(markerFile, '', { flag: 'wx' }); } catch { return null; }
 
     return '💡 Consider arming the always-on PM loop: /ccc-suggest loop — improve/scope/audit lenses every tick, anti-nag state file.';
@@ -381,7 +369,7 @@ function maybeClickabilityReminder() {
   try {
     if (!fs.existsSync(VIOLATIONS_FILE)) return null;
     const lastSeen = (() => {
-      try { return JSON.parse(fs.readFileSync(VIOLATIONS_SEEN_FILE, 'utf8')).ts || 0; } catch { return 0; }
+      try { return JSON.parse(fs.readFileSync(readableHookDataPath('clickability-last-seen.json'), 'utf8')).ts || 0; } catch { return 0; }
     })();
     const st = fs.statSync(VIOLATIONS_FILE);
     if (st.mtimeMs <= lastSeen) return null;
@@ -391,7 +379,7 @@ function maybeClickabilityReminder() {
     const lines = raw.split('\n').filter(Boolean);
     const last = lines.length ? JSON.parse(lines[lines.length - 1]) : null;
     try {
-      fs.mkdirSync(STATE_DIR, { recursive: true });
+      fs.mkdirSync(PRIVATE_DIR, { recursive: true });
       fs.writeFileSync(VIOLATIONS_SEEN_FILE, JSON.stringify({ ts: Date.now() }));
     } catch {}
     if (!last) return null;
@@ -449,14 +437,14 @@ function maybeSpawnNudge(promptText) {
     const signal = detectIsolationSignal(promptText);
     if (!signal) return null;
 
-    const seenFile = path.join(STATE_DIR, 'spawn-nudge-seen.json');
+    const seenFile = path.join(PRIVATE_DIR, 'spawn-nudge-seen.json');
     const key = signal.phrase.toLowerCase().replace(/\s+/g, ' ').trim();
     let last = '';
-    try { last = JSON.parse(fs.readFileSync(seenFile, 'utf8')).key || ''; } catch {}
+    try { last = JSON.parse(fs.readFileSync(readableHookDataPath('spawn-nudge-seen.json'), 'utf8')).key || ''; } catch {}
     if (key === last) return null; // same phrase already nudged — don't nag
 
     try {
-      fs.mkdirSync(STATE_DIR, { recursive: true });
+      fs.mkdirSync(PRIVATE_DIR, { recursive: true });
       fs.writeFileSync(seenFile, JSON.stringify({ key, ts: Date.now() }));
     } catch {}
 
@@ -695,18 +683,21 @@ function computeTickerSignals(now = Date.now()) {
   return out;
 }
 
+function tickerSignalSeenName(key) {
+  return `ticker-signal-seen-${String(key).replace(/[^a-zA-Z0-9_.-]/g, '_')}.json`;
+}
+
 function tickerSignalSeenFile(key) {
-  const safe = String(key).replace(/[^a-zA-Z0-9_.-]/g, '_');
-  return path.join(STATE_DIR, `ticker-signal-seen-${safe}.json`);
+  return path.join(PRIVATE_DIR, tickerSignalSeenName(key));
 }
 
 function alreadyNudgedTickerSignal(key) {
-  return fs.existsSync(tickerSignalSeenFile(key));
+  return fs.existsSync(readableHookDataPath(tickerSignalSeenName(key)));
 }
 
 function recordTickerSignalNudge(key) {
   try {
-    fs.mkdirSync(STATE_DIR, { recursive: true });
+    fs.mkdirSync(PRIVATE_DIR, { recursive: true });
     fs.writeFileSync(tickerSignalSeenFile(key), JSON.stringify({ ts: Date.now() }), { flag: 'wx' });
   } catch { /* already exists or write failed — fine either way */ }
 }
@@ -1006,6 +997,7 @@ if (isMain) {
       for await (const chunk of process.stdin) input += chunk;
       if (input.trim()) payload = JSON.parse(input);
     } catch { payload = {}; }
+    if (isCodeModePoll(payload)) { process.stdout.write(JSON.stringify(POLL_PASS) + '\n'); process.exit(0); }
 
     try {
       const result = await main(payload);

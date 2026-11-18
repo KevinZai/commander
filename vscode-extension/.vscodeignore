@@ -11,3 +11,5 @@ vsc-extension-quickstart.md
 .prettierrc.json
 README.md
 CHANGELOG.md
+scripts/**
+test/**

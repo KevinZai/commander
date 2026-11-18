@@ -499,6 +499,13 @@ if (skinnedMesh) skinnedMesh.material = material;
 - `threejs-loaders` — loading glTF models and their animation clips
 - `threejs-shaders` — GPU vertex displacement with TSL or ShaderMaterial
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another Three.js skill: back to the `threejs-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: https://github.com/CloudAI-X/threejs-skills

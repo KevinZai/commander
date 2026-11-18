@@ -66,57 +66,108 @@ describe('budget hooks key state on stdin session_id', () => {
 });
 
 // CC-1360 F14: SessionEnd runs session-save and session-end in parallel.
-// session-save archives active-session.json and unlinks it, so session-end
-// must find the session in either file, whichever hook runs first.
+// session-save archives the session's live record and unlinks it, so
+// session-end must find the session in either file, whichever hook runs first.
+// Codex audit #25/#31: records are keyed by session id, cleanup is owner-only,
+// and session-end finds the archive by name (no directory scan).
 describe('SessionEnd hooks are order-independent', () => {
   const KNOWLEDGE = path.join(HOME, '.claude', 'commander', 'knowledge');
-  const ACTIVE = path.join(SESSIONS, 'active-session.json');
+  const active = (key) => path.join(SESSIONS, `active-session-${key}.json`);
   const knowledge = (key) => path.join(KNOWLEDGE, `session-${key}.json`);
-  const seed = (startedAt) => {
+  const seed = (key, startedAt) => {
     fs.mkdirSync(SESSIONS, { recursive: true });
-    fs.writeFileSync(ACTIVE, JSON.stringify({ startedAt, status: 'active' }));
+    fs.writeFileSync(active(key), JSON.stringify({ sessionId: key, startedAt, status: 'active' }));
   };
+  const archives = () => fs.readdirSync(SESSIONS).filter((n) => /^\d{4}-\d{2}-\d{2}-[0-9a-f]+\.json$/.test(n))
+    .map((n) => JSON.parse(fs.readFileSync(path.join(SESSIONS, n), 'utf8')));
 
   it('session-end after session-save still writes the knowledge record', () => {
-    seed('2026-10-26T10:00:00.000Z');
+    seed('f14-save-first', '2026-10-26T10:00:00.000Z');
     runHook('session-save.js', { session_id: 'f14-save-first', hook_event_name: 'SessionEnd' });
-    assert.ok(!fs.existsSync(ACTIVE), 'session-save removed the active file');
+    assert.ok(!fs.existsSync(active('f14-save-first')), 'session-save removed the live record');
     runHook('session-end.js', { session_id: 'f14-save-first', hook_event_name: 'SessionEnd' });
     const rec = JSON.parse(fs.readFileSync(knowledge('f14-save-first'), 'utf8'));
     assert.equal(rec.startedAt, '2026-10-26T10:00:00.000Z');
-    assert.ok(!fs.existsSync(ACTIVE), 'session-end does not recreate active-session.json');
+    assert.ok(!fs.existsSync(active('f14-save-first')), 'session-end does not recreate the live record');
   });
 
   it('session-end before session-save writes the record and leaves the archive to session-save', () => {
-    seed('2026-10-26T11:00:00.000Z');
+    seed('f14-end-first', '2026-10-26T11:00:00.000Z');
     runHook('session-end.js', { session_id: 'f14-end-first', hook_event_name: 'SessionEnd' });
     runHook('session-save.js', { session_id: 'f14-end-first', hook_event_name: 'SessionEnd' });
     const rec = JSON.parse(fs.readFileSync(knowledge('f14-end-first'), 'utf8'));
     assert.equal(rec.startedAt, '2026-10-26T11:00:00.000Z');
-    const archived = fs.readdirSync(SESSIONS).filter((n) => /^\d{4}-\d{2}-\d{2}-[0-9a-f]+\.json$/.test(n))
-      .map((n) => JSON.parse(fs.readFileSync(path.join(SESSIONS, n), 'utf8')));
-    assert.ok(archived.some((a) => a.sessionId === 'f14-end-first' && a.status === 'complete'));
-    assert.ok(!fs.existsSync(ACTIVE));
+    assert.ok(archives().some((a) => a.sessionId === 'f14-end-first' && a.status === 'complete'));
+    assert.ok(!fs.existsSync(active('f14-end-first')));
   });
 
-  it('finds the newest archive among more than 50 from the same day', () => {
+  it('finds its archive among many from the same day without scanning them', () => {
     fs.mkdirSync(SESSIONS, { recursive: true });
-    const old = new Date('2026-10-26T00:00:00Z');
-    for (let i = 0; i < 60; i++) {
-      const f = path.join(SESSIONS, `2026-10-26-ffff${String(i).padStart(4, '0')}.json`);
-      fs.writeFileSync(f, JSON.stringify({ sessionId: `filler-${i}`, status: 'complete' }));
-      fs.utimesSync(f, old, old);
+    const today = new Date().toISOString().slice(0, 10);
+    for (let i = 0; i < 300; i++) {
+      fs.writeFileSync(path.join(SESSIONS, `${today}-ffff${String(i).padStart(4, '0')}.json`), JSON.stringify({ sessionId: `filler-${i}`, status: 'complete' }));
     }
-    seed('2026-10-26T12:00:00.000Z');
+    seed('f14-busy-day', '2026-10-26T12:00:00.000Z');
     runHook('session-save.js', { session_id: 'f14-busy-day', hook_event_name: 'SessionEnd' });
+    const t0 = Date.now();
     runHook('session-end.js', { session_id: 'f14-busy-day', hook_event_name: 'SessionEnd' });
+    assert.ok(Date.now() - t0 < 3000, 'session-end stays inside its 3 s timeout');
     const rec = JSON.parse(fs.readFileSync(knowledge('f14-busy-day'), 'utf8'));
     assert.equal(rec.startedAt, '2026-10-26T12:00:00.000Z');
+  });
+
+  it('a resumed session that ends twice in one day keeps both archives; the canonical name holds the latest', () => {
+    seed('twice-a-day', '2026-10-26T15:00:00.000Z');
+    fs.writeFileSync(path.join(SESSIONS, 'active-cost-twice-a-day.json'), JSON.stringify({ sessionId: 'twice-a-day', toolCalls: 7, estimatedCost: 0 }));
+    runHook('session-save.js', { session_id: 'twice-a-day', hook_event_name: 'SessionEnd' });
+    seed('twice-a-day', '2026-10-26T16:00:00.000Z');
+    runHook('session-save.js', { session_id: 'twice-a-day', hook_event_name: 'SessionEnd' });
+    const mine = fs.readdirSync(SESSIONS).filter((n) => /^\d{4}-\d{2}-\d{2}-/.test(n))
+      .map((n) => ({ n, a: JSON.parse(fs.readFileSync(path.join(SESSIONS, n), 'utf8')) }))
+      .filter((x) => x.a.sessionId === 'twice-a-day');
+    assert.equal(mine.length, 2, 'two completions, two archives');
+    assert.ok(mine.some((x) => x.a.toolCalls === 7 && x.a.startedAt === '2026-10-26T15:00:00.000Z'), 'the first completion and its counts survive');
+    const canonical = mine.find((x) => /^\d{4}-\d{2}-\d{2}-[0-9a-f]{8}\.json$/.test(x.n));
+    assert.equal(canonical.a.startedAt, '2026-10-26T16:00:00.000Z', 'the canonical name points at the latest completion');
   });
 
   it("does not adopt another session's archive", () => {
     runHook('session-end.js', { session_id: 'f14-stranger', hook_event_name: 'SessionEnd' });
     assert.ok(!fs.existsSync(knowledge('f14-stranger')));
+  });
+
+  it("one session's SessionEnd never archives or removes a parallel session's live record", () => {
+    seed('par-a', '2026-10-26T13:00:00.000Z');
+    seed('par-b', '2026-10-26T13:05:00.000Z');
+    runHook('session-save.js', { session_id: 'par-a', hook_event_name: 'SessionEnd' });
+    runHook('session-end.js', { session_id: 'par-a', hook_event_name: 'SessionEnd' });
+    assert.ok(fs.existsSync(active('par-b')), "B's live record survives A's SessionEnd");
+    assert.equal(JSON.parse(fs.readFileSync(active('par-b'), 'utf8')).startedAt, '2026-10-26T13:05:00.000Z');
+    assert.ok(!archives().some((a) => a.sessionId === 'par-a' && a.startedAt === '2026-10-26T13:05:00.000Z'), "A's archive holds A's data");
+    assert.equal(JSON.parse(fs.readFileSync(knowledge('par-a'), 'utf8')).startedAt, '2026-10-26T13:00:00.000Z');
+  });
+
+  it('a live record owned by another session id is neither archived nor removed', () => {
+    fs.mkdirSync(SESSIONS, { recursive: true });
+    fs.writeFileSync(active('own-x'), JSON.stringify({ sessionId: 'someone-else', startedAt: '2026-10-26T14:00:00.000Z' }));
+    runHook('session-save.js', { session_id: 'own-x', hook_event_name: 'SessionEnd' });
+    assert.ok(fs.existsSync(active('own-x')), 'foreign record left in place');
+  });
+});
+
+describe('SessionStart and CwdChanged keep one live record per session', () => {
+  it('two sessions starting in parallel each get their own record; CwdChanged edits only its own', async () => {
+    const { pathToFileURL } = require('node:url');
+    const mod = await import(pathToFileURL(path.join(HOOKS_DIR, '_archive', 'session-start.js')).href);
+    await mod.run({ home: HOME, input: { session_id: 'ss-a', cwd: '/tmp/a' } });
+    await mod.run({ home: HOME, input: { session_id: 'ss-b', cwd: '/tmp/b' } });
+    const read = (k) => JSON.parse(fs.readFileSync(path.join(SESSIONS, `active-session-${k}.json`), 'utf8'));
+    assert.equal(read('ss-a').sessionId, 'ss-a');
+    assert.equal(read('ss-a').cwd, '/tmp/a');
+    assert.equal(read('ss-b').cwd, '/tmp/b');
+    runHook('session-state-sync.js', { session_id: 'ss-a', hook_event_name: 'CwdChanged', old_cwd: '/tmp/a', new_cwd: '/tmp/a2' });
+    assert.equal(read('ss-a').cwd, '/tmp/a2');
+    assert.equal(read('ss-b').cwd, '/tmp/b', "B's record untouched");
   });
 });
 

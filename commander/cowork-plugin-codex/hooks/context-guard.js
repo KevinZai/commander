@@ -27,6 +27,7 @@ import { estimateContextPct } from './lib/context-estimate.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { readablePath, stateDir } from '../lib/lane-state.js';
+import { isCodeModePoll, POLL_PASS } from './lib/code-mode.mjs';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
 const CCC_DIR = stateDir();
@@ -120,6 +121,7 @@ async function main() {
   } catch {
     // Ignore — estimate falls back to env vars only
   }
+  if (isCodeModePoll(input)) { process.stdout.write(JSON.stringify(POLL_PASS) + '\n'); return; }
 
   try {
     // Detect context % used: transcript JSONL heuristic (env vars win if set)

@@ -199,7 +199,7 @@
       "id": "ccc-build",
       "kind": "skill",
       "invoke": "/ccc-build",
-      "label": "Scaffold a new web app, API or CLI from a…",
+      "label": "Build against the sprint contract or…",
       "manual": false,
       "strong": [
         "scaffold a new",
@@ -269,7 +269,7 @@
       "kind": "skill",
       "invoke": "/ccc-cheatsheet",
       "label": "Live map of the installed Commander",
-      "manual": false,
+      "manual": true,
       "strong": [
         "commander cheatsheet",
         "commander cheat sheet",
@@ -377,7 +377,8 @@
       ],
       "triggers": [],
       "patterns": [
-        "\\b(connect|wire up|hook up)\\s+(my\\s+|the\\s+)?(linear|supabase|vercel|sentry|notion|slack|stripe)\\s+(to|with|into)\\s+(commander|claude|codex|this session)\\b"
+        "\\b(connect|wire up|hook up)\\s+(my\\s+|the\\s+)?(linear|supabase|vercel|sentry|notion|slack|stripe)\\s+(to|with|into)\\s+(commander|claude|codex|this session)\\b",
+        "\\b(add|set up|install|connect)\\s+(a\\s+|the\\s+)?(code[- ]?map|codebase[- ]memory|codebase graph)\\b"
       ],
       "negatives": [],
       "paths": [],
@@ -604,10 +605,15 @@
       "triggers": [
         "design system",
         "component system",
-        "ui"
+        "ui",
+        "three.js",
+        "threejs",
+        "webgl",
+        "react three fiber"
       ],
       "patterns": [
-        "\\b(design|restyle|polish|redesign|animate)\\s+(the\\s+|my\\s+|a\\s+|this\\s+)?([\\w-]+\\s+){0,2}(ui|landing page|homepage|page|component|screen)\\b"
+        "\\b(design|restyle|polish|redesign|animate)\\s+(the\\s+|my\\s+|a\\s+|this\\s+)?([\\w-]+\\s+){0,2}(ui|landing page|homepage|page|component|screen)\\b",
+        "\\b(three\\.?js|webgl|react three fiber|r3f)\\b.{0,40}\\b(scene|shader|viewer|model|animation|post-processing|material)s?\\b|\\b(scene|shader|viewer|model)s?\\b.{0,40}\\b(three\\.?js|webgl|react three fiber|r3f)\\b"
       ],
       "negatives": [
         "\\bsystem design\\b",
@@ -839,7 +845,7 @@
       "kind": "skill",
       "invoke": "/ccc-fleet-viz",
       "label": "Show a /ccc-fleet run as a live tree of…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "fleet progress",
         "fleet tree"
@@ -1378,7 +1384,7 @@
       "id": "ccc-plan",
       "kind": "skill",
       "invoke": "/ccc-plan",
-      "label": "Turn an idea, bug, refactor or Linear issue…",
+      "label": "Turn an idea, bug or refactor into a…",
       "manual": false,
       "strong": [
         "implementation plan",
@@ -1635,7 +1641,8 @@
       "patterns": [
         "\\breview\\s+(my|this|the|our)\\s+(code|changes|diff|pr|pull request|branch|commit|commits)\\b",
         "\\b(do|run|perform|i need|i want)\\s+(a|an|the)\\s+(code|pr|pull request)\\s+review\\b(?!\\s+(bot|feedback|comment|process|guide))",
-        "\\bgive\\s+(my|this|the|our)\\s+(code|changes|diff|pr|branch)\\s+a\\s+(code\\s+)?review\\b"
+        "\\bgive\\s+(my|this|the|our)\\s+(code|changes|diff|pr|branch)\\s+a\\s+(code\\s+)?review\\b",
+        "\\breview\\s+(the\\s+)?(last|latest|recent|previous)\\s+(\\d+\\s+)?(commit|commits|change|changes)\\b"
       ],
       "negatives": [
         "\\bpreview\\b",
@@ -1993,7 +2000,7 @@
       "id": "ccc-start",
       "kind": "skill",
       "invoke": "/ccc-start",
-      "label": "First-run Commander onboarding",
+      "label": "First run",
       "manual": false,
       "strong": [
         "get started with commander",
@@ -2183,7 +2190,7 @@
       "kind": "skill",
       "invoke": "/ccc-tuneup",
       "label": "Audit and safely optimize the local…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "tune up commander",
         "commander tuneup",

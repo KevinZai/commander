@@ -132,6 +132,13 @@ statistics, as produced by this runner; it rejects retained-unmerged/concatenate
 The rolling documentation may describe a development release. Inspect `qiime info` and action
 `--help` in the exact installed environment before adapting the pinned runner to a later release.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

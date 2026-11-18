@@ -7,7 +7,7 @@ CC Commander v8.1.6 ships **93 plugin skills** across ten groups. All skills are
 
 ## Model-visible vs on demand
 
-Claude sees 32 skills; 61 load on demand. The model-visible set is the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus every skill their menus open, so click-first menus keep working. On-demand skills set `disable-model-invocation: true`: their descriptions stay out of Claude's context, Claude never invokes them on its own, and the plain-English triggers below only work for model-visible skills. Type `/ccc-<name>` to open any on-demand skill; when a prompt matches one, the router offers it as a menu choice. The generated table in [SKILLS-INDEX.md](https://github.com/KevinZai/commander/blob/main/SKILLS-INDEX.md#the-93-plugin-skills) marks which is which, and `npm run measure:listing` shows the listing size (7,266 of 8,000 chars).
+Claude sees 29 skills; 64 load on demand. The model-visible set is the 12 core skills (`ccc`, `ccc-build`, `ccc-review`, `ccc-research`, `ccc-security`, `ccc-plan`, `ccc-testing`, `ccc-suggest`, `ccc-systematic-debugging`, `ccc-design`, `ccc-qa`, `ccc-save-session`) plus every skill their menus open, so click-first menus keep working. On-demand skills set `disable-model-invocation: true`: their descriptions stay out of Claude's context, Claude never invokes them on its own, and the plain-English triggers below only work for model-visible skills. Type `/ccc-<name>` to open any on-demand skill; when a prompt matches one, the router offers it as a menu choice. The generated table in [SKILLS-INDEX.md](https://github.com/KevinZai/commander/blob/main/SKILLS-INDEX.md#the-93-plugin-skills) marks which is which, and `npm run measure:listing` shows the listing size (7,266 of 8,000 chars).
 
 ## Group 1 — 13 /ccc-* Specialist Workflows
 
@@ -17,7 +17,7 @@ Click-first workflows. Each opens an interactive picker (AskUserQuestion native 
 |-------|---------|--------------|
 | `/ccc` | `/ccc` or "open commander" | Main hub — detects project context, routes to the right specialist workflow via nested picker |
 | `/ccc-start` | `/ccc-start` or "get started with ccc" | First-run onboarding — creates plan file, explains the plugin, surfaces your first win |
-| `/ccc-browse` | `/ccc-browse` or "browse skills" | Searchable catalog of all 576+ skills and 22 agents — filter by domain, keyword, or tier |
+| `/ccc-browse` | `/ccc-browse` or "browse skills" | Searchable catalog of all 576+ skills and 23 agents — filter by domain, keyword, or tier |
 | `/ccc-plan` | `/ccc-plan` or "plan a feature" | Spec-first planning — 5-question interview → `tasks/spec-YYYYMMDD.md` → ready to build |
 | `/ccc-build` | `/ccc-build` or "build something" | Guided build wizard — web app, API, CLI, or mobile. Dispatches the builder agent with spec |
 | `/ccc-review` | `/ccc-review` or "review my code" | Branch audit — diff review, security pass, performance check, or full x-ray. Uses reviewer agent |

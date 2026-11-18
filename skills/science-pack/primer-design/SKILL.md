@@ -278,6 +278,13 @@ If used in published work, cite the upstream methods in [sources.md](references/
 and [Scientific Agent Skills](https://arxiv.org/abs/2609.00065). Report the software
 versions and assay-specific settings required to reproduce the actual analysis.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another science skill: back to the `science-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repository: https://github.com/K-Dense-AI/scientific-agent-skills

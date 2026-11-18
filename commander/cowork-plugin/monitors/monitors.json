@@ -1,0 +1,8 @@
+[
+  {
+    "name": "fleet-watch",
+    "command": "node --no-warnings \"${CLAUDE_PLUGIN_ROOT}/monitors/fleet-watch.mjs\"",
+    "description": "Commander fleet: a line when a /ccc-fleet worker changes status or the run settles",
+    "when": "on-skill-invoke:ccc-fleet"
+  }
+]

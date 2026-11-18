@@ -87,3 +87,71 @@ test('translator.translateError returns isError response', function() {
   var text = result.content[0].text;
   assert.ok(text.includes('error'), 'Error text should mention error');
 });
+
+test('skills-loader getSkill returns the adjacent LICENSE text for copied skills', function() {
+  var loader = require('../mcp-server/skills-loader.js');
+  var fs = require('fs');
+  var path = require('path');
+  var skill = loader.getSkill('claude-api');
+  assert.ok(skill, 'claude-api skill present');
+  var expected = fs.readFileSync(path.join(__dirname, '..', '..', 'skills', 'claude-api', 'LICENSE.txt'), 'utf8');
+  assert.equal(skill.license, expected);
+});
+
+test('skills-loader serves nested skills with their license, and refuses when a notice is unreadable', function() {
+  var loader = require('../mcp-server/skills-loader.js');
+  var fs = require('fs');
+  var nested = loader.getSkill('canvas-design');
+  assert.strictEqual(nested.id, 'ccc-design/canvas-design');
+  assert.ok(nested.license && nested.license.length > 0);
+  var orig = fs.readFileSync;
+  fs.readFileSync = function(file) {
+    if (String(file).endsWith(require('path').join('claude-api', 'LICENSE.txt'))) { var e = new Error('denied'); e.code = 'EACCES'; throw e; }
+    return orig.apply(fs, arguments);
+  };
+  try {
+    var r = loader.getSkill('claude-api');
+    assert.ok(r && r.error && /EACCES/.test(r.error), JSON.stringify(r && Object.keys(r)));
+    assert.strictEqual(r.content, undefined);
+  } finally {
+    fs.readFileSync = orig;
+  }
+});
+
+test('skills-loader refuses a skill whose declared LICENSE.txt is missing', function() {
+  var loader = require('../mcp-server/skills-loader.js');
+  var fs = require('fs');
+  var p = require('path');
+  var origExists = fs.existsSync;
+  var target = p.join('canvas-design', 'LICENSE.txt');
+  fs.existsSync = function(f) { return String(f).endsWith(target) ? false : origExists.apply(fs, arguments); };
+  try {
+    var r = loader.getSkill('canvas-design');
+    assert.ok(r && r.error && /declares LICENSE\.txt/.test(r.error), JSON.stringify(r && Object.keys(r)));
+  } finally {
+    fs.existsSync = origExists;
+  }
+});
+
+test('skills-loader does not accept another license file name for a declared LICENSE.txt', function() {
+  var loader = require('../mcp-server/skills-loader.js');
+  var fs = require('fs');
+  var p = require('path');
+  var origExists = fs.existsSync;
+  var origRead = fs.readFileSync;
+  var dir = p.join('canvas-design') + p.sep;
+  fs.existsSync = function(f) {
+    var s = String(f);
+    if (s.endsWith(dir + 'LICENSE.txt')) return false;
+    if (s.endsWith(dir + 'LICENSE.md')) return true;
+    return origExists.apply(fs, arguments);
+  };
+  fs.readFileSync = function(f) { return String(f).endsWith(dir + 'LICENSE.md') ? 'unrelated' : origRead.apply(fs, arguments); };
+  try {
+    var r = loader.getSkill('canvas-design');
+    assert.ok(r && r.error && /declares LICENSE\.txt/.test(r.error));
+  } finally {
+    fs.existsSync = origExists;
+    fs.readFileSync = origRead;
+  }
+});

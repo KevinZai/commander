@@ -135,15 +135,40 @@ async function readSessionFile(sessionsDir, filename) {
     throw error;
   }
 
+  const notFound = () => {
+    const err = new Error('Session not found');
+    err.statusCode = 404;
+    return err;
+  };
+  const filePath = path.join(sessionsDir, filename);
+
+  // The name is lexically safe, but the entry itself may be a symlink pointing
+  // outside the sessions directory. Refuse anything that is not a regular file
+  // before opening, open with O_NOFOLLOW where the platform has it, and check
+  // the opened descriptor is the same regular file that was inspected.
+  let before;
   try {
-    return await fsp.readFile(path.join(sessionsDir, filename), 'utf8');
+    before = await fsp.lstat(filePath);
   } catch (error) {
-    if (error && error.code === 'ENOENT') {
-      const notFound = new Error('Session not found');
-      notFound.statusCode = 404;
-      throw notFound;
-    }
+    if (error && (error.code === 'ENOENT' || error.code === 'ENOTDIR')) throw notFound();
     throw error;
+  }
+  if (!before.isFile()) throw notFound();
+
+  const noFollow = typeof fs.constants.O_NOFOLLOW === 'number' ? fs.constants.O_NOFOLLOW : 0;
+  let handle;
+  try {
+    handle = await fsp.open(filePath, fs.constants.O_RDONLY | noFollow);
+  } catch (error) {
+    if (error && (error.code === 'ENOENT' || error.code === 'ELOOP' || error.code === 'EMLINK')) throw notFound();
+    throw error;
+  }
+  try {
+    const opened = await handle.stat();
+    if (!opened.isFile() || opened.ino !== before.ino || opened.dev !== before.dev) throw notFound();
+    return await handle.readFile('utf8');
+  } finally {
+    await handle.close();
   }
 }
 

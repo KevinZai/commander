@@ -29,3 +29,5 @@ Each of these is an external action and is not run by any script or CI job:
 5. After approval, update the install line in the README from `commander@commander-hub` to `cc-commander@claude-community` where it applies.
 
 No credentials are needed to build the mirror.
+
+Submission checklist, listing copy, launch plan, metrics, revenue routing and the CLI split plan: [docs/distribution/](distribution/plugin-directory-submission.md).

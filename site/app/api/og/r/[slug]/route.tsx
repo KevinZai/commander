@@ -102,7 +102,7 @@ export function GET(
             marginBottom: "40px",
           }}
         >
-          {["84 skills", "22 agents", "30 hooks"].map((stat) => (
+          {["93 skills", "23 agents", "28 hooks"].map((stat) => (
             <span
               key={stat}
               style={{

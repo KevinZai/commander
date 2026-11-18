@@ -62,9 +62,36 @@ function buildCatalog() {
 
   scanDir(SKILLS_DIR, 'free');
   scanDir(PLUGIN_SKILLS_DIR, 'free');
+  // Nested skills (pack and router children such as ccc-design/canvas-design),
+  // listed after the top level so a top-level name keeps winning lookups.
+  scanNested(SKILLS_DIR, 'free', skills);
 
   _catalog = skills;
   return _catalog;
+}
+
+function scanNested(root, tier, out) {
+  var parents;
+  try { parents = fs.readdirSync(root, { withFileTypes: true }); } catch (_) { return; }
+  for (var p of parents) {
+    if (!p.isDirectory() || p.name.startsWith('.') || p.name.startsWith('_')) continue;
+    var children;
+    try { children = fs.readdirSync(path.join(root, p.name), { withFileTypes: true }); } catch (_) { continue; }
+    for (var c of children) {
+      if (!c.isDirectory() || c.name.startsWith('.') || c.name.startsWith('_')) continue;
+      var skillPath = path.join(root, p.name, c.name, 'SKILL.md');
+      if (!fs.existsSync(skillPath)) continue;
+      var description = '';
+      try {
+        var lines = fs.readFileSync(skillPath, 'utf8').split('\n');
+        for (var line of lines) {
+          var t = line.trim();
+          if (t && !t.startsWith('#') && !t.startsWith('---')) { description = t.slice(0, 120); break; }
+        }
+      } catch (_) {}
+      out.push({ id: p.name + '/' + c.name, name: c.name, domain: p.name.startsWith('ccc-') ? p.name : 'general', tier: tier || 'free', description: description, path: skillPath });
+    }
+  }
 }
 
 function listSkills(opts) {
@@ -91,15 +118,53 @@ function listSkills(opts) {
 
 function getSkill(name) {
   var catalog = buildCatalog();
-  var skill = catalog.find(function(s) { return s.name === name || s.id === name; });
+  var skill = catalog.find(function(s) { return s.id === name; }) || catalog.find(function(s) { return s.name === name; });
   if (!skill) return null;
 
   try {
     var content = fs.readFileSync(skill.path, 'utf8');
-    return { id: skill.id, name: skill.name, domain: skill.domain, tier: skill.tier, content: content };
+    var out = { id: skill.id, name: skill.name, domain: skill.domain, tier: skill.tier, content: content };
+    var license = readSkillLicense(skill.path, content);
+    if (license && license.error) return { error: license.error };
+    if (license) out.license = license.text;
+    return out;
   } catch (_) {
     return null;
   }
+}
+
+var LICENSE_NAMES = ['LICENSE.txt', 'LICENSE', 'LICENSE.md'];
+
+// The notice that travels with a copied skill: a LICENSE beside SKILL.md, else
+// one in its pack dir (the parent, unless that is a top-level skills root).
+// The license file a SKILL.md's frontmatter names (`license: Complete terms in LICENSE.txt`), or null.
+function declaredLicenseName(skillMd) {
+  var fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(skillMd || '');
+  var line = fm ? /^license:\s*(.*)$/m.exec(fm[1]) : null;
+  var m = line ? /\b(LICEN[SC]E(?:\.[A-Za-z]+)?)\b/.exec(line[1]) : null;
+  return m ? m[1] : null;
+}
+
+function readSkillLicense(skillFile, skillMd) {
+  var dir = path.dirname(skillFile);
+  var dirs = [dir];
+  var parent = path.dirname(dir);
+  if (path.basename(parent) !== 'skills' && parent !== dir) dirs.push(parent);
+  var declared = declaredLicenseName(skillMd);
+  // A declared file name is the only one that counts; otherwise any standard name.
+  var names = declared ? [declared] : LICENSE_NAMES;
+  for (var i = 0; i < dirs.length; i++) {
+    for (var j = 0; j < names.length; j++) {
+      var file = path.join(dirs[i], names[j]);
+      if (!fs.existsSync(file)) continue;
+      // A notice that exists but cannot be read means the skill is not served.
+      try { return { text: fs.readFileSync(file, 'utf8') }; } catch (e) {
+        return { error: 'License notice for this skill could not be read (' + (e.code || 'error') + '); not serving it without the notice.' };
+      }
+    }
+  }
+  if (declared) return { error: 'This skill declares ' + declared + ' but the file is missing; not serving it without the notice.' };
+  return null;
 }
 
 function searchSkills(query, limit) {

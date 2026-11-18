@@ -496,6 +496,13 @@ Selective bloom needs no layer trick here: add `emissive` (from `three/tsl`) to 
 - `threejs-shaders` — GLSL ShaderMaterial authoring and the TSL node language for custom effects.
 - `threejs-textures` — render targets and using a post-processed image as a texture.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another Three.js skill: back to the `threejs-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Upstream: https://github.com/CloudAI-X/threejs-skills

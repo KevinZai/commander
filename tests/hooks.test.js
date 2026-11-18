@@ -76,7 +76,7 @@ describe('careful-guard.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
+    spawnSync(process.execPath, [hookPath], {
       input: 'not json',
       encoding: 'utf-8',
       timeout: 5000,
@@ -125,7 +125,7 @@ describe('pre-commit-verify.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
+    spawnSync(process.execPath, [hookPath], {
       input: 'not json',
       encoding: 'utf-8',
       timeout: 5000,
@@ -175,7 +175,7 @@ describe('confidence-gate.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
+    spawnSync(process.execPath, [hookPath], {
       input: 'not json',
       encoding: 'utf-8',
       timeout: 5000,
@@ -209,7 +209,7 @@ describe('context-guard.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
+    spawnSync(process.execPath, [hookPath], {
       input: 'not json',
       encoding: 'utf-8',
       timeout: 5000,
@@ -260,7 +260,7 @@ describe('auto-checkpoint.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
+    spawnSync(process.execPath, [hookPath], {
       input: 'not json',
       encoding: 'utf-8',
       timeout: 5000,
@@ -297,7 +297,7 @@ describe('cost-alert.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
+    spawnSync(process.execPath, [hookPath], {
       input: 'not json',
       encoding: 'utf-8',
       timeout: 5000,
@@ -340,7 +340,7 @@ describe('auto-lessons.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
+    spawnSync(process.execPath, [hookPath], {
       input: 'not json',
       encoding: 'utf-8',
       timeout: 5000,
@@ -377,7 +377,7 @@ describe('rate-predictor.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
+    spawnSync(process.execPath, [hookPath], {
       input: 'not json',
       encoding: 'utf-8',
       timeout: 5000,
@@ -413,7 +413,7 @@ describe('session-end-verify.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
+    spawnSync(process.execPath, [hookPath], {
       input: 'not json',
       encoding: 'utf-8',
       timeout: 5000,
@@ -472,7 +472,7 @@ describe('pre-compact.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
+    spawnSync(process.execPath, [hookPath], {
       input: 'not json',
       encoding: 'utf-8',
       timeout: 5000,
@@ -542,7 +542,7 @@ describe('self-verify.js', () => {
   });
 
   it('handles malformed input gracefully', () => {
-    const result = spawnSync(process.execPath, [hookPath], {
+    spawnSync(process.execPath, [hookPath], {
       input: 'not json',
       encoding: 'utf-8',
       timeout: 5000,

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * doc-file-warning.js
- * Hook: PreToolUse (Write)
+ * Hook: PreToolUse (Write; Codex apply_patch "Add File")
  * Warns when agents try to write ad-hoc scratch markdown (NOTES.md,
  * TODO.md, SCRATCH.md, etc.) outside structured directories. Encourages
  * placing docs under docs/, .claude/, .github/, skills/, or tasks/.
@@ -11,6 +11,7 @@
  */
 import { track } from '../lib/telemetry.mjs';
 import path from 'node:path';
+import { editTargets } from './lib/edit-targets.mjs';
 
 const ADHOC_FILENAMES = /^(NOTES|TODO|SCRATCH|TEMP|DRAFT|BRAINSTORM|SPIKE|DEBUG|WIP)\.(md|txt)$/;
 const STRUCTURED_DIRS = /(^|\/)(docs|\.claude|\.github|commands|skills|benchmarks|templates|\.history|memory|tasks)\//;
@@ -39,16 +40,19 @@ async function main() {
 
   try {
     const toolName = input.tool_name || input.toolName || '';
-    if (toolName !== 'Write') {
+    if (toolName !== 'Write' && toolName !== 'apply_patch') {
       process.stdout.write(JSON.stringify({ continue: true }) + '\n');
       return;
     }
 
-    const filePath = String(input.tool_input?.file_path || '');
-    if (filePath && isSuspiciousDocPath(filePath)) {
-      console.error('[CCC] WARNING: Ad-hoc documentation filename detected');
-      console.error(`[CCC] File: ${filePath}`);
-      console.error('[CCC] Consider placing under: docs/, .claude/, skills/, tasks/, or .github/');
+    // New files only: a Claude Write, or an Add File / Move to in a Codex patch.
+    for (const target of editTargets(input).filter((t) => t.op === 'add')) {
+      const filePath = String(target.path || '');
+      if (filePath && isSuspiciousDocPath(filePath)) {
+        console.error('[CCC] WARNING: Ad-hoc documentation filename detected');
+        console.error(`[CCC] File: ${filePath}`);
+        console.error('[CCC] Consider placing under: docs/, .claude/, skills/, tasks/, or .github/');
+      }
     }
   } catch {
     // fail open

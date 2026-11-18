@@ -6,6 +6,7 @@ allowed-tools:
   - Bash
   - Glob
 argument-hint: "[--watch | --state-dir=PATH]"
+disable-model-invocation: true
 ---
 
 # $ccc-fleet-viz — the fleet as a tree

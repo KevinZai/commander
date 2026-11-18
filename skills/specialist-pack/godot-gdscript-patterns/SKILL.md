@@ -76,6 +76,13 @@ func take_damage(amount: int) -> void:
 
 Detailed pattern documentation lives in `references/details.md`. Read that file when the navigation tier above is insufficient.
 
+## Next step
+
+- 🟢 Apply it: does the task with this skill's guidance, then runs the project's checks
+- Another specialist skill: back to the `specialist-pack` router to pick a different sub-skill
+- Review: runs `/ccc-review` on the result
+- Done: you continue manually
+
 ## Source
 
 - Repo: https://github.com/wshobson/agents

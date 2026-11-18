@@ -13,6 +13,9 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isMainModule } from './lib/code-mode.mjs';
+import { readStdinJson } from './lib/session-key.mjs';
+import { CODEX_PATCH_TOOL, editTargets } from './lib/edit-targets.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PATTERNS_FILE_NEW = join(__dirname, '..', 'lib', 'secret-patterns.json');
@@ -22,6 +25,8 @@ const PATTERNS_FILE = existsSync(PATTERNS_FILE_NEW) ? PATTERNS_FILE_NEW : PATTER
 // Tools whose inputs are worth scanning
 const SCANNED_TOOLS = new Set([
   'Write', 'Edit', 'MultiEdit', 'Bash', 'PowerShell', 'WebSearch',
+  CODEX_PATCH_TOOL, // Codex file edits: the patch text is parsed so only written paths and added lines are scanned
+  'REPL', // Code Mode: the whole JavaScript program is in tool_input.code, so a key literal in it is caught before it runs
   'mcp__', // prefix match handled below
 ]);
 
@@ -38,6 +43,16 @@ function extractTextFromInput(toolInput) {
   return Object.values(toolInput)
     .map(v => (typeof v === 'string' ? v : JSON.stringify(v)))
     .join('\n');
+}
+
+// Codex apply_patch: scan the paths and the lines the patch adds. Removed lines are left out so a
+// patch that deletes a leaked key is not itself blocked. A patch that cannot be parsed is scanned whole.
+function textForScan(toolName, input, toolInput) {
+  if (toolName === CODEX_PATCH_TOOL) {
+    const targets = editTargets(input);
+    if (targets.length) return targets.map((t) => `${t.path}\n${t.content}`).join('\n');
+  }
+  return extractTextFromInput(toolInput);
 }
 
 // allowlist: placeholder/test-key terms. Only the token containing the term is blanked out, so one
@@ -67,25 +82,14 @@ function stripAllowlistedTokens(text, allowlistRegex) {
   return out;
 }
 
-async function main() {
+export async function run(input = {}) {
   track('hook_fired', { hook: 'PreToolUse', handler: 'secret-leak-guard' });
-  let input = {};
-  try {
-    const chunks = [];
-    for await (const chunk of process.stdin) chunks.push(chunk);
-    const raw = Buffer.concat(chunks).toString('utf8').trim();
-    if (raw) input = JSON.parse(raw);
-  } catch {
-    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-    return;
-  }
 
   const toolName = input.tool_name || input.toolName || '';
 
   // Skip non-scanned tools immediately
   if (!toolShouldBeScanned(toolName)) {
-    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-    return;
+    return { continue: true };
   }
 
   try {
@@ -95,19 +99,17 @@ async function main() {
       patternsConfig = JSON.parse(await readFile(PATTERNS_FILE, 'utf8'));
     } catch {
       // Patterns file missing — fail open
-      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-      return;
+      return { continue: true };
     }
 
     const toolInput = input.tool_input || input.input || {};
     const textToScan = stripAllowlistedTerms(
-      stripAllowlistedTokens(extractTextFromInput(toolInput), patternsConfig.allowlistRegex),
+      stripAllowlistedTokens(textForScan(toolName, input, toolInput), patternsConfig.allowlistRegex),
       patternsConfig.allowlist
     );
 
     if (!textToScan.trim()) {
-      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-      return;
+      return { continue: true };
     }
 
     // Scan for secret patterns
@@ -124,19 +126,23 @@ async function main() {
     }
 
     if (detected.length === 0) {
-      process.stdout.write(JSON.stringify({ continue: true }) + '\n');
-      return;
+      return { continue: true };
     }
 
     const labels = detected.map(d => `${d.label} [${d.severity}]`).join(', ');
     const stopReason = `CCC SECRET GUARD: Possible secret detected in ${toolName} input — ${labels}. ` +
       `Use env vars or 1Password. False positive? Add to allowlist in secret-patterns.json.`;
 
-    process.stdout.write(JSON.stringify(emitDeny(stopReason)) + '\n');
+    return emitDeny(stopReason);
   } catch {
     // Fail open — never block session on error
-    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
+    return { continue: true };
   }
 }
 
-main();
+// Standalone entry (hooks.json may still call this file directly); the PreToolUse dispatcher imports run() instead.
+if (isMainModule(import.meta.url)) {
+  readStdinJson().then(run).catch(() => ({ continue: true })).then((out) => {
+    process.stdout.write(JSON.stringify(out) + '\n');
+  });
+}

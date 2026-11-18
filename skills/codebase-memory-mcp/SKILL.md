@@ -44,6 +44,13 @@ Windows: Commander has no pinned, digest-checked route. Point the user to the up
 - All CBM processes on a machine must run the same version; mixing versions is refused by its own lock.
 - CBM Lens, the optional browser UI, is in open beta and serves on loopback only.
 
+## Next step
+
+- 🟢 Connect: adds the code map through `/ccc-connect`, with your OK
+- Index now: indexes the current repo after it is installed
+- Pick another skill: `/ccc-suggest` recommends one
+- Done: you continue manually
+
 ## License
 
 MIT, see the upstream repository.

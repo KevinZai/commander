@@ -401,8 +401,8 @@ function renderSafetyTab(model, nowMs) {
     count(decisions.blocked)
   )}</strong></div><div><span class="ccc-tile-label">Auto-fixed</span><strong class="ccc-tile-value">${esc(
     count(decisions.autofixed)
-  )}</strong></div><div><span class="ccc-tile-label">Approved</span><strong class="ccc-tile-value">${esc(
-    count(decisions.approved)
+  )}</strong></div><div><span class="ccc-tile-label">Requested</span><strong class="ccc-tile-value">${esc(
+    count(decisions.requested)
   )}</strong></div></div>${
     topTools.length ? `<h2 class="ccc-h2">Tool failure hotspots</h2><ul class="ccc-rows">${topTools.join('')}</ul>` : ''
   }${renderStamp(safety, nowMs)}`;

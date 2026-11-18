@@ -234,3 +234,15 @@ test('blind spot: upgrade.mdx currency does NOT weaken historical protection els
   ].join('\n');
   assert.deepStrictEqual(contractCli.checkUpgradeGuideCurrency(doc, FULL_CONTRACT), []);
 });
+
+// Grok audit S1 (2026-11-18): a count bump edited apps/mcp-server-cloud/package.json,
+// which triggers the Fly deploy workflows. No count surface may sit under a deploy path.
+test('no product-count surface lives under a deploy-triggering path', function() {
+  var contractMod = require('../../scripts/check-product-contract.js');
+  var surfaces = contractMod.TEXT_SURFACES.concat(contractMod.JSON_SURFACES);
+  surfaces.forEach(function(rel) {
+    contractMod.NO_COUNT_SURFACE_PREFIXES.forEach(function(prefix) {
+      assert.ok(rel.indexOf(prefix) !== 0, rel + ' is a count surface under ' + prefix);
+    });
+  });
+});

@@ -293,13 +293,13 @@ body{margin:0;background:var(--sf-bg);color:var(--sf-fg);}
 .safety .hero-stat .lbl{color:var(--sf-muted);font-size:.82rem;margin-top:4px;}
 .safety .hero-stat.blocked .num{color:var(--sf-err);}
 .safety .hero-stat.autofixed .num{color:var(--sf-warn);}
-.safety .hero-stat.approved .num{color:var(--sf-ok);}
+.safety .hero-stat.requested .num{color:var(--sf-ok);}
 .safety .hero-headline{font-size:1.06rem;margin:0 0 14px;}
 .safety .badge{display:inline-block;border-radius:999px;padding:1px 9px;
   font-size:.78rem;font-weight:600;white-space:nowrap;}
 .safety .bd-blocked{color:var(--sf-err);background:var(--sf-err-bg);}
 .safety .bd-autofixed{color:var(--sf-warn);background:var(--sf-warn-bg);}
-.safety .bd-approved{color:var(--sf-ok);background:var(--sf-ok-bg);}
+.safety .bd-requested{color:var(--sf-ok);background:var(--sf-ok-bg);}
 .safety .bd-other{color:var(--sf-muted);background:var(--sf-line);}
 .safety .bar-row{display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center;
   padding:5px 0;font-size:.86rem;}
@@ -1114,7 +1114,7 @@ function pct(count, total) {
 }
 
 function renderSafetyHeroSection(decisions, { hasAnySourceRow = true } = {}) {
-  const { total, blocked, autofixed, approved, otherCount } = decisions;
+  const { total, blocked, autofixed, requested, otherCount } = decisions;
 
   if (total === 0) {
     const doctorNote = hasAnySourceRow ? '' : ` ${DOCTOR_POINTER}`;
@@ -1134,7 +1134,9 @@ function renderSafetyHeroSection(decisions, { hasAnySourceRow = true } = {}) {
     `Commander blocked <strong>${esc(blocked)}</strong> action${blocked === 1 ? '' : 's'}`
   );
   if (autofixed > 0) headlineParts.push(`auto-fixed <strong>${esc(autofixed)}</strong> for you`);
-  const headline = `${headlineParts.join(' and ')}. <strong>${esc(approved)}</strong> tool call${approved === 1 ? '' : 's'} approved without intervention${otherCount > 0 ? ` (${esc(otherCount)} other decision${otherCount === 1 ? '' : 's'})` : ''}.`;
+  // "requested" = the gate did not object and the request went on to the normal
+  // permission flow; PermissionRequest hooks never see the final outcome.
+  const headline = `${headlineParts.join(' and ')}. <strong>${esc(requested)}</strong> permission request${requested === 1 ? '' : 's'} passed to the normal approval flow${otherCount > 0 ? ` (${esc(otherCount)} other decision${otherCount === 1 ? '' : 's'})` : ''}.`;
 
   return `<section aria-label="Safety overview">
 <h2>🛡️ Safety overview</h2>
@@ -1142,7 +1144,7 @@ function renderSafetyHeroSection(decisions, { hasAnySourceRow = true } = {}) {
 <div class="hero-grid">
 <div class="hero-stat blocked"><div class="num">${esc(blocked)}</div><div class="lbl">blocked</div></div>
 <div class="hero-stat autofixed"><div class="num">${esc(autofixed)}</div><div class="lbl">auto-fixed</div></div>
-<div class="hero-stat approved"><div class="num">${esc(approved)}</div><div class="lbl">approved</div></div>
+<div class="hero-stat requested"><div class="num">${esc(requested)}</div><div class="lbl">requested</div></div>
 </div>
 </section>`;
 }
@@ -1197,7 +1199,7 @@ function renderDecisionsSection(decisions) {
 </section>`;
   }
 
-  const badgeClass = { blocked: 'bd-blocked', autofixed: 'bd-autofixed', approved: 'bd-approved', other: 'bd-other' };
+  const badgeClass = { blocked: 'bd-blocked', autofixed: 'bd-autofixed', requested: 'bd-requested', other: 'bd-other' };
   const rows = counts
     .map(
       (entry) => `<tr>
@@ -1227,7 +1229,7 @@ function renderSafetyTab(model, opts = {}) {
   const decisions =
     source.decisions && typeof source.decisions === 'object'
       ? source.decisions
-      : { total: 0, counts: [], blocked: 0, autofixed: 0, approved: 0, otherCount: 0 };
+      : { total: 0, counts: [], blocked: 0, autofixed: 0, requested: 0, otherCount: 0 };
   const toolFailures =
     source.toolFailures && typeof source.toolFailures === 'object'
       ? source.toolFailures

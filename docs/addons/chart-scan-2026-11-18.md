@@ -1,6 +1,6 @@
 # Most-starred skills chart: license check (2026-11-18)
 
-Linear: CC-2133 (parent). Kevin shared a chart of the 15 most-starred Claude skill repositories. Ten were already handled by the X scan (`docs/addons/x-scan-2026-11-18.md`, on the batch E branch) or are vendored. This file covers the five that were new. Each license was read from the repository's own LICENSE file and its git history on 2026-11-18.
+Linear: CC-2133 (parent). Kevin shared a chart of the 15 most-starred Claude skill repositories. Ten were already handled by the X scan (`docs/addons/x-scan-2026-11-18.md`, merged in #290) or are vendored. This file covers the five that were new. Each license was read from the repository's own LICENSE file and its git history on 2026-11-18.
 
 ## Taken (batch F)
 

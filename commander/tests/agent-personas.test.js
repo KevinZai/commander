@@ -17,7 +17,7 @@ var ROOT = path.join(__dirname, '..', '..');
 var AGENTS_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'agents');
 var PERSONAS_DIR = path.join(ROOT, 'commander', 'cowork-plugin', 'rules', 'personas');
 
-var EXPECTED_AGENT_COUNT = 22;
+var EXPECTED_AGENT_COUNT = 23;
 
 // Claude Code subagent aliases plus the current full ids
 // (docs/reference/platform-facts-2026-10.md §1). Legacy ids (claude-opus-5,
@@ -54,6 +54,8 @@ var LANGUAGE_REVIEWERS = [
 var EXPECTED_ROUTING = {
   architect: { model: 'fable', effort: 'xhigh' },
   'security-auditor': { model: 'fable', effort: 'xhigh' },
+  // Load-bearing verification of acceptance criteria (CLAUDE.md routing).
+  verifier: { model: 'fable', effort: 'high' },
   'technical-writer': { model: 'sonnet', effort: 'medium' },
   'content-strategist': { model: 'sonnet', effort: 'medium' },
   'fleet-worker': { model: 'sonnet', effort: 'medium' },
@@ -73,7 +75,7 @@ LANGUAGE_REVIEWERS.forEach(function (n) {
 });
 
 // Agents that must not write files: reviewers and auditors.
-var READ_ONLY_AGENTS = ['reviewer', 'security-auditor', 'performance-engineer']
+var READ_ONLY_AGENTS = ['reviewer', 'security-auditor', 'performance-engineer', 'verifier']
   .concat(LANGUAGE_REVIEWERS);
 
 // Fields Claude Code ignores for plugin subagents (platform-facts §2.3).
@@ -406,7 +408,7 @@ READ_ONLY_AGENTS.forEach(function (agentName) {
   });
 });
 
-['reviewer', 'security-auditor', 'qa-engineer'].concat(LANGUAGE_REVIEWERS).forEach(function (agentName) {
+['reviewer', 'security-auditor', 'qa-engineer', 'verifier'].concat(LANGUAGE_REVIEWERS).forEach(function (agentName) {
   test('verifier: ' + agentName + ' is prompted to refute and defaults to refuted', function () {
     var body = parseFrontmatter(path.join(AGENTS_DIR, agentName + '.md')).body;
     assert.ok(/\brefute\b/i.test(body), agentName + ': body must instruct the agent to refute');

@@ -62,6 +62,8 @@ argument-hint: "[quick | full | security | deps | perf | cost | context]"
 
    Quick runs Quality, Docs, Tests, Deps, Security. Full adds Performance and CI (when step 3 did not already cover them). A check that cannot run (no network, no npm) renders as `⚪ n/a`, never as a failure.
 
+   **Code Mode.** When the session exposes the `REPL` tool, run the same checks as one program instead of the Bash call: batch the calls, filter in code (top five long files, test-file count, audit severity counts, secret-file paths only), and return one JSON object keyed by area, each value `{ "finding": "...", "raw": <number or null> }`. A failed call becomes `null` and renders `⚪ n/a`. Without `REPL`, use the Bash call above. See [rules/workflow-first.md §6](../../rules/workflow-first.md#6-code-mode-fan-out).
+
 5. **Session cost row (`cost`, or Full when the user pastes `/cost` output).** Parse the pasted text with the bundled side-effect-free parser. Malformed lines land in `skipped[]`; empty input returns a zero-state object.
 
    ```bash
@@ -98,6 +100,9 @@ argument-hint: "[quick | full | security | deps | perf | cost | context]"
 
 9. **Offer fixes, never run them.** For each 🟠 or 🔴 row, offer one fix task with one `mcp__ccd_session__spawn_task` call (Desktop), for example "Set up GitHub Actions CI for this <stack> repo: test and lint on every PR." The user clicks to start it. Where `spawn_task` is unavailable (CLI, Codex), list the same prompts as text and ask the follow-up picker. 🟢 and 🟡 rows get no offer.
 
+10. **Record the result.** After the scorecard is shown, run `node "${CLAUDE_PLUGIN_ROOT}/scripts/activation.mjs" first-result ccc-xray` (repo checkout: `commander/cowork-plugin/scripts/activation.mjs`). It records this install's first finished result once and sends the `first_result` event only when telemetry is opted in. Do not mention its output to the user.
+
+
 ## Decision points
 
 Depth picker (`AskUserQuestion`, header "X-Ray Scan", single select):
@@ -116,14 +121,16 @@ In Codex or any surface without `AskUserQuestion`, ask the same choices as one p
 - The scope the user chose is the scope that ran (five rows for Quick).
 - Every row has a score or `⚪ n/a` and a top finding; the overall line and the single 🎯 fix-first line are present.
 - Every 🟠/🔴 row has exactly one fix offer, and no task started without a click.
+- Step 10 ran (`"ok":true` in its output).
 
 ## Guardrails
 
-- Read-only: no file edits, no dependency installs, no `npm audit fix`.
+- Read-only for the repository: no file edits, no dependency installs, no `npm audit fix`.
 - Never block on slow network audits; guard each check and mark it n/a.
 - Never print secret values found by the secrets scan; report the path and type only.
 - No ASCII banners or box drawing; plain markdown tables render everywhere.
 - Keep the flow to three turns: context and picker, scan, scorecard and offers.
+- The only write is the activation record in Commander's own state file (step 10); nothing in the repository changes.
 
 ## See also
 

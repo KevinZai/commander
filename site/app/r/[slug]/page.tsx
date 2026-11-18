@@ -187,13 +187,13 @@ export default async function CreatorPage(
               <span className="text-zinc-500">Made by devs, for devs.</span>
             </h2>
             <p className="text-zinc-400 max-w-2xl mx-auto mb-10">
-              84 skills. 22 specialist agents. 30 lifecycle hooks. 2 credential-free
+              93 skills. 23 specialist agents. 28 lifecycle hooks. 2 credential-free
               bundled MCP servers. One 10-second install.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
               {[
                 { value: "60", label: "Plugin skills" },
-                { value: "22", label: "Agents" },
+                { value: "23", label: "Agents" },
                 { value: "9", label: "Hooks" },
                 { value: "Free", label: "Core tier" },
               ].map((stat) => (

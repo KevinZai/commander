@@ -45,6 +45,13 @@ Check first with `claude mcp list` and `claude plugin list`.
 - Only `github.com/MemPalace/mempalace` and the `mempalace` PyPI package are official; the upstream README warns about impostor sites.
 - Commander's `/ccc-memory` files stay the source of truth for decisions and preferences. MemPalace is for recall.
 
+## Next step
+
+- 🟢 Install: walks through the pinned install above, with your OK
+- Compare: weighs MemPalace against Commander's built-in memory before you choose
+- Pick another skill: `/ccc-suggest` recommends one
+- Done: you continue manually
+
 ## License
 
 MIT, see the upstream repository.

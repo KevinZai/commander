@@ -45,7 +45,7 @@ The flat `<config dir>/commander/project-state.json` is from an older layout and
 ## Signal sources
 
 - `ciStatus`: a cached `gh run list --limit 1 --json conclusion` (up to ~10 minutes old; a stale cache refreshes in a detached background process so the hook never blocks).
-- `testsStatus`, `lintStatus`, `securityAlerts`: the PostToolUse cache at `<config dir>/commander/last-test-result.json` (30-minute TTL).
+- `testsStatus`, `lintStatus`, `securityAlerts`: outcomes `knowledge-capture.js` recorded on PostToolUse for this workspace at its current git revision, in `<config dir>/commander/projects/<slug>/test-results.json` (30-minute TTL; a commit or checkout hides older results).
 - `defaultBranch`: `git symbolic-ref refs/remotes/origin/HEAD`, falling back to `origin/main`.
 - Status values are `passing`, `failing` or `unknown`.
 - `hasClaudeMd` and `claudeMdAgeDays` drive CLAUDE.md drift picks: `/ccc-claudemd` when older than 30 days, `/ccc-adopt` when missing.

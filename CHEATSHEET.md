@@ -8,7 +8,7 @@
 
 ## Desktop Plugin Commands (v8.1.6)
 
-CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 93 plugin skills total, plus 22 specialist agents, 30 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 8 plugin evals.
+CC Commander ships as a native **Claude Code Desktop** (aka Cowork Desktop) plugin — this is the primary product. Install once via **Settings → Plugin Marketplace → Add from GitHub** (`KevinZai/commander`). 93 plugin skills total, plus 23 specialist agents, 28 lifecycle hooks, the Commander HUD mod, 6 plugin workflows and 13 plugin evals.
 
 > **Cowork Desktop and Claude Code Desktop are the same app, two UI modes.** The plugin works identically in both.
 
@@ -84,7 +84,7 @@ codex plugin add commander@commander-hub
 
 > 🧠 **The Commander Method:** `/ccc-fable on` arms the 12-gate operating doctrine — never trust a single pass, loops need verifiers/state/stops, prove before you alarm, context is disposable/state is durable. Model-agnostic by design. Full doctrine: `commander/cowork-plugin/rules/fable-method.md`.
 
-### Sub-agent personas (22)
+### Sub-agent personas (23)
 
 Brain/hands architecture — each persona has a distinct role, model alias and voice. Skills delegate to these automatically.
 
@@ -115,24 +115,24 @@ Brain/hands architecture — each persona has a distinct role, model alias and v
 
 ### Lifecycle hook events (30)
 
-30 events, 51 handlers — fire automatically every session (no configuration needed).
+28 events, 47 handlers — fire automatically every session (no configuration needed).
 
 | Event | Handlers |
 |-------|----------|
-| `SessionStart` | 5 (orchestrator, license check, git truth, update nudge, console auto-open) |
+| `SessionStart` | 4 (orchestrator, git truth, update nudge, console auto-open) |
 | `SessionEnd` | 2 (session save, session end) |
-| `UserPromptSubmit` | 6 (suggest ticker, intent classifier, context warning, context guard, submit logger, skill-runs logger) |
-| `PreToolUse` | 6 (cost tracker, cost ceiling, secret-leak guard, config protection, doc-file warning, git-push reminder) |
+| `UserPromptSubmit` | 5 (suggest ticker, intent classifier, context guard, submit logger, skill-runs logger) |
+| `PreToolUse` | 4 (dispatcher running cost tracker, cost ceiling and secret-leak guard; config protection; doc-file warning; git-push reminder) |
 | `PostToolUse` | 4 (knowledge capture, Mission Control feed, console-log warning, PR link notify) |
 | `PermissionRequest` | 2 (permission gate, Mission Control feed) |
-| `Stop` / `SubagentStop` | 2 each |
+| `Stop` / `SubagentStop` | 3 / 2 |
 | `PermissionDenied` | 1 (denial logger → `/ccc-safety`) — new in v8 |
 | `PreModelSwitch` / `PostModelSwitch` | 1 each (model-switch logger) — new in v8 |
 | `TeammateIdle` | 1 (fleet telemetry) — new in v8 |
 | `CwdChanged` / `DirectoryAdded` | 1 each (session-state sync) — new in v8 |
 | `FileChanged` | 1 (stale `CLAUDE.md` nudge) — new in v8 |
-| 15 more | `Setup`, `UserPromptExpansion`, `PostToolUseFailure`, `PostToolBatch`, `StopFailure`, `Notification`, `PreCompact`, `PostCompact`, `SubagentStart`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `InstructionsLoaded` — one handler each |
-| **TOTAL** | **30 events** · **51 handlers** |
+| 13 more | `UserPromptExpansion`, `PostToolUseFailure`, `StopFailure`, `Notification`, `PreCompact`, `PostCompact`, `SubagentStart`, `Elicitation`, `ElicitationResult`, `TaskCreated`, `TaskCompleted`, `ConfigChange`, `InstructionsLoaded` — one handler each |
+| **TOTAL** | **28 events** · **47 handlers** |
 
 ### Plugin Workflows + Ultracode
 

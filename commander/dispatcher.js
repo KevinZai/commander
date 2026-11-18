@@ -546,27 +546,78 @@ function getClaudeVersion() {
   try { return childProcess.execSync('claude --version', { encoding: 'utf8', stdio: 'pipe' }).trim(); } catch (_e) { return null; }
 }
 
+var MAX_DISPATCH_RETRIES = 2;
+var RATE_LIMIT_WAIT_MS = 60000;
+
+/**
+ * Retry policy shared by dispatchWithRetry and dispatchAsync. Throws when the
+ * error must not be retried; otherwise returns { delayMs, options } for the
+ * next attempt.
+ */
+function retryPlan(err, options, retries) {
+  options = options || {};
+  if (retries >= MAX_DISPATCH_RETRIES) throw err;
+  var msg = ((err && err.message) || '').toLowerCase();
+  if (msg.includes('budget') || msg.includes('cost')) throw new Error('Budget exceeded. Use --budget to increase. ' + err.message);
+  if (msg.includes('rate') || msg.includes('429') || msg.includes('limit')) {
+    process.stderr.write('\n  Rate limited. Waiting 60s...\n');
+    return { delayMs: RATE_LIMIT_WAIT_MS, options: options };
+  }
+  if (msg.includes('context') || msg.includes('compact') || msg.includes('thrash')) {
+    var reducedOptions = Object.assign({}, options, { maxTurns: Math.round((options.maxTurns || 30) * 0.6) });
+    process.stderr.write('\n  Context issue. Retrying with ' + reducedOptions.maxTurns + ' turns...\n');
+    return { delayMs: 0, options: reducedOptions };
+  }
+  process.stderr.write('\n  Dispatch failed, retrying (' + (retries + 1) + '/' + MAX_DISPATCH_RETRIES + ')...\n');
+  return { delayMs: 0, options: options };
+}
+
+/**
+ * Retries a streaming (Promise) dispatch. A synchronous dispatch
+ * (stream: false) is returned as-is, so its result or throw reaches the caller
+ * directly; use dispatchAsync for one awaitable contract over both modes.
+ */
 function dispatchWithRetry(task, options, retries) {
   retries = retries || 0;
-  var maxRetries = 2;
   var p = dispatch(task, options);
-  if (typeof p.then !== 'function') return p;
+  if (!p || typeof p.then !== 'function') return p;
   return p.catch(function(err) {
-    if (retries >= maxRetries) throw err;
-    var msg = (err.message || '').toLowerCase();
-    if (msg.includes('budget') || msg.includes('cost')) throw new Error('Budget exceeded. Use --budget to increase. ' + err.message);
-    if (msg.includes('rate') || msg.includes('429') || msg.includes('limit')) {
-      process.stderr.write('\n  Rate limited. Waiting 60s...\n');
-      return new Promise(function(r) { setTimeout(r, 60000); }).then(function() { return dispatchWithRetry(task, options, retries + 1); });
-    }
-    if (msg.includes('context') || msg.includes('compact') || msg.includes('thrash')) {
-      var reducedOptions = Object.assign({}, options, { maxTurns: Math.round((options.maxTurns || 30) * 0.6) });
-      process.stderr.write('\n  Context issue. Retrying with ' + reducedOptions.maxTurns + ' turns...\n');
-      return dispatchWithRetry(task, reducedOptions, retries + 1);
-    }
-    process.stderr.write('\n  Dispatch failed, retrying (' + (retries + 1) + '/' + maxRetries + ')...\n');
-    return dispatchWithRetry(task, options, retries + 1);
+    var plan = retryPlan(err, options, retries);
+    var next = function() { return dispatchWithRetry(task, plan.options, retries + 1); };
+    if (plan.delayMs) return new Promise(function(r) { setTimeout(r, plan.delayMs); }).then(next);
+    return next();
   });
+}
+
+/**
+ * dispatch() with retries, always as a Promise: a synchronous result, a
+ * synchronous throw, a rejected promise and a non-throwing `{ error }` result
+ * (the non-sync cost gate) all settle it. Resolves with the dispatch result;
+ * rejects with an Error. Each call settles exactly once.
+ *
+ * @param {string} task
+ * @param {object} [options]       - dispatch() options
+ * @param {object} [deps]          - test seams: { dispatch, sleep }
+ * @returns {Promise<object>}
+ */
+async function dispatchAsync(task, options, deps) {
+  var run = (deps && deps.dispatch) || dispatch;
+  var sleep = (deps && deps.sleep) || function(ms) { return new Promise(function(r) { setTimeout(r, ms); }); };
+  var opts = options || {};
+  for (var attempt = 0; ; attempt++) {
+    try {
+      var result = await run(task, opts);
+      if (result && typeof result === 'object' && result.error && result.result === undefined && !result.async) {
+        throw new Error(String(result.error));
+      }
+      return result;
+    } catch (err) {
+      var error = err instanceof Error ? err : new Error(String(err));
+      var plan = retryPlan(error, opts, attempt);
+      if (plan.delayMs) await sleep(plan.delayMs);
+      opts = plan.options;
+    }
+  }
 }
 
 /**
@@ -589,4 +640,4 @@ function selectModelForComplexity(score) {
   return 'fable';
 }
 
-module.exports = { dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, scoreComplexity: scoreComplexity, estimateScope: estimateScope, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel, estimateDispatchCost: estimateDispatchCost, selectModelForComplexity: selectModelForComplexity, MODEL_PRICING: MODEL_PRICING };
+module.exports = { dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, dispatchAsync: dispatchAsync, retryPlan: retryPlan,scoreComplexity: scoreComplexity, estimateScope: estimateScope, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel, estimateDispatchCost: estimateDispatchCost, selectModelForComplexity: selectModelForComplexity, MODEL_PRICING: MODEL_PRICING };

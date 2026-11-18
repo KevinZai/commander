@@ -103,8 +103,22 @@ jobs:
       - name: Run vendor + orchestrator tests
         run: node --test commander/tests/vendor-scanner.test.js commander/tests/orchestrator.test.js
 
+      - name: Plugin evals schema + flagship contracts
+        run: node --test commander/tests/evals.test.js commander/tests/sprint-contract.test.js commander/tests/activation.test.js tests/refresh-stats.test.js
+
       - name: Codex mirror matches build:codex
         run: node --test commander/tests/codex-mirror-drift.test.js
+
+      # Code Mode needs an interactive, signed-in session, so CI cannot start it without secrets. These run
+      # the plugin's real hooks against Code Mode's rules (poll_event, REPL, compound commands, fail-open
+      # advisory PreToolUse hooks); scripts/code-mode-smoke.js --launch is the manual end-to-end check.
+      - name: Code Mode hook contract
+        run: |
+          node --test commander/tests/code-mode-contract.test.js commander/tests/compound-commands.test.js
+          node scripts/code-mode-smoke.js
+
+      - name: Context budget
+        run: node scripts/context-budget.js --check
 
       - name: Verify no secrets
         run: |
@@ -138,6 +152,9 @@ jobs:
 
       - name: Verify doc counts
         run: node scripts/audit-counts.js --check
+
+      - name: Verify release.json is current
+        run: node scripts/propagate-release.js --check
 
   mcp-cloud:
     # Drafts are gated locally (full suite + lint before push, CP-GIT-007); CI runs once marked ready.

@@ -55,6 +55,22 @@ test('every Codex hook uses the quoted command form and points at a file in the 
   }
 });
 
+test('Claude-only handler fields (onFailure, args, if, once, async) never reach the Codex mirror', () => {
+  const claude = JSON.parse(fs.readFileSync(CLAUDE_HOOKS, 'utf8'));
+  assert.ok(
+    Object.values(claude.hooks).flat().flatMap((g) => g.hooks).some((h) => h.onFailure === 'continue'),
+    'the Claude source sets onFailure on advisory handlers',
+  );
+  const config = JSON.parse(fs.readFileSync(CODEX_HOOKS, 'utf8'));
+  for (const [event, groups] of Object.entries(config.hooks)) {
+    for (const h of groups.flatMap((g) => g.hooks)) {
+      for (const field of ['onFailure', 'args', 'if', 'once', 'async']) {
+        assert.ok(!(field in h), `${event}: ${h.command} carries ${field}`);
+      }
+    }
+  }
+});
+
 test('the Codex manifest declares hooks.json and the file exists', () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(CODEX, '.codex-plugin', 'plugin.json'), 'utf8'));
   assert.strictEqual(manifest.hooks, './hooks.json');

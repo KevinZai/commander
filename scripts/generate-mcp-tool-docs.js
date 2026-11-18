@@ -51,6 +51,11 @@ function parseRegistry(src) {
     const title = block.match(new RegExp(`title: ${STRING.source}`));
     let description = block.match(new RegExp(`\\n {4}description: ${STRING.source}`));
     description = description ? parseString(description[1]) : null;
+    if (!description) {
+      // Template-literal description: keep the literal text, drop interpolated constants (e.g. a disclosure).
+      const tpl = block.match(/\n {4}description: `([^`]*)`/);
+      if (tpl) description = tpl[1].replace(/\s*\$\{[^}]+\}/g, '').trim();
+    }
     if (!description && /\n {4}get description\(\)/.test(block) && blurb) {
       // Registry-derived at runtime from the live skill count.
       description = blurb[1].replace(/\$\{count\}/g, 'all');

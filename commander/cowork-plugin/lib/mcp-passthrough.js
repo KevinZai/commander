@@ -17,10 +17,19 @@
 // Health: the server serves an unauthenticated GET /health at its ORIGIN (not
 // under /mcp). healthCheck() uses that when the server has it and otherwise
 // falls back to the initialize handshake as the liveness signal.
+//
+// Credentials: the ambient Commander bearer (CCC_MCP_TOKEN / COMMANDER_TOKEN, else
+// the plugin's sensitive `mcp_token` userConfig option; lib/plugin-options.js)
+// and env-expanded headers are bound to user-approved HTTPS origins (or
+// loopback HTTP): the hosted default, ~/.claude/mcp.json's `cc-commander` url
+// and `allowedOrigins`, CCC_MCP_URL and CCC_MCP_ALLOWED_ORIGINS. A project's
+// .claude/mcp.json may pick among approved origins; any other project URL is
+// called with no credentials, and project headers are never env-expanded.
 
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { setting } = require('./plugin-options.js');
 
 const LOG_DIR = path.join(require('./lane-state').stateDir(), 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'passthrough.jsonl');
@@ -64,29 +73,50 @@ function log(entry) {
   }
 }
 
-/**
- * Read the MCP config from .claude/mcp.json.
- * Supports both the project-local .claude/mcp.json and ~/.claude/mcp.json.
- * Returns null if cc-commander entry is not present.
- */
-function readMcpConfig() {
-  const candidates = [
-    path.join(process.cwd(), '.claude', 'mcp.json'),
-    path.join(os.homedir(), '.claude', 'mcp.json'),
-  ];
+// The hosted Commander origin. The ambient Commander bearer (CCC_MCP_TOKEN /
+// COMMANDER_TOKEN) is issued for it, so it is approved without configuration.
+const DEFAULT_APPROVED_ORIGINS = ['https://mcp.commanderplugin.com'];
 
-  for (const candidate of candidates) {
-    try {
-      if (!fs.existsSync(candidate)) continue;
-      const raw = fs.readFileSync(candidate, 'utf8');
-      const parsed = JSON.parse(raw);
-      const entry = (parsed.mcpServers || parsed)['cc-commander'];
-      if (entry && entry.url) return entry;
-    } catch (_e) {
-      // malformed config — skip
-    }
+/** The `cc-commander` entry in one mcp.json file, or null. Never throws. */
+function readEntry(file) {
+  try {
+    if (!fs.existsSync(file)) return null;
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const entry = (parsed.mcpServers || parsed)['cc-commander'];
+    return entry && typeof entry === 'object' && entry.url ? entry : null;
+  } catch (_e) {
+    return null; // malformed config — skip
   }
-  return null;
+}
+
+function sameFile(a, b) {
+  try {
+    return fs.realpathSync(a) === fs.realpathSync(b);
+  } catch (_e) {
+    return path.resolve(a) === path.resolve(b);
+  }
+}
+
+/**
+ * Both config scopes. `user` (~/.claude/mcp.json) is trusted: it may name an
+ * endpoint, approve origins and reference secrets. `project`
+ * (<cwd>/.claude/mcp.json) comes from whatever checkout the caller is in, so
+ * it is untrusted: it may only pick among user-approved origins, and it never
+ * resolves secrets. When cwd is the home directory the two paths name the
+ * same file, which counts as user config.
+ */
+function readMcpConfigs() {
+  const userFile = path.join(os.homedir(), '.claude', 'mcp.json');
+  const projectFile = path.join(process.cwd(), '.claude', 'mcp.json');
+  const user = readEntry(userFile);
+  const project = sameFile(userFile, projectFile) ? null : readEntry(projectFile);
+  return { user, project };
+}
+
+/** The effective entry (user first), or null. */
+function readMcpConfig() {
+  const { user, project } = readMcpConfigs();
+  return user || project;
 }
 
 /**
@@ -104,10 +134,12 @@ function isEnabled() {
 /**
  * The JSON-RPC endpoint for a configured URL. A bare origin gets `/mcp`; the
  * legacy `/sse` path (never served by the hosted server) maps to `/mcp`.
+ * Only http(s) URLs resolve.
  */
 function resolveEndpoint(rawUrl) {
   try {
     const u = new URL(rawUrl);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
     const p = u.pathname.replace(/\/+$/, '');
     if (p === '') u.pathname = '/mcp';
     else if (p.endsWith('/sse')) u.pathname = p.slice(0, -'/sse'.length) + '/mcp';
@@ -127,24 +159,90 @@ function resolveHealthUrl(endpoint) {
   }
 }
 
-/** Expand `${VAR}` / `${env:VAR}` in a header value from process.env. */
+function isLoopbackHost(hostname) {
+  const h = String(hostname || '').replace(/^\[|\]$/g, '').toLowerCase();
+  return h === 'localhost' || h === '::1' || /^127(?:\.\d{1,3}){3}$/.test(h);
+}
+
+/**
+ * Normalized origin of a URL that may carry credentials: HTTPS, or plain HTTP
+ * on a loopback host (a local dev server). Anything else returns null.
+ */
+function secureOrigin(rawUrl) {
+  try {
+    const u = new URL(rawUrl);
+    if (u.username || u.password) return null;
+    if (u.protocol === 'https:') return u.origin;
+    if (u.protocol === 'http:' && isLoopbackHost(u.hostname)) return u.origin;
+    return null;
+  } catch (_e) {
+    return null;
+  }
+}
+
+/**
+ * The origins the user approved for credentials: the hosted default, the
+ * user-level entry's url and `allowedOrigins`, CCC_MCP_URL, and the
+ * comma-separated CCC_MCP_ALLOWED_ORIGINS. Project config contributes nothing.
+ */
+function approvedOrigins(userCfg) {
+  const out = new Set();
+  const add = (v) => {
+    const o = secureOrigin(v);
+    if (o) out.add(o);
+  };
+  DEFAULT_APPROVED_ORIGINS.forEach(add);
+  if (userCfg) {
+    add(userCfg.url);
+    if (Array.isArray(userCfg.allowedOrigins)) userCfg.allowedOrigins.forEach(add);
+  }
+  if (setting('mcp_url')) add(setting('mcp_url'));
+  String(process.env.CCC_MCP_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean)
+    .forEach(add);
+  return out;
+}
+
+/** Expand `${VAR}` / `${env:VAR}` in a header value from process.env. User config only. */
 function expandEnv(value) {
   if (typeof value !== 'string') return value;
   return value.replace(/\$\{(?:env:)?([A-Za-z_][A-Za-z0-9_]*)\}/g, (_m, name) => process.env[name] || '');
 }
 
+const CREDENTIAL_HEADERS = new Set(['authorization', 'proxy-authorization', 'cookie', 'x-api-key']);
+
 /**
- * Request headers for the configured server. Config headers are copied with
- * env expansion; a Bearer token in CCC_MCP_TOKEN or COMMANDER_TOKEN (if set)
- * wins over the config's Authorization. An Authorization that expands to an
- * empty token is dropped rather than sent as `Bearer `.
+ * Request headers from one config entry.
+ *
+ *   scope 'user' (default): headers are env-expanded.
+ *   scope 'project': headers are never env-expanded; a value holding a `${`
+ *     reference is dropped, and credential headers are dropped, so a checkout
+ *     can neither pull a secret out of the environment nor plant a bearer.
+ *   approved (default true): attach the ambient CCC_MCP_TOKEN /
+ *     COMMANDER_TOKEN, which wins over a configured Authorization.
+ *
+ * An Authorization that expands to an empty token is dropped rather than sent
+ * as `Bearer `.
  */
-function buildHeaders(cfg) {
+function buildHeaders(cfg, opts) {
+  const o = opts || {};
+  const scope = o.scope || 'user';
+  const approved = o.approved !== undefined ? Boolean(o.approved) : true;
   const headers = {};
   if (cfg && cfg.headers && typeof cfg.headers === 'object') {
-    for (const [k, v] of Object.entries(cfg.headers)) headers[k] = expandEnv(v);
+    for (const [k, v] of Object.entries(cfg.headers)) {
+      if (scope === 'user') {
+        headers[k] = expandEnv(v);
+        continue;
+      }
+      if (typeof v !== 'string' || v.includes('${')) continue;
+      if (CREDENTIAL_HEADERS.has(k.toLowerCase())) continue;
+      headers[k] = v;
+    }
   }
-  const token = process.env.CCC_MCP_TOKEN || process.env.COMMANDER_TOKEN;
+  const token = approved ? setting('mcp_token') || '' : '';
   for (const k of Object.keys(headers)) {
     if (k.toLowerCase() !== 'authorization') continue;
     if (token || !/^Bearer\s+\S/.test(String(headers[k]))) delete headers[k];
@@ -153,12 +251,62 @@ function buildHeaders(cfg) {
   return headers;
 }
 
+/**
+ * Pick the endpoint and the credentials bound to it.
+ *
+ * Endpoint precedence: an explicit CCC_MCP_URL (the process override always
+ * wins) > a project entry whose origin the user approved (the project selects
+ * among approved origins) > the user entry > a project entry with an
+ * unapproved origin. The last case is called with no
+ * credentials at all: credentials never follow a project-chosen URL to an
+ * origin the user did not approve, and user-level headers are sent only to
+ * the user entry's own origin.
+ */
 function resolveTarget() {
-  const cfg = readMcpConfig();
-  if (!cfg) return null;
-  const endpoint = resolveEndpoint(process.env.CCC_MCP_URL || cfg.url);
+  const { user, project } = readMcpConfigs();
+  if (!user && !project) return null;
+  const approved = approvedOrigins(user);
+  const isApproved = (endpoint) => {
+    const origin = secureOrigin(endpoint);
+    return Boolean(origin && approved.has(origin));
+  };
+
+  const projectEndpoint = project ? resolveEndpoint(project.url) : null;
+  const envEndpoint = setting('mcp_url') ? resolveEndpoint(setting('mcp_url')) : null;
+  const userEndpoint = user ? resolveEndpoint(user.url) : null;
+  let endpoint = null;
+  let source = null;
+  if (envEndpoint) {
+    endpoint = envEndpoint;
+    source = 'env';
+  } else if (projectEndpoint && isApproved(projectEndpoint)) {
+    endpoint = projectEndpoint;
+    source = 'project';
+  } else if (userEndpoint) {
+    endpoint = userEndpoint;
+    source = 'user';
+  } else if (projectEndpoint) {
+    endpoint = projectEndpoint;
+    source = 'project';
+  }
   if (!endpoint) return null;
-  return { endpoint, headers: buildHeaders(cfg) };
+
+  const credentialed = isApproved(endpoint);
+  const merged = {};
+  if (credentialed && userEndpoint && secureOrigin(endpoint) === secureOrigin(userEndpoint)) {
+    Object.assign(merged, buildHeaders(user, { scope: 'user', approved: false }));
+  }
+  if (source === 'project') {
+    Object.assign(merged, buildHeaders(project, { scope: 'project', approved: false }));
+  }
+  const token = credentialed ? setting('mcp_token') || '' : '';
+  for (const k of Object.keys(merged)) {
+    const lower = k.toLowerCase();
+    if ((lower === 'authorization' && token) || (!credentialed && CREDENTIAL_HEADERS.has(lower))) delete merged[k];
+  }
+  if (token) merged.Authorization = 'Bearer ' + token;
+  if (!credentialed) log({ event: 'resolve_target', source, credentialed: false, reason: 'origin-not-approved' });
+  return { endpoint, headers: merged, source, credentialed };
 }
 
 function mcpToolName(toolName) {
@@ -226,6 +374,9 @@ async function rpc(target, method, params, timeoutMs, session) {
       headers,
       body: JSON.stringify(message),
       signal: ctrl.signal,
+      // Never follow a redirect: custom credential headers (X-API-Key and the like) would be
+      // re-sent to whatever origin the Location names (audit #03). A redirect is an error.
+      redirect: 'error',
     });
     text = await res.text();
   } catch (err) {
@@ -433,5 +584,15 @@ module.exports = {
   healthCheck,
   resetHealthCache,
   // exported for tests
-  _internal: { resolveEndpoint, resolveHealthUrl, buildHeaders, mcpToolName, parseSse },
+  _internal: {
+    resolveEndpoint,
+    resolveHealthUrl,
+    buildHeaders,
+    mcpToolName,
+    parseSse,
+    resolveTarget,
+    approvedOrigins,
+    secureOrigin,
+    readMcpConfigs,
+  },
 };

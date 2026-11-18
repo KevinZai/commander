@@ -259,6 +259,19 @@
     { "prompt": "Full stop: we are not adding scope.", "expect": "none" },
     { "prompt": "Full stop — we are not adding scope.", "expect": "none" },
     { "prompt": "Full stop - that is the final answer", "expect": "none" },
-    { "prompt": "full stop with this nonsense", "expect": "none" }
+    { "prompt": "full stop with this nonsense", "expect": "none" },
+    { "prompt": "build a three.js scene with custom WebGL shaders and post-processing", "expect": "ccc-design" },
+    { "prompt": "set up a react three fiber 3D product viewer", "expect": "ccc-design" },
+    { "prompt": "run a source-first security audit of this Cloudflare Workers codebase", "expect": "ccc-security" },
+    { "prompt": "add a code map MCP so you can search the codebase graph", "expect": "ccc-connect" },
+    { "prompt": "run a differential expression analysis on my RNA-seq counts", "expect": "none" },
+    { "prompt": "write a Django REST framework viewset for orders", "expect": "none" },
+    { "prompt": "help me with context engineering for this agent prompt", "expect": "none" },
+    { "prompt": "make the smallest possible change to fix this null check", "expect": "none" },
+    { "prompt": "draw an architecture diagram of these services", "expect": "none" },
+    { "prompt": "search my notes with qmd", "expect": "none" },
+    { "prompt": "what does the threejs-pack router cover", "expect": "none" },
+    { "prompt": "plot a volcano chart of these p-values in scanpy", "expect": "none" },
+    { "prompt": "review my Kubernetes manifests for a rolling deploy", "expect": "none" }
   ]
 }

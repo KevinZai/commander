@@ -11,11 +11,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '20'
 
@@ -24,9 +24,35 @@ jobs:
         env:
           POSTHOG_PERSONAL_KEY: ${{ secrets.POSTHOG_PERSONAL_KEY }}
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'chore(stats): refresh aggregate telemetry [auto]'
-          file_pattern: docs/stats.json
-          skip_fetch: false
-          skip_dirty_check: true
+      # Stats are published to the dedicated `stats` branch, never to main: the
+      # daily refresh must not add automatic commits to the release branch.
+      # The refresh has just modified the tracked docs/stats.json in this
+      # checkout, so the stats branch is assembled in a separate worktree and
+      # the main checkout is never switched (a checkout would refuse to
+      # overwrite the local change whenever the stats branch differs).
+      - name: Publish stats to the stats branch
+        run: |
+          set -euo pipefail
+          cp docs/stats.json "$RUNNER_TEMP/stats.json"
+          git checkout -- docs/stats.json
+          PUB="$RUNNER_TEMP/stats-publish"
+          rm -rf "$PUB"
+          if git ls-remote --exit-code --heads origin stats >/dev/null 2>&1; then
+            git fetch --depth=1 origin stats
+            git worktree add --force -B stats "$PUB" FETCH_HEAD
+          else
+            git worktree add --detach "$PUB" HEAD
+            git -C "$PUB" checkout --orphan stats
+            git -C "$PUB" rm -rf --quiet .
+          fi
+          git -C "$PUB" config user.name "github-actions[bot]"
+          git -C "$PUB" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p "$PUB/docs"
+          cp "$RUNNER_TEMP/stats.json" "$PUB/docs/stats.json"
+          git -C "$PUB" add docs/stats.json
+          if git -C "$PUB" diff --cached --quiet; then
+            echo "stats unchanged"
+            exit 0
+          fi
+          git -C "$PUB" commit -m "chore(stats): refresh aggregate telemetry [auto]"
+          git -C "$PUB" push origin stats

@@ -228,12 +228,13 @@ test('orchestrator is hermetic — does not write outside provided HOME', () => 
 
 test('orchestrator handler outputs all aggregate (session-start contribution present)', () => {
   const home = mkHome();
-  const r = runOrch({ home });
+  const r = runOrch({ home, input: { session_id: 'orch-1', hook_event_name: 'SessionStart', source: 'startup' } });
   assert.equal(r.exitCode, 0);
   assert.ok(r.parsed);
-  // session-start always writes active-session.json — verify side effect happened
-  const activeFile = path.join(home, '.claude', 'commander', 'sessions', 'active-session.json');
-  assert.ok(fs.existsSync(activeFile), 'session-start handler should have created active-session.json');
+  // session-start always writes this session's live record (keyed by session id, Codex audit #25)
+  const activeFile = path.join(home, '.claude', 'commander', 'sessions', 'active-session-orch-1.json');
+  assert.ok(fs.existsSync(activeFile), 'session-start handler should have created active-session-orch-1.json');
+  assert.equal(JSON.parse(fs.readFileSync(activeFile, 'utf8')).sessionId, 'orch-1');
 });
 
 // CC-2041 — with no plugin manifest the banner says "unknown", and "unknown" is no
@@ -247,10 +248,14 @@ test('session-start handler treats a missing manifest as unknown, not a version 
   fs.writeFileSync(stateFile, JSON.stringify({ onboardingCompleted: true, last_seen_version: '8.1.0' }));
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-plugin-root-'));
   fs.mkdirSync(path.join(root, 'hooks', '_archive'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'hooks', 'lib'), { recursive: true });
   fs.mkdirSync(path.join(root, 'lib'));
   const plugin = path.join(__dirname, '..', 'cowork-plugin');
   const dst = path.join(root, 'hooks', '_archive', 'session-start.js');
   fs.copyFileSync(path.join(plugin, 'hooks', '_archive', 'session-start.js'), dst);
+  for (const f of ['session-key.mjs', 'active-session.mjs']) {
+    fs.copyFileSync(path.join(plugin, 'hooks', 'lib', f), path.join(root, 'hooks', 'lib', f));
+  }
   fs.copyFileSync(path.join(plugin, 'lib', 'lane-state.js'), path.join(root, 'lib', 'lane-state.js'));
   const load = () => import(require('node:url').pathToFileURL(dst).href + '?t=' + Math.random());
   try {

@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
+import { dropAgentCall } from './subagent-skill-router.js';
 
 const LOG_DIR = stateDir();
 const LOG_FILE = path.join(LOG_DIR, 'tool-failures.jsonl');
@@ -36,6 +37,8 @@ async function main() {
     // Best-effort logging
   }
 
+  // A failed Agent/Task call never starts its subagent: drop its queued task.
+  dropAgentCall(input);
   process.stdout.write(JSON.stringify({ continue: true }) + '\n');
 }
 

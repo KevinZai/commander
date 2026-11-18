@@ -383,6 +383,9 @@ function getTrendingSkills(days) {
  * When useMcp is true AND mcp-passthrough is enabled, fetches additional
  * skill metadata from the MCP server and merges with local results.
  * Falls back to local results on any failure — same shape either way.
+ * Endpoint and credential selection live in mcp-passthrough.js: the Commander
+ * bearer only reaches user-approved origins, so enabling this in an untrusted
+ * checkout cannot send it to a project-chosen server.
  *
  * @param {object} [opts]
  * @param {boolean} [opts.useMcp=false]  - Opt-in to MCP lookup
@@ -413,16 +416,19 @@ async function listSkillsEnhanced(opts) {
     return local;
   }
 
-  // Merge: MCP skills that aren't already in local (by name) are appended
+  // Merge: MCP skills that aren't already in local (by name) are appended.
+  // Remote entries are data from whichever server the passthrough resolved, so
+  // they are reduced to plain strings and never carry a local filesystem path
+  // (callers read `path` to open SKILL.md files).
   const localNames = new Set(local.map(s => s.name));
   const remote = result.skills
-    .filter(s => s && s.name && !localNames.has(s.name))
+    .filter(s => s && typeof s.name === 'string' && s.name && !localNames.has(s.name))
     .map(s => ({
       name: s.name,
-      description: s.description || '',
-      dirName: s.dirName || s.name,
-      path: s.path || '',
-      isMega: s.isMega || false,
+      description: typeof s.description === 'string' ? s.description : '',
+      dirName: s.name,
+      path: '',
+      isMega: s.isMega === true,
       source: 'mcp',
     }));
 
