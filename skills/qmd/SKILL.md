@@ -24,7 +24,7 @@ npm install -g @tobilu/qmd     # or: bun install -g @tobilu/qmd
 claude mcp add qmd -- qmd mcp
 ```
 
-Check first with `claude mcp list` and `claude plugin list`.
+The `qmd` binary must be on `PATH` for `qmd mcp` to start; check with `qmd --version`. Check first with `claude mcp list` and `claude plugin list`.
 
 ## When to route here
 
@@ -34,7 +34,7 @@ Check first with `claude mcp list` and `claude plugin list`.
 ## Limits
 
 - The first query downloads GGUF models (hundreds of MB). Say so before the first search, and never start it on a metered or offline machine (`CCC_OFFLINE=1`).
-- Search stays on the device; nothing is sent to a hosted service.
+- With the default local models, indexing and search stay on the device. CCC safety: if the qmd config points embeddings or re-ranking at a remote endpoint, document chunks and queries leave the machine; tell the user and ask before indexing.
 
 ## License
 

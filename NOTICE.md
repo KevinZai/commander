@@ -41,7 +41,7 @@ Vendor packages under `vendor/` are git submodules, each under its own license; 
 
 ## MIT-Derived Skills (ponytail)
 
-`skills/ponytail/SKILL.md` is copied unchanged from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail), pinned at `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846`. MIT License, Copyright (c) 2026 DietrichGebert; the full text is in `skills/ponytail/LICENSE.txt`. `skills/mode-switcher/modes/ponytail.md` summarizes the same rules as a CC Commander mode.
+`skills/ponytail/SKILL.md` is copied from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail), pinned at `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846`, unchanged except for an added Source section. MIT License, Copyright (c) 2026 DietrichGebert; the full text is in `skills/ponytail/LICENSE.txt`. `skills/mode-switcher/modes/ponytail.md` summarizes the same rules as a CC Commander mode.
 
 ## Opt-in MIT add-ons (installed from upstream, not redistributed)
 
@@ -55,11 +55,11 @@ These toolkit skills only describe how to install and route to upstream projects
 
 ## MIT-Derived Skills (threejs-pack)
 
-`skills/threejs-pack/` holds 13 skills copied from [CloudAI-X/threejs-skills](https://github.com/CloudAI-X/threejs-skills), pinned at `0e181866f095b5f06d005133876e926515390d95`. MIT License, Copyright (c) 2026 CloudAI-X; the full text is in `skills/threejs-pack/LICENSE.txt`. Each SKILL.md ends with a Source section naming its upstream path.
+`skills/threejs-pack/` holds 13 skills copied from [CloudAI-X/threejs-skills](https://github.com/CloudAI-X/threejs-skills), pinned at `0e181866f095b5f06d005133876e926515390d95`. MIT License, Copyright (c) 2026 CloudAI-X; the full text is in `skills/threejs-pack/LICENSE.txt`. Each SKILL.md ends with a Source section naming its upstream path. Local changes: `threejs-interaction` normalizes selection coordinates against the canvas instead of the window.
 
 ## MIT-Derived Skills (addyosmani-pack)
 
-`skills/addyosmani-pack/` holds 13 skills copied from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), pinned at `39b723ceebf81474d0557c1fecd01eddab585563`. MIT License, Copyright (c) 2025 Addy Osmani; the full text is in `skills/addyosmani-pack/LICENSE.txt`. CC Commander changes are marked "CCC safety:" (git-workflow-and-versioning, constraint-driven-development). `DECISIONS.md` lists the 12 upstream skills left out and the Commander skill covering each.
+`skills/addyosmani-pack/` holds 13 skills copied from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), pinned at `39b723ceebf81474d0557c1fecd01eddab585563`. MIT License, Copyright (c) 2025 Addy Osmani; the full text is in `skills/addyosmani-pack/LICENSE.txt`. CC Commander changes are marked "CCC safety:" (git-workflow-and-versioning, constraint-driven-development, browser-testing-with-devtools). `DECISIONS.md` lists the 12 upstream skills left out and the Commander skill covering each.
 
 ## MIT-Derived Skills (specialist-pack)
 

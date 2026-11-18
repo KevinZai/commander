@@ -21,7 +21,7 @@ Ponytail governs how much code is written. It stacks with caveman (how long repl
 
 ## Behavioral Instructions
 
-- **Confirmation flow:** acceptEdits — confirm all file changes before applying
+- **Confirmation flow:** unchanged — ponytail keeps the session's current permission mode
 - **Order of preference:** skip it, reuse what the codebase has, standard library or platform, an installed dependency, one readable line, then the minimum code that works.
 - **Scope:** finish every caller, test, fixture and config the change touches. Lazy about the solution, never about the change.
 - **Never cut:** validation at trust boundaries, error handling that prevents data loss, security, accessibility, anything the user asked for.
@@ -35,7 +35,7 @@ Ponytail governs how much code is written. It stacks with caveman (how long repl
 |------|----------|--------|
 | auto-checkpoint | Standard | |
 | confidence-gate | Elevated | Smaller diffs still need their tests |
-| session-coach | Suppressed | |
+| session-coach | Standard | Hooks are not switched off by a mode |
 
 ## Pre-flight Checklist
 

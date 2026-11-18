@@ -32,13 +32,15 @@ Add the following to your project's `.mcp.json` or Claude Code settings:
   "mcpServers": {
     "chrome-devtools": {
       "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@latest", "--isolated"]
+      "args": ["-y", "chrome-devtools-mcp@latest", "--isolated", "--no-usage-statistics", "--no-performance-crux"]
     }
   }
 }
 ```
 
 `-y` skips the npx install confirmation. By default the server launches Chrome with its own dedicated profile (under `~/.cache/chrome-devtools-mcp/`), separate from your personal browser; `--isolated` goes one step further and uses a temporary profile that is wiped when the browser closes. This is the right setup for most testing.
+
+CCC safety: keep `--no-usage-statistics` and `--no-performance-crux`. Without them the server sends usage statistics to Google and looks up tested URLs in the public CrUX dataset; turn either back on only when the user asks.
 
 There is also `--autoConnect` (Chrome 144+, requires enabling remote debugging via `chrome://inspect/#remote-debugging`), which attaches the agent to your **running** Chrome instead. Only use it when the test genuinely needs your logged-in state — see Profile Isolation under Security Boundaries first.
 
