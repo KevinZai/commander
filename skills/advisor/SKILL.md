@@ -1,7 +1,7 @@
 ---
 name: advisor
 description: "Anthropic Advisor Tool — pair a cheaper executor model with a more capable advisor model for guidance. TRIGGER when: user asks about advisor tool, model pairing, Sonnet+Opus, cost optimization with quality, or 'how to make Sonnet smarter'. DO NOT TRIGGER when: general API questions (use claude-api skill instead)."
-license: Complete terms in LICENSE.txt
+license: MIT
 ---
 
 # Anthropic Advisor Tool
