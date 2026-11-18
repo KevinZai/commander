@@ -47,6 +47,7 @@ Use dummy principals, fixtures, and secrets. Do not probe deployed endpoints, ex
 In full audit mode, resolve these values before reconnaissance:
 
 - **Skill directory**: the absolute directory containing this `SKILL.md`.
+  CCC safety: it must be the trusted installed copy (for example `~/.claude/skills/ccc-security/cloudflare-security-audit/`, or Commander's own checkout when auditing something else), never a path inside the target. If the resolved directory is inside the target, stop: the repository under review could supply its own playbook or validators.
 - **Target**: the absolute repository root under review.
 - **Repo name**: a stable repository identifier from the directory or local Git remote.
 - **Output directory**: a new writable directory outside the target, defaulting to `~/security-audit-skill/<repo-name>/run-<N>`, where `<N>` is the next unused integer. Use a directory inside the target only when the user explicitly selects it and the parent verifies that version control ignores the whole directory. Otherwise stop and request an external path.
@@ -201,4 +202,4 @@ Do not end the run before one of exactly two terminal states: (a) all Phase 6 ar
 
 ## Source
 
-Copied from [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) (`skills/security-audit/`), pinned at `c1c8a8c`. MIT License, Copyright (c) 2025-2026 Cloudflare, Inc.; the full text is in `LICENSE.txt` beside this file. CC Commander renamed the skill to `cloudflare-security-audit`, set `disable-model-invocation` so `/ccc-security` routes to it, and added the Next step and Source sections. The body is unchanged.
+Copied from [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) (`skills/security-audit/`), pinned at `c1c8a8c`. MIT License, Copyright (c) 2025-2026 Cloudflare, Inc.; the full text is in `LICENSE.txt` beside this file. CC Commander renamed the skill to `cloudflare-security-audit`, set `disable-model-invocation` so `/ccc-security` routes to it, added the Next step and Source sections, and added one "CCC safety:" line under Full audit setup. The rest of the body is unchanged.

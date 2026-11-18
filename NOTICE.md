@@ -75,4 +75,4 @@ These toolkit skills only describe how to install and route to upstream projects
 
 ## MIT-Derived Skill (cloudflare-security-audit)
 
-`skills/ccc-security/cloudflare-security-audit/` is copied from [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) (`skills/security-audit/`), pinned at `c1c8a8c`. MIT License, Copyright (c) 2025-2026 Cloudflare, Inc.; the full text is in `skills/ccc-security/cloudflare-security-audit/LICENSE.txt`. CC Commander renamed it, set `disable-model-invocation`, and added Next step and Source sections; the body is unchanged.
+`skills/ccc-security/cloudflare-security-audit/` is copied from [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) (`skills/security-audit/`), pinned at `c1c8a8c`. MIT License, Copyright (c) 2025-2026 Cloudflare, Inc.; the full text is in `skills/ccc-security/cloudflare-security-audit/LICENSE.txt`. CC Commander renamed it, set `disable-model-invocation`, added Next step and Source sections, and added one "CCC safety:" line requiring the skill directory to be the trusted install, outside the target; the rest of the body is unchanged.
