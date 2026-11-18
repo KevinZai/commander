@@ -140,6 +140,6 @@ local path, file-like object, or TDB text; a URL is not a supported download sho
 - Path: `skills/pycalphad/`
 - Pinned commit: `ec59a29a03d5c40f73ab40878df04860bc00e876`
 - License: MIT (SKILL.md frontmatter `license:` and the repository LICENSE.md)
-- License text: `skills/science-pack/LICENSE.txt`
+- License text: `LICENSE.txt` beside this file (also `skills/science-pack/LICENSE.txt`)
 - Part of the opt-in CC Commander science pack; see `skills/science-pack/DECISIONS.md`.
 - CCC: added `disable-model-invocation: true` to the frontmatter so this sub-skill loads only through the `science-pack` router.
