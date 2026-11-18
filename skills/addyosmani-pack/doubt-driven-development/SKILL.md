@@ -43,7 +43,7 @@ If you doubt every keystroke, you ship nothing. The skill applies only to non-tr
 
 This skill is designed for the **main-session orchestrator**, where Step 3 (DOUBT, detailed below) can spawn a fresh-context reviewer.
 
-- **Do NOT add this skill to a persona's `skills:` frontmatter.** A persona that follows Step 3 would spawn another persona — the orchestration anti-pattern explicitly forbidden by `../../references/orchestration-patterns.md` ("personas do not invoke other personas").
+- **Do NOT add this skill to a persona's `skills:` frontmatter.** A persona that follows Step 3 would spawn another persona — the orchestration anti-pattern explicitly forbidden by [orchestration-patterns.md](https://github.com/addyosmani/agent-skills/blob/39b723ceebf81474d0557c1fecd01eddab585563/references/orchestration-patterns.md) (upstream only, not copied) ("personas do not invoke other personas").
 - **If you find yourself applying this skill from inside a subagent context** (where Claude Code prevents nested subagent spawn): the preferred path is to surface to the user that doubt-driven cannot run nested and let the main session handle it. As a last resort only, a degraded self-questioning fallback exists — rewrite ARTIFACT + CONTRACT as a fresh self-prompt with a hard mental separator from your prior reasoning, and walk Steps 1–5. This is **not fresh-context review** (you carry your own context with you), so flag the result as degraded and prefer escalation whenever the user is reachable.
 
 ## The Process
@@ -139,15 +139,17 @@ This question is mandatory in every interactive doubt cycle — even on artifact
 Example shapes (verify flags against your installed tool — syntax differs across implementations and versions):
 
 ```bash
-# Write the adversarial prompt + ARTIFACT + CONTRACT to a temp file first.
+# Write the adversarial prompt + ARTIFACT + CONTRACT to a private temp file first
+# (CCC safety: a per-run mktemp file, not a shared /tmp path, removed on exit).
 # Then pipe via stdin so shell metacharacters in the artifact stay inert.
+PROMPT_FILE=$(mktemp) && chmod 600 "$PROMPT_FILE" && trap 'rm -f "$PROMPT_FILE"' EXIT
 
 # Codex (read-only sandbox keeps the CLI from writing to your workspace):
-codex exec --sandbox read-only -C <repo-path> - < /tmp/doubt-prompt.md
+codex exec --sandbox read-only -C <repo-path> - < "$PROMPT_FILE"
 
 # Gemini ('--approval-mode plan' is read-only; '-p ""' triggers non-interactive
 # mode and the prompt is read from stdin):
-gemini --approval-mode plan -p "" < /tmp/doubt-prompt.md
+gemini --approval-mode plan -p "" < "$PROMPT_FILE"
 ```
 
 A read-only sandbox is the load-bearing detail: a doubt artifact may itself contain instructions (intentional or accidental prompt injection) that the cross-model CLI would otherwise execute against your workspace.
@@ -228,7 +230,7 @@ If 3 cycles is "obviously insufficient" because the artifact is large: the artif
 - **`source-driven-development`**: SDD verifies *facts about frameworks* against official docs. Doubt-driven verifies *your reasoning about the artifact*. SDD checks the API exists; doubt-driven checks you used it correctly under the contract.
 - **`test-driven-development`**: TDD's RED step is doubt made concrete — a failing test is a disproof attempt. When TDD applies, that failing test *is* the doubt step for behavioral claims.
 - **`debugging-and-error-recovery`**: when the reviewer surfaces a real failure mode, drop into the debugging skill to localize and fix.
-- **Repo orchestration rules** (`../../references/orchestration-patterns.md`): this skill orchestrates from the main session. A persona calling another persona is anti-pattern B — see Loading Constraints above.
+- **Repo orchestration rules** ([orchestration-patterns.md](https://github.com/addyosmani/agent-skills/blob/39b723ceebf81474d0557c1fecd01eddab585563/references/orchestration-patterns.md) (upstream only, not copied)): this skill orchestrates from the main session. A persona calling another persona is anti-pattern B — see Loading Constraints above.
 
 ## Verification
 
