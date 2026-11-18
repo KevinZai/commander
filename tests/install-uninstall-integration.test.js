@@ -412,8 +412,109 @@ test('install.sh tier switch removes the previous tier\'s unchanged entries and 
     assert.strictEqual(readlinkSync(join(claude, 'skills', linked)), join(REPO_ROOT, 'skills', linked));
     assert.strictEqual(readFileSync(join(claude, 'skills', 'ccc-seo', 'MY-NOTES.md'), 'utf8'), 'mine');
     assert.match(res.stdout, /ccc-seo \(a directory of yours is in the way/);
+    // Audit P2: the skill must still work; its body is kept and stays recorded, not pruned from under the note
+    assert.strictEqual(readFileSync(join(claude, 'skills', 'ccc-seo', 'SKILL.md'), 'utf8'),
+      readFileSync(join(REPO_ROOT, 'skills', 'ccc-seo', 'SKILL.md'), 'utf8'));
+    assert.ok(m.entries.some((e) => e.path === join('skills', 'ccc-seo', 'SKILL.md')), 'kept copy stays in the manifest');
     const fullOnly = readdirSync(join(REPO_ROOT, 'skills')).find((s) => !s.startsWith('_') && !essential.includes(s) && !existsSync(join(claude, 'skills', s)));
     assert.ok(fullOnly, 'a skill outside the essential tier was removed');
+  });
+});
+
+// Every file and link under dir, with its content or link target, for before/after comparison.
+function snapshotTree(dir) {
+  const out = {};
+  const walk = (d, rel) => {
+    for (const n of readdirSync(d).sort()) {
+      const p = join(d, n);
+      const st = lstatSync(p);
+      if (st.isDirectory()) walk(p, rel + n + '/');
+      else out[rel + n] = st.isSymbolicLink() ? 'link:' + readlinkSync(p) : readFileSync(p, 'utf8');
+    }
+  };
+  walk(dir, '');
+  return out;
+}
+
+// Audit #01: a skills/, commands/ or hooks/ dir linked to a shared dotfiles dir. Identical stock copies there must
+// not be adopted into the manifest, and uninstall must never delete or rewrite anything through the link.
+test('install.sh and uninstall.sh leave a symlinked shared dotfiles dir intact', () => {
+  withHome('ccc-install-dotfiles-', (home) => {
+    const claude = join(home, '.claude');
+    const shared = join(home, 'dotfiles');
+    for (const d of ['commands', 'hooks', 'skills']) mkdirSync(join(shared, d), { recursive: true });
+    // Stock copies identical to the checkout, plus the user's own files
+    copyFileSync(join(REPO_ROOT, 'commands', 'ccc-ao.md'), join(shared, 'commands', 'ccc-ao.md'));
+    copyFileSync(join(REPO_ROOT, 'hooks', 'careful-guard.js'), join(shared, 'hooks', 'careful-guard.js'));
+    writeFileSync(join(shared, 'commands', 'mine.md'), 'mine');
+    writeFileSync(join(shared, 'hooks', 'my-hook.js'), '// mine');
+    mkdirSync(join(shared, 'skills', 'my-skill'));
+    writeFileSync(join(shared, 'skills', 'my-skill', 'SKILL.md'), 'mine');
+    mkdirSync(claude, { recursive: true });
+    symlinkSync(join(shared, 'commands'), join(claude, 'commands'));
+    symlinkSync(join(shared, 'hooks'), join(claude, 'hooks'));
+    symlinkSync(join(shared, 'skills'), join(claude, 'skills'));
+    const snapshot = () => snapshotTree(shared);
+    const before = snapshot();
+
+    const res = install(home, ['--skills=essential']);
+    ok(res, 'install');
+    assert.match(res.stdout, /a parent is a symlink or file; left alone/);
+    assert.deepStrictEqual(snapshot(), before, 'install must not write into the shared dotfiles dir');
+    const m = readManifest(claude);
+    const viaLink = m.entries.filter((e) => e.path && /^(commands|hooks|skills)\//.test(e.path));
+    assert.deepStrictEqual(viaLink, [], 'nothing under a symlinked parent is recorded');
+    assert.ok(m.entries.length > 0, 'entries outside the linked dirs are still recorded');
+
+    ok(uninstall(home), 'uninstall');
+    assert.deepStrictEqual(snapshot(), before, 'uninstall must leave the shared dotfiles intact');
+    for (const d of ['commands', 'hooks', 'skills']) assert.ok(lstatSync(join(claude, d)).isSymbolicLink(), d + ' link kept');
+  });
+});
+
+// Audit #01: a manifest written before the user moved a dir to shared dotfiles. Uninstall must not follow the new link.
+test('uninstall.sh keeps manifest entries whose parent became a symlink to shared dotfiles', () => {
+  withHome('ccc-install-dotfiles-later-', (home) => {
+    const claude = join(home, '.claude');
+    ok(install(home, ['--skills=essential']), 'install');
+    const recorded = readManifest(claude).entries.filter((e) => e.path && e.path.startsWith('commands/'));
+    assert.ok(recorded.length > 0, 'commands were recorded by the install');
+    // The user moves commands/ into dotfiles and links it back
+    const shared = join(home, 'dotfiles', 'commands');
+    mkdirSync(join(home, 'dotfiles'), { recursive: true });
+    spawnSync('mv', [join(claude, 'commands'), shared]);
+    symlinkSync(shared, join(claude, 'commands'));
+    const before = snapshotTree(shared);
+    assert.ok(Object.keys(before).length >= recorded.length);
+
+    const res = uninstall(home);
+    ok(res, 'uninstall');
+    assert.deepStrictEqual(snapshotTree(shared), before, 'files reached through the link are kept');
+    for (const e of recorded) {
+      assert.strictEqual(readFileSync(join(shared, e.path.slice('commands/'.length)), 'utf8'),
+        readFileSync(join(REPO_ROOT, e.path), 'utf8'));
+    }
+    assert.ok(lstatSync(join(claude, 'commands')).isSymbolicLink());
+
+    // A re-install over the linked dir records nothing there either
+    ok(install(home, ['--skills=essential']), 're-install');
+    assert.deepStrictEqual(readManifest(claude).entries.filter((e) => e.path && e.path.startsWith('commands/')), []);
+    assert.deepStrictEqual(snapshotTree(shared), before);
+  });
+});
+
+// Audit #01: an identical preexisting file in a real dir is not adopted, so uninstall keeps it.
+test('install.sh does not adopt an identical preexisting file; uninstall keeps it', () => {
+  withHome('ccc-install-noadopt-', (home) => {
+    const claude = join(home, '.claude');
+    mkdirSync(join(claude, 'commands'), { recursive: true });
+    copyFileSync(join(REPO_ROOT, 'commands', 'ccc-ao.md'), join(claude, 'commands', 'ccc-ao.md'));
+    const res = install(home, ['--skills=essential']);
+    ok(res, 'install');
+    assert.match(res.stdout, /identical file\(s\) already present were left as yours/);
+    assert.ok(!readManifest(claude).entries.some((e) => e.path === 'commands/ccc-ao.md'));
+    ok(uninstall(home), 'uninstall');
+    assert.strictEqual(readFileSync(join(claude, 'commands', 'ccc-ao.md'), 'utf8'), readFileSync(join(REPO_ROOT, 'commands', 'ccc-ao.md'), 'utf8'));
   });
 });
 
