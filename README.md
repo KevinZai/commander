@@ -15,7 +15,7 @@ A guided AI project manager for Claude Code. `/ccc` reads your project, recommen
 | Lifecycle hooks | 30 hook events, 51 handlers |
 | Bundled MCP servers | 2 bundled MCP (`context7`, `sequential-thinking`), +19 opt-in via `/ccc-connect` |
 | Plugin workflows / evals | 6 / 8 |
-| Ecosystem catalog | 501 skills across 11 CCC domains |
+| Ecosystem catalog | 526 skills across 11 CCC domains |
 
 Counts come from the filesystem: `node scripts/check-parity.js` fails the build when any doc disagrees with disk.
 
