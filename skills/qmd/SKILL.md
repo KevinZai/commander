@@ -17,11 +17,16 @@ Install from the upstream README, reviewed at [`aa247d0`](https://github.com/tob
 CLI and MCP only:
 
 ```bash
-npm install -g @tobilu/qmd@2.9.0   # pinned; fails if that version is unavailable
-claude mcp add qmd -- qmd mcp
+# One errexit subshell, run on its own: a failed install stops before registration,
+# and the server is registered by the absolute path of the binary just installed.
+( set -euo pipefail
+  npm install -g @tobilu/qmd@2.9.0          # pinned; fails if that version is unavailable
+  qmd="$(npm prefix -g)/bin/qmd"
+  "$qmd" --version
+  claude mcp add qmd -- "$qmd" mcp
+)
 ```
-
-The `qmd` binary must be on `PATH` for `qmd mcp` to start; check with `qmd --version`. Check first with `claude mcp list` and `claude plugin list`.
+ Check first with `claude mcp list` and `claude plugin list`.
 
 ## When to route here
 
