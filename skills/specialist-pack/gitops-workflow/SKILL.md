@@ -31,6 +31,8 @@ Implement declarative, Git-based continuous delivery for Kubernetes using ArgoCD
 
 ### 1. Installation
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```bash
 # Create namespace
 kubectl create namespace argocd
@@ -276,6 +278,8 @@ kubeseal --format yaml < secret.yaml > sealed-secret.yaml
 ## Troubleshooting
 
 **Sync failures:**
+
+> CCC safety: upstream example that changes or exposes a live system (deletes, scales, restarts, rolls back, kills, or prints runtime secrets). Do not run it as written: name the context and the exact target, preview where possible, and get the user's go-ahead for this run. Logged in the pack's `DECISIONS.md`.
 
 ```bash
 argocd app get my-app

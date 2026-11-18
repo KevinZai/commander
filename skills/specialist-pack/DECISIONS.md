@@ -80,7 +80,7 @@ The worker that copied these skills left counts, `commander/contract.json`, the 
 
 ## Second Codex pass (2026-11-18)
 
-- `chaos-engineer`: the DNS example validates the hostname, uses no shell under sudo and removes only the line it added. The Chaos Monkey config targets staging and starts disabled; the ASG script needs an explicit `ASG_NAME` and is a dry run unless `DRY_RUN=0`; CI cleanup deletes only the experiment it applied.
+- `chaos-engineer`: the DNS example validates the hostname, uses no shell under sudo, and (since the sweep below) tags its line with a per-run ID and deletes only that line in place. The Chaos Monkey config targets staging and starts disabled; the ASG script needs an explicit `ASG_NAME` and is a dry run unless `DRY_RUN=0`; CI cleanup deletes only the experiment it applied.
 - `kubernetes-specialist`: the Istio, Linkerd and Submariner installs download a pinned release and verify its checksum instead of piping a script into a shell. The Argo CD initial password is no longer printed in agent sessions.
 - `gitops-workflow`: Argo CD installs from a pinned release tag; related skills point at this pack's `kubernetes-specialist`.
 - `fastapi-expert`: imports `ConfigDict` (Pydantic 2), and both JWT examples refuse to start without a real `JWT_SECRET_KEY`.
@@ -98,15 +98,26 @@ Fixed, because an agent could run them as written:
 - `wordpress-pro/references/performance-security.md`: database dumps go to a directory outside the web root, refused if inside ABSPATH; `.htaccess` is defense in depth only.
 - The router adds a pack-wide "CCC safety" rule for every reference file: verify downloads, never print secrets, no destructive examples against production without the user naming the target.
 
+## Install-safety sweep (2026-11-18)
+
+Every added line was grepped for unpinned `npx`, package installs without exact versions, `:latest` and undigested images, download-and-execute, moving manifest URLs, remote `kubectl apply` and `helm plugin install`, dotenv loading and secrets in argv. Each hit was handled one of three ways.
+
+Fixed (an agent would run these as written):
+- `service-mesh.md` (Istio, Linkerd) and `multi-cluster.md` (Submariner, Cluster API): each install and every command after it run in one `set -euo pipefail` subshell that is never the left side of `&&`, so errexit holds; the verified binary is called by absolute path, never from `PATH`. Cluster API no longer uses `sudo` and checks a SHA-256.
+- `helm-charts.md`: the walkthrough uses a disposable namespace, and `helm uninstall` is no longer part of it.
+- `salesforce-developer/references/deployment-devops.md`: CI runs in the CLI image pinned by digest (GitHub) or by digest of the versioned tag (GitLab), not the `stable` channel; auth URLs pass through the environment and a private temp file removed on exit, never `auth.txt` in the checkout; the post-deploy script has no default org and confirms the target.
+- `wordpress-pro/references/performance-security.md`: no default backup directory; the resolved destination itself must be outside both `ABSPATH` and the document root, and is set to `0700` even when it already exists. Compression keeps the SQL file unless the `.gz` was written completely.
+- `chaos-engineer`: DNS cleanup deletes only its own tagged line; the ASG script terminates only when `DRY_RUN=0` exactly; the SKILL.md experiment targets `staging`.
+
+Fenced as upstream examples: each remaining code block with a hit carries a "CCC safety: upstream example; do not run it as written" line directly above it. That covers `latest` images (the app placeholders `myapp:latest` and the debug, kubectl and exporter images), the Argo CD, Sealed Secrets, Litmus, Flagger, Kiali and Jaeger manifests, the five Helm plugins, the Rancher and Kubecost charts, Conan in CI, the Shopify and WordPress scaffolders and Lighthouse CI. Blocks that change or expose a live system (production custom-resource deletion, node drain, Pumba `SIGKILL`, Jenkins chaos job, troubleshooting rollback, restart, policy deletion and `env`, Argo prune and forced sync) carry a second marker that requires a named target and the user's go-ahead.
+
 ## Upstream notes (logged, not fixed)
 
-These are example-quality issues in upstream reference material. The router's safety rule covers running them; fix them upstream or when a sub-skill is next synced.
-- `salesforce-developer/references/deployment-devops.md`: CI installs Salesforce CLI from the moving `stable` channel without verification, and writes auth URLs into shell source and `auth.txt`.
-- `kubernetes-specialist/references/multi-cluster.md` (Cluster API binary) and `service-mesh.md` (Kiali and Jaeger manifests): unpinned downloads.
-- `chaos-engineer/references/kubernetes-chaos.md`: an example deletes 30% of matching custom resources in `production` from the current kube context; the drain helper's `continue` does not skip DaemonSet pods. `chaos-tools.md`: Jenkins interpolates an unrestricted duration string into YAML.
+These are example-quality issues in upstream reference material. The marked blocks and the router's safety rule cover running them; fix them upstream or when a sub-skill is next synced.
+- `chaos-engineer/references/kubernetes-chaos.md`: the custom-resource example deletes from the current kube context and selects one resource even at 0%; the drain helper's `continue` does not skip DaemonSet pods and it reports `drained` after errors. `chaos-tools.md`: Jenkins interpolates an unrestricted duration string into YAML and waits in the wrong namespace.
+- `kubernetes-specialist/references/cost-optimization.md`: the evening job scales every development deployment to zero; the morning job restores only two, to fixed counts.
+- `wordpress-pro/references/plugin-architecture.md`: uninstall cleanup uses unescaped `_` in `LIKE` prefixes.
 - `spring-boot-engineer/references/security.md`: refresh and access tokens share one validator.
-- `wordpress-pro/references/performance-security.md`: backup compression unlinks the SQL file without checking the write.
 - `godot-gdscript-patterns/references/advanced-patterns.md`: the save system uses one published encryption password.
 - `solidity-security`: the example calls `deposit()`, which neither `SecureBank` version defines, and the overflow test accepts any revert.
-- Missing `legacy-modernizer` references in the FastAPI, NestJS and GraphQL migration guides. Angle-bracket version placeholders are intentional and must be filled in before running.
-
+- Missing `legacy-modernizer` references in the FastAPI, NestJS and GraphQL migration guides (GraphQL also names `federation-guide.md`; the bundled file is `federation.md`). Angle-bracket version and digest placeholders are intentional and must be filled in before running.

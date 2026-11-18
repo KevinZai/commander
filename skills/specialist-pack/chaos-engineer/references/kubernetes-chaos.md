@@ -179,6 +179,8 @@ spec:
 
 ## Node Drain Simulation
 
+> CCC safety: upstream example that changes or exposes a live system (deletes, scales, restarts, rolls back, kills, or prints runtime secrets). Do not run it as written: name the context and the exact target, preview where possible, and get the user's go-ahead for this run. Logged in the pack's `DECISIONS.md`.
+
 ```python
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
@@ -291,6 +293,8 @@ class K8sNodeChaos:
 
 ## Pod Autoscaling Chaos
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```yaml
 # Test HPA behavior under load
 apiVersion: chaos-mesh.org/v1alpha1
@@ -338,6 +342,8 @@ spec:
 ```
 
 ## Custom Resource Chaos
+
+> CCC safety: upstream example that changes or exposes a live system (deletes, scales, restarts, rolls back, kills, or prints runtime secrets). Do not run it as written: name the context and the exact target, preview where possible, and get the user's go-ahead for this run. Logged in the pack's `DECISIONS.md`.
 
 ```python
 # Python script to test custom CRD resilience

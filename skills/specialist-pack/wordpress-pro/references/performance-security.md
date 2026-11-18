@@ -889,25 +889,35 @@ class Database_Backup {
     private string $backup_dir;
 
     public function __construct() {
-        // CCC safety: database dumps never go under wp-content/uploads or anywhere in the web root.
-        // .htaccess does nothing on nginx and many hosts, so the dump would be downloadable.
-        // Use a directory outside ABSPATH (override with MY_PLUGIN_BACKUP_DIR in wp-config.php).
-        $dir = defined('MY_PLUGIN_BACKUP_DIR') ? MY_PLUGIN_BACKUP_DIR : dirname(ABSPATH) . '/wp-backups';
+        // CCC safety: database dumps never go under wp-content/uploads or anywhere a web server serves.
+        // .htaccess does nothing on nginx and many hosts, so a dump there would be downloadable.
+        // There is no default: define MY_PLUGIN_BACKUP_DIR in wp-config.php as a private directory
+        // outside both the WordPress directory and the server's document root.
+        if (!defined('MY_PLUGIN_BACKUP_DIR')) {
+            throw new RuntimeException('Define MY_PLUGIN_BACKUP_DIR (a private directory outside the web root).');
+        }
+        if (!is_dir(MY_PLUGIN_BACKUP_DIR) && !wp_mkdir_p(MY_PLUGIN_BACKUP_DIR)) {
+            throw new RuntimeException('Cannot create the backup directory.');
+        }
+        // Resolve the destination itself (this also follows a symlinked final directory).
+        $dir = realpath(MY_PLUGIN_BACKUP_DIR);
+        $roots = array_filter([
+            realpath(ABSPATH),
+            isset($_SERVER['DOCUMENT_ROOT']) ? realpath($_SERVER['DOCUMENT_ROOT']) : false,
+        ]);
+        if ($dir === false || !$roots) {
+            throw new RuntimeException('Cannot resolve the backup directory or the web root.');
+        }
+        foreach ($roots as $root) {
+            if (str_starts_with($dir . '/', rtrim($root, '/') . '/')) {
+                throw new RuntimeException('Backup directory must be outside every served root.');
+            }
+        }
+        // Owner-only, whether the directory is new or already existed.
+        if (!chmod($dir, 0700)) {
+            throw new RuntimeException('Cannot restrict the backup directory to its owner.');
+        }
         $this->backup_dir = trailingslashit($dir);
-        $root = realpath(ABSPATH);
-        $parent = realpath(dirname(rtrim($this->backup_dir, '/')));
-        if ($root === false || $parent === false || str_starts_with($parent . '/', $root . '/')) {
-            throw new RuntimeException('Backup directory must be outside the web root.');
-        }
-
-        if (!file_exists($this->backup_dir)) {
-            wp_mkdir_p($this->backup_dir);
-            @chmod($this->backup_dir, 0700);
-
-            // Defense in depth only; the location outside the web root is the real protection.
-            file_put_contents($this->backup_dir . '.htaccess', 'deny from all');
-            file_put_contents($this->backup_dir . 'index.php', '<?php // Silence is golden');
-        }
     }
 
     /**
@@ -951,12 +961,16 @@ class Database_Backup {
             return new WP_Error('backup_failed', __('Failed to write backup file.', 'my-plugin'));
         }
 
-        // Compress
+        // Compress; keep the plain .sql unless the .gz was written completely.
         if (function_exists('gzencode')) {
             $compressed = gzencode($output, 9);
-            file_put_contents($filepath . '.gz', $compressed);
-            unlink($filepath);
-            $filepath .= '.gz';
+            if ($compressed !== false
+                && file_put_contents($filepath . '.gz', $compressed) === strlen($compressed)) {
+                unlink($filepath);
+                $filepath .= '.gz';
+            } else {
+                @unlink($filepath . '.gz');
+            }
         }
 
         return $filepath;

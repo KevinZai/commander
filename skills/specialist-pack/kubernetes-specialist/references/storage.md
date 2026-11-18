@@ -180,6 +180,8 @@ spec:
 
 ### Multiple PVCs
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -334,6 +336,8 @@ spec:
 
 ### Memory-Backed EmptyDir
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -355,6 +359,8 @@ spec:
 
 ### Disk-Backed EmptyDir
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -374,6 +380,8 @@ spec:
 ```
 
 ## ConfigMap and Secret Volumes
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```yaml
 apiVersion: v1
@@ -409,6 +417,8 @@ spec:
 ```
 
 ## Projected Volumes
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```yaml
 apiVersion: v1
@@ -451,6 +461,8 @@ spec:
 
 ### AWS EBS CSI Driver
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -474,6 +486,8 @@ spec:
 ```
 
 ### Secrets Store CSI Driver
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```yaml
 apiVersion: v1
@@ -499,6 +513,8 @@ spec:
 ```
 
 ## HostPath Volumes (Use with Caution)
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```yaml
 apiVersion: v1

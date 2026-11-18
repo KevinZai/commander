@@ -186,6 +186,8 @@ iperf3 -c target-server -t 300 -P 10  # 10 parallel streams for 5 minutes
 
 ## Docker Container Chaos with Pumba
 
+> CCC safety: upstream example that changes or exposes a live system (deletes, scales, restarts, rolls back, kills, or prints runtime secrets). Do not run it as written: name the context and the exact target, preview where possible, and get the user's go-ahead for this run. Logged in the pack's `DECISIONS.md`.
+
 ```bash
 #!/bin/bash
 # Pumba - chaos testing for Docker
@@ -233,6 +235,7 @@ pumba stop --duration 2m "re2:^chaos-test-.*"
 import re
 import subprocess
 import time
+import uuid
 from contextlib import contextmanager
 
 class DNSChaos:
@@ -247,7 +250,8 @@ class DNSChaos:
         """Block DNS resolution for domain by pointing to localhost."""
         if not DNSChaos.HOSTNAME.match(domain):
             raise ValueError(f"not a plain hostname: {domain!r}")
-        entry = f"127.0.0.1 {domain}  # chaos-test"
+        tag = f"chaos-test-{uuid.uuid4().hex}"  # unique per run, so cleanup can't touch other lines
+        entry = f"127.0.0.1 {domain}  # {tag}"
         subprocess.run(['sudo', 'tee', '-a', '/etc/hosts'], input=entry + "\n",
                        text=True, stdout=subprocess.DEVNULL, check=True)
         try:
@@ -255,11 +259,9 @@ class DNSChaos:
             yield
             time.sleep(duration_seconds)
         finally:
-            hosts = subprocess.run(['sudo', 'cat', '/etc/hosts'], capture_output=True,
-                                   text=True, check=True).stdout.splitlines()
-            kept = [line for line in hosts if line != entry]
-            subprocess.run(['sudo', 'tee', '/etc/hosts'], input="\n".join(kept) + "\n",
-                           text=True, stdout=subprocess.DEVNULL, check=True)
+            # Delete only the line carrying this run's tag, in place; no snapshot is written back,
+            # so edits other processes made meanwhile are kept. The tag is hex, safe in a sed pattern.
+            subprocess.run(['sudo', 'sed', '-i', f'/# {tag}$/d', '/etc/hosts'], check=True)
             print(f"Restored DNS for {domain}")
 
     @staticmethod
