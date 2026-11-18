@@ -6,7 +6,7 @@ Linear: CC-2133 (parent). Kevin shared a chart of the 15 most-starred Claude ski
 
 | Repository | License | What Commander took | Where |
 |---|---|---|---|
-| cloudflare/security-audit-skill | MIT, Copyright (c) 2025-2026 Cloudflare, Inc. | The single `security-audit` skill with its references, JSON schema and validators, renamed `cloudflare-security-audit`; body unchanged | `skills/ccc-security/cloudflare-security-audit/`, routed from `/ccc-security` as the deep source-first audit |
+| cloudflare/security-audit-skill | MIT, Copyright (c) 2025-2026 Cloudflare, Inc. | The single `security-audit` skill with its references, JSON schema and validators, renamed `cloudflare-security-audit`; body unchanged except one "CCC safety:" line requiring the trusted install outside the target (as recorded in NOTICE.md) | `skills/ccc-security/cloudflare-security-audit/`, routed from `/ccc-security` as the deep source-first audit |
 | Egonex-AI/Understand-Anything | MIT, Copyright (c) 2026 Yuxiang Lin | A mention only; it overlaps codebase-memory-mcp and graphify | `/ccc-suggest` third-party list, Code map row |
 
 ## Already in Commander

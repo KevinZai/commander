@@ -117,6 +117,14 @@ function cliOutput(result) {
   return `${result.stdout}${result.stderr}`;
 }
 
+// CCC: hosts without O_NOFOLLOW/O_NONBLOCK reject every input before reading it
+// (validate-findings.cjs readFileWithinLimit). Content tests accept that rejection there.
+function assertSafeOpenRejection(result) {
+  const output = cliOutput(result);
+  assert.equal(result.status, 1, output);
+  assert.match(output, /no-follow and nonblocking input protection is unavailable/);
+}
+
 function assertNoInjectedControlBytes(output) {
   const bytes = Buffer.isBuffer(output) ? output : Buffer.from(output, "utf8");
   for (const marker of TERMINAL_CONTROL_BYTES) {
@@ -163,6 +171,7 @@ test("schema is an actual top-level array with exactly three branches", () => {
 
 test("accepts a producer-shaped findings document through the CLI", () => {
   const result = runCli(JSON.stringify(producerShapedFindings()));
+  if (!HAS_SAFE_INPUT_OPEN) return assertSafeOpenRejection(result);
   assert.equal(result.status, 0, cliOutput(result));
   assert.match(result.stdout, /PASS: 3 findings valid/);
 });
@@ -374,6 +383,7 @@ test("accepts legitimate Unicode source paths and prose", () => {
 
 test("CLI rejects input above the byte limit without an exception trace", () => {
   const result = runCli(Buffer.alloc(LIMITS.inputBytes + 1, 0x20));
+  if (!HAS_SAFE_INPUT_OPEN) return assertSafeOpenRejection(result);
   const output = cliOutput(result);
   assert.equal(result.status, 1, output);
   assert.match(output, new RegExp(`input exceeds ${LIMITS.inputBytes} byte limit`));
@@ -394,6 +404,7 @@ test("CLI rejects invalid UTF-8 without replacement or an exception trace", () =
   ]);
 
   const result = runCli(malformed);
+  if (!HAS_SAFE_INPUT_OPEN) return assertSafeOpenRejection(result);
   const output = cliOutput(result);
   assert.equal(result.status, 1, output);
   assert.match(output, /input is not valid UTF-8/);
@@ -446,6 +457,7 @@ test("CLI rejects lone-surrogate prose without changing payload semantics", () =
   const findings = producerShapedFindings();
   findings[0].title = "\ud800";
   const result = runCli(JSON.stringify(findings));
+  if (!HAS_SAFE_INPUT_OPEN) return assertSafeOpenRejection(result);
   const output = cliOutput(result);
   assert.equal(result.status, 1, output);
   assert.match(output, /must contain only valid Unicode scalar values/);
@@ -456,6 +468,7 @@ test("CLI rejects Unicode format controls in source paths", () => {
   const findings = producerShapedFindings();
   findings[0].trace[0].file = "src/file\u202ename.c";
   const result = runCli(JSON.stringify(findings));
+  if (!HAS_SAFE_INPUT_OPEN) return assertSafeOpenRejection(result);
   const output = cliOutput(result);
   assert.equal(result.status, 1, output);
   assert.match(output, /must be a safe repository-relative source path/);
@@ -507,6 +520,7 @@ test("CLI rejects a symlink without following it", { skip: process.platform === 
 test("CLI rejects input above the nesting-depth limit without an exception trace", () => {
   const levels = LIMITS.nestingDepth + 1;
   const result = runCli(`${"[".repeat(levels)}0${"]".repeat(levels)}`);
+  if (!HAS_SAFE_INPUT_OPEN) return assertSafeOpenRejection(result);
   const output = cliOutput(result);
   assert.equal(result.status, 1, output);
   assert.match(output, new RegExp(`${LIMITS.nestingDepth} level nesting depth limit`));
@@ -515,6 +529,7 @@ test("CLI rejects input above the nesting-depth limit without an exception trace
 
 test("CLI rejects an oversized array without an exception trace", () => {
   const result = runCli(JSON.stringify(Array(LIMITS.arrayItems + 1).fill(null)));
+  if (!HAS_SAFE_INPUT_OPEN) return assertSafeOpenRejection(result);
   const output = cliOutput(result);
   assert.equal(result.status, 1, output);
   assert.match(output, new RegExp(`${LIMITS.arrayItems} item array limit`));
