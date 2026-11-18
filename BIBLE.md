@@ -1958,7 +1958,7 @@ CC Commander bundles **2 credential-free MCPs** out of the box (no setup needed)
 | `context7` | "use context7" | Latest library docs |
 | `sequential-thinking` | (used internally by agents) | Structured multi-step reasoning |
 
-**16 more connect via `/ccc-connect`** (opt-in, credentials required) — examples below. Which ones you have depends on what you've connected; these are not bundled or "always on":
+**19 more connect via `/ccc-connect`** (opt-in, credentials required) — examples below. Which ones you have depends on what you've connected; these are not bundled or "always on":
 
 | MCP | Say this... | For... |
 |-----|------------|--------|
@@ -3192,7 +3192,7 @@ CCC does not replace these skills. It organizes and orchestrates them.
 
 - **Curation:** the 575 ecosystem skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
 - **Guidance:** The intent classifier reads your message and routes to the right skill automatically. You don't need to know which skill does what.
-- **Pre-wired MCPs:** 2 credential-free bundled MCP servers (context7 + sequential-thinking) ship out of the box; 16 more are opt-in via `/ccc-connect` (Tavily, GitHub, Linear, Supabase, Figma, etc.) when you need them.
+- **Pre-wired MCPs:** 2 credential-free bundled MCP servers (context7 + sequential-thinking) ship out of the box; 19 more are opt-in via `/ccc-connect` (Tavily, GitHub, Linear, Supabase, Figma, etc.) when you need them.
 - **Domain coherence:** 11 `ccc-*` domains group related skills into coherent workflows. `ccc-design` (41 skills) behaves like a single expert, not 41 separate prompts.
 - **Session memory:** The knowledge-capture hook learns from every session. Community skills are stateless. CCC accumulates.
 

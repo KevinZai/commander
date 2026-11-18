@@ -160,7 +160,7 @@ Brain/hands architecture — each persona has a distinct role, model alias and v
 
 **Bundled (2, credential-free — ship in `.mcp.json`, zero setup):** Context7 (current library docs) and Sequential Thinking (multi-step reasoning).
 
-**Opt-in via `/ccc-connect` (16):** Linear, GitHub, Slack, Gmail, Google Calendar, Tavily, Google Drive, Supabase, Figma, Playwright, Notion, claude-mem, Exa, Firecrawl, Zapier and more — see `/ccc-connect` and `commander/cowork-plugin/CONNECTORS.md`.
+**Opt-in via `/ccc-connect` (19):** Linear, GitHub, Slack, Gmail, Google Calendar, Tavily, Google Drive, Supabase, Figma, Playwright, Notion, claude-mem, Exa, Firecrawl, Zapier and more — see `/ccc-connect` and `commander/cowork-plugin/CONNECTORS.md`.
 
 ### vs aider
 

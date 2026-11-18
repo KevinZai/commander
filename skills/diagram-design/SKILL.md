@@ -33,7 +33,7 @@ On first use in a project the upstream skill asks whether to customize its defau
 
 ## Limits
 
-- Output is a static HTML file. For a live, shareable page in Claude Desktop, publish that file as an Artifact.
+- Output is a static HTML file kept on the device. CCC safety: publish it as an Artifact or share it anywhere only when the user asks.
 - Its `PRIVACY.md` lists what it sends over the network (brand onboarding fetches the URL the user gives).
 
 ## License
