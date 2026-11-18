@@ -199,7 +199,7 @@
       "id": "ccc-build",
       "kind": "skill",
       "invoke": "/ccc-build",
-      "label": "Scaffold a new web app, API or CLI from a…",
+      "label": "Build against the sprint contract or…",
       "manual": false,
       "strong": [
         "scaffold a new",
@@ -269,7 +269,7 @@
       "kind": "skill",
       "invoke": "/ccc-cheatsheet",
       "label": "Live map of the installed Commander",
-      "manual": false,
+      "manual": true,
       "strong": [
         "commander cheatsheet",
         "commander cheat sheet",
@@ -839,7 +839,7 @@
       "kind": "skill",
       "invoke": "/ccc-fleet-viz",
       "label": "Show a /ccc-fleet run as a live tree of…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "fleet progress",
         "fleet tree"
@@ -1378,7 +1378,7 @@
       "id": "ccc-plan",
       "kind": "skill",
       "invoke": "/ccc-plan",
-      "label": "Turn an idea, bug, refactor or Linear issue…",
+      "label": "Turn an idea, bug or refactor into a…",
       "manual": false,
       "strong": [
         "implementation plan",
@@ -1993,7 +1993,7 @@
       "id": "ccc-start",
       "kind": "skill",
       "invoke": "/ccc-start",
-      "label": "First-run Commander onboarding",
+      "label": "First run",
       "manual": false,
       "strong": [
         "get started with commander",
@@ -2183,7 +2183,7 @@
       "kind": "skill",
       "invoke": "/ccc-tuneup",
       "label": "Audit and safely optimize the local…",
-      "manual": false,
+      "manual": true,
       "strong": [
         "tune up commander",
         "commander tuneup",

@@ -31,7 +31,7 @@ The platform ignores `persona:`; Commander's tests use it to check that every re
 | fleet-worker | Scoped executor in a parallel fleet | fleet-worker |
 | performance-engineer | Hot-path and bottleneck analyst | performance-engineer |
 | product-manager | User advocate and priority owner | product-manager |
-| qa-engineer | Edge-case hunter and coverage auditor | qa-engineer |
+| qa-engineer | Edge-case hunter and coverage auditor | qa-engineer, verifier |
 | researcher | Source-cited synthesizer | researcher |
 | reviewer | Severity-rated change analyst | reviewer and every language reviewer |
 | security-auditor | Adversarial reviewer and threat modeler | security-auditor |

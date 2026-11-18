@@ -184,7 +184,12 @@ app.get("/metrics", (c) => {
     "# HELP commander_telemetry_events_discarded_total Opt-in telemetry events accepted then discarded (not stored or forwarded)",
     "# TYPE commander_telemetry_events_discarded_total counter",
     `commander_telemetry_events_discarded_total ${telemetry.eventsDiscarded}`,
+    "# HELP commander_first_result_total Installs that finished their first flagship result (first_result is sent once per install)",
+    "# TYPE commander_first_result_total counter",
   ];
+  for (const [skill, n] of Object.entries(telemetry.firstResults)) {
+    lines.push(`commander_first_result_total{skill="${skill}"} ${n}`);
+  }
 
   for (const tool of Object.keys(callCounters)) {
     lines.push(`commander_tool_calls_total{tool="${tool}"} ${callCounters[tool]}`);

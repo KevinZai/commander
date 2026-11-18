@@ -434,6 +434,7 @@
     "builder": { "exclude": true },
     "content-strategist": { "exclude": true },
     "fleet-worker": { "exclude": true },
+    "verifier": { "exclude": true },
     "architect": {
       "strong": ["architecture review"],
       "triggers": ["system design", "architecture"],

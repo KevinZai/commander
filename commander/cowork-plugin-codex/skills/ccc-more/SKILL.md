@@ -131,7 +131,7 @@ Dispatch immediately on a pick; do not ask again.
 | Fleet · `fleet` | Skill `ccc-fleet` |
 | Linear · `linear` | `$ccc-linear` is user-invoked only. Linear connected: tell the user to type `$ccc-linear`. Not connected: tell the user to type `$ccc-connect linear` first; never call Linear tools that are absent |
 | Connect · `connect` | `$ccc-connect` is user-invoked only: tell the user to type `$ccc-connect` |
-| Tune-up · `tuneup` | Skill `ccc-tuneup` |
+| Tune-up · `tuneup` | `$ccc-tuneup` is user-invoked only: read `${CLAUDE_PLUGIN_ROOT}/skills/ccc-tuneup/SKILL.md` and follow it in this session; do not call it through the Skill tool |
 | Browse · `browse` | Skill `ccc-browse` |
 | Plugin workflows · `workflows` | Plugin workflows page |
 | Back · `back` | Skill `ccc` |

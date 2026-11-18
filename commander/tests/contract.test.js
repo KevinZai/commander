@@ -199,7 +199,7 @@ test('--patch fixes simple count and version mismatches', function() {
   var readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
   assert.match(readme, new RegExp('v' + contract.version.replace(/\./g, '\\.')));
   assert.match(readme, new RegExp(contract.plugin_skills + ' plugin skills'));
-  assert.match(readme, /22 specialist agents/);
+  assert.match(readme, new RegExp(contract.specialist_agents + ' specialist agents'));
   assert.match(readme, new RegExp(contract.lifecycle_hooks + ' lifecycle hooks \\(' + contract.hook_handlers + ' handlers\\)'));
   assert.match(readme, /2 pre-configured MCP servers \+16 opt-in/);
   assert.match(readme, new RegExp(contract.ecosystem_skills + '\\+ skills across 11 CCC domains'));

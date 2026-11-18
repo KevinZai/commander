@@ -10,6 +10,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - AskUserQuestion
+  - Agent
   - mcp__ccd_session__spawn_task
   - mcp__ccd_session__mark_chapter
 argument-hint: "[action: preflight | release | deploy | rollback]"
@@ -39,11 +40,14 @@ git rev-list --count main..HEAD 2>/dev/null
 test -f package.json && node -p "require('./package.json').version"
 test -f .github/workflows/ci.yml && echo yes
 ls -t tasks/ship/preflight-*.md 2>/dev/null | head -1
+node "${CLAUDE_PLUGIN_ROOT}/scripts/sprint-contract.mjs" status 2>/dev/null
 ```
+
+Repo checkout fallback for the plugin scripts in this skill: `commander/cowork-plugin/scripts/…`.
 
 Render one line:
 
-> 📊 Branch: `<branch>` · <N> commits ahead · <X> uncommitted · current version: `<ver>` · CI: `<yes/no>`
+> 📊 Branch: `<branch>` · <N> commits ahead · <X> uncommitted · current version: `<ver>` · CI: `<yes/no>` · contract: `<none | open | failed | verified at HEAD | verified, stale>`
 
 If uncommitted changes > 0, add: "⚠️ Uncommitted changes detected — commit or stash before shipping."
 
@@ -69,7 +73,7 @@ multiSelect: false
 options:
   - label: "Pre-flight check"
     description: "Tests, lint, typecheck, secrets, airplane mode. One click, full matrix."
-    preview: "Six-check parallel matrix. Results as a checkbox scorecard."
+    preview: "Parallel check matrix plus the verifier on the sprint contract. Results as a checkbox scorecard."
   - label: "Cut a release"
     description: "Bump version, write changelog, tag, push, create GitHub release."
     preview: "Patch by default. Asks for bump type and release-notes source."
@@ -104,10 +108,15 @@ Run the matrix in one Bash call, each probe in the background with output captur
 | Airplane mode | the grep below — flags unexpected external calls |
 | Audit counts | `bin/audit-counts` or `node scripts/audit-counts.js --check` if present, else skip |
 | Doc sync | `grep -c "v<ver>" README.md CHANGELOG.md` against the `package.json` version — catches stale version refs |
+| Acceptance criteria | the `verifier` agent against `tasks/sprint-contract.md` (below); ⏭️ when there is no contract |
 
 ```bash
 grep -rnE "fetch\(|axios\.|http\.(get|post)" src/ | grep -vE "localhost|127\.0\.0\.1"
 ```
+
+When the session exposes the `REPL` tool (Code Mode), run the probes as one program instead: start them together, keep only each probe's exit code, pass/fail counts and the first failing `file:line`, and return one JSON object per probe. Without `REPL`, use the background-and-`wait` Bash call. See [rules/workflow-first.md §6](../../rules/workflow-first.md#6-code-mode-fan-out).
+
+**Acceptance criteria gate.** In the same turn as the matrix, when step 1 found a contract: if its status is `verified` and `current` is true, the gate is ✅ with the recorded verification line. Otherwise dispatch the `verifier` agent (Agent tool; if the plugin agent is not listed, `general-purpose` told to read `${CLAUDE_PLUGIN_ROOT}/agents/verifier.md` and follow it): "Verify `tasks/sprint-contract.md` in this checkout and return your JSON verdict." Pipe its JSON block to `node "${CLAUDE_PLUGIN_ROOT}/scripts/sprint-contract.mjs" record -`: exit 0 is ✅ `<n>/<n> criteria`, exit 2 is ❌ with the failing criterion ids. The lead never marks this gate from its own reading.
 
 After the matrix, mark the chapter `Tests: <pass>/<total>` with summary `<pass>/<total> tests passing; <N> gates remaining`.
 
@@ -121,6 +130,7 @@ Report as a checkbox list, never a numbered list:
 - [x] ✅ Typecheck — clean
 - [ ] ❌ Airplane mode — 1 unexpected external call in `src/api/sync.ts:42`
 - [x] ⏭️ Audit counts — skipped, no script
+- [x] ✅ Acceptance criteria — 4/4 pass (verifier, a1b2c3d)
 - [ ] ⚠️ Doc sync — README references an older version than package.json
 
 **Verdict:** 🟡 CAUTION — 1 blocker, 1 warning. Fix before shipping.
@@ -128,7 +138,7 @@ Report as a checkbox list, never a numbered list:
 
 Verdict: all ✅ or ⏭️ → 🟢 GO · any ⚠️ → 🟡 CAUTION · any ❌ → 🔴 NO-GO. Mark the chapter `Preflight complete`, summary `Verdict: <GO|CAUTION|NO-GO> — <blocker-count> blockers`.
 
-Write the scorecard, verdict and blocker list to `tasks/ship/preflight-<YYYYMMDD>-<HHMM>.md` (create `tasks/ship/` if needed) so step 5 can reference it. Confirm with `test -s <path>`.
+Write the scorecard, verdict and blocker list to `tasks/ship/preflight-<YYYYMMDD>-<HHMM>.md` (create `tasks/ship/` if needed) so step 5 can reference it. Confirm with `test -s <path>`. Then run `node "${CLAUDE_PLUGIN_ROOT}/scripts/activation.mjs" first-result ccc-ship` (records the first finished result once; sends `first_result` only when telemetry is opted in; do not mention its output).
 
 After the scorecard is rendered, for each failed gate call `mcp__ccd_session__spawn_task` once:
 
@@ -145,7 +155,7 @@ Ask two pickers in sequence:
 - Bump type: "🟢 Patch (bug fixes only)", "Minor (new features, backward-compatible)", "Major (breaking changes)".
 - Release notes: "🟢 Auto-generate from commits (conventional commits grouped by type)", "I'll write them now", "Use CHANGELOG.md as-is".
 
-If the latest preflight verdict is 🔴 NO-GO or older than the last commit, say so before continuing.
+If the latest preflight verdict is 🔴 NO-GO or older than the last commit, or a sprint contract exists and `sprint-contract.mjs status` does not show `verified` with `current: true`, say so and recommend pre-flight before continuing.
 
 Then, in order:
 
@@ -199,7 +209,7 @@ Verify by fetching the production URL with WebFetch, and report: version restore
 
 ## Done when
 
-- Pre-flight: the scorecard and verdict are shown and `test -s tasks/ship/preflight-<stamp>.md` succeeded.
+- Pre-flight: the scorecard and verdict are shown and `test -s tasks/ship/preflight-<stamp>.md` succeeded; with a sprint contract, its gate came from a verifier verdict recorded in this turn or a recorded PASS at the current commit.
 - Release: `git ls-remote --tags origin v<new>` returned the tag (or the user chose to keep it local, and that is reported).
 - Deploy and rollback: a `Health: PASS|FAIL` line from a real fetch was printed.
 
@@ -207,6 +217,7 @@ Verify by fetching the production URL with WebFetch, and report: version restore
 
 - Pushing, creating a GitHub release, deploying and rolling back each need the user's authorization in this conversation; ask with a picker at that step, never at the start.
 - Never run the pre-flight matrix sequentially; never report it as a numbered list.
+- Never give 🟢 GO while a sprint contract exists without a verifier PASS at the current commit.
 - Never auto-push tags or auto-rollback.
 - Never roll a custom deploy pipeline; use the platform's own command or script.
 - Never add AI attribution trailers to release commits.
