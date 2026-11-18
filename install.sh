@@ -71,7 +71,9 @@ while [[ $# -gt 0 ]]; do
       echo "  --clean            Replace ~/.claude skills, commands and hooks instead of merging (backed up first)"
       echo "  --mode=MODE        Install mode: full|essentials|scripts|dashboard|config"
       echo "  --skills=TIER      Skill tier: essential (default), recommended, full, custom"
-      echo "                     (a tier other than full needs jq; --force defaults to full)"
+      echo "                     (a tier other than full needs jq). Without --skills, a re-install or"
+      echo "                     update keeps the tier recorded by the previous install, else essential;"
+      echo "                     full is installed only when asked for"
       echo "  --install-cli      Allow npm install -g of Claude Code / context-mode when missing"
       echo "  --skip-deps        Do not run npm install in this checkout"
       echo "  --help             Show this help"
@@ -329,11 +331,22 @@ fi
 tier=""
 tiers_file="$SCRIPT_DIR/skills/_tiers.json"
 if should_install "skills"; then
-  # Determine skill tier (--force defaults to full for reliability)
-  if $FORCE && [ -z "$SKILLS_TIER" ]; then
-    tier="full"
+  # Skill tier: --skills wins. Otherwise (including unattended --force runs from install-remote.sh and
+  # ccc --update) keep the tier the previous install recorded in its manifest, else essential. Optional
+  # skill packs (full) are installed only when the user asks for them.
+  if [ -n "$SKILLS_TIER" ]; then
+    tier="$SKILLS_TIER"
   else
-    tier="${SKILLS_TIER:-essential}"
+    stored_tier="$(node -e '
+      try {
+        var t = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).tier;
+        if (typeof t === "string" && /^[a-z][a-z0-9-]{0,31}$/.test(t)) process.stdout.write(t);
+      } catch (_e) { /* no manifest: first install */ }
+    ' "$MANIFEST" 2>/dev/null || true)"
+    tier="${stored_tier:-essential}"
+    if [ -n "$stored_tier" ]; then
+      cc_status_line "·" "Skill tier: $tier (kept from the previous install; pass --skills=TIER to change it)"
+    fi
   fi
   if [[ "$tier" == "custom" ]]; then
     cc_status_line "!" "Custom skill picker not yet implemented — using essential tier"
@@ -558,11 +571,32 @@ function writeAtomic(abs, buf, mode) {
   fs.renameSync(tmp, abs);
 }
 
+// The config dir as the filesystem resolves it. Every entry the installer records or removes must resolve under it.
+var REAL_ROOT = (function() { try { return fs.realpathSync(ROOT); } catch (_e) { return ROOT; } })();
+// True when each existing ancestor between ROOT and abs is a real directory (no symlink, no file) and the parent
+// resolves inside the config dir. A skills/ or hooks/ dir linked to shared dotfiles fails this check, so nothing
+// is adopted, recorded, pruned or restored through it (audit #01).
+function parentsInside(abs) {
+  var relDir = path.relative(ROOT, path.dirname(abs));
+  if (relDir === '..' || relDir.startsWith('..' + path.sep) || path.isAbsolute(relDir)) return false;
+  var cur = ROOT, last = ROOT;
+  var parts = relDir ? relDir.split(path.sep) : [];
+  for (var i = 0; i < parts.length; i++) {
+    cur = path.join(cur, parts[i]);
+    var st = lst(cur);
+    if (!st) break; // the rest is created by ensureParents as real directories
+    if (st.isSymbolicLink() || !st.isDirectory()) return false;
+    last = cur;
+  }
+  try { return within(REAL_ROOT, fs.realpathSync(last)); } catch (_e) { return false; }
+}
+function inRoot(e) { return !!e.abs || e.type === 'mcp-server' || parentsInside(absOf(e)); }
+
 var prev = { entries: [], dirs: [], backups: [] };
 try { prev = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); } catch (_e) { /* first install */ }
 var prevByKey = new Map((prev.entries || []).map(function(e) { return [keyOf(e), e]; }));
 var dirs = new Set((prev.dirs || []).filter(function(d) { var s = lst(path.join(ROOT, d)); return s && s.isDirectory(); }));
-var stats = { written: 0, unchanged: 0, replaced: 0, pruned: 0, restored: 0, keptModified: 0, conflicts: [] };
+var stats = { written: 0, unchanged: 0, replaced: 0, pruned: 0, restored: 0, keptModified: 0, notAdopted: 0, conflicts: [] };
 var backupUsed = false;
 
 // Is the entry still exactly what the installer wrote? null when it no longer exists.
@@ -621,6 +655,9 @@ function removeOwned(e) {
 }
 function removeEmptyDirs() {
   Array.from(dirs).sort(function(a, b) { return b.split(path.sep).length - a.split(path.sep).length; }).forEach(function(d) {
+    if (!parentsInside(path.join(ROOT, d))) { dirs.delete(d); return; } // reached through a symlink: not ours to remove
+    var dst = lst(path.join(ROOT, d));
+    if (dst && dst.isSymbolicLink()) { dirs.delete(d); return; }
     try { fs.rmdirSync(path.join(ROOT, d)); dirs.delete(d); } catch (_e) { /* not empty or gone */ }
     if (!lst(path.join(ROOT, d))) dirs.delete(d);
   });
@@ -709,9 +746,42 @@ fs.readFileSync(planFile, 'utf8').split('\n').filter(Boolean).forEach(function(l
   throw new Error('unknown plan op: ' + op);
 });
 
+// ── Preflight: a link that replaces a directory the previous install wrote (a tier switch, full -> essential) ──
+// When the directory also holds files of the user's, pruning would leave a skill directory without its SKILL.md
+// that the link then cannot replace. Keep the previous install's copy intact and skip the link instead.
+function emptiesOnPrune(dirAbs) {
+  var ok = true;
+  (function walk(d) {
+    var names;
+    try { names = fs.readdirSync(d); } catch (_e) { ok = false; return; }
+    names.forEach(function(n) {
+      if (!ok) return;
+      var p = path.join(d, n);
+      var st = lst(p);
+      if (st && st.isDirectory() && !st.isSymbolicLink()) { walk(p); return; }
+      var pe = prevByKey.get(path.relative(ROOT, p));
+      if (!pe || !groups.has(pe.group) || ops.has(keyOf(pe)) || owned(pe) !== true) ok = false;
+    });
+  })(dirAbs);
+  return ok;
+}
+var heldDirs = [];
+ops.forEach(function(op, key) {
+  if (op.type !== 'symlink' || op.abs) return;
+  var abs = absOf(op);
+  var st = lst(abs);
+  if (!st || !st.isDirectory() || st.isSymbolicLink() || !parentsInside(abs)) return;
+  if (emptiesOnPrune(abs)) return;
+  heldDirs.push(op.path);
+  ops.delete(key);
+  stats.conflicts.push(op.path + ' (a directory of yours is in the way; kept the previous install\'s copy so the skill still works)');
+});
+function held(e) { return !e.abs && e.type !== 'mcp-server' && heldDirs.some(function(d) { return within(d, e.path); }); }
+
 // ── Prune: entries a previous install wrote in these groups that this install no longer writes ──
 (prev.entries || []).forEach(function(e) {
-  if (!groups.has(e.group) || ops.has(keyOf(e))) return;
+  if (!groups.has(e.group) || ops.has(keyOf(e)) || held(e)) return;
+  if (!inRoot(e)) { stats.conflicts.push(e.path + ' (its parent now resolves outside the config dir; left alone)'); return; }
   var r = removeOwned(e);
   if (r === 'kept') stats.keptModified++;
   else if (r !== 'missing') stats.pruned++;
@@ -720,7 +790,7 @@ fs.readFileSync(planFile, 'utf8').split('\n').filter(Boolean).forEach(function(l
 removeEmptyDirs();
 
 // ── Apply ──
-var entries = (prev.entries || []).filter(function(e) { return !groups.has(e.group); });
+var entries = (prev.entries || []).filter(function(e) { return (!groups.has(e.group) || held(e)) && inRoot(e); });
 ops.forEach(function(op) {
   var pe = prevByKey.get(keyOf(op));
   var entry = { group: op.group, type: op.type };
@@ -745,11 +815,18 @@ ops.forEach(function(op) {
   }
 
   var abs = absOf(op);
+  var label = op.abs || op.path;
+  // Check the parent chain before reading, adopting or recording anything (audit #01).
+  if (!op.abs && !parentsInside(abs)) { stats.conflicts.push(label + ' (a parent is a symlink or file; left alone)'); return; }
   var st = lst(abs);
+  // A matching entry is recorded only when the previous install owned it. An identical file that was already
+  // there is the user's (or a shared copy); it is left in place and not recorded, so uninstall never deletes it.
+  var priorOwned = !!(pe && pe.type === op.type);
   if (op.type === 'file') {
     var buf = op.content || fs.readFileSync(op.src);
     entry.sha = sha(buf);
     if (st && st.isFile() && sha(fs.readFileSync(abs)) === entry.sha) {
+      if (!priorOwned) { stats.notAdopted++; return; }
       if (carried) entry.backup = carried;
       entries.push(entry); stats.unchanged++;
       return;
@@ -757,12 +834,15 @@ ops.forEach(function(op) {
   } else {
     entry.target = op.target;
     if (st && st.isSymbolicLink() && fs.readlinkSync(abs) === op.target) {
+      // A link into this checkout is unambiguously CC Commander's, even from an install that predates the manifest.
+      var intoSource = false;
+      try { intoSource = within(fs.realpathSync(srcRoot), fs.realpathSync(abs)); } catch (_e) { intoSource = false; }
+      if (!priorOwned && !intoSource) { stats.notAdopted++; return; }
       if (carried) entry.backup = carried;
       entries.push(entry); stats.unchanged++;
       return;
     }
   }
-  var label = op.abs || op.path;
   if (st && st.isDirectory()) { stats.conflicts.push(label + ' (a directory of yours is in the way; left alone)'); return; }
   if (op.abs && st && !(pe && owned(pe))) {
     var t = st.isSymbolicLink() ? fs.readlinkSync(abs) : '';
@@ -804,6 +884,7 @@ writeAtomic(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 0o644);
 console.log('  ✓ ' + stats.written + ' written, ' + stats.unchanged + ' unchanged, ' + stats.replaced + ' replaced (backed up)' +
   (stats.pruned ? ', ' + stats.pruned + ' removed from the previous install' : '') +
   (stats.restored ? ' (' + stats.restored + ' of your originals restored)' : ''));
+if (stats.notAdopted) console.log('  · ' + stats.notAdopted + ' identical file(s) already present were left as yours (not recorded for uninstall)');
 if (stats.keptModified) console.log('  · ' + stats.keptModified + ' file(s) from the previous install were changed by you and kept');
 if (stats.conflicts.length) {
   console.log('  ! ' + stats.conflicts.length + ' entr' + (stats.conflicts.length === 1 ? 'y' : 'ies') + ' skipped:');
@@ -870,7 +951,9 @@ try:
     with open(p) as f:
         d = json.load(f)
 except (OSError, json.JSONDecodeError) as e:
-    sys.exit(0)  # don't crash the install on a bad file
+    # Unreadable or malformed: a distinct outcome (exit 3), never reported as deduplicated or clean
+    print('settings.json could not be read (%s); dedup skipped' % e.__class__.__name__)
+    sys.exit(3)
 
 ekm = d.get('extraKnownMarketplaces')
 if not isinstance(ekm, dict):
@@ -917,7 +1000,10 @@ except Exception:
 print('deduped extraKnownMarketplaces: removed ' + ', '.join(removed))
 DEDUP
       ) || dedup_exit=$?
-      if [ $dedup_exit -ne 0 ]; then
+      # Outcomes: 0 with output = changed, 0 without = nothing to do, 3 = unreadable (skipped), other = failed
+      if [ $dedup_exit -eq 3 ]; then
+        cc_status_line "!" "extraKnownMarketplaces dedup skipped: ${dedup_out}"
+      elif [ $dedup_exit -ne 0 ]; then
         cc_status_line "!" "extraKnownMarketplaces dedup failed (settings.json left as is)"
       elif [ -n "$dedup_out" ]; then
         cc_status_line "✓" "extraKnownMarketplaces deduplicated"

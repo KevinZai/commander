@@ -254,9 +254,10 @@ function buildHeaders(cfg, opts) {
 /**
  * Pick the endpoint and the credentials bound to it.
  *
- * Endpoint precedence: a project entry whose origin the user approved (the
- * project selects among approved origins) > CCC_MCP_URL > the user entry > a
- * project entry with an unapproved origin. The last case is called with no
+ * Endpoint precedence: an explicit CCC_MCP_URL (the process override always
+ * wins) > a project entry whose origin the user approved (the project selects
+ * among approved origins) > the user entry > a project entry with an
+ * unapproved origin. The last case is called with no
  * credentials at all: credentials never follow a project-chosen URL to an
  * origin the user did not approve, and user-level headers are sent only to
  * the user entry's own origin.
@@ -275,12 +276,12 @@ function resolveTarget() {
   const userEndpoint = user ? resolveEndpoint(user.url) : null;
   let endpoint = null;
   let source = null;
-  if (projectEndpoint && isApproved(projectEndpoint)) {
-    endpoint = projectEndpoint;
-    source = 'project';
-  } else if (envEndpoint) {
+  if (envEndpoint) {
     endpoint = envEndpoint;
     source = 'env';
+  } else if (projectEndpoint && isApproved(projectEndpoint)) {
+    endpoint = projectEndpoint;
+    source = 'project';
   } else if (userEndpoint) {
     endpoint = userEndpoint;
     source = 'user';
@@ -373,6 +374,9 @@ async function rpc(target, method, params, timeoutMs, session) {
       headers,
       body: JSON.stringify(message),
       signal: ctrl.signal,
+      // Never follow a redirect: custom credential headers (X-API-Key and the like) would be
+      // re-sent to whatever origin the Location names (audit #03). A redirect is an error.
+      redirect: 'error',
     });
     text = await res.text();
   } catch (err) {

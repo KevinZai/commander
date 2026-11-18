@@ -90,6 +90,24 @@ function writeAtomic(abs, buf, mode) {
 }
 
 var result = { removed: 0, restored: 0, kept: [], dirs: 0 };
+var REAL_ROOT = (function() { try { return fs.realpathSync(ROOT); } catch (_e) { return ROOT; } })();
+// True when every existing ancestor between ROOT and abs is a real directory and the parent resolves inside the
+// config dir. A skills/, commands/ or hooks/ dir linked to shared dotfiles fails, so nothing is removed or
+// restored through it (audit #01).
+function parentsInside(abs) {
+  var relDir = path.relative(ROOT, path.dirname(abs));
+  if (relDir === '..' || relDir.startsWith('..' + path.sep) || path.isAbsolute(relDir)) return false;
+  var cur = ROOT, last = ROOT;
+  var parts = relDir ? relDir.split(path.sep) : [];
+  for (var i = 0; i < parts.length; i++) {
+    cur = path.join(cur, parts[i]);
+    var st = lst(cur);
+    if (!st) break;
+    if (st.isSymbolicLink() || !st.isDirectory()) return false;
+    last = cur;
+  }
+  try { return within(REAL_ROOT, fs.realpathSync(last)); } catch (_e) { return false; }
+}
 
 function report() {
   var verb = apply ? '' : 'would be ';
@@ -129,7 +147,7 @@ if (manifest) {
       return;
     }
     var abs = absOf(e);
-    if (!e.abs && !within(ROOT, path.resolve(abs))) { result.kept.push(label(e) + ' (outside the config dir)'); return; }
+    if (!e.abs && (!within(ROOT, path.resolve(abs)) || !parentsInside(abs))) { result.kept.push(label(e) + ' (outside the config dir, or reached through a symlinked directory)'); return; }
     var st = lst(abs);
     if (!st) return;
     var ours = e.type === 'file' ? st.isFile() && sha(fs.readFileSync(abs)) === e.sha
@@ -146,7 +164,9 @@ if (manifest) {
   if (apply) {
     Array.from(touchedDirs).sort(function(a, b) { return b.split(path.sep).length - a.split(path.sep).length; }).forEach(function(d) {
       var abs = path.join(ROOT, d);
-      if (!within(ROOT, path.resolve(abs)) || path.resolve(abs) === ROOT) return;
+      if (!within(ROOT, path.resolve(abs)) || path.resolve(abs) === ROOT || !parentsInside(abs)) return;
+      var dst = lst(abs);
+      if (!dst || dst.isSymbolicLink()) return;
       try { fs.rmdirSync(abs); result.dirs++; } catch (_e) { /* not empty: holds files that are not ours */ }
     });
     fs.unlinkSync(manifestPath);

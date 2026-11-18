@@ -122,12 +122,16 @@ The schema is one ordered migration chain in
 |---|---|---|
 | 1 | `20260417000000_beta_v4.sql` | Original beta tables (history, unchanged) |
 | 2 | `20261118000000_reconcile_hosted_schema.sql` | Converges every earlier setup on one end state |
+| 3 | `20261119000000_quota_reserve_and_stripe_claims.sql` | Atomic `reserve_call(text, text, integer)`; Stripe event claims and the ordered `apply_stripe_subscription` |
 
 The end state: text `user_id` keys; `users`, `usage_counters`, `surveys`,
 `feedback`, `agent_messages`, `stripe_events`, `oauth_identities`, `creators`
 and `creator_clicks`; the `creators_public` view; and the
-`get_effective_cap(text)`, `increment_usage(text, text)` and
-`increment_creator_clicks(text)` RPCs. Only `service_role` can read or write
+`get_effective_cap(text)`, `increment_usage(text, text)`,
+`reserve_call(text, text, integer)`, `claim_stripe_event`,
+`complete_stripe_event`, `release_stripe_event`, `apply_stripe_subscription`
+and `increment_creator_clicks(text)` RPCs. Every quota and billing RPC is
+executable by `service_role` only. Only `service_role` can read or write
 billing, identity and quota data. A `users_guard` trigger keeps
 `anon`/`authenticated` off every `users` column except `last_seen_at`. The
 same trigger pins `tier = 'founders'` while `founders_granted_at` is set, and
@@ -138,9 +142,10 @@ bumps `key_version` when an issued license key changes.
   reconcile migration.
 - **Database built from `src/db/schema.sql`** (with or without
   `src/db/migrations/002_paywall_tiers.sql` and `src/db/creators-schema.sql`):
-  run `supabase/migrations/20261118000000_reconcile_hosted_schema.sql` once in
-  the SQL Editor. Then record the chain as applied with
-  `supabase migration repair --status applied 20260417000000 20261118000000`.
+  run `supabase/migrations/20261118000000_reconcile_hosted_schema.sql` and then
+  `supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql` once
+  each in the SQL Editor. Then record the chain as applied with
+  `supabase migration repair --status applied 20260417000000 20261118000000 20261119000000`.
   `beta_v4` cannot run on that database's uuid keys. The reconcile file
   converts them to text.
 

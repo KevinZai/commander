@@ -39,8 +39,10 @@ raises a cap, only lowers it. `pro` and `founders` map to 100000/mo in the RPC
 
 ### 1. Database migration (once, before anything else)
 
-Apply `supabase/migrations/20261118000000_reconcile_hosted_schema.sql`
-(idempotent; how depends on how the database was built — README.md
+Apply `supabase/migrations/20261118000000_reconcile_hosted_schema.sql`, then
+`supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql` (the
+webhook's event-claim and ordered-apply RPCs, and `reserve_call`)
+(both idempotent; how depends on how the database was built — README.md
 "Database"). It adds `founders` to the tier check, the Stripe columns
 (`stripe_customer_id`, `stripe_subscription_id`, `stripe_subscription_status`,
 `stripe_subscription_event_at`), `founders_granted_at`, the `stripe_events`

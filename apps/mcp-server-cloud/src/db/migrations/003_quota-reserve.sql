@@ -1,20 +1,27 @@
--- Migration 003 — atomic monthly quota reservation (Codex audit #20).
--- Apply to EXISTING Supabase databases via SQL Editor (or `supabase db push`)
--- BEFORE deploying the server version that calls reserve_call: the middleware
--- fails closed (HTTP 503 quota_storage_unavailable) when this RPC is missing.
--- Idempotent — safe to re-run.
+-- Migration 003 — atomic monthly quota reservation (Codex audit #19/#20).
 --
--- reserve_call(p_user_id, p_month, p_cap) counts ONE billable tool call:
+-- SUPERSEDED by the ordered chain: the canonical copy of this function is
+-- supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql,
+-- applied by `supabase db push` after 20261118000000_reconcile_hosted_schema.sql.
+-- This file is kept identical to that section so a database that already ran
+-- it by hand converges on the same signature and grants. Run it only AFTER the
+-- reconcile migration (users.user_id must be TEXT). Idempotent.
+--
+-- What counts: the server reserves before dispatching an MCP `tools/call`
+-- (or a legacy /v1/call `{tool}` body) for a known tool. Protocol requests
+-- (initialize, tools/list, notifications, SSE) are not billed.
+
+-- A uuid overload from the superseded apps/mcp-server-cloud/src/db/migrations
+-- /003_quota-reserve.sql would make PostgREST's named-argument call ambiguous.
+drop function if exists public.reserve_call(uuid, text, integer);
+
+-- Counts ONE billable tool call for (user, month):
 --   - inserts the month row at 1, or increments it, in a single statement;
 --   - the increment only happens while calls_used < p_cap, so concurrent
 --     requests can never push the counter past the cap (row lock on conflict);
 --   - returns allowed = false and the current count when the cap is reached,
 --     without consuming quota.
--- What counts: the server reserves before dispatching an MCP `tools/call`
--- (or a legacy /v1/call `{tool}` body) for a known tool. Protocol requests
--- (initialize, tools/list, notifications, SSE) are not billed.
-
-create or replace function public.reserve_call(p_user_id uuid, p_month text, p_cap integer)
+create or replace function public.reserve_call(p_user_id text, p_month text, p_cap integer)
 returns table (allowed boolean, calls_used integer)
 language plpgsql
 security definer
@@ -46,7 +53,7 @@ begin
     return;
   end if;
 
-  -- Conflict row existed and was at/over the cap: report it, consume nothing.
+  -- The row existed and was at or over the cap: report it, consume nothing.
   select uc.calls_used into v_used
     from public.usage_counters uc
    where uc.user_id = p_user_id and uc.month = p_month;
@@ -54,5 +61,5 @@ begin
 end;
 $$;
 
-revoke all on function public.reserve_call(uuid, text, integer) from public;
-grant execute on function public.reserve_call(uuid, text, integer) to service_role;
+revoke all on function public.reserve_call(text, text, integer) from public, anon, authenticated;
+grant execute on function public.reserve_call(text, text, integer) to service_role;

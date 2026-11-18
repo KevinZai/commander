@@ -106,7 +106,7 @@ The Dockerfile copies `data/` and runs `--verify`; the image build fails if the 
 Apply these to the production Supabase database before the matching server build deploys; both are idempotent:
 
 1. `supabase/migrations/20261118000000_reconcile_hosted_schema.sql` (repository root, applied by `supabase db push`). Converges every earlier schema on one chain: billing state, creators privacy, entitlement column protection, OAuth bindings and license-token revocation. The Stripe webhook answers non-2xx until it is applied. See README.md "Database" for the legacy-database path.
-2. `apps/mcp-server-cloud/src/db/migrations/003_quota-reserve.sql`. Adds the atomic `reserve_call` RPC. Run it in the Supabase SQL Editor (or `supabase db push`) before deploying a server that calls it: the middleware fails closed (HTTP 503 `quota_storage_unavailable`) when the RPC is missing.
+2. `supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql` (same chain, applied by the same `supabase db push`). Adds the atomic `reserve_call(text, text, integer)` RPC, the Stripe event claim RPCs and the ordered `apply_stripe_subscription` RPC, all executable by `service_role` only. Without it the quota middleware fails closed (HTTP 503 `quota_storage_unavailable`) and the Stripe webhook answers 500 so Stripe retries. `apps/mcp-server-cloud/src/db/migrations/003_quota-reserve.sql` is a superseded copy of its `reserve_call` section; a database that already ran 003 by hand still needs this migration.
 
 Watch logs during a release:
 

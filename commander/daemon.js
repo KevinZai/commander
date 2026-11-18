@@ -14,6 +14,9 @@ var PID_FILE = path.join(os.homedir(), ".claude", "commander", "daemon.pid");
 
 // At most one claimed job is in flight per daemon process.
 var inFlight = null;
+// A finished job whose terminal status could not be written to the queue. No new job is claimed until it is
+// recorded, and the job itself is never rerun (audit #12).
+var unrecorded = null;
 
 function log(msg) {
   var line = new Date().toISOString() + " " + msg + "\n";
@@ -26,17 +29,41 @@ function log(msg) {
   if (!process.env.CCC_DAEMON_QUIET) process.stdout.write("  [daemon] " + msg + "\n");
 }
 
+/** Write a terminal status, retrying briefly. Returns true once the queue file holds it. */
+function recordTerminal(id, status, extra) {
+  for (var attempt = 1; attempt <= 3; attempt++) {
+    try {
+      queue.updateStatus(id, status, extra);
+      return true;
+    } catch (e) {
+      log("Queue: could not record " + id + " as " + status + " (attempt " + attempt + ") — " + e.message);
+    }
+  }
+  return false;
+}
+
+/** Retry a terminal status that an earlier tick could not write. True when nothing is left pending. */
+function reconcileUnrecorded() {
+  if (!unrecorded) return true;
+  if (!recordTerminal(unrecorded.id, unrecorded.status, unrecorded.extra)) return false;
+  log("Queue: " + unrecorded.id + " recorded as " + unrecorded.status + " (reconciled)");
+  unrecorded = null;
+  return true;
+}
+
 /**
  * Claim `job`, run it, and record its outcome exactly once.
- * Resolves (never rejects) with the terminal status: "done" or "failed".
+ * Resolves (never rejects) with the terminal status: "done" or "failed", or "unrecorded" when the job finished
+ * but its status could not be persisted. An unrecorded job is reconciled by a later tick, never rerun.
  */
 function runJob(job) {
   var settled = false;
   function settle(status, extra) {
     if (settled) return status;
     settled = true;
-    try { queue.updateStatus(job.id, status, extra); } catch (e) { log("Queue: could not record " + job.id + " as " + status + " — " + e.message); }
-    return status;
+    if (recordTerminal(job.id, status, extra)) return status;
+    unrecorded = { id: job.id, status: status, extra: extra };
+    return "unrecorded";
   }
 
   return Promise.resolve()
@@ -53,16 +80,20 @@ function runJob(job) {
       var res = result || {};
       var cost = Number(res.cost_usd) || 0;
       var text = typeof res.result === "string" ? res.result : "";
-      settle("done", { result: text.slice(0, 500), cost: cost });
-      log("Queue: " + job.id + " completed ($" + cost.toFixed(2) + ")");
+      var recorded = settle("done", { result: text.slice(0, 500), cost: cost });
       try { knowledge.extractAndStore({ id: job.id, task: job.task, cost: cost }, text); } catch (_) {}
+      if (recorded !== "done") {
+        log("Queue: " + job.id + " finished but its status is not recorded yet; it will not be rerun");
+        return recorded;
+      }
+      log("Queue: " + job.id + " completed ($" + cost.toFixed(2) + ")");
       return "done";
     })
     .catch(function (err) {
       var message = (err && err.message) || String(err);
-      settle("failed", { error: message });
-      log("Queue: " + job.id + " failed — " + message);
-      return "failed";
+      var recorded = settle("failed", { error: message });
+      log("Queue: " + job.id + " failed — " + message + (recorded === "failed" ? "" : " (status not recorded yet)"));
+      return recorded;
     });
 }
 
@@ -102,6 +133,9 @@ function tick(config) {
   if (inFlight) {
     log("Queue: " + inFlight.id + " still running — not claiming another job");
     return Promise.resolve({ actions: actions, job: null, status: null, skipped: "busy" });
+  }
+  if (!reconcileUnrecorded()) {
+    return Promise.resolve({ actions: actions, job: null, status: null, skipped: "unrecorded" });
   }
 
   // 3. Claim and run the next queued task
@@ -243,6 +277,24 @@ function start(config) {
   process.stdin.resume();
 }
 
+/**
+ * Why a new daemon must not start, or null when it may. A verified daemon blocks; so does a live process
+ * recorded by a legacy (bare pid) or otherwise unverifiable PID file, since it may be an older daemon still
+ * consuming the queue (audit #36). Returns { pid, reason }.
+ */
+function startBlocker(options) {
+  var opts = options || {};
+  var v = verifyDaemon(opts);
+  if (v.ok) return { pid: v.pid, reason: "running" };
+  if (v.reason === "unverifiable-pid-file") {
+    var alive = opts.isAlive || function (pid) {
+      try { process.kill(pid, 0); return true; } catch (e) { return e && e.code === "EPERM"; }
+    };
+    if (v.pid !== process.pid && alive(v.pid)) return { pid: v.pid, reason: "unverifiable-live" };
+  }
+  return null;
+}
+
 /** The verified daemon pid, or false. */
 function isRunning(options) {
   var v = verifyDaemon(options);
@@ -267,11 +319,12 @@ function stop(options) {
   try { kill(v.pid, "SIGTERM"); return true; } catch (_) { return false; }
 }
 
-function _resetForTests() { inFlight = null; }
+function _resetForTests() { inFlight = null; unrecorded = null; }
 
 module.exports = {
   start: start,
   isRunning: isRunning,
+  startBlocker: startBlocker,
   stop: stop,
   tick: tick,
   runJob: runJob,

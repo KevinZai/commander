@@ -93,7 +93,8 @@ test('--skills tier keeps links and directories CC Commander did not make', () =
     symlinkSync(join(SKILLS_SRC, 'ccc-seo'), join(skills, 'ccc-seo'));
     const r = kc(home, ['--skills', 'tier', 'essential']);
     assert.strictEqual(r.status, 0, r.stderr);
-    assert.match(r.stdout, /Removed: 1 skill\(s\) \(1 link\(s\) not made by CC Commander kept\)/);
+    // ccc-seo stays in the essential tier, so its link is kept in place rather than removed and re-made
+    assert.match(r.stdout, /Removed: 0 skill\(s\) \(1 link\(s\) not made by CC Commander kept\)/);
     assert.ok(isLink(join(skills, 'foreign')));
     assert.ok(lstatSync(join(skills, 'mine')).isDirectory());
     assert.strictEqual(readlinkSync(join(skills, 'ccc-seo')), join(SKILLS_SRC, 'ccc-seo'), 'tier skill relinked');
@@ -115,6 +116,59 @@ test('--skills follows CLAUDE_CONFIG_DIR and records links in an existing instal
     r = kc(home, ['--skills', 'remove', 'ccc-seo'], { CLAUDE_CONFIG_DIR: cfg });
     assert.strictEqual(r.status, 0, r.stderr);
     assert.deepStrictEqual(JSON.parse(readFileSync(manifest, 'utf8')).entries, []);
+  });
+});
+
+// Audit P2: a skill link that displaced the user's own entry carries a backup reference. Removal restores it,
+// and a tier switch that keeps the skill keeps the reference.
+test('--skills remove and tier restore or carry the displaced original', () => {
+  withHome((home) => {
+    const claude = join(home, '.claude');
+    const skills = join(claude, 'skills');
+    mkdirSync(join(claude, 'commander'), { recursive: true });
+    mkdirSync(skills, { recursive: true });
+    const backupDir = join(home, '.claude.backup.1', 'skills');
+    mkdirSync(backupDir, { recursive: true });
+    symlinkSync(join(home, 'my-seo'), join(backupDir, 'ccc-seo')); // the user's original link, backed up
+    symlinkSync(join(home, 'my-abtest'), join(backupDir, 'ab-test-setup'));
+    symlinkSync(join(SKILLS_SRC, 'ccc-seo'), join(skills, 'ccc-seo'));
+    symlinkSync(join(SKILLS_SRC, 'ab-test-setup'), join(skills, 'ab-test-setup'));
+    const manifest = join(claude, 'commander', 'install-manifest.json');
+    writeFileSync(manifest, JSON.stringify({ schema: 1, dirs: [], entries: [
+      { group: 'skills', path: 'skills/ccc-seo', type: 'symlink', target: join(SKILLS_SRC, 'ccc-seo'), backup: join(backupDir, 'ccc-seo') },
+      { group: 'skills', path: 'skills/ab-test-setup', type: 'symlink', target: join(SKILLS_SRC, 'ab-test-setup'), backup: join(backupDir, 'ab-test-setup') },
+    ] }));
+    const essential = JSON.parse(readFileSync(join(SKILLS_SRC, '_tiers.json'), 'utf8')).tiers.essential.skills;
+    assert.ok(essential.includes('ccc-seo'));
+
+    let r = kc(home, ['--skills', 'tier', 'essential']);
+    assert.strictEqual(r.status, 0, r.stderr);
+    const seo = JSON.parse(readFileSync(manifest, 'utf8')).entries.find((e) => e.path === 'skills/ccc-seo');
+    assert.strictEqual(seo.backup, join(backupDir, 'ccc-seo'), 'tier switch keeps the backup reference');
+    assert.ok(!essential.includes('ab-test-setup'));
+    assert.strictEqual(readlinkSync(join(skills, 'ab-test-setup')), join(home, 'my-abtest'), 'dropped skill: original restored');
+
+    r = kc(home, ['--skills', 'remove', 'ccc-seo']);
+    assert.strictEqual(r.status, 0, r.stderr);
+    assert.strictEqual(readlinkSync(join(skills, 'ccc-seo')), join(home, 'my-seo'), 'removal restores the original');
+    assert.ok(!JSON.parse(readFileSync(manifest, 'utf8')).entries.some((e) => e.path === 'skills/ccc-seo'));
+  });
+});
+
+// Audit #01: a skills/ dir linked to shared dotfiles is never pruned through.
+test('--skills remove and tier refuse a symlinked skills dir', () => {
+  withHome((home) => {
+    const shared = join(home, 'dotfiles', 'skills');
+    mkdirSync(shared, { recursive: true });
+    mkdirSync(join(home, '.claude'), { recursive: true });
+    symlinkSync(join(SKILLS_SRC, 'ccc-seo'), join(shared, 'ccc-seo'));
+    symlinkSync(shared, join(home, '.claude', 'skills'));
+    let r = kc(home, ['--skills', 'remove', 'ccc-seo']);
+    assert.strictEqual(r.status, 1);
+    assert.match(r.stderr, /refusing to remove through it/);
+    r = kc(home, ['--skills', 'tier', 'essential']);
+    assert.strictEqual(r.status, 1);
+    assert.ok(isLink(join(shared, 'ccc-seo')), 'the shared link is kept');
   });
 });
 

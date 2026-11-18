@@ -162,6 +162,10 @@ describe("ALLOWED_EVENTS", () => {
       "skill_invoked",
       "agent_dispatched",
       "first_result",
+      // emitted by the plugin's intent-classifier as route_<event>
+      "route_offered",
+      "route_outcome",
+      "route_next_offered",
     ];
     for (const name of expected) {
       assert.equal(ALLOWED_EVENTS.has(name), true, `missing: ${name}`);

@@ -59,8 +59,9 @@ export async function getEffectiveCapStrict(userId: string): Promise<number> {
 export type Reservation = { allowed: boolean; callsUsed: number };
 
 /**
- * Atomically reserves one billable call for this UTC month (migration
- * 003_quota-reserve.sql). The counter only moves while it is below `cap`, so
+ * Atomically reserves one billable call for this UTC month (RPC
+ * reserve_call(text, text, integer), supabase/migrations/
+ * 20261119000000_quota_reserve_and_stripe_claims.sql). The counter only moves while it is below `cap`, so
  * concurrent requests cannot overspend the allowance. Throws QuotaStorageError
  * when storage fails or the RPC is missing.
  */

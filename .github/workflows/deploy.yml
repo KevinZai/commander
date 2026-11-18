@@ -9,6 +9,12 @@ on:
     branches: [main]
     paths:
       - 'apps/mcp-server-cloud/**'
+      # Inputs the image bakes into data/ (scripts/bundle-catalog.mjs): a release that changes only a skill
+      # body, a plugin agent or the registry must rebuild the hosted catalog.
+      - 'skills/**'
+      - 'commander/cowork-plugin/skills/**'
+      - 'commander/cowork-plugin/agents/**'
+      - 'commander/core/registry.yaml'
       - 'site/**'
       - 'supabase/**'
       - 'scripts/deploy.sh'
@@ -54,7 +60,8 @@ jobs:
           shared='^(\.github/workflows/deploy\.yml)$'
           # Site-only pushes must not redeploy the MCP app (CC-1365); MCP paths are
           # the union of #203 and c3bcc409 (apps/mcp-server-cloud/ is in both).
-          if echo "$files" | grep -Eq '^(apps/mcp-server-cloud/|supabase/|scripts/deploy\.sh$)' || echo "$files" | grep -Eq "$shared"; then mcp=true; else mcp=false; fi
+          # The baked catalog's inputs (skill bodies, plugin agents, registry) also redeploy MCP.
+          if echo "$files" | grep -Eq '^(apps/mcp-server-cloud/|supabase/|scripts/deploy\.sh$|skills/|commander/cowork-plugin/(skills|agents)/|commander/core/registry\.yaml$)' || echo "$files" | grep -Eq "$shared"; then mcp=true; else mcp=false; fi
           if echo "$files" | grep -Eq '^site/' || echo "$files" | grep -Eq "$shared"; then site=true; else site=false; fi
           echo "mcp=$mcp" >> "$GITHUB_OUTPUT"; echo "site=$site" >> "$GITHUB_OUTPUT"
           echo "changed: mcp=$mcp site=$site"

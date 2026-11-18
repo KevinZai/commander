@@ -313,13 +313,43 @@ if (args.includes('--skills')) {
     fs.writeFileSync(tmp, JSON.stringify(m, null, 2) + '\n');
     fs.renameSync(tmp, installManifestPath);
   }
+  // skills/ must be a real directory inside the config dir. When it is a link to shared dotfiles, nothing is
+  // recorded or removed through it (audit #01).
+  function skillsDirInside() {
+    var st;
+    try { st = fs.lstatSync(skillsInstallDir); } catch (_e) { return true; } // created on demand as a real dir
+    if (st.isSymbolicLink() || !st.isDirectory()) return false;
+    try {
+      var real = fs.realpathSync(skillsInstallDir);
+      var root = fs.realpathSync(claudeConfigDir);
+      return real === path.join(root, 'skills');
+    } catch (_e) { return false; }
+  }
+  function manifestEntry(name) {
+    var m = readInstallManifest();
+    var rel = path.join('skills', name);
+    return m && Array.isArray(m.entries) ? m.entries.find(function(e) { return e.path === rel; }) || null : null;
+  }
+  // Put back what the installer displaced for this skill (its manifest backup), so removal does not lose it.
+  function restoreDisplaced(name, entry) {
+    var dst = skillPathIn(skillsInstallDir, name);
+    if (!dst || !entry || !entry.backup) return false;
+    var b;
+    try { b = fs.lstatSync(entry.backup); } catch (_e) { return false; }
+    try { fs.lstatSync(dst); return false; } catch (_e) { /* free */ }
+    if (b.isSymbolicLink()) fs.symlinkSync(fs.readlinkSync(entry.backup), dst);
+    else if (b.isFile()) fs.copyFileSync(entry.backup, dst);
+    else return false;
+    return true;
+  }
   // Keep install.sh's manifest in step so uninstall.sh sees links made here (only when a manifest exists).
-  function recordSkillLink(name, target) {
+  function recordSkillLink(name, target, backup) {
+    if (!skillsDirInside()) return;
     var m = readInstallManifest();
     if (!m || !Array.isArray(m.entries)) return;
     var rel = path.join('skills', name);
     m.entries = m.entries.filter(function(e) { return e.path !== rel; });
-    if (target) m.entries.push({ group: 'skills', path: rel, type: 'symlink', target: target });
+    if (target) m.entries.push(Object.assign({ group: 'skills', path: rel, type: 'symlink', target: target }, backup ? { backup: backup } : {}));
     m.updated_at = new Date().toISOString();
     try { writeInstallManifest(m); } catch (_e) { /* the link itself is what matters */ }
   }
@@ -509,14 +539,20 @@ if (args.includes('--skills')) {
       console.error(removeName + ' is not a symlink — refusing to remove. Delete manually if intended.');
       process.exit(1);
     }
+    if (!skillsDirInside()) {
+      console.error(skillsInstallDir + ' is a symlink or resolves outside ' + claudeConfigDir + ' — refusing to remove through it.');
+      process.exit(1);
+    }
     if (!ownedSkillLink(removeName)) {
       console.error(removeName + ' links outside CC Commander\'s skills (' + fs.readlinkSync(removeDst) + ') — refusing to remove. Delete manually if intended.');
       process.exit(1);
     }
     try {
+      var removeEntry = manifestEntry(removeName);
       fs.unlinkSync(removeDst);
       recordSkillLink(removeName, null);
-      console.log('Removed: ' + removeName);
+      var restoredOriginal = restoreDisplaced(removeName, removeEntry);
+      console.log('Removed: ' + removeName + (restoredOriginal ? ' (your original restored from ' + removeEntry.backup + ')' : ''));
     } catch (e) {
       console.error('Failed to remove ' + removeName + ': ' + e.message);
       process.exit(1);
@@ -542,19 +578,31 @@ if (args.includes('--skills')) {
       if (tiers.tiers) console.error('Available tiers: ' + Object.keys(tiers.tiers).join(', '));
       process.exit(1);
     }
-    // Remove the skill symlinks CC Commander made; the user's own links and directories stay (audit #01)
+    if (!skillsDirInside()) {
+      console.error(skillsInstallDir + ' is a symlink or resolves outside ' + claudeConfigDir + ' — refusing to switch tiers through it.');
+      process.exit(1);
+    }
+    // Remove the skill symlinks CC Commander made that the new tier does not keep; the user's own links and
+    // directories stay (audit #01). A link the tier keeps is left as is, so its manifest row and backup survive.
     var currentInstalled = getInstalledSkills();
     var removed = 0;
     var keptForeign = 0;
+    var restoredOriginals = 0;
+    var carriedBackups = {};
     currentInstalled.forEach(function(s) {
       var dst = skillPathIn(skillsInstallDir, s);
       if (!dst) return;
       try {
         if (!fs.lstatSync(dst).isSymbolicLink()) return;
         if (!ownedSkillLink(s)) { keptForeign++; return; }
+        var keepSrc = tierSkills.indexOf(s) !== -1 ? skillPathIn(skillsSourceDir, s) : null;
+        if (keepSrc && path.resolve(path.dirname(dst), fs.readlinkSync(dst)) === keepSrc) return;
+        var entry = manifestEntry(s);
         fs.unlinkSync(dst);
         recordSkillLink(s, null);
         removed++;
+        if (!keepSrc && restoreDisplaced(s, entry)) restoredOriginals++;
+        else if (keepSrc && entry && entry.backup) carriedBackups[s] = entry.backup; // re-linked below; keep the reference
       } catch (_e) {}
     });
     // Install tier skills
@@ -565,10 +613,12 @@ if (args.includes('--skills')) {
       var src = skillPathIn(skillsSourceDir, s);
       var dst = skillPathIn(skillsInstallDir, s);
       if (!src || !dst || !fs.existsSync(src)) { skipped++; return; }
-      try { fs.symlinkSync(src, dst); recordSkillLink(s, src); added++; } catch (_e) { skipped++; }
+      try { if (fs.lstatSync(dst)) return; } catch (_e) { /* not present: link it */ }
+      try { fs.symlinkSync(src, dst); recordSkillLink(s, src, carriedBackups[s]); added++; } catch (_e) { skipped++; }
     });
     console.log('Switched to tier: ' + tierName);
-    console.log('  Removed: ' + removed + ' skill(s)' + (keptForeign > 0 ? ' (' + keptForeign + ' link(s) not made by CC Commander kept)' : ''));
+    console.log('  Removed: ' + removed + ' skill(s)' + (keptForeign > 0 ? ' (' + keptForeign + ' link(s) not made by CC Commander kept)' : '') +
+      (restoredOriginals > 0 ? ' (' + restoredOriginals + ' original(s) restored from backup)' : ''));
     console.log('  Installed: ' + added + ' skill(s)' + (skipped > 0 ? ' (' + skipped + ' skipped/missing)' : ''));
     process.exit(0);
   }
@@ -599,8 +649,13 @@ if (args.includes('--template')) {
 if (args.includes('--daemon')) {
   dispatching = true; // prevent interactive launch
   var daemon = require(path.join(__dirname, '..', 'commander', 'daemon'));
-  var running = daemon.isRunning();
-  if (running) { console.log('Daemon already running (PID ' + running + '). Use --daemon-stop first.'); process.exit(1); }
+  var blocker = daemon.startBlocker();
+  if (blocker && blocker.reason === 'running') { console.log('Daemon already running (PID ' + blocker.pid + '). Use --daemon-stop first.'); process.exit(1); }
+  if (blocker) {
+    console.log('A process with PID ' + blocker.pid + ' is recorded in ' + daemon.PID_FILE + ' by an older CC Commander, and it is still alive.');
+    console.log('It may be a daemon still consuming the queue, so a second one is not started. Stop it (kill ' + blocker.pid + ') or, if it is not a daemon, delete the PID file.');
+    process.exit(1);
+  }
   daemon.start({
     interval: args.includes('--interval') ? parseInt(args[args.indexOf('--interval') + 1]) * 1000 : 300000,
     budget: args.includes('--tick-budget') ? parseInt(args[args.indexOf('--tick-budget') + 1]) * 1000 : 15000,

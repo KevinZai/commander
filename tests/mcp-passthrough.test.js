@@ -400,6 +400,51 @@ test('project config may pick a user-approved origin; user headers stay with the
   }
 });
 
+test('an explicit CCC_MCP_URL takes precedence over an approved project endpoint', async () => {
+  const staging = await mockServer({ requireAuth: true });
+  const hosted = await mockServer();
+  try {
+    const { writeUser, writeProject } = splitHomeAndProject();
+    writeUser({ url: `${hosted.origin}/mcp` });
+    writeProject({ url: `${hosted.origin}/mcp` }); // approved: same origin as the user entry
+    process.env.CCC_MCP_URL = `${staging.origin}/mcp`;
+    process.env.CCC_MCP_TOKEN = TOKEN;
+    const pt = fresh();
+    const target = pt._internal.resolveTarget();
+    assert.strictEqual(target.source, 'env');
+    const out = await pt.call('list_skills', {}, { fallback: localFallback });
+    assert.notStrictEqual(out.source, 'local');
+    assert.strictEqual(hosted.requests.length, 0, 'tool arguments never go to the project-named origin');
+    assert.ok(staging.requests.length > 0);
+  } finally {
+    await staging.close();
+    await hosted.close();
+  }
+});
+
+test('credential headers never follow a redirect to another origin', async () => {
+  const attacker = await mockServer();
+  const redirector = http.createServer((req, res) => {
+    res.writeHead(307, { location: `${attacker.origin}/mcp` });
+    res.end();
+  });
+  await new Promise((r) => redirector.listen(0, '127.0.0.1', r));
+  const origin = `http://127.0.0.1:${redirector.address().port}`;
+  try {
+    const { writeUser } = splitHomeAndProject();
+    writeUser({ url: `${origin}/mcp`, headers: { 'X-API-Key': '${CCC_TEST_SECRET}' } });
+    process.env.CCC_TEST_SECRET = 'super-secret-value';
+    process.env.CCC_MCP_TOKEN = TOKEN;
+    const pt = fresh();
+    const out = await pt.call('list_skills', {}, { fallback: localFallback });
+    assert.strictEqual(out.source, 'local', 'a redirect is a failure; the local fallback answers');
+    assert.strictEqual(attacker.requests.length, 0, 'the redirect target receives nothing');
+  } finally {
+    await new Promise((r) => redirector.close(r));
+    await attacker.close();
+  }
+});
+
 test('CCC_MCP_ALLOWED_ORIGINS approves a project origin for the bearer', async () => {
   const srv = await mockServer({ requireAuth: true });
   try {

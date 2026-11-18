@@ -33,7 +33,9 @@ process.env.CCC_STRIPE_PRICE_PRO_MONTHLY = PRICE_PRO_MONTHLY;
 process.env.CCC_STRIPE_PRICE_PRO_YEARLY = PRICE_PRO_YEARLY;
 process.env.CCC_STRIPE_PRICE_FOUNDERS = PRICE_FOUNDERS;
 
-const { createStripeWebhookApp, tierAfterSubscription } = await import("../src/routes/stripe-webhook.js");
+const { createStripeWebhookApp, tierAfterSubscription, subscriptionEventApplies } = await import(
+  "../src/routes/stripe-webhook.js"
+);
 import type { AccountTier } from "../src/lib/paywall.js";
 import type { BillingUser, StripeWebhookDeps } from "../src/routes/stripe-webhook.js";
 
@@ -78,9 +80,18 @@ function makeUser(overrides: Partial<FakeUser> = {}): FakeUser {
   };
 }
 
-function makeFakes(users: FakeUser[] = [], opts: { failWrites?: boolean } = {}) {
+type FakeOpts = { failWrites?: boolean; readDelaysMs?: number[] };
+
+function makeFakes(users: FakeUser[] = [], opts: FakeOpts = {}) {
   const calls: Call[] = [];
   const processed = new Set<string>();
+  const claims = new Set<string>();
+  const readDelays = [...(opts.readDelaysMs ?? [])];
+  // Lets concurrent deliveries interleave between their read and their write.
+  const pause = async () => {
+    const ms = readDelays.shift();
+    if (ms !== undefined) await new Promise((resolve) => setTimeout(resolve, ms));
+  };
   const view = (u: FakeUser): BillingUser => ({
     userId: u.userId,
     tier: u.tier,
@@ -96,15 +107,28 @@ function makeFakes(users: FakeUser[] = [], opts: { failWrites?: boolean } = {}) 
   const write = (fn: string) => {
     if (opts.failWrites) throw new Error(`fake: ${fn} backend down`);
   };
+  // claimEvent and applySubscription are synchronous inside, like the row-locked
+  // SQL functions they stand in for: no other delivery can run in between.
   const deps: Partial<StripeWebhookDeps> = {
-    isEventProcessed: async (id) => processed.has(id),
+    claimEvent: async (id) => {
+      if (processed.has(id)) return "processed";
+      if (claims.has(id)) return "in_flight";
+      claims.add(id);
+      return "claimed";
+    },
     recordEventProcessed: async (id, type) => {
       calls.push({ fn: "recordEventProcessed", args: [id, type] });
       processed.add(id);
+      claims.delete(id);
+    },
+    releaseEvent: async (id) => {
+      claims.delete(id);
     },
     findUserByCustomerId: async (customerId) => {
       const u = users.find((x) => x.customerId === customerId);
-      return u ? view(u) : null;
+      const snapshot = u ? view(u) : null;
+      await pause();
+      return snapshot;
     },
     findUserByRef: async (ref) => {
       const u =
@@ -122,10 +146,17 @@ function makeFakes(users: FakeUser[] = [], opts: { failWrites?: boolean } = {}) 
       calls.push({ fn: "applySubscription", args: [userId, patch] });
       write("applySubscription");
       const u = byId(userId);
-      if (patch.tier) u.tier = patch.tier;
+      const result = subscriptionEventApplies(
+        { subscriptionId: u.stripeSubscriptionId, status: u.subscriptionStatus, eventAt: u.subscriptionEventAt },
+        patch
+      );
+      if (result !== "applied") return { result, tier: u.tier };
+      const tier = tierAfterSubscription(u, patch.entitled);
+      if (tier) u.tier = tier;
       u.stripeSubscriptionId = patch.subscriptionId;
       u.subscriptionStatus = patch.status;
       u.subscriptionEventAt = patch.eventAt;
+      return { result, tier: u.tier };
     },
     grantFounders: async (userId, grantedAt) => {
       calls.push({ fn: "grantFounders", args: [userId, grantedAt] });
@@ -135,13 +166,13 @@ function makeFakes(users: FakeUser[] = [], opts: { failWrites?: boolean } = {}) 
       u.foundersGrantedAt = grantedAt;
     },
   };
-  return { calls, users, processed, deps };
+  return { calls, users, processed, claims, deps };
 }
 
 let fakes: ReturnType<typeof makeFakes>;
 let app: ReturnType<typeof createStripeWebhookApp>;
 
-function useFakes(users: FakeUser[] = [], opts: { failWrites?: boolean } = {}) {
+function useFakes(users: FakeUser[] = [], opts: FakeOpts = {}) {
   fakes = makeFakes(users, opts);
   app = createStripeWebhookApp(fakes.deps);
   return fakes;
@@ -459,6 +490,74 @@ describe("stripe webhook ordering and failures", () => {
     const res = await send("checkout.session.completed", foundersCheckout(), { id: "evt_orphan" });
     assert.equal(res.status, 409);
     assert.equal(processed.has("evt_orphan"), false);
+  });
+});
+
+// ─── Concurrent deliveries (Codex audit #06) ───────────────────────────────
+describe("stripe webhook concurrent deliveries", () => {
+  it("two concurrent deliveries of the same event apply it once", async () => {
+    const { users, calls, processed, claims } = useFakes([makeUser({ customerId: "cus_123" })], {
+      readDelaysMs: [20, 20],
+    });
+    const payload = eventPayload("customer.subscription.created", proSub(), { id: "evt_twice" });
+    const [a, b] = await Promise.all([
+      post(app, payload, signedHeaders(payload)),
+      post(app, payload, signedHeaders(payload)),
+    ]);
+    assert.deepEqual([a.status, b.status].sort(), [200, 409], "one applies, the other is told to retry");
+    assert.equal(calls.filter((c) => c.fn === "applySubscription").length, 1, "applied exactly once");
+    assert.equal(users[0].tier, "pro");
+    assert.ok(processed.has("evt_twice"));
+    assert.equal(claims.size, 0, "the claim is dropped once recorded");
+    const retry = await post(app, payload, signedHeaders(payload));
+    assert.deepEqual(await retry.json(), { received: true, duplicate: true });
+  });
+
+  it("a failed attempt releases its claim so the redelivery runs", async () => {
+    const { users, claims } = useFakes([makeUser({ customerId: "cus_123" })], { failWrites: true });
+    const payload = eventPayload("customer.subscription.created", proSub(), { id: "evt_retry" });
+    assert.equal((await post(app, payload, signedHeaders(payload))).status, 500);
+    assert.equal(claims.size, 0, "claim released after the failure");
+    app = createStripeWebhookApp({ ...makeFakes(users).deps });
+    const again = await post(app, payload, signedHeaders(payload));
+    assert.equal(again.status, 200);
+    assert.equal(users[0].tier, "pro");
+  });
+
+  it("an older activation racing a newer cancellation cannot land last", async () => {
+    // Both deliveries read the user before either writes; the older one writes last.
+    const { users } = useFakes([makeUser({ customerId: "cus_123", tier: "pro", stripeSubscriptionId: "sub_1" })], {
+      readDelaysMs: [30, 5],
+    });
+    const t0 = Math.floor(Date.now() / 1000);
+    const [older, newer] = await Promise.all([
+      send("customer.subscription.updated", proSub({ status: "active" }), { created: t0 }),
+      send("customer.subscription.deleted", proSub({ status: "canceled" }), { created: t0 + 10 }),
+    ]);
+    assert.equal(newer.status, 200);
+    assert.equal(older.status, 200);
+    assert.deepEqual(await older.json(), { received: true, action: "ignored_stale" });
+    assert.equal(users[0].tier, "free", "the cancellation stands");
+    assert.equal(users[0].subscriptionStatus, "canceled");
+  });
+
+  it("a same-second activation cannot undo a cancellation of the same subscription", async () => {
+    const { users } = useFakes([makeUser({ customerId: "cus_123", tier: "pro", stripeSubscriptionId: "sub_1" })]);
+    const t0 = Math.floor(Date.now() / 1000);
+    assert.equal((await send("customer.subscription.deleted", proSub({ status: "canceled" }), { created: t0 })).status, 200);
+    assert.equal((await send("customer.subscription.updated", proSub({ status: "active" }), { created: t0 })).status, 200);
+    assert.equal(users[0].tier, "free");
+  });
+
+  it("subscriptionEventApplies orders by time, then by status rank within one second", () => {
+    const at = "2026-11-01T00:00:10.000Z";
+    const cur = { subscriptionId: "sub_1", status: "canceled", eventAt: at };
+    assert.equal(subscriptionEventApplies(cur, { subscriptionId: "sub_1", status: "active", eventAt: "2026-11-01T00:00:05.000Z", isDelete: false }), "stale");
+    assert.equal(subscriptionEventApplies(cur, { subscriptionId: "sub_1", status: "active", eventAt: at, isDelete: false }), "stale");
+    assert.equal(subscriptionEventApplies(cur, { subscriptionId: "sub_2", status: "active", eventAt: at, isDelete: false }), "applied");
+    assert.equal(subscriptionEventApplies(cur, { subscriptionId: "sub_1", status: "active", eventAt: "2026-11-01T00:00:11.000Z", isDelete: false }), "applied");
+    assert.equal(subscriptionEventApplies({ ...cur, status: "active", subscriptionId: "sub_2" }, { subscriptionId: "sub_1", status: "canceled", eventAt: "2026-11-01T00:00:20.000Z", isDelete: true }), "superseded");
+    assert.equal(subscriptionEventApplies({ subscriptionId: null, status: null, eventAt: null }, { subscriptionId: "sub_1", status: "active", eventAt: at, isDelete: false }), "applied");
   });
 });
 

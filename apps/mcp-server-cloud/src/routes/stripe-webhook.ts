@@ -19,15 +19,21 @@
 //     Stripe retries for up to three days, which covers the case where
 //     customer.subscription.created arrives before checkout.session.completed
 //     has linked the customer.
-//   - Processed event ids are stored durably (stripe_events). A redelivered
-//     event that already succeeded is acknowledged without side effects.
-//   - Subscription events older than the last applied one for that user are
-//     ignored, so out-of-order retries cannot resurrect a cancelled plan.
+//   - Each delivery first claims its event id atomically (claim_stripe_event).
+//     Only the claimant applies it; a concurrent delivery of the same event is
+//     answered 409 so Stripe retries, and an event already applied is
+//     acknowledged without side effects. A failed attempt releases its claim.
+//   - The subscription ordering check and the entitlement write happen in one
+//     locked statement sequence (apply_stripe_subscription), so an older event
+//     can never land after a newer one, even when both arrive at once. Events
+//     in the same second for one subscription resolve by status rank, so a
+//     same-second cancel is never undone (subscriptionEventApplies).
 //
 // INERT until CCC_STRIPE_WEBHOOK_SECRET is set (returns 503). Price IDs come
 // from env — no Stripe products are created by this code. Config is read from
 // process.env at request time (testability + parity with lib/paywall.ts).
-// Schema: supabase/migrations/20261118000000_reconcile_hosted_schema.sql.
+// Schema: supabase/migrations/20261118000000_reconcile_hosted_schema.sql and
+// 20261119000000_quota_reserve_and_stripe_claims.sql (the claim and apply RPCs).
 // Setup steps: PAYWALL.md.
 
 import { Hono } from "hono";
@@ -68,12 +74,23 @@ export type BillingUser = {
 export type UserRef = { userId?: string; email?: string };
 
 export type SubscriptionPatch = {
-  /** Omitted when the tier must not change (Founders). */
-  tier?: AccountTier;
   subscriptionId: string;
   status: string;
   eventAt: string;
+  /** The status carries the Pro entitlement. A lifetime grant keeps its tier regardless. */
+  entitled: boolean;
+  /** customer.subscription.deleted: ignored for a subscription that is not the current one. */
+  isDelete: boolean;
 };
+
+/** Result of the guarded apply: whether the write happened, and the tier the user is left on. */
+export type SubscriptionApplyResult = {
+  result: "applied" | "stale" | "superseded" | "missing";
+  tier: AccountTier | null;
+};
+
+/** claimed: this delivery applies the event; processed: already applied; in_flight: another delivery holds it. */
+export type EventClaim = "claimed" | "processed" | "in_flight";
 
 // ─── Injectable deps (tests provide fakes; default = Stripe SDK + Supabase) ─
 // Every DB dep THROWS on a backend error so the route answers non-2xx and
@@ -81,12 +98,17 @@ export type SubscriptionPatch = {
 export type StripeWebhookDeps = {
   /** Verify signature + parse. MUST throw on an invalid signature. */
   constructEvent: (payload: string, signature: string, secret: string) => Stripe.Event;
-  isEventProcessed: (eventId: string) => Promise<boolean>;
+  /** Atomic: of concurrent callers for one event id, at most one gets "claimed". */
+  claimEvent: (eventId: string, type: string) => Promise<EventClaim>;
+  /** Records the event as applied and drops its claim. */
   recordEventProcessed: (eventId: string, type: string) => Promise<void>;
+  /** Drops this delivery's claim after a failure so a redelivery can run. */
+  releaseEvent: (eventId: string) => Promise<void>;
   findUserByCustomerId: (customerId: string) => Promise<BillingUser | null>;
   findUserByRef: (ref: UserRef) => Promise<BillingUser | null>;
   linkCustomer: (userId: string, customerId: string) => Promise<void>;
-  applySubscription: (userId: string, patch: SubscriptionPatch) => Promise<void>;
+  /** Atomic: checks ordering against the stored state and writes under one row lock. */
+  applySubscription: (userId: string, patch: SubscriptionPatch) => Promise<SubscriptionApplyResult>;
   grantFounders: (userId: string, grantedAt: string) => Promise<void>;
 };
 
@@ -154,20 +176,19 @@ function defaultDeps(): StripeWebhookDeps {
   return {
     constructEvent: (payload, signature, secret) =>
       stripeClient().webhooks.constructEvent(payload, signature, secret),
-    isEventProcessed: async (eventId) => {
-      const { data, error } = await db
-        .from("stripe_events")
-        .select("event_id")
-        .eq("event_id", eventId)
-        .maybeSingle();
-      if (error) throw dbError("stripe_events lookup", error);
-      return Boolean(data);
+    claimEvent: async (eventId, type) => {
+      const { data, error } = await db.rpc("claim_stripe_event", { p_event_id: eventId, p_type: type });
+      if (error) throw dbError("claim_stripe_event", error);
+      if (data === "claimed" || data === "processed" || data === "in_flight") return data;
+      throw new Error("claim_stripe_event returned an unexpected value");
     },
     recordEventProcessed: async (eventId, type) => {
-      const { error } = await db
-        .from("stripe_events")
-        .upsert({ event_id: eventId, type }, { onConflict: "event_id", ignoreDuplicates: true });
-      if (error) throw dbError("stripe_events insert", error);
+      const { error } = await db.rpc("complete_stripe_event", { p_event_id: eventId, p_type: type });
+      if (error) throw dbError("complete_stripe_event", error);
+    },
+    releaseEvent: async (eventId) => {
+      const { error } = await db.rpc("release_stripe_event", { p_event_id: eventId });
+      if (error) throw dbError("release_stripe_event", error);
     },
     findUserByCustomerId: (customerId) => selectOne("stripe_customer_id", customerId),
     findUserByRef: async (ref) => {
@@ -186,14 +207,22 @@ function defaultDeps(): StripeWebhookDeps {
       if (error) throw dbError("linkCustomer", error);
     },
     applySubscription: async (userId, patch) => {
-      const update: Record<string, string> = {
-        stripe_subscription_id: patch.subscriptionId,
-        stripe_subscription_status: patch.status,
-        stripe_subscription_event_at: patch.eventAt,
-      };
-      if (patch.tier) update.tier = patch.tier;
-      const { error } = await db.from("users").update(update).eq("user_id", userId);
-      if (error) throw dbError("applySubscription", error);
+      const { data, error } = await db.rpc("apply_stripe_subscription", {
+        p_user_id: userId,
+        p_subscription_id: patch.subscriptionId,
+        p_status: patch.status,
+        p_event_at: patch.eventAt,
+        p_entitled: patch.entitled,
+        p_is_delete: patch.isDelete,
+      });
+      if (error) throw dbError("apply_stripe_subscription", error);
+      const row = (Array.isArray(data) ? data[0] : data) as { result?: unknown; tier?: unknown } | null;
+      const result = row?.result;
+      if (result !== "applied" && result !== "stale" && result !== "superseded" && result !== "missing") {
+        throw new Error("apply_stripe_subscription returned an unexpected result");
+      }
+      const tier = row?.tier === "founders" || row?.tier === "pro" || row?.tier === "free" ? row.tier : null;
+      return { result, tier };
     },
     grantFounders: async (userId, grantedAt) => {
       // The caller passes the existing grant time when there is one, so a
@@ -232,6 +261,42 @@ export function tierAfterSubscription(
 ): AccountTier | null {
   if (hasLifetimeGrant(user)) return null;
   return entitled ? "pro" : "free";
+}
+
+/** Rank of a subscription status for same-second ordering: terminal states
+ *  outrank dunning, which outranks active. Mirrors
+ *  public.stripe_subscription_status_rank in the 20261119000000 migration. */
+export function subscriptionStatusRank(status: string | null): number {
+  if (status === "canceled" || status === "unpaid" || status === "incomplete_expired") return 3;
+  if (status === "past_due" || status === "paused") return 2;
+  if (status === "active" || status === "trialing") return 1;
+  return 0;
+}
+
+/** The ordering rule apply_stripe_subscription enforces under its row lock:
+ *  "stale" for an event older than the applied one, or a same-second event for
+ *  the same subscription with a lower-ranked status; "superseded" for a delete
+ *  of a subscription that is no longer current; otherwise "applied". */
+export function subscriptionEventApplies(
+  current: { subscriptionId: string | null; status: string | null; eventAt: string | null },
+  incoming: { subscriptionId: string; status: string; eventAt: string; isDelete: boolean }
+): "applied" | "stale" | "superseded" {
+  if (current.eventAt) {
+    const cur = Date.parse(current.eventAt);
+    const inc = Date.parse(incoming.eventAt);
+    if (inc < cur) return "stale";
+    if (
+      inc === cur &&
+      current.subscriptionId === incoming.subscriptionId &&
+      subscriptionStatusRank(incoming.status) < subscriptionStatusRank(current.status)
+    ) {
+      return "stale";
+    }
+  }
+  if (incoming.isDelete && current.subscriptionId && current.subscriptionId !== incoming.subscriptionId) {
+    return "superseded";
+  }
+  return "applied";
 }
 
 /** Founders requires a payment-mode checkout carrying the founders marker
@@ -305,32 +370,32 @@ async function handleSubscription(
     throw new RetryableFulfillmentError("customer not linked to a user yet");
   }
 
-  if (user.subscriptionEventAt && Date.parse(eventAt) < Date.parse(user.subscriptionEventAt)) {
-    logger.info({ userId: user.userId, type }, "stale subscription event ignored");
-    return { action: "ignored_stale" };
-  }
-
-  if (
-    type === "customer.subscription.deleted" &&
-    user.stripeSubscriptionId &&
-    user.stripeSubscriptionId !== sub.id
-  ) {
-    // An older subscription ended while a newer one is current.
-    logger.info({ userId: user.userId }, "deleted event for a superseded subscription ignored");
-    return { action: "ignored_superseded" };
-  }
-
-  const status = type === "customer.subscription.deleted" ? "canceled" : sub.status;
+  // The ordering checks run inside applySubscription, against the row as it is
+  // when the write happens, never against the snapshot read above.
+  const isDelete = type === "customer.subscription.deleted";
+  const status = isDelete ? "canceled" : sub.status;
   const entitled = ENTITLED_SUBSCRIPTION_STATUSES.has(status);
-  const tier = tierAfterSubscription(user, entitled);
-  await deps.applySubscription(user.userId, {
-    ...(tier ? { tier } : {}),
+  const applied = await deps.applySubscription(user.userId, {
     subscriptionId: sub.id,
     status,
     eventAt,
+    entitled,
+    isDelete,
   });
-  logger.info({ userId: user.userId, type, status, tier: tier ?? user.tier }, "subscription applied");
-  return { action: tier ? `tier_${tier}` : "founders_preserved" };
+  switch (applied.result) {
+    case "stale":
+      logger.info({ userId: user.userId, type }, "stale subscription event ignored");
+      return { action: "ignored_stale" };
+    case "superseded":
+      // An older subscription ended while a newer one is current.
+      logger.info({ userId: user.userId }, "deleted event for a superseded subscription ignored");
+      return { action: "ignored_superseded" };
+    case "missing":
+      throw new RetryableFulfillmentError("user row disappeared before the subscription was applied");
+  }
+  const tier = applied.tier ?? (entitled ? "pro" : "free");
+  logger.info({ userId: user.userId, type, status, tier }, "subscription applied");
+  return { action: tier === "founders" ? "founders_preserved" : `tier_${tier}` };
 }
 
 // ─── Route ─────────────────────────────────────────────────────────────────
@@ -362,11 +427,23 @@ export function createStripeWebhookApp(overrides?: Partial<StripeWebhookDeps>): 
 
     const eventAt = new Date(event.created * 1000).toISOString();
 
+    let claim: EventClaim;
     try {
-      if (await deps.isEventProcessed(event.id)) {
-        return c.json({ received: true, duplicate: true });
-      }
+      claim = await deps.claimEvent(event.id, event.type);
+    } catch (err) {
+      logger.error({ err: (err as Error).message, type: event.type, id: event.id }, "Stripe event claim failed");
+      return c.json({ error: "Webhook handler error" }, 500);
+    }
+    if (claim === "processed") {
+      return c.json({ received: true, duplicate: true });
+    }
+    if (claim === "in_flight") {
+      // Another delivery of this event is being applied right now. Answer
+      // non-2xx so Stripe retries; the retry sees "processed" once it is done.
+      return c.json({ error: "Event is being processed; retry" }, 409);
+    }
 
+    try {
       let outcome: Outcome;
       switch (event.type) {
         case "checkout.session.completed":
@@ -395,6 +472,11 @@ export function createStripeWebhookApp(overrides?: Partial<StripeWebhookDeps>): 
       await deps.recordEventProcessed(event.id, event.type);
       return c.json({ received: true, action: outcome.action });
     } catch (err) {
+      // Release the claim so the redelivery can run the (idempotent) handler.
+      // If the release itself fails, the claim's lease expires instead.
+      await deps.releaseEvent(event.id).catch((releaseErr: unknown) => {
+        logger.warn({ err: (releaseErr as Error).message, id: event.id }, "Stripe event claim release failed");
+      });
       // Never leak internals; Stripe retries on non-2xx.
       if (err instanceof RetryableFulfillmentError) {
         logger.warn({ err: err.message, type: event.type, id: event.id }, "Stripe fulfillment deferred");
