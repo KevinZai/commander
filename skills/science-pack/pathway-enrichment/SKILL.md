@@ -73,6 +73,8 @@ print([n for n in names if "Reactome" in n or "KEGG" in n or "Hallmark" in n])
 
 ### ORA on a hit list (gseapy + Enrichr)
 
+> CCC safety: `gp.enrichr` uploads the gene list to the public Enrichr service (Ma'ayan Lab). Ask the user before the first upload, and never send unpublished, patient-derived or otherwise confidential gene lists without their explicit go-ahead. For those, run offline over-representation instead: `gp.enrich(gene_list=genes, gene_sets="local.gmt", background=tested)` with GMT files downloaded once.
+
 ```python
 import gseapy as gp
 

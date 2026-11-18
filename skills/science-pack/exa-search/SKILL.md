@@ -62,6 +62,9 @@ When citing academic sources, include author names and publication year where av
 This skill uses the [`exa-py`](https://github.com/exa-labs/exa-py) Python SDK. The scripts in `scripts/` declare their dependencies via PEP 723 inline metadata, so you can run them directly with `uv run` without a separate install step:
 
 ```bash
+# Set SKILL_PATH to the directory that contains this SKILL.md first,
+# for example ~/.claude/skills/science-pack/exa-search after a Commander install.
+SKILL_PATH=~/.claude/skills/science-pack/exa-search
 uv run "$SKILL_PATH/scripts/exa_search.py" --help
 ```
 
