@@ -64,11 +64,57 @@ never has to be committed.
 ### Plugin passthrough (`lib/mcp-passthrough.js`)
 
 The plugin's own passthrough is separate from Claude Code's MCP client. It
-reads a `cc-commander` entry from `.claude/mcp.json` or `~/.claude/mcp.json`
-and calls `<url>/health` and `<url>/tools/<name>`, sending any `headers` from
-that entry. The hosted server does not serve that REST shape on `/mcp`, so
-today the passthrough always takes the local fallback. It does so silently, as
-the contract below requires.
+reads a `cc-commander` entry from `~/.claude/mcp.json` (user scope) and from
+`<project>/.claude/mcp.json` (project scope) and speaks MCP Streamable HTTP
+(JSON-RPC over POST to `/mcp`): `initialize` once per process, then
+`tools/list` and `tools/call`. Short tool names map to the server's
+`commander_*` tools. `GET /health` at the origin is used when the server has
+it. It never throws: any failure takes the local fallback.
+
+#### Credentials go only to approved origins
+
+The Commander bearer (`CCC_MCP_TOKEN` or `COMMANDER_TOKEN`) and any
+env-expanded headers are attached only when the request goes to an origin you
+approved. Approved origins are HTTPS origins, or plain HTTP on loopback for a
+local dev server. They come from exactly these places:
+
+| Source | Scope |
+|--------|-------|
+| `https://mcp.commanderplugin.com` | built in, the hosted default |
+| `url` of the `cc-commander` entry in `~/.claude/mcp.json` | your user config |
+| `allowedOrigins` array in that same user entry | your user config |
+| `CCC_MCP_URL` | your environment |
+| `CCC_MCP_ALLOWED_ORIGINS` (comma-separated) | your environment |
+
+```json
+{
+  "mcpServers": {
+    "cc-commander": {
+      "url": "https://mcp.commanderplugin.com/mcp",
+      "allowedOrigins": ["https://mcp.internal.example.com"],
+      "headers": { "Authorization": "Bearer ${COMMANDER_TOKEN}" }
+    }
+  }
+}
+```
+
+Project config (`<project>/.claude/mcp.json`) comes from whatever checkout you
+are in, so it is untrusted:
+
+- It can only pick among origins you already approved. A project `url` on an
+  approved origin is used; any other project `url` is called with no
+  credentials at all.
+- Its headers are never env-expanded, a header holding a `${...}` reference is
+  dropped, and credential headers (`Authorization`, `Proxy-Authorization`,
+  `Cookie`, `X-Api-Key`) are dropped. A checkout cannot pull a secret out of
+  your environment or plant a bearer.
+- User-level headers go only to the user entry's own origin.
+
+Endpoint precedence: an approved project `url`, then `CCC_MCP_URL`, then the
+user entry, then an unapproved project `url` (no credentials). A bare origin
+gets `/mcp` appended. When nothing is configured, or `CCC_OFFLINE` /
+`MCP_DISABLED=1` is set, the passthrough does nothing and the local catalog
+answers.
 
 ## Fallback contract
 

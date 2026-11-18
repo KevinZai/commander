@@ -16,7 +16,7 @@ Real, actionable alerts are scoped to:
 
 | Area | Exposure | Status |
 |---|---|---|
-| `apps/mcp-server-cloud/` | Deployed (deploy-mcp.yml) | hono bumped to ≥4.12.25 (GHSA-88fw-hqm2-52qc, CORS-with-credentials) 2026-07-17 |
+| `apps/mcp-server-cloud/` | Deployed (deploy.yml) | hono bumped to ≥4.12.25 (GHSA-88fw-hqm2-52qc, CORS-with-credentials) 2026-07-17 |
 | `site/` | Deployed (deploy.yml) | protobufjs (DoS) + ws (DoS) transitive highs — tracked, patch on next site dependency pass (pnpm overrides required for transitive bumps; not worth a risky lockfile churn for DoS-class issues on a static marketing site) |
 | `dashboard/` | Local-only dev tool (127.0.0.1:4690) | vite devDependency — bump opportunistically; zero shipped exposure |
 | `video/` | Dev-only Remotion render tooling; output is a static mp4/gif | Dependabot PRs #24–26 merged for hygiene 2026-07-17 |

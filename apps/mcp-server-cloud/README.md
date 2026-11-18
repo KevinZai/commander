@@ -193,7 +193,7 @@ bash scripts/test-against-prod.sh --target=https://commander-mcp.fly.dev
 
 ## Deploy
 
-Production deploys run on Fly.io app `commander-mcp` in `iad` from `.github/workflows/deploy-mcp.yml`.
+Production deploys run on Fly.io app `commander-mcp` in `iad` from `.github/workflows/deploy.yml`, the single deploy path. It runs `node apps/mcp-server-cloud/scripts/bundle-catalog.mjs` before `flyctl deploy`; see [DEPLOY.md](DEPLOY.md) for the bundling step and the two migrations to apply first.
 
 Prereqs:
 

@@ -293,6 +293,35 @@ test('install.sh honors CLAUDE_CONFIG_DIR and renders hook paths for it', () => 
   });
 });
 
+// Audit #02: the marketplace dedup edits the resolved target profile, never the default one,
+// and an already-clean map is "nothing to do" (success), not a failure.
+test('install.sh dedups extraKnownMarketplaces in the alternate profile only, and a clean map exits 0', () => {
+  withHome('ccc-install-dedup-', (home) => {
+    const cfg = join(home, 'claude-alt');
+    const stale = JSON.stringify({
+      extraKnownMarketplaces: {
+        'ccc-marketplace': { source: { source: 'github', repo: 'KevinZai/commander' } },
+        'commander-marketplace': { source: { source: 'github', repo: 'kevinzai/commander' } },
+        'other-market': { source: { source: 'git', url: 'https://example.invalid/x.git' } },
+      },
+    }, null, 2);
+    mkdirSync(cfg, { recursive: true });
+    mkdirSync(join(home, '.claude'), { recursive: true });
+    writeFileSync(join(cfg, 'settings.json'), stale);
+    writeFileSync(join(home, '.claude', 'settings.json'), stale);
+
+    ok(install(home, [], { CLAUDE_CONFIG_DIR: cfg }), 'first install');
+    const alt = JSON.parse(readFileSync(join(cfg, 'settings.json'), 'utf8')).extraKnownMarketplaces;
+    assert.ok(!('ccc-marketplace' in alt) && !('commander-marketplace' in alt), 'stale entries removed from the target profile');
+    assert.ok(alt['commander-hub'] && alt['other-market'], 'canonical and unrelated entries kept');
+    assert.strictEqual(readFileSync(join(home, '.claude', 'settings.json'), 'utf8'), stale, 'default profile must be untouched');
+
+    // Nothing left to dedup: the upgrade must still succeed
+    ok(install(home, [], { CLAUDE_CONFIG_DIR: cfg }), 'second install with a clean marketplace map');
+    assert.deepStrictEqual(JSON.parse(readFileSync(join(cfg, 'settings.json'), 'utf8')).extraKnownMarketplaces, alt);
+  });
+});
+
 // Audit #22: without jq a non-full tier would leave an empty catalog. It must fail before anything changes.
 test('install.sh fails early when a non-full tier needs jq and jq is missing', () => {
   withHome('ccc-install-nojq-', (home) => {

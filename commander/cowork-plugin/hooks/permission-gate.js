@@ -78,6 +78,13 @@ const DANGEROUS_PATTERNS = [
   />\s*\/dev\/sd[a-z]/,    // overwrite block device
 ];
 
+// Stable rule ids, parallel to DANGEROUS_PATTERNS. Denials and logs name the rule, never the command text.
+const DANGEROUS_RULE_IDS = [
+  'rm-root-or-home', 'git-push-force', 'git-push-force-or-delete', 'chmod-recursive-777',
+  'truncate-etc', 'dd-disk-wipe', 'mkfs', 'shred', 'block-device-write',
+];
+const NESTED_EXPANSION_RULE_ID = 'git-push-nested-expansion';
+
 // Destructive but routine: no decision is returned, so Claude Code (or Codex Desktop) shows its own approval prompt
 // and the user decides. Matching here is only logged, never denied.
 const REVIEW_PATTERNS = [
@@ -200,25 +207,33 @@ function expandBraces(view) {
   return view;
 }
 
-function isDangerousCommand(toolInput) {
+function dangerousRule(toolInput) {
   const cmd = toolInput?.command || toolInput?.cmd || '';
-  if (typeof cmd !== 'string') return false;
+  if (typeof cmd !== 'string') return null;
   const joined = cmd.replace(/\\\r?\n/g, '');   // the shell drops a backslash-newline: `+\<newline>main` is `+main`
-  if (DANGEROUS_PATTERNS.some(pat => pat.test(joined))) return true;   // raw first: nothing denied before shellView is allowed now
+  const ruleOf = (text) => { const i = DANGEROUS_PATTERNS.findIndex(pat => pat.test(text)); return i < 0 ? null : DANGEROUS_RULE_IDS[i]; };
+  const raw = ruleOf(joined);   // raw first: nothing denied before shellView is allowed now
+  if (raw) return raw;
   let views;
   const modes = [];
   for (const glue of [false, true]) for (const params of ['unset', 'word', 'empty']) for (const subs of ['text', 'empty', 'stub']) modes.push({ glue, params, subs });
-  try { views = modes.flatMap(m => shellView(joined, m)).map(v => expandBraces(v.replace(/\0/g, ''))); } catch { return false; }   // a view that cannot be built never overrides the raw check above
-  if (views.some(view => DANGEROUS_PATTERNS.some(pat => pat.test(view)))) return true;
+  try { views = modes.flatMap(m => shellView(joined, m)).map(v => expandBraces(v.replace(/\0/g, ''))); } catch { return null; }   // a view that cannot be built never overrides the raw check above
+  for (const view of views) { const id = ruleOf(view); if (id) return id; }
   // A nested expansion inside ${...} has mixed outcomes the views above do not enumerate (Codex r11: ${x:-${y} ${z-a}-f}), so a
   // command that runs git push next to one is denied outright: fail closed, the user runs it by hand
-  return NESTED_EXPANSION.test(joined) && views.some(view => GIT_PUSH.test(view));
+  return NESTED_EXPANSION.test(joined) && views.some(view => GIT_PUSH.test(view)) ? NESTED_EXPANSION_RULE_ID : null;
+}
+
+function isDangerousCommand(toolInput) {
+  return dangerousRule(toolInput) !== null;
 }
 
 // Only the program name reaches the log: full commands can carry tokens (audit P2, 2026-11-18).
 function commandHead(cmd) {
-  const first = String(cmd).trim().split(/\s+/)[0] || '';
-  return first.replace(/[^\w./-]/g, '').slice(0, 40);
+  // Skip leading VAR=value assignments (they can hold a credential) and keep only a bare program basename.
+  const first = String(cmd).trim().split(/\s+/).find(t => t && !/^[A-Za-z_]\w*=/.test(t)) || '';
+  const base = first.replace(/^["']+|["']+$/g, '').split('/').pop();
+  return /^[\w.+-]{1,40}$/.test(base) ? base : '';
 }
 
 async function logDecision(entry) {
@@ -268,17 +283,20 @@ async function main() {
 
   // 2. Dangerous bash commands → always reject (exit 0 + deny decision;
   //    exit 1 would discard stdout and silently approve)
-  if (toolName === 'Bash' && isDangerousCommand(toolInput)) {
+  const dangerRule = toolName === 'Bash' ? dangerousRule(toolInput) : null;
+  if (dangerRule) {
     const cmd = toolInput?.command || toolInput?.cmd || '';
     await logDecision({
       timestamp: new Date().toISOString(),
       sessionId,
       decision: 'rejected-dangerous',
       toolName,
+      rule: dangerRule,
       commandHead: commandHead(cmd),
     });
+    // Command text is never echoed: it can carry a credential and lands in the transcript.
     process.stdout.write(JSON.stringify(denyDecision(
-      `CCC PERMISSION GATE: Dangerous operation blocked — "${cmd.slice(0, 80)}" ` +
+      `CCC PERMISSION GATE: Dangerous operation blocked (rule ${dangerRule}) ` +
       `matched a destructive command pattern. ` +
       `Review the command and run manually if you are certain it is safe.`
     )) + '\n');

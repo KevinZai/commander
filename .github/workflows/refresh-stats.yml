@@ -24,9 +24,27 @@ jobs:
         env:
           POSTHOG_PERSONAL_KEY: ${{ secrets.POSTHOG_PERSONAL_KEY }}
 
-      - uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5.2.0
-        with:
-          commit_message: 'chore(stats): refresh aggregate telemetry [auto]'
-          file_pattern: docs/stats.json
-          skip_fetch: false
-          skip_dirty_check: true
+      # Stats are published to the dedicated `stats` branch, never to main: the
+      # daily refresh must not add automatic commits to the release branch.
+      - name: Publish stats to the stats branch
+        run: |
+          set -euo pipefail
+          cp docs/stats.json "$RUNNER_TEMP/stats.json"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin stats >/dev/null 2>&1; then
+            git fetch --depth=1 origin stats
+            git checkout -B stats FETCH_HEAD
+          else
+            git checkout --orphan stats
+            git rm -rf --quiet .
+          fi
+          mkdir -p docs
+          cp "$RUNNER_TEMP/stats.json" docs/stats.json
+          git add docs/stats.json
+          if git diff --cached --quiet; then
+            echo "stats unchanged"
+            exit 0
+          fi
+          git commit -m "chore(stats): refresh aggregate telemetry [auto]"
+          git push origin stats

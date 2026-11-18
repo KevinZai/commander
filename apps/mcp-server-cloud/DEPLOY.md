@@ -88,14 +88,25 @@ Deploys run from GitHub Actions; a push to `main` that touches `apps/mcp-server-
 git tag rollback/<name> <current-prod-sha> && git push origin refs/tags/rollback/<name>
 ```
 
-Two workflows deploy to the same app (they share the `deploy-commander-production` concurrency group):
+`.github/workflows/deploy.yml` (Deploy (v4 Beta)) is the one deploy path. It triggers on a push to `main` under `apps/mcp-server-cloud/**`, `site/**` or `supabase/**`, and on `workflow_dispatch`. Its jobs run in this order: release gate and MCP verify, then the `deploy-mcp` job (production environment, canary), then the post-deploy smoke test. The `deploy-mcp` job runs only when the push changed the app (or on manual dispatch), so `site/**`-only merges do not redeploy it. The `deploy-site` job skips until the Vercel secrets exist; that does not affect the MCP deploy.
 
-| Workflow | Triggers | Deploy step |
-|---|---|---|
-| `deploy-mcp.yml` (Deploy MCP Cloud) | push to `main` under `apps/mcp-server-cloud/**`; `workflow_dispatch` with `deploy=true` | `flyctl deploy --remote-only` after typecheck, tests and build |
-| `deploy.yml` (Deploy (v4 Beta)) | push to `main` under `apps/mcp-server-cloud/**`, `site/**`, `supabase/**`; `workflow_dispatch` | `flyctl deploy --strategy canary`, then the `site` Vercel job |
+### Catalog bundling (before `flyctl deploy`)
 
-`deploy.yml` runs its `deploy-mcp` job only when the push changed `apps/mcp-server-cloud/**` (or on manual dispatch), so `site/**`-only merges no longer redeploy the MCP app. A push that touches the app is deployed by both workflows, one after the other. The `deploy-site` job fails until the Vercel IDs are configured; that failure does not affect the MCP deploy.
+The image serves the skill and agent catalog from `apps/mcp-server-cloud/data/`, which is gitignored. The Docker build context is the app directory, so the repository registry is not visible inside the build. The `deploy-mcp` job therefore runs, from the repo root and before `flyctl deploy --strategy canary --app commander-mcp --remote-only`:
+
+```bash
+node apps/mcp-server-cloud/scripts/bundle-catalog.mjs        # bake data/ from the checkout, then verify
+node apps/mcp-server-cloud/scripts/bundle-catalog.mjs --verify   # verify an existing bundle only
+```
+
+The Dockerfile copies `data/` and runs `--verify`; the image build fails if the bundle is missing, incomplete or altered. For a local `fly deploy`, run the bundle step first.
+
+### Database migrations (before the server that needs them)
+
+Apply these to the production Supabase database before the matching server build deploys; both are idempotent:
+
+1. `supabase/migrations/20261118000000_reconcile_hosted_schema.sql` (repository root, applied by `supabase db push`). Converges every earlier schema on one chain: billing state, creators privacy, entitlement column protection, OAuth bindings and license-token revocation. The Stripe webhook answers non-2xx until it is applied. See README.md "Database" for the legacy-database path.
+2. `apps/mcp-server-cloud/src/db/migrations/003_quota-reserve.sql`. Adds the atomic `reserve_call` RPC. Run it in the Supabase SQL Editor (or `supabase db push`) before deploying a server that calls it: the middleware fails closed (HTTP 503 `quota_storage_unavailable`) when the RPC is missing.
 
 Watch logs during a release:
 
@@ -117,7 +128,7 @@ Expected output without a token: `14 passed, 0 failed` (one skip). The smoke cov
 Redeploy the rollback tag through the same workflow (no local Fly login needed):
 
 ```bash
-gh workflow run deploy-mcp.yml -R KevinZai/commander --ref rollback/<name> -f deploy=true
+gh workflow run deploy.yml -R KevinZai/commander --ref rollback/<name>
 ./scripts/smoke.sh https://commander-mcp.fly.dev --pre-mcp   # if the tag predates /mcp (CC-1365)
 ```
 

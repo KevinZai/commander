@@ -139,6 +139,9 @@ jobs:
       - name: Verify doc counts
         run: node scripts/audit-counts.js --check
 
+      - name: Verify release.json is current
+        run: node scripts/propagate-release.js --check
+
   mcp-cloud:
     # Drafts are gated locally (full suite + lint before push, CP-GIT-007); CI runs once marked ready.
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false

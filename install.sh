@@ -861,7 +861,7 @@ if should_install "claude-md" || should_install "settings"; then
     # Ensure only the canonical commander-hub (git-form) entry is present.
     if [ -f "$CLAUDE_DIR/settings.json" ] && command -v python3 &>/dev/null; then
       dedup_exit=0
-      python3 - "$CLAUDE_DIR/settings.json" "$BACKUP_DIR" <<'DEDUP' || dedup_exit=$?
+      dedup_out=$(python3 - "$CLAUDE_DIR/settings.json" "$BACKUP_DIR" <<'DEDUP'
 import json, os, shutil, sys, tempfile
 
 p = sys.argv[1]   # the lane's settings.json (CLAUDE_CONFIG_DIR aware), not a hard-coded ~/.claude
@@ -879,7 +879,7 @@ if not isinstance(ekm, dict):
 stale = ['ccc-marketplace', 'commander-marketplace']
 removed = [k for k in stale if k in ekm]
 if not removed:
-    sys.exit(1)  # nothing to do — exit non-zero so the shell skips the status line
+    sys.exit(0)  # nothing to do is success; no output means no status line
 
 for k in removed:
     del ekm[k]
@@ -916,7 +916,10 @@ except Exception:
 
 print('deduped extraKnownMarketplaces: removed ' + ', '.join(removed))
 DEDUP
-      if [ $dedup_exit -eq 0 ]; then
+      ) || dedup_exit=$?
+      if [ $dedup_exit -ne 0 ]; then
+        cc_status_line "!" "extraKnownMarketplaces dedup failed (settings.json left as is)"
+      elif [ -n "$dedup_out" ]; then
         cc_status_line "✓" "extraKnownMarketplaces deduplicated"
       fi
     fi
