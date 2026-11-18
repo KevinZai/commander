@@ -27,7 +27,9 @@ CLI and MCP only:
 # and both use the binaries this install just placed, never whatever is first on PATH.
 ( set -euo pipefail
   uv tool install mempalace==3.12.0          # pinned; fails if that version is unavailable
-  bin="$(uv tool dir --bin)"
+  bin="$(uv tool dir --bin)"            # its own statement, so a failed lookup stops here
+  case "$bin" in /*) ;; *) echo "stop: no uv tool bin directory"; exit 1;; esac
+  [ -x "$bin/mempalace" ] && [ -x "$bin/mempalace-mcp" ]
   "$bin/mempalace" init ~/projects/myapp
   claude mcp add mempalace -- "$bin/mempalace-mcp"
 )
