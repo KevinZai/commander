@@ -73,8 +73,8 @@ The following shows a complete experiment — from hypothesis to rollback — us
 
 ```bash
 # Verify baseline: p99 latency < 200ms, error rate < 0.1%
-kubectl get deploy my-service -n production
-kubectl top pods -n production -l app=my-service
+kubectl get deploy my-service -n staging
+kubectl top pods -n staging -l app=my-service
 ```
 
 ### Step 2 — Create and apply a Litmus ChaosEngine manifest
@@ -85,10 +85,10 @@ apiVersion: litmuschaos.io/v1alpha1
 kind: ChaosEngine
 metadata:
   name: my-service-pod-delete
-  namespace: production
+  namespace: staging
 spec:
   appinfo:
-    appns: production
+    appns: staging
     applabel: "app=my-service"
     appkind: deployment
   # Limit blast radius: only 1 replica at a time
@@ -114,19 +114,19 @@ spec:
 kubectl apply -f chaos-pod-delete.yaml
 
 # Watch experiment status
-kubectl describe chaosengine my-service-pod-delete -n production
-kubectl get chaosresult my-service-pod-delete-pod-delete -n production -w
+kubectl describe chaosengine my-service-pod-delete -n staging
+kubectl get chaosresult my-service-pod-delete-pod-delete -n staging -w
 ```
 
 ### Step 3 — Monitor during the experiment
 
 ```bash
 # Tail application logs for errors
-kubectl logs -l app=my-service -n production --since=2m -f
+kubectl logs -l app=my-service -n staging --since=2m -f
 
 # Check ChaosResult verdict when complete
 kubectl get chaosresult my-service-pod-delete-pod-delete \
-  -n production -o jsonpath='{.status.experimentStatus.verdict}'
+  -n staging -o jsonpath='{.status.experimentStatus.verdict}'
 ```
 
 ### Step 4 — Rollback / abort if steady state is violated
@@ -134,10 +134,10 @@ kubectl get chaosresult my-service-pod-delete-pod-delete \
 ```bash
 # Immediately stop the experiment
 kubectl patch chaosengine my-service-pod-delete \
-  -n production --type merge -p '{"spec":{"engineState":"stop"}}'
+  -n staging --type merge -p '{"spec":{"engineState":"stop"}}'
 
 # Confirm all pods are healthy
-kubectl rollout status deployment/my-service -n production
+kubectl rollout status deployment/my-service -n staging
 ```
 
 ## Concrete Example: Network Latency with toxiproxy

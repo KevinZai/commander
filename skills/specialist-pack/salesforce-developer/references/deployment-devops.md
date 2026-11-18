@@ -408,42 +408,45 @@ on:
   pull_request:
     branches: [main, develop]
 
-env:
-  SFDX_CLI_URL: https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-linux-x64.tar.xz
+# CCC safety: every job runs in the official CLI image pinned by digest, never the
+# moving "stable" channel. Take the digest of the reviewed release (for example
+# docker buildx imagetools inspect salesforce/cli:2.20.7-full) and paste it below.
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    container:
+      image: salesforce/cli@sha256:<digest of the reviewed 2.20.7-full image>
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Salesforce CLI
-        run: |
-          wget $SFDX_CLI_URL
-          mkdir sfdx
-          tar xJf sf-linux-x64.tar.xz -C sfdx --strip-components 1
-          ./sfdx/bin/sf version
+      - name: Show Salesforce CLI version
+        run: sf version
 
       - name: Authenticate to Dev Hub
+        env:
+          SF_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
         run: |
-          echo "${{ secrets.SFDX_AUTH_URL }}" > auth.txt
-          ./sfdx/bin/sf org login sfdx-url --sfdx-url-file auth.txt --alias devhub --set-default-dev-hub
+          # CCC safety: the auth URL stays in the environment and a private temp file removed on exit, never in shell source or the checkout.
+          f=$(mktemp); trap 'rm -f "$f"' EXIT
+          printf '%s' "$SF_AUTH_URL" > "$f"
+          sf org login sfdx-url --sfdx-url-file "$f" --alias devhub --set-default-dev-hub
 
       - name: Create Scratch Org
         run: |
-          ./sfdx/bin/sf org create scratch \
+          sf org create scratch \
             --definition-file config/project-scratch-def.json \
             --alias ci-scratch \
             --set-default \
             --duration-days 1
 
       - name: Push Source
-        run: ./sfdx/bin/sf project deploy start --target-org ci-scratch
+        run: sf project deploy start --target-org ci-scratch
 
       - name: Run Apex Tests
         run: |
-          ./sfdx/bin/sf apex run test \
+          sf apex run test \
             --target-org ci-scratch \
             --code-coverage \
             --result-format human \
@@ -452,7 +455,7 @@ jobs:
 
       - name: Check Code Coverage
         run: |
-          COVERAGE=$(./sfdx/bin/sf apex get test --target-org ci-scratch --code-coverage --json | jq '.result.summary.orgWideCoverage' | tr -d '"' | tr -d '%')
+          COVERAGE=$(sf apex get test --target-org ci-scratch --code-coverage --json | jq '.result.summary.orgWideCoverage' | tr -d '"' | tr -d '%')
           echo "Code coverage: $COVERAGE%"
           if [ "$COVERAGE" -lt "75" ]; then
             echo "Code coverage is below 75%"
@@ -461,31 +464,32 @@ jobs:
 
       - name: Delete Scratch Org
         if: always()
-        run: ./sfdx/bin/sf org delete scratch --target-org ci-scratch --no-prompt
+        run: sf org delete scratch --target-org ci-scratch --no-prompt
 
   deploy-staging:
     needs: validate
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
+    container:
+      image: salesforce/cli@sha256:<digest of the reviewed 2.20.7-full image>
     environment: staging
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Salesforce CLI
-        run: |
-          wget $SFDX_CLI_URL
-          mkdir sfdx
-          tar xJf sf-linux-x64.tar.xz -C sfdx --strip-components 1
 
       - name: Authenticate to Staging
+        env:
+          SF_AUTH_URL: ${{ secrets.STAGING_AUTH_URL }}
         run: |
-          echo "${{ secrets.STAGING_AUTH_URL }}" > auth.txt
-          ./sfdx/bin/sf org login sfdx-url --sfdx-url-file auth.txt --alias staging
+          # CCC safety: the auth URL stays in the environment and a private temp file removed on exit, never in shell source or the checkout.
+          f=$(mktemp); trap 'rm -f "$f"' EXIT
+          printf '%s' "$SF_AUTH_URL" > "$f"
+          sf org login sfdx-url --sfdx-url-file "$f" --alias staging
 
       - name: Deploy to Staging
         run: |
-          ./sfdx/bin/sf project deploy start \
+          sf project deploy start \
             --target-org staging \
             --test-level RunLocalTests \
             --wait 30
@@ -494,33 +498,34 @@ jobs:
     needs: validate
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    container:
+      image: salesforce/cli@sha256:<digest of the reviewed 2.20.7-full image>
     environment: production
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Salesforce CLI
-        run: |
-          wget $SFDX_CLI_URL
-          mkdir sfdx
-          tar xJf sf-linux-x64.tar.xz -C sfdx --strip-components 1
 
       - name: Authenticate to Production
+        env:
+          SF_AUTH_URL: ${{ secrets.PROD_AUTH_URL }}
         run: |
-          echo "${{ secrets.PROD_AUTH_URL }}" > auth.txt
-          ./sfdx/bin/sf org login sfdx-url --sfdx-url-file auth.txt --alias prod
+          # CCC safety: the auth URL stays in the environment and a private temp file removed on exit, never in shell source or the checkout.
+          f=$(mktemp); trap 'rm -f "$f"' EXIT
+          printf '%s' "$SF_AUTH_URL" > "$f"
+          sf org login sfdx-url --sfdx-url-file "$f" --alias prod
 
       - name: Validate Deployment
         run: |
-          ./sfdx/bin/sf project deploy validate \
+          sf project deploy validate \
             --target-org prod \
             --test-level RunLocalTests \
             --wait 30
 
       - name: Quick Deploy
         run: |
-          JOB_ID=$(./sfdx/bin/sf project deploy report --json | jq -r '.result.id')
-          ./sfdx/bin/sf project deploy quick --job-id $JOB_ID --target-org prod
+          JOB_ID=$(sf project deploy report --json | jq -r '.result.id')
+          sf project deploy quick --job-id $JOB_ID --target-org prod
 ```
 
 ### GitLab CI Pipeline
@@ -535,7 +540,8 @@ variables:
   SF_CLI_VERSION: "2.20.7"
 
 .sf_base:
-  image: salesforce/cli:${SF_CLI_VERSION}-full
+  # CCC safety: pin the image by the digest of the reviewed ${SF_CLI_VERSION}-full tag, not the tag alone.
+  image: salesforce/cli@sha256:<digest of the reviewed ${SF_CLI_VERSION}-full image>
   before_script:
     - sf --version
 
@@ -543,8 +549,7 @@ validate:
   extends: .sf_base
   stage: validate
   script:
-    - echo $SFDX_AUTH_URL > auth.txt
-    - sf org login sfdx-url --sfdx-url-file auth.txt --alias devhub --set-default-dev-hub
+    - (set -e; f=$(mktemp); trap 'rm -f "$f"' EXIT; printf '%s' "$SFDX_AUTH_URL" > "$f"; sf org login sfdx-url --sfdx-url-file "$f" --alias devhub --set-default-dev-hub)
     - sf org create scratch --definition-file config/project-scratch-def.json --alias ci-scratch --set-default --duration-days 1
     - sf project deploy start --target-org ci-scratch
     - sf apex run test --target-org ci-scratch --code-coverage --result-format junit --output-dir test-results --wait 20
@@ -562,8 +567,7 @@ deploy_staging:
   environment:
     name: staging
   script:
-    - echo $STAGING_AUTH_URL > auth.txt
-    - sf org login sfdx-url --sfdx-url-file auth.txt --alias staging
+    - (set -e; f=$(mktemp); trap 'rm -f "$f"' EXIT; printf '%s' "$STAGING_AUTH_URL" > "$f"; sf org login sfdx-url --sfdx-url-file "$f" --alias staging)
     - sf project deploy start --target-org staging --test-level RunLocalTests --wait 30
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
@@ -574,8 +578,7 @@ deploy_production:
   environment:
     name: production
   script:
-    - echo $PROD_AUTH_URL > auth.txt
-    - sf org login sfdx-url --sfdx-url-file auth.txt --alias prod
+    - (set -e; f=$(mktemp); trap 'rm -f "$f"' EXIT; printf '%s' "$PROD_AUTH_URL" > "$f"; sf org login sfdx-url --sfdx-url-file "$f" --alias prod)
     - sf project deploy start --target-org prod --test-level RunLocalTests --wait 30
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
@@ -629,7 +632,12 @@ echo "=== Validation complete ==="
 
 set -e
 
-TARGET_ORG=${1:-"myprod"}
+# CCC safety: no default org. Name the target, check which org it is, and confirm
+# before the data migration and permission changes below.
+TARGET_ORG=${1:?usage: post-deployment.sh <target-org-alias>}
+sf org display --target-org "$TARGET_ORG"
+read -r -p "Run the data migration and permission changes on $TARGET_ORG? Type the alias to confirm: " CONFIRM
+[ "$CONFIRM" = "$TARGET_ORG" ] || { echo "Cancelled."; exit 1; }
 
 echo "=== Running post-deployment tasks ==="
 

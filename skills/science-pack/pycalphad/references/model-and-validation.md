@@ -69,7 +69,7 @@ top-level `pdens`; unused equilibrium keyword arguments merely produce a warning
 import numpy as np
 from pycalphad import Database, Workspace, variables as v
 
-db = Database('skills/pycalphad/assets/ideal-cu-ni.tdb')
+db = Database('skills/science-pack/pycalphad/assets/ideal-cu-ni.tdb')
 components = ['CU', 'NI', 'VA']
 phases = ['FCC_A1', 'LIQUID']
 conditions = {v.T: [900, 1100, 1300], v.P: 101325, v.N: 1, v.X('NI'): 0.5}

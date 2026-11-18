@@ -25,9 +25,11 @@ import numpy as np
 import zarr
 from zarr.storage import ZipStore
 
-with ZipStore("array.zip", mode="w") as store:
+import tempfile, os
+path = os.path.join(tempfile.mkdtemp(), "array.zip")  # fresh directory: never replaces an existing archive
+with ZipStore(path, mode="w") as store:
     z = zarr.create_array(store, data=np.arange(12), chunks=(4,))
-with ZipStore("array.zip", mode="r") as store:
+with ZipStore(path, mode="r") as store:
     np.testing.assert_array_equal(zarr.open_array(store, mode="r")[:], np.arange(12))
 ```
 

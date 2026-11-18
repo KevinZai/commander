@@ -28,7 +28,7 @@ thousands of human and mouse tracks out. The **AlphaGenome Atlas** (released 202
 every possible single-nucleotide change in GRCh38, about 9 billion variants,
 stored with a single ranking number, the **AlphaGenome Variant Impact (AVI)**
 score, its genome-wide percentile, and an 18-way attribution of what drives it.
-Both are reached through one `pip install alphagenome` and one API key.
+Both are reached through one pinned `alphagenome` install (0.9.0, below) and one API key.
 
 > Research and theoretical modelling only. API outputs must not be used to train
 > other models, and are not for diagnostic procedures or medical decisions.
@@ -48,7 +48,7 @@ Both are reached through one `pip install alphagenome` and one API key.
 ## Setup
 
 ```bash
-uv pip install alphagenome                     # PyPI; tested on Python 3.12 and 3.13, alphagenome 0.9.0
+uv pip install alphagenome==0.9.0              # PyPI; the version tested, on Python 3.12 and 3.13
 # The user sets ALPHAGENOME_API_KEY in their own terminal (https://deepmind.google.com/science/alphagenome);
 # CCC safety: never type the key into an agent session.
 cd skills/science-pack/alphagenome/scripts

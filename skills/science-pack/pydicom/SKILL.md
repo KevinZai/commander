@@ -319,7 +319,7 @@ it cannot establish successful de-identification.
 
 ## Helper CLIs
 
-Run helper commands from `skills/pydicom/` (or use the full script path);
+Run helper commands from `skills/science-pack/pydicom/` (or use the full script path);
 `--root` must contain all inputs/outputs and output parent directories must
 already exist. All `--help` paths are dependency-free. The tools perform no network access and
 emit no DICOM values beyond narrow technical allowlists.

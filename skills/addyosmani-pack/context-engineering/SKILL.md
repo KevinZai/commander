@@ -52,7 +52,7 @@ Create a rules file that persists across sessions. This is the highest-leverage 
 - Test: `npm test`
 - Lint: `npm run lint -- --fix`
 - Dev: `npm run dev`
-- Type check: `npx tsc --noEmit`
+- Type check: `npx --no-install tsc --noEmit` (the project's locked TypeScript; never a registry fetch)
 
 ## Code Conventions
 - Functional components with hooks (no class components)

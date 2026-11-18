@@ -52,7 +52,7 @@ uv pip install "cellxgene-census[spatial]==1.18.0"
 For PyTorch model training, use TileDB-SOMA-ML. The old `cellxgene_census.experimental.ml` loaders are absent from 1.18.0:
 
 ```bash
-uv pip install "cellxgene-census==1.18.0" tiledbsoma-ml
+uv pip install "cellxgene-census==1.18.0" "tiledbsoma-ml==0.1.0"
 ```
 
 ## Core Workflow Patterns

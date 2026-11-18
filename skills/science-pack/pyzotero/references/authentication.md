@@ -1,6 +1,6 @@
 # Authentication & Setup
 
-> **Security:** Never hardcode API keys in source code or commit them to version control. Use environment variables or a `.env` file scoped to `ZOTERO_*` keys only. Placeholder values like `ABC1234XYZ` below are illustrative — substitute your real credentials from env vars.
+> **Security:** Never hardcode API keys in source code or commit them to version control. Use the named `ZOTERO_*` environment variables only; do not load a `.env` file. Placeholder values like `ABC1234XYZ` below are illustrative — substitute your real credentials from env vars.
 
 ## Credentials
 
@@ -14,22 +14,19 @@ Obtain from https://www.zotero.org/settings/keys (or create a key at https://www
 
 ## Environment Variables (recommended)
 
-Store in `.env` or export in shell:
+The user exports them in their own shell before the session. CCC safety: read only these named variables from the environment; do not load a `.env` file, which can hold unrelated project credentials.
 
-```
-ZOTERO_LIBRARY_ID=436
-ZOTERO_API_KEY=your_api_key_here
-ZOTERO_LIBRARY_TYPE=user
+```bash
+export ZOTERO_LIBRARY_ID=436
+read -rs ZOTERO_API_KEY && export ZOTERO_API_KEY   # typed hidden, kept out of shell history
+export ZOTERO_LIBRARY_TYPE=user
 ```
 
-For `.env` loading, install `python-dotenv` (`uv add python-dotenv`). It does not come with Pyzotero. Load in Python:
+Then in Python:
 
 ```python
 import os
-from dotenv import load_dotenv
 from pyzotero import Zotero
-
-load_dotenv()
 
 zot = Zotero(
     library_id=os.environ['ZOTERO_LIBRARY_ID'],

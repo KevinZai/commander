@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["exa-py>=2.23.0,<3"]
+# dependencies = ["exa-py==2.23.0"]  # pinned: a cold `uv run` installs exactly this
 # ///
 """Run an Exa web search and write results to JSON.
 
@@ -26,7 +26,7 @@ try:
     from exa_py import Exa
 except ImportError:
     print(
-        "exa_py not installed. Run: uv pip install exa-py  (or invoke with: uv run --with exa-py)",
+        "exa_py not installed. Run: uv pip install exa-py==2.23.0  (or invoke with: uv run --with exa-py==2.23.0)",
         file=sys.stderr,
     )
     sys.exit(2)
@@ -157,6 +157,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--text", action="store_true", help="Return full-text content per result.")
     parser.add_argument("--highlights", action="store_true", help="Return extracted highlight snippets.")
     parser.add_argument("-o", "--output", default=None, help="Write JSON to this file (default: stdout).")
+    parser.add_argument("--force", action="store_true", help="Overwrite --output if it already exists.")
     return parser
 
 
@@ -169,7 +170,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(str(exc))
     text = json.dumps(payload, indent=2, ensure_ascii=False)
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as fh:
+        # CCC safety: "x" refuses to replace an existing file; pass --force to overwrite.
+        with open(args.output, "w" if args.force else "x", encoding="utf-8") as fh:
             fh.write(text)
         print(f"Wrote {len(payload['results'])} results to {args.output}")
     else:

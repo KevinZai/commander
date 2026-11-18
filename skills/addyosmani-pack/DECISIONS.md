@@ -47,12 +47,21 @@ Upstream says this skill is "inspired by" Anthropic's Code Simplifier plugin (Ap
 
 Fixed: `floor-guard` prints only rule and file for every finding, `git-workflow-and-versioning` runs its secret scan before showing the staged change (and then only `--stat`), and the `$50` example no longer trips the argument-placeholder test.
 
+## Install-safety sweep (2026-11-18)
+
+Every added line was checked for unpinned `npx`, package installs without exact versions, `:latest` images, download-and-execute, moving manifest URLs, dotenv loading and secrets in argv. Each hit was pinned or turned into a project-owned command:
+
+- `browser-testing-with-devtools`: `chrome-devtools-mcp@1.13.0` is installed once as an exact dev dependency and launched with `npx --no-install`, which stops instead of fetching.
+- `context-engineering` and `git-workflow-and-versioning`: `npx --no-install tsc`. `deprecation-and-migration`: the project's own checked-in migration check instead of `npx migrate-check`.
+- `constraint-driven-development`: Python tools at exact versions; Semgrep reads a checked-in ruleset, not the moving `p/default`; scanner reports go to a private temp file. The adapted floor guard keeps an MIT header and ships the license beside it.
+- `git-workflow-and-versioning`: the secret check stops the recipe on a match and adds a redacting `gitleaks` scan of the staged tree.
+- `documentation-and-adrs`: `.env` is created only when absent; the drift check reports "can't tell" when either file has no history.
+- `doubt-driven-development`: the prompt file is written with the file tool, not `echo` or a heredoc, and an empty prompt stops the run.
+- `code-simplification`: the Anthropic link is pinned to `e6143c98`.
+
 ## Upstream notes (logged, not fixed)
 
 Example-quality items in upstream text, for the next sync or an upstream issue:
-- `code-simplification`: links Anthropic's Code Simplifier at `main` and calls itself an adaptation (provenance is recorded above), and one "clear" rewrite turns an object of `{ count }` records into a `Map` of numbers.
-- `browser-testing-with-devtools`: the persistent MCP config still launches through `npx -y` (pinned to 1.13.0); a locally installed binary is stricter.
-- `deprecation-and-migration` and `git-workflow-and-versioning`: bare `npx` tools (`migrate-check` and others) with no project-owned version.
+- `code-simplification`: one "clear" rewrite turns an object of `{ count }` records into a `Map` of numbers.
 - `api-and-interface-design`: the idempotency example keys stored responses by the client key alone; scope it by tenant or user.
-- `doubt-driven-development`: `echo` or heredoc guidance can still expand shell syntax if artifact text is pasted into shell source.
-- `constraint-driven-development`: the guard splits `git ls-files` output on newlines (quoted non-ASCII names), and flags the shipped policy template's own prose.
+- `constraint-driven-development`: the guard splits `git ls-files` output on newlines (quoted non-ASCII names), and flags the shipped policy template's own prose and its own newly added file.

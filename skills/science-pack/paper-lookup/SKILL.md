@@ -138,7 +138,7 @@ Most of these APIs are fully open. A few benefit from a key for higher rate limi
 
 **Fully open (no key):** Europe PMC (nothing at all — no key, no email), bioRxiv/medRxiv (no documented limits), arXiv (1 req / 3 s), Crossref (add `mailto` for the polite pool), Unpaywall (requires a real `email` parameter — placeholders like `test@example.com` are rejected with HTTP 422), OpenCitations (180 req/min/IP), PubTator3 (3 req/s), Zenodo public search (30 req/min), Figshare public records (recommended 1 req/s), ROR (2000 req / 5 min), BioStudies, DOAJ search (2 req/s).
 
-**Loading keys:** Check the environment first (`$NCBI_API_KEY`, etc.). If a key is absent there and a `.env` exists in the working directory, read **only** the four variables named in the table above — do not load the file wholesale into the environment or into your context, since it routinely holds unrelated secrets that have nothing to do with literature search. If a key is missing, proceed at the lower rate limit and tell the user which key would help and where to get it — don't stall.
+**Loading keys:** Read keys only from the environment (`$NCBI_API_KEY`, etc.). CCC safety: never open or load a `.env` file for them; it routinely holds unrelated secrets that have nothing to do with literature search. If a key is missing, proceed at the lower rate limit and tell the user which key would help and where to get it — don't stall.
 
 Never echo a key, and never let one reach your output. Two of these APIs authenticate by query string, so the URL you fetched *is* a credential — `scripts/paginate.py` redacts `api_key`, `email`, `mailto`, and `tool` values from the provenance it emits, and any URL you record by hand needs the same treatment.
 
@@ -146,14 +146,14 @@ Never echo a key, and never let one reach your output. Two of these APIs authent
 
 **Use `curl` via Bash.** That is what this skill's `allowed-tools` grants, and it is what these APIs need — a summarizing fetch tool cannot serve most of them:
 
-- **Custom headers.** Semantic Scholar authenticates with `x-api-key: $S2_API_KEY`; CORE uses `Authorization: Bearer $CORE_API_KEY`.
+- **Custom headers.** Semantic Scholar authenticates with an `x-api-key` header; CORE uses `Authorization: Bearer`. CCC safety: pass the key header through `-H @<(printf ...)` as below, so the expanded key never appears in curl's process arguments.
 - **POST bodies.** Semantic Scholar's `/paper/batch` and `/recommendations/papers/` endpoints, and CORE's complex search, are POST with a JSON body.
 - **Raw structured payloads.** arXiv returns Atom **XML**; PMC eFetch and Europe PMC `fullTextXML` return JATS **XML**. `curl` returns the exact bytes so the bundled parsers can work on them.
 - **Seeing the real failure.** These APIs signal failure inside a 200 body. `curl` shows you the body and the status; a tool that summarizes prose hides both.
 
 Example with a header and JSON accept:
 ```bash
-curl -s -H "Accept: application/json" -H "x-api-key: $S2_API_KEY" \
+curl -s -H "Accept: application/json" -H @<(printf 'x-api-key: %s\n' "$S2_API_KEY") \
   "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1038/nature12373?fields=title,year,citationCount,tldr"
 ```
 

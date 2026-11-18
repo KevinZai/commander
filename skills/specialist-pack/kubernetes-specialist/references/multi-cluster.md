@@ -7,18 +7,21 @@
 ### Installation
 
 ```bash
-# Install clusterctl CLI
-curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.6.0/clusterctl-linux-amd64 -o clusterctl
-chmod +x clusterctl && sudo mv clusterctl /usr/local/bin/
-
-# Initialize management cluster with AWS provider
-clusterctl init --infrastructure aws
-
-# Initialize with multiple providers
-clusterctl init \
-  --infrastructure aws,azure \
-  --control-plane kubeadm \
-  --bootstrap kubeadm
+# Install clusterctl from a pinned release, checked against a SHA-256 you took
+# from that release, with no sudo and no PATH lookup.
+# CCC safety: one errexit subshell, run on its own; a mismatch stops before any clusterctl call.
+CAPI_VERSION=v1.6.0
+EXPECTED_SHA256=<SHA-256 of clusterctl-linux-amd64 for that release>
+( set -euo pipefail
+  f="$HOME/.local/bin/clusterctl"
+  curl -fsSL --proto '=https' -o "$f.tmp" "https://github.com/kubernetes-sigs/cluster-api/releases/download/${CAPI_VERSION}/clusterctl-linux-amd64"
+  echo "${EXPECTED_SHA256}  $f.tmp" | sha256sum -c -
+  install -m 0755 "$f.tmp" "$f"; rm -f "$f.tmp"
+  # Initialize the management cluster with one provider ...
+  "$f" init --infrastructure aws
+  # ... or with several:
+  # "$f" init --infrastructure aws,azure --control-plane kubeadm --bootstrap kubeadm
+)
 ```
 
 ### Cluster Definition
@@ -156,18 +159,15 @@ EXPECTED_SHA256=<SHA-256 published on that release page>
   f="subctl-${SUBCTL_VERSION}-linux-amd64.tar.xz"
   curl -fsSLO "https://github.com/submariner-io/subctl/releases/download/${SUBCTL_VERSION}/${f}"
   echo "${EXPECTED_SHA256}  ${f}" | sha256sum -c -   # stops here on a mismatch
-  tar -xJf "$f"
+  d=$(mktemp -d); tar -xJf "$f" -C "$d"
+  subctl=$(find "$d" -type f -name 'subctl*' -perm -u+x | head -n 1)
+  [ -n "$subctl" ]
+  # Every later step uses the binary just verified, by absolute path.
+  "$subctl" deploy-broker --kubeconfig kubeconfig-cluster1             # broker
+  "$subctl" join --kubeconfig kubeconfig-cluster1 broker-info.subm --clusterid cluster1
+  "$subctl" join --kubeconfig kubeconfig-cluster2 broker-info.subm --clusterid cluster2
+  "$subctl" show all                                                   # verify connectivity
 )
-
-# Join clusters to broker
-subctl deploy-broker --kubeconfig kubeconfig-cluster1
-
-# Join workload clusters
-subctl join --kubeconfig kubeconfig-cluster1 broker-info.subm --clusterid cluster1
-subctl join --kubeconfig kubeconfig-cluster2 broker-info.subm --clusterid cluster2
-
-# Verify connectivity
-subctl show all
 ```
 
 ### ServiceExport/ServiceImport
@@ -441,6 +441,8 @@ spec:
 ## Centralized Management Tools
 
 ### Rancher Setup
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```bash
 # Install Rancher with Helm

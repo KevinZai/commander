@@ -200,8 +200,9 @@ If DiffDock is not installed, follow these steps:
    python /path/to/skill/scripts/setup_check.py
 
 For Docker installation:
-   docker pull rbgcsail/diffdock
-   docker run -it --gpus all --entrypoint /bin/bash rbgcsail/diffdock
+   docker pull rbgcsail/diffdock@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0
+   docker run -it --gpus all --entrypoint /bin/bash rbgcsail/diffdock@sha256:1b7bb3adb332fdc9648a0ec53dec2f790cfbb816d7478d2bd93f1cdea3b269f0
+   (tag v1.1.3, pinned by digest; review a newer image before changing it)
    micromamba activate diffdock
 
 For more information, visit: https://github.com/gcorso/DiffDock

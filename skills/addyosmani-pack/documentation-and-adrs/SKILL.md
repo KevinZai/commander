@@ -210,7 +210,7 @@ One-paragraph description of what this project does.
 ## Quick Start
 1. Clone the repo
 2. Install dependencies: `npm install`
-3. Set up environment: `cp .env.example .env`
+3. Set up environment: `[ -e .env ] || cp .env.example .env` (never overwrites an existing `.env`)
 4. Run the dev server: `npm run dev`
 
 ## Commands
@@ -272,7 +272,8 @@ A document that was true when written still reads as authoritative after the cod
 ```bash
 code=$(git log -1 --format=%H -- src/rate-limiter.js)
 doc=$(git log -1 --format=%H -- docs/rate-limiter.md)
-if [ "$code" = "$doc" ]; then echo "current: changed together"
+if [ -z "$code" ] || [ -z "$doc" ]; then echo "can't tell: no history for one of the files"
+elif [ "$code" = "$doc" ]; then echo "current: changed together"
 elif git merge-base --is-ancestor "$doc" "$code"; then echo "stale: code changed after the doc"
 elif git merge-base --is-ancestor "$code" "$doc"; then echo "current: doc changed after the code"
 else echo "can't tell"; fi

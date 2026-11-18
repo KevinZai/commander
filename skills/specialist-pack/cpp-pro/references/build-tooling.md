@@ -358,6 +358,8 @@ cmake --build .
 
 ## CI/CD with GitHub Actions
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```yaml
 # .github/workflows/ci.yml
 name: CI

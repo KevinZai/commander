@@ -17,6 +17,8 @@ This is the reference. Adapt the patterns to your stack; keep the contract ident
 ```js
 #!/usr/bin/env node
 // floor-guard.mjs — diff-scoped enforcement of the CONSTRAINTS.md floor.
+// From addyosmani/agent-skills (MIT, Copyright (c) 2025 Addy Osmani). Keep this
+// line and ship the full MIT text (addyosmani-pack/LICENSE.txt) beside this file.
 // Usage: node floor-guard.mjs [--base <ref>]   (default base: origin/main)
 import { execFileSync } from 'node:child_process';
 

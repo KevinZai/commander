@@ -435,6 +435,8 @@ spec:
 
 ### Post-Install Hook (Test)
 
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -463,6 +465,10 @@ spec:
 # Create new chart
 helm create myapp
 
+# CCC safety: this walkthrough uses a disposable namespace. Removing a release
+# (helm uninstall) is a separate operation that runs only when the user asks for it.
+NS=myapp-demo
+
 # Lint chart
 helm lint myapp/
 
@@ -471,36 +477,33 @@ helm template myapp ./myapp -f values-prod.yaml
 
 # Install chart
 helm install myapp ./myapp \
-  --namespace production \
+  --namespace "$NS" \
   --create-namespace \
   --values values-prod.yaml \
   --set image.tag=v1.2.0
 
 # Upgrade chart
 helm upgrade myapp ./myapp \
-  --namespace production \
+  --namespace "$NS" \
   --values values-prod.yaml \
   --set image.tag=v1.3.0 \
   --atomic \
   --timeout 5m
 
 # Rollback
-helm rollback myapp 1 --namespace production
+helm rollback myapp 1 --namespace "$NS"
 
 # List releases
-helm list --namespace production
+helm list --namespace "$NS"
 
-# Get values
-helm get values myapp --namespace production
+# Get values (CCC safety: values and manifests can hold Secret data; do not print them into a shared transcript)
+helm get values myapp --namespace "$NS"
 
 # Get manifest
-helm get manifest myapp --namespace production
-
-# Uninstall
-helm uninstall myapp --namespace production
+helm get manifest myapp --namespace "$NS"
 
 # Test
-helm test myapp --namespace production
+helm test myapp --namespace "$NS"
 
 # Package chart
 helm package myapp/ --version 1.2.0
@@ -602,6 +605,8 @@ check-version-increment: true
 ```
 
 ### Unit Testing with helm-unittest
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```bash
 # Install plugin
@@ -789,6 +794,8 @@ helm install myapp oci://myregistry.io/charts/mychart --version 1.2.0
 ```
 
 ## Helm Plugins
+
+> CCC safety: upstream example; do not run it as written. It pulls an image, package, chart, plugin or manifest by a moving reference. Pin each one to a reviewed version or digest, verify it, and confirm the target with the user first. Logged in the pack's `DECISIONS.md` (install-safety sweep).
 
 ```bash
 # helm-diff - preview upgrades

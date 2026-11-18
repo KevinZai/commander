@@ -66,10 +66,10 @@ The scientific package is BSD-3-Clause licensed; this skill is MIT licensed.
 ## Apply an existing strategy
 
 Set `FLOWKIT_SKILL_DIR` to this skill's installed directory. From the repository
-root it is `skills/flowkit`. Paths below represent the user's local inputs.
+root it is `skills/science-pack/flowkit`. Paths below represent the user's local inputs.
 
 ```bash
-FLOWKIT_SKILL_DIR="skills/flowkit"
+FLOWKIT_SKILL_DIR="skills/science-pack/flowkit"
 uv run --no-project --python 3.13 --with "flowkit==1.3.2" \
   python "$FLOWKIT_SKILL_DIR/scripts/analyze_gates.py" \
   --gatingml gates.xml --fcs sample.fcs --output-dir results-gatingml

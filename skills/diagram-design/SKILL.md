@@ -14,12 +14,9 @@ CC Commander does not copy its source (about 6 MB of references, icons and scrip
 
 Claude Code (gets updates and the `/export-diagram`, `/import-mermaid`, `/import-plantuml`, `/profile` and `/doctor` commands):
 
-```text
-/plugin marketplace add cathrynlavery/diagram-design
-/plugin install diagram-design@diagram-design
-```
+Install from the upstream README, reviewed at [`f6db0de`](https://github.com/cathrynlavery/diagram-design/tree/f6db0decea96de66b901331a0f79a8d4b147ebae#readme). CCC safety: the plugin marketplace serves the current upstream revision, not the reviewed one. Before installing, confirm the marketplace source is `github.com/cathrynlavery/diagram-design` itself and not a same-named plugin from another publisher, and tell the user if upstream has changed since `f6db0de`.
 
-Any other Agent Skills host (Codex, Cursor, Cline, Windsurf): `npx skills add cathrynlavery/diagram-design`, updated with `npx skills update diagram-design`.
+Any other Agent Skills host (Codex, Cursor, Cline, Windsurf): follow the same README's instructions for that host, with the same revision check.
 
 Check first: if `claude plugin list` already shows `diagram-design`, skip the install.
 

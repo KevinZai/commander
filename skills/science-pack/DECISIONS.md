@@ -178,7 +178,7 @@ MIT-licensed and eligible, but left out to keep the pack under the 6 MB budget a
 
 ## Safety notes added
 
-Upstream instructions were checked for force-push, hook skipping, auto-merge and unasked third-party data sends ([docs/tstack/SAFETY.md](../../docs/tstack/SAFETY.md)). None of the included skills tells the agent to force-push, skip hooks or auto-merge. The changes, each marked "CCC safety:" in the skill:
+Upstream instructions were checked for force-push, hook skipping, auto-merge and unasked third-party data sends (`docs/tstack/SAFETY.md` in the Commander repository; not shipped with installed packs). None of the included skills tells the agent to force-push, skip hooks or auto-merge. The changes, each marked "CCC safety:" in the skill:
 
 | Skill | Upstream behavior | CCC safety note | Rule |
 |---|---|---|---|
@@ -187,7 +187,7 @@ Upstream instructions were checked for force-push, hook skipping, auto-merge and
 | `pyzotero` | Creates, updates, deletes and uploads Zotero items | Show the planned change and ask before every write or delete | R8 |
 | `exa-search`, `bgpt-paper-search`, `alphagenome`, `esm`, `pyzotero`, `tiledbvcf`, `pymatgen`, `paper-lookup`, `ontology-term-resolution`, `scientific-critical-thinking` | Send queries or user inputs to hosted services | Ask before sending unpublished user data; keys come only from the user's own environment | data |
 
-Every copied SKILL.md ends with a `## Source` section (repository, path, pinned commit, MIT, license location) and lists its CCC edits there. No upstream description contained `<` or `>`, so no description was rewritten.
+Every copied SKILL.md ends with a `## Source` section (repository, path, pinned commit, MIT, license location). Most list their CCC edits there; NOTICE.md and this file are the full record. No upstream description contained `<` or `>`, so no description was rewritten.
 
 ## Third Codex pass (2026-11-18)
 
@@ -195,9 +195,22 @@ Fixed, because an agent could run them as written:
 - 52 command paths of the form `skills/<child>/scripts` now read `skills/science-pack/<child>/scripts`, so they resolve from the Commander root.
 - `bgpt-paper-search` pins `mcp-remote@0.16.6`. `mageck` verifies the archive's SHA-256 before extracting or running `setup.py`. `alphagenome` tells the user to set the key in their own terminal instead of typing it into the session.
 
+## Install-safety sweep (2026-11-18)
+
+Every added line was grepped for unpinned `npx`, package installs without exact versions, `:latest` and undigested images, download-and-execute, moving manifest URLs, dotenv loading and secrets in argv. Each hit was pinned or rewritten:
+
+- Images by digest: `diffdock` (`v1.1.3`, checked on Docker Hub; in SKILL.md and `setup_check.py`), `cellprofiler` (4.2.8) and `qiime2-amplicon` (2026.7), using the digests their references already recorded. DiffDock's first-run weight download is disclosed, with a hash check before use.
+- Packages at exact versions: `alphagenome==0.9.0` (the tested version), `exa-py==2.23.0` (also in the scripts' inline `uv` metadata, so a cold `uv run` installs exactly that), `git-annex`, `tiledbsoma-ml`, and the `bulk-rnaseq` hand-offs (`pydeseq2`, `gseapy`, `gprofiler-official`, `pytximport`). Requirements files were already pinned.
+- `bgpt-paper-search`: `mcp-remote@0.16.6` is installed once as an exact dependency and launched with `npx --no-install`.
+- Secrets: `pyzotero` no longer loads `.env` (named `ZOTERO_*` variables only); `paper-lookup` reads keys only from the environment and sends the Semantic Scholar key through `-H @<(printf ...)`, out of curl's argv; key exports use `read -rs`, so values stay out of shell history.
+- Paths: every command path `skills/<child>/...` in the pack now reads `skills/science-pack/<child>/...` (flowkit, opentrons-integration, cantera and pycalphad inputs included); the upstream `Path:` lines in Source sections are unchanged.
+- Outputs: `exa_search.py` and `exa_extract.py` refuse to overwrite `-o` unless `--force` is given; the Zarr example writes into a fresh temp directory.
+- `scientific-critical-thinking`: the schematic generator is optional and runs only when the user installed it separately and agreed to the OpenRouter call.
+
+The `curl ... | python3 scripts/<parser>.py -` lines in `paper-lookup` pipe API data into a bundled parser; they do not execute downloaded code.
+
 ## Upstream notes (logged, not fixed)
 
-- `diffdock` runs an unpinned (`latest`) container image; `cellprofiler` and `qiime2-amplicon` reference images and integration tests that live outside Commander.
-- `paper-lookup` passes the Semantic Scholar key on the curl command line, and its client scripts, plus the `ontology-term-resolution` ones, read whole remote responses into memory.
-- `ontology-term-resolution` refers to `skills/scientific-schematics/scripts`, a skill that is not in this pack.
-- The per-child Source sections do not list every Commander edit; NOTICE.md is the full record.
+- `cellprofiler` and `qiime2-amplicon` name integration tests that live in the upstream repository, not in Commander.
+- The `paper-lookup` and `ontology-term-resolution` clients read whole remote responses into memory.
+- The upstream `scientific-schematics` skill is not in this pack.

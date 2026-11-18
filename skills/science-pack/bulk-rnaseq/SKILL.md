@@ -81,8 +81,8 @@ Length-scaled counts must not receive a second transcript-length correction.
 uv pip install "pytximport==0.13.0" pandas numpy
 
 # Downstream skills install their own deps:
-#   pydeseq2 skill           -> uv pip install pydeseq2
-#   pathway-enrichment skill -> uv pip install gseapy gprofiler-official
+#   pydeseq2 skill           -> uv pip install pydeseq2==0.6.0
+#   pathway-enrichment skill -> uv pip install gseapy==1.3.2 gprofiler-official==1.0.0
 
 # Path A (nf-core): only Nextflow + a container engine are needed — see the `nextflow` skill.
 

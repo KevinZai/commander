@@ -32,13 +32,13 @@ Add the following to your project's `.mcp.json` or Claude Code settings:
   "mcpServers": {
     "chrome-devtools": {
       "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@1.13.0", "--isolated", "--no-usage-statistics", "--no-performance-crux"]
+      "args": ["--no-install", "chrome-devtools-mcp", "--isolated", "--no-usage-statistics", "--no-performance-crux"]
     }
   }
 }
 ```
 
-`-y` skips the npx install confirmation. By default the server launches Chrome with its own dedicated profile (under `~/.cache/chrome-devtools-mcp/`), separate from your personal browser; `--isolated` goes one step further and uses a temporary profile that is wiped when the browser closes. This is the right setup for most testing.
+CCC safety: install the server once as an exact dev dependency (`npm install --save-dev --save-exact chrome-devtools-mcp@1.13.0`, which records its integrity hash in the project lockfile; show the user the command first). `--no-install` then runs only that locked copy and stops instead of fetching from the registry when it is missing. By default the server launches Chrome with its own dedicated profile (under `~/.cache/chrome-devtools-mcp/`), separate from your personal browser; `--isolated` goes one step further and uses a temporary profile that is wiped when the browser closes. This is the right setup for most testing.
 
 CCC safety: keep `--no-usage-statistics` and `--no-performance-crux`. Without them the server sends usage statistics to Google and looks up tested URLs in the public CrUX dataset; turn either back on only when the user asks.
 
