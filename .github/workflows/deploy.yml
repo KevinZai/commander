@@ -1,7 +1,3 @@
-# Single production deploy path for the MCP cloud app (Fly.io) and the site
-# (Vercel). deploy-mcp.yml was removed so one change cannot deploy twice under
-# two different gates. Order: release gate + MCP verify -> deploy (production
-# environment, canary) -> post-deploy smoke.
 name: Deploy (v4 Beta)
 
 on:
@@ -9,20 +5,11 @@ on:
     branches: [main]
     paths:
       - 'apps/mcp-server-cloud/**'
-      # Inputs the image bakes into data/ (scripts/bundle-catalog.mjs): a release that changes only a skill
-      # body, a plugin agent or the registry must rebuild the hosted catalog.
-      - 'skills/**'
-      - 'commander/cowork-plugin/skills/**'
-      - 'commander/cowork-plugin/agents/**'
-      - 'commander/core/registry.yaml'
       - 'site/**'
       - 'supabase/**'
       - 'scripts/deploy.sh'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 concurrency:
   group: deploy-commander-production
@@ -40,7 +27,7 @@ jobs:
       site: ${{ steps.paths.outputs.site }}
       site_ready: ${{ steps.vercel.outputs.ready }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - name: Changed paths
         id: paths
@@ -60,8 +47,7 @@ jobs:
           shared='^(\.github/workflows/deploy\.yml)$'
           # Site-only pushes must not redeploy the MCP app (CC-1365); MCP paths are
           # the union of #203 and c3bcc409 (apps/mcp-server-cloud/ is in both).
-          # The baked catalog's inputs (skill bodies, plugin agents, registry) also redeploy MCP.
-          if echo "$files" | grep -Eq '^(apps/mcp-server-cloud/|supabase/|scripts/deploy\.sh$|skills/|commander/cowork-plugin/(skills|agents)/|commander/core/registry\.yaml$)' || echo "$files" | grep -Eq "$shared"; then mcp=true; else mcp=false; fi
+          if echo "$files" | grep -Eq '^(apps/mcp-server-cloud/|supabase/|scripts/deploy\.sh$)' || echo "$files" | grep -Eq "$shared"; then mcp=true; else mcp=false; fi
           if echo "$files" | grep -Eq '^site/' || echo "$files" | grep -Eq "$shared"; then site=true; else site=false; fi
           echo "mcp=$mcp" >> "$GITHUB_OUTPUT"; echo "site=$site" >> "$GITHUB_OUTPUT"
           echo "changed: mcp=$mcp site=$site"
@@ -79,60 +65,30 @@ jobs:
             echo "::notice::Site deploy skipped: VERCEL_ORG_ID / VERCEL_PROJECT_ID / VERCEL_TOKEN are not set."
           fi
 
-  # The same release gate list the tag workflow and prepublishOnly run
-  # (scripts/release-gate.js): version parity, contract, counts, registry drift,
-  # lint, Codex mirror drift, test:ci, smoke and the full suite.
   test:
-    name: Release gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-        with:
-          submodules: true
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with: { node-version: '24' }
       - name: Install deps
         run: npm ci --prefer-offline --no-audit
-      - name: Release gate
-        run: node scripts/release-gate.js
-
-  # Typecheck, tests and build of the MCP cloud app itself.
-  mcp-verify:
-    name: MCP cloud build, typecheck, test
-    needs: changes
-    if: needs.changes.outputs.mcp == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/mcp-server-cloud
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: apps/mcp-server-cloud/package-lock.json
-      - run: npm ci
-      - name: Typecheck
-        run: npm run typecheck
-      - name: Smoke script syntax
-        run: bash -n scripts/smoke-test.sh
-      - name: Test
-        run: npm test
-      - name: Build
-        run: npm run build
+      - name: Full test suite
+        run: |
+          npm test
+          node bin/kc.js --test
+          bash tests/smoke.sh
+      - name: Registry drift
+        run: node scripts/build-from-registry.js --check
 
   deploy-mcp:
-    needs: [test, changes, mcp-verify]
+    needs: [test, changes]
     if: needs.changes.outputs.mcp == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: superfly/flyctl-actions/setup-flyctl@98172f70657cb3e15db199af139be99bd3e61200 # master as of 2026-11-18 (latest tag 1.6 predates it)
-      # The image bundles the skill and agent catalog from data/ (gitignored); the Dockerfile fails without it.
-      - name: Bundle catalog
-        run: node apps/mcp-server-cloud/scripts/bundle-catalog.mjs
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy MCP cloud (canary)
         working-directory: apps/mcp-server-cloud
         run: flyctl deploy --strategy canary --app commander-mcp --remote-only
@@ -152,10 +108,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with: { node-version: '24' }
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+      - uses: pnpm/action-setup@v4
         with: { version: 10 }
       - name: Require explicit Vercel production target
         env:

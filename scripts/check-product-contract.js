@@ -68,8 +68,13 @@ var JSON_SURFACES = [
   'package.json',
   'commander/cowork-plugin/.claude-plugin/plugin.json',
   '.claude-plugin/marketplace.json',
-  'apps/mcp-server-cloud/package.json',
+  // apps/mcp-server-cloud/package.json is deliberately NOT a count surface:
+  // any push under apps/mcp-server-cloud/** triggers the Fly deploy workflows,
+  // so a skills or hooks count change must never require editing it.
 ];
+
+// Paths a count check or --patch must never require edits under (deploy triggers).
+var NO_COUNT_SURFACE_PREFIXES = ['apps/mcp-server-cloud/', 'supabase/'];
 
 function parseArgs(argv) {
   var args = {
@@ -1035,4 +1040,6 @@ module.exports = {
   scanTextSurface: scanTextSurface,
   checkUpgradeGuideCurrency: checkUpgradeGuideCurrency,
   TEXT_SURFACES: TEXT_SURFACES,
+  JSON_SURFACES: JSON_SURFACES,
+  NO_COUNT_SURFACE_PREFIXES: NO_COUNT_SURFACE_PREFIXES,
 };

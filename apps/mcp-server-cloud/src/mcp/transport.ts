@@ -18,7 +18,6 @@ import { TOOL_NAMES, TOOL_SCHEMAS, type ToolAnnotations, type ToolName } from ".
 import type { AuthContext } from "../middleware/auth.js";
 import { SERVER_VERSION } from "../lib/version.js";
 import { logger } from "../lib/logger.js";
-import { readJsonBody } from "../lib/request-body.js";
 
 export type McpTransportDeps = {
   dispatchTool: (
@@ -114,21 +113,8 @@ export function createMcpTransportApp(deps: McpTransportDeps): Hono {
       sessionIdGenerator: undefined, // stateless — no session affinity needed
       enableJsonResponse: true, // plain JSON for single-response POSTs
     });
-    // A POST body was already read and billed by the rate limiter; dispatch
-    // that same parsed value instead of reading the stream a second time.
-    let parsedBody: unknown;
-    if (c.req.method === "POST") {
-      const body = await readJsonBody(c);
-      if (!body.ok) {
-        return c.json(
-          { jsonrpc: "2.0", error: { code: body.status === 413 ? -32600 : -32700, message: body.error }, id: null },
-          body.status
-        );
-      }
-      parsedBody = body.value;
-    }
     await server.connect(transport);
-    const response = await transport.handleRequest(c, parsedBody);
+    const response = await transport.handleRequest(c);
     return response ?? c.json({ error: "Empty transport response" }, 500);
   });
 

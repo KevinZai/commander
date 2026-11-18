@@ -9,7 +9,7 @@ pre-paywall baseline. Arming it is a config change, not a deploy.
 
 | Piece | Where | State when unconfigured |
 |---|---|---|
-| Tier domain `free \| pro \| founders`, billing columns, `stripe_events` | `supabase/migrations/20261118000000_reconcile_hosted_schema.sql` (see README.md "Database") | `founders` simply unused |
+| Tier domain `free \| pro \| founders` | `src/db/migrations/002_paywall_tiers.sql` (existing DBs) / `src/db/schema.sql` (fresh) | `founders` simply unused |
 | 100-call/mo free-tier cap | `src/lib/paywall.ts`, applied in `src/middleware/ratelimit.ts` + `src/tools/status.ts` | pass-through (dark) |
 | Stripe webhook (tier flips) | `src/routes/stripe-webhook.ts` → `POST /webhooks/stripe` | returns 503 |
 | `/mcp` streamable-HTTP + OAuth resource server | `src/mcp/*`, metadata in `src/index.ts` | `/mcp` accepts license JWTs only; metadata omits `authorization_servers` |
@@ -39,16 +39,10 @@ raises a cap, only lowers it. `pro` and `founders` map to 100000/mo in the RPC
 
 ### 1. Database migration (once, before anything else)
 
-Apply `supabase/migrations/20261118000000_reconcile_hosted_schema.sql`, then
-`supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql` (the
-webhook's event-claim and ordered-apply RPCs, and `reserve_call`), then
-`supabase/migrations/20261120000000_stripe_claim_tokens.sql` (claim ownership
-tokens the webhook sends to complete or release an event)
-(all idempotent; how depends on how the database was built — README.md
-"Database"). It adds `founders` to the tier check, the Stripe columns
-(`stripe_customer_id`, `stripe_subscription_id`, `stripe_subscription_status`,
-`stripe_subscription_event_at`), `founders_granted_at`, the `stripe_events`
-idempotency table, and founders cap parity in `get_effective_cap`.
+Run `src/db/migrations/002_paywall_tiers.sql` in the Supabase SQL Editor
+(idempotent). Adds `founders` to the tier check, `stripe_customer_id` /
+`stripe_subscription_id` columns, and founders cap parity in
+`get_effective_cap`.
 
 ### 2. Stripe (Dashboard — this code never creates Stripe objects)
 
@@ -59,10 +53,8 @@ idempotency table, and founders cap parity in `get_effective_cap`.
    there is no code-side counter).
 3. Developers → Webhooks → Add endpoint:
    `https://mcp.commanderplugin.com/webhooks/stripe`
-   Events: `checkout.session.completed`,
-   `checkout.session.async_payment_succeeded`, `customer.subscription.created`,
-   `customer.subscription.updated`, `customer.subscription.deleted`. Note the
-   signing secret (`whsec_…`).
+   Events: `checkout.session.completed`, `customer.subscription.created`,
+   `customer.subscription.deleted`. Note the signing secret (`whsec_…`).
 4. Checkout links MUST carry user identity so the webhook can map the
    payment to a key record:
    - set `client_reference_id` to the CC Commander `user_id` (payment links
@@ -82,28 +74,9 @@ fly secrets set \
   --app commander-mcp
 ```
 
-Tier behavior:
-
-- `customer.subscription.created`/`.updated` with a pro price → `pro` while
-  the subscription status is `active`, `trialing` or `past_due`, otherwise
-  `free`; `customer.subscription.deleted` → `free`.
-- A payment-mode checkout with founders metadata and `payment_status: paid`
-  → `founders`. An unpaid (async payment method) checkout grants nothing until
-  `checkout.session.async_payment_succeeded`.
-- Founders is lifetime. `founders_granted_at` is recorded separately, and no
-  subscription event changes the tier while it is set. To revoke deliberately
-  (for example after a refund), clear `founders_granted_at` and set `tier` in
-  the same update.
-
-Delivery: a fulfillment step that cannot complete (database error, customer
-not linked yet, no user matches a paid checkout) answers non-2xx, so Stripe
-retries for up to three days. A `customer.subscription.created` that arrives
-before `checkout.session.completed` links the customer therefore succeeds on
-a later retry. Each fully applied event id is stored in `stripe_events`, and
-a redelivery of it is acknowledged with no side effects. Subscription events
-older than the last applied one for that user are ignored. A failing delivery
-in the Stripe dashboard means a payment is not yet fulfilled; check the
-server logs for `Stripe fulfillment deferred` or `Stripe webhook handler error`.
+Tier flip behavior: `subscription.created` with a pro price → `pro`;
+`subscription.deleted` → `free` (founders never downgraded — lifetime);
+payment-mode `checkout.session.completed` with founders metadata → `founders`.
 
 ### 3. OAuth issuer (required for the ChatGPT Work connector flow)
 
@@ -116,12 +89,8 @@ mint them. Kevin must stand up or designate an OAuth 2.1 authorization server
 - publishes JWKS (asymmetric signing — RS256/ES256/EdDSA),
 - mints access tokens with `iss` = `OAUTH_ISSUER_URL`, `aud` =
   `OAUTH_RESOURCE_URL`, and a `sub` equal to the CC Commander `user_id`
-  (UUID) **or** an `email` claim matching `users.email` together with
-  `email_verified: true`. An email the issuer has not verified is never used
-  for linking. The first successful match stores an (`iss`, `sub`) binding in
-  `oauth_identities`; later tokens resolve through that binding, so an email
-  change at the issuer cannot move the account. Delete the binding row to
-  unlink an identity.
+  (UUID) **or** an `email` claim matching `users.email` — that is how tokens
+  map to the same key records as `/v1` Bearer license keys.
 
 ```bash
 fly secrets set \

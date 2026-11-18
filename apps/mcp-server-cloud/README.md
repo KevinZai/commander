@@ -100,78 +100,6 @@ All `/v1` routes require: `Authorization: Bearer <license-key>`
 
 License key is issued on beta signup at `commanderplugin.com/beta`.
 
-License JWTs are HS256 tokens signed with `JWT_SECRET` whose `sub` is the
-`users.user_id`. Mint them with a `kv` claim equal to the user's
-`users.key_version`. Rotating `users.license_key` bumps `key_version` in the
-database, and the server then rejects every token minted for the old key
-(`401 Token revoked`). Tokens without `kv` count as version 1, so existing
-tokens keep working until the user's key is first rotated. To revoke a user's
-tokens without changing the key, increment `key_version`.
-
-OAuth tokens on `/mcp` resolve through a stored issuer + subject binding
-(`oauth_identities`). The first link uses a `sub` equal to `users.user_id`, or
-the `email` claim when the issuer also sends `email_verified: true`. See
-`PAYWALL.md` §3.
-
-## Database
-
-The schema is one ordered migration chain in
-[`supabase/migrations/`](../../supabase/migrations) at the repository root:
-
-| Order | File | Purpose |
-|---|---|---|
-| 1 | `20260417000000_beta_v4.sql` | Original beta tables (history, unchanged) |
-| 2 | `20261118000000_reconcile_hosted_schema.sql` | Converges every earlier setup on one end state |
-| 3 | `20261119000000_quota_reserve_and_stripe_claims.sql` | Atomic `reserve_call(text, text, integer)`; Stripe event claims and the ordered `apply_stripe_subscription` |
-| 4 | `20261120000000_stripe_claim_tokens.sql` | Stripe event claims carry an ownership token; complete and release need it |
-
-The end state: text `user_id` keys; `users`, `usage_counters`, `surveys`,
-`feedback`, `agent_messages`, `stripe_events`, `oauth_identities`, `creators`
-and `creator_clicks`; the `creators_public` view; and the
-`get_effective_cap(text)`, `increment_usage(text, text)`,
-`reserve_call(text, text, integer)`, `claim_stripe_event`,
-`complete_stripe_event`, `release_stripe_event`, `apply_stripe_subscription`
-and `increment_creator_clicks(text)` RPCs. Every quota and billing RPC is
-executable by `service_role` only. Only `service_role` can read or write
-billing, identity and quota data. A `users_guard` trigger keeps
-`anon`/`authenticated` off every `users` column except `last_seen_at`. The
-same trigger pins `tier = 'founders'` while `founders_granted_at` is set, and
-bumps `key_version` when an issued license key changes.
-
-- **New database:** `supabase link --project-ref <ref>`, then `supabase db push`.
-- **Database built from the chain (beta_v4):** `supabase db push` applies the
-  migrations it has not recorded, in order (2 to 4).
-- **Database built from `src/db/schema.sql`** (with or without
-  `src/db/migrations/002_paywall_tiers.sql` and `src/db/creators-schema.sql`):
-  run `supabase/migrations/20261118000000_reconcile_hosted_schema.sql` and then
-  `supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql` and
-  `supabase/migrations/20261120000000_stripe_claim_tokens.sql` once each, in
-  that order, in the SQL Editor. Then record the chain as applied with
-  `supabase migration repair --status applied 20260417000000 20261118000000 20261119000000 20261120000000`.
-  `beta_v4` cannot run on that database's uuid keys. The reconcile file
-  converts them to text.
-
-The reconcile migration is idempotent. Apply it **before** deploying a server
-build that includes it. The Stripe webhook needs `stripe_events` and the new
-`users` billing columns, and answers non-2xx (Stripe retries) until they exist.
-Without `users.key_version`, license-token revocation is not enforced; the
-server logs an error and falls back to the legacy lookup.
-
-`src/db/schema.sql`, `src/db/migrations/002_paywall_tiers.sql` and
-`src/db/creators-schema.sql` are legacy snapshots kept for databases that
-already applied them. Do not build new databases from them.
-
-To verify the chain locally (disposable Postgres 15+ only):
-
-```bash
-CCC_SQL_TEST_DISPOSABLE=1 PGHOST=<socket dir> PGPORT=<port> PGUSER=postgres \
-  supabase/tests/verify-migrations.sh
-```
-
-The script builds a clean install and an upgrade from the legacy snapshot,
-then asserts role privileges, quota RPCs, founders pinning, key rotation and
-the creators view on both.
-
 ## Rate Limits
 
 - Burst: 60 requests/minute
@@ -200,7 +128,7 @@ bash scripts/test-against-prod.sh --target=https://commander-mcp.fly.dev
 
 ## Deploy
 
-Production deploys run on Fly.io app `commander-mcp` in `iad` from `.github/workflows/deploy.yml`, the single deploy path. It runs `node apps/mcp-server-cloud/scripts/bundle-catalog.mjs` before `flyctl deploy`; see [DEPLOY.md](DEPLOY.md) for the bundling step and the two migrations to apply first.
+Production deploys run on Fly.io app `commander-mcp` in `iad` from `.github/workflows/deploy-mcp.yml`.
 
 Prereqs:
 

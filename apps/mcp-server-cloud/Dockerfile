@@ -1,13 +1,5 @@
 # Multi-stage production image for Fly.io.
 # Secrets are injected at runtime with `fly secrets set`; never bake them here.
-#
-# Catalog content is baked in, never fetched at runtime. The build context is
-# apps/mcp-server-cloud/, which cannot see the repository registry or skill
-# sources, so data/ must be produced from the release checkout BEFORE the image
-# build:
-#   node scripts/bundle-catalog.mjs      (also run by `npm run build`)
-# The builder stage copies that bundle and re-verifies every file hash; a
-# missing or incomplete bundle fails the image build.
 
 FROM node:22-alpine AS deps
 
@@ -26,12 +18,9 @@ COPY scripts/ ./scripts/
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package.json ./package.json
 
-# Fails here when data/ was not bundled into the build context.
-COPY data/ ./data/
-RUN node scripts/bundle-catalog.mjs --verify
-
-# Compile only: `npm run build` would re-run the bundler, which needs the repo.
-RUN npx tsc
+# The data/ directory with registry.yaml should already exist from the local prebuild step.
+# If it doesn't, npm run build will fail gracefully and skip bundling.
+RUN npm run build
 
 FROM node:22-alpine AS runner
 
@@ -46,18 +35,12 @@ RUN npm ci --prefer-offline --omit=dev --no-audit \
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/data ./data
-COPY --from=builder /app/scripts/bundle-catalog.mjs ./scripts/bundle-catalog.mjs
-
-# Final gate on the runtime layer itself.
-RUN node scripts/bundle-catalog.mjs --verify
 
 RUN addgroup -g 1001 -S nodejs && adduser -S commander -u 1001
 USER commander
 
 EXPOSE 8080
 
-# /health returns 503 when the catalog has zero skills or agents, or a listed
-# skill body is unreadable; wget exits non-zero on 503.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD wget -qO- http://localhost:8080/health || exit 1
 

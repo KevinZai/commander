@@ -14,7 +14,6 @@ export { getStatus } from "./status.js";
 export { checkUpdate } from "./update.js";
 export { initProject } from "./init.js";
 export { pinNote } from "./notes-pin.js";
-import { NOTES_STORAGE_DISCLOSURE, NOTE_MAX_CHARS } from "./notes-pin.js";
 export { pushTask } from "./tasks-push.js";
 export { integratePlan } from "./plan-integrate.js";
 export { installSkill } from "./install-skill.js";
@@ -202,16 +201,14 @@ export const TOOL_SCHEMAS: Record<ToolName, ToolSchema> = {
     },
   },
   commander_notes_pin: {
-    // Inserts a new note through Supabase on every pin; action "delete" removes
-    // the caller's notes, so the tool is destructive and not idempotent.
-    annotations: { title: "Pin note", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
-    description: `Save a note to the Commander cross-session knowledge store, or delete your saved notes. Unlike other Commander tools, this one STORES your input. ${NOTES_STORAGE_DISCLOSURE}`,
+    // Inserts a new note through Supabase on every call; additive, not idempotent.
+    annotations: { title: "Pin note", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+    description: "Save a note to the Commander cross-session knowledge store. Returns confirmation with a preview of the pinned content. Notes persist across sessions for later retrieval.",
     inputSchema: {
       type: "object",
+      required: ["note"],
       properties: {
-        note: { type: "string", description: `Note text to persist server-side (required for action "pin"; max ${NOTE_MAX_CHARS} characters; e.g. a decision, a pattern, a lesson learned).` },
-        action: { type: "string", enum: ["pin", "delete"], description: "'pin' (default) stores the note; 'delete' removes your pinned notes." },
-        note_id: { type: "string", description: "With action 'delete': the id returned by a pin, to delete one note. Omit to delete all of your notes." },
+        note: { type: "string", description: "Note text to persist (max 2000 characters; e.g. a decision, a pattern, a lesson learned)." },
       },
     },
   },

@@ -15,7 +15,6 @@
 
 import { Hono } from "hono";
 import { logger } from "../lib/logger.js";
-import { readBodyWithLimit } from "../lib/request-body.js";
 
 // ─── Configuration ─────────────────────────────────────────────────────────
 const MAX_EVENTS_PER_BATCH = 50;
@@ -35,16 +34,7 @@ const ALLOWED_EVENTS = new Set([
   // Generic skill/agent tracking
   "skill_invoked",
   "agent_dispatched",
-  // Activation: sent once per install when a flagship skill finishes its first result
-  "first_result",
-  // Skill routing (commander/cowork-plugin/hooks/intent-classifier.js logRouteEvent): counted, then discarded
-  "route_offered",
-  "route_outcome",
-  "route_next_offered",
 ]);
-
-// Flagship skills a first_result may name; anything else is counted as "other".
-const FIRST_RESULT_SKILLS = new Set(["ccc-start", "ccc-xray", "ccc-plan", "ccc-build", "ccc-review", "ccc-ship"]);
 
 // Keys in this allowlist are NEVER scrubbed regardless of regex match.
 // Add known-safe event-schema keys here when the regex would produce false positives.
@@ -158,23 +148,12 @@ if (typeof pruneInterval.unref === "function") {
 }
 
 // ─── Aggregate discard counters ─────────────────────────────────────────────
-// Process-lifetime totals only. No per-device breakdown, so nothing here can be
-// tied back to an anon device ID. The one per-name figure is first_result by
-// flagship skill: each install sends it once, so the count is the number of
-// activated installs since the process started.
+// Process-lifetime totals only. No per-device or per-event-name breakdown, so
+// nothing here can be tied back to an anon device ID.
 const telemetryCounters = { batches: 0, eventsDiscarded: 0 };
-const firstResults: Record<string, number> = {};
 
-function getTelemetryCounters(): { batches: number; eventsDiscarded: number; firstResults: Record<string, number> } {
-  return { ...telemetryCounters, firstResults: { ...firstResults } };
-}
-
-function countFirstResult(evt: EventBody): void {
-  if (evt.name !== "first_result") return;
-  const skill = typeof evt.properties.skill === "string" && FIRST_RESULT_SKILLS.has(evt.properties.skill)
-    ? evt.properties.skill
-    : "other";
-  firstResults[skill] = (firstResults[skill] ?? 0) + 1;
+function getTelemetryCounters(): { batches: number; eventsDiscarded: number } {
+  return { ...telemetryCounters };
 }
 
 // ─── Validation helpers ─────────────────────────────────────────────────────
@@ -236,22 +215,14 @@ function validateEvent(raw: unknown): ValidationResult {
   };
 }
 
-// ─── Bounded body reader ────────────────────────────────────────────────────
-// Shared with the tool-call path; see lib/request-body.ts.
-export { readBodyWithLimit } from "../lib/request-body.js";
-
 // ─── Router ─────────────────────────────────────────────────────────────────
 export const eventsRouter = new Hono();
 
 eventsRouter.post("/", async (c) => {
-  // Streaming byte limit first, then parse.
-  const raw = await readBodyWithLimit(c.req.raw, MAX_PAYLOAD_BYTES);
-  if (!raw.ok) {
-    return c.json({ error: raw.error }, raw.status);
-  }
+  // Parse JSON body
   let body: unknown;
   try {
-    body = JSON.parse(raw.text);
+    body = await c.req.json();
   } catch {
     return c.json({ error: "Invalid JSON body" }, 400);
   }
@@ -277,9 +248,8 @@ eventsRouter.post("/", async (c) => {
     );
   }
 
-  // Second, decoded-schema cap: UTF-8 bytes of the parsed value re-serialised
-  // (string length would undercount multibyte characters).
-  const payloadSize = Buffer.byteLength(JSON.stringify(body), "utf8");
+  // Payload size cap
+  const payloadSize = JSON.stringify(body).length;
   if (payloadSize > MAX_PAYLOAD_BYTES) {
     return c.json({ error: `Payload exceeds ${MAX_PAYLOAD_BYTES} byte limit` }, 413);
   }
@@ -331,7 +301,6 @@ eventsRouter.post("/", async (c) => {
   const accepted = validated.length;
   telemetryCounters.batches++;
   telemetryCounters.eventsDiscarded += accepted;
-  for (const evt of validated) countFirstResult(evt);
   logger.info(
     {
       accepted,
@@ -352,6 +321,6 @@ eventsRouter.post("/", async (c) => {
 });
 
 // Exported for tests
-export { MAX_PAYLOAD_BYTES, validateEvent, checkRateLimit, ALLOWED_EVENTS, FIRST_RESULT_SKILLS, scrubProperties, SCRUB_ALLOWLIST, SENSITIVE_PATTERN };
+export { validateEvent, checkRateLimit, ALLOWED_EVENTS, scrubProperties, SCRUB_ALLOWLIST, SENSITIVE_PATTERN };
 // Read by the /metrics handler in index.ts.
 export { getTelemetryCounters };

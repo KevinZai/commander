@@ -7,10 +7,9 @@ import { logger as honoLogger } from "hono/logger";
 import { cors } from "hono/cors";
 import { env } from "./lib/env.js";
 import { logger } from "./lib/logger.js";
-import { initRegistry, getRegistryState, getCatalogHealth } from "./lib/registry.js";
+import { initRegistry, getRegistryState } from "./lib/registry.js";
 import { authMiddleware } from "./middleware/auth.js";
-import { mcpRateLimitMiddleware, rateLimitMiddleware } from "./middleware/ratelimit.js";
-import { readJsonBody, validateCallBody } from "./lib/request-body.js";
+import { rateLimitMiddleware } from "./middleware/ratelimit.js";
 import {
   TOOL_NAMES,
   buildToolCatalog,
@@ -82,36 +81,16 @@ app.use(
 );
 
 // ─── Health check (no auth) ────────────────────────────────────────────────
-// Readiness, not liveness: 503 when the catalog is empty (zero skills or zero
-// agents), has no local source, or a listed skill body is unreadable, so Fly
-// and the Docker HEALTHCHECK refuse an image that would serve hints instead of
-// content. `catalog.counting_basis` says what `skills_loaded` counts.
 app.get("/health", (c) => {
   const reg = getRegistryState();
-  const catalog = getCatalogHealth();
-  return c.json(
-    {
-      status: catalog.ok ? "ok" : "unavailable",
-      version: SERVER_VERSION,
-      skills_loaded: catalog.skillsLoaded,
-      agents_loaded: catalog.agentsLoaded,
-      uptime_seconds: reg.uptimeSeconds,
-      last_refreshed: reg.lastRefreshed,
-      catalog: {
-        counting_basis: "hosted_catalog",
-        counting_note:
-          "skills_loaded counts every skill row in the hosted catalog (commander/core/registry.yaml `skills:`) = plugin_skills (commander/cowork-plugin/skills) + ecosystem_skills (the CLI toolkit's skills/).",
-        source: catalog.source,
-        release: catalog.release,
-        git_commit: catalog.gitCommit,
-        plugin_skills: catalog.pluginSkills,
-        ecosystem_skills: catalog.ecosystemSkills,
-        skills_missing_content: catalog.skillsMissingContent,
-        problems: catalog.problems,
-      },
-    },
-    catalog.ok ? 200 : 503
-  );
+  return c.json({
+    status: "ok",
+    version: SERVER_VERSION,
+    skills_loaded: reg.skillsLoaded,
+    agents_loaded: reg.agentsLoaded,
+    uptime_seconds: reg.uptimeSeconds,
+    last_refreshed: reg.lastRefreshed,
+  });
 });
 
 // ─── OpenAI Apps SDK domain verification (no auth) ─────────────────────────
@@ -185,12 +164,7 @@ app.get("/metrics", (c) => {
     "# HELP commander_telemetry_events_discarded_total Opt-in telemetry events accepted then discarded (not stored or forwarded)",
     "# TYPE commander_telemetry_events_discarded_total counter",
     `commander_telemetry_events_discarded_total ${telemetry.eventsDiscarded}`,
-    "# HELP commander_first_result_total Installs that finished their first flagship result (first_result is sent once per install)",
-    "# TYPE commander_first_result_total counter",
   ];
-  for (const [skill, n] of Object.entries(telemetry.firstResults)) {
-    lines.push(`commander_first_result_total{skill="${skill}"} ${n}`);
-  }
 
   for (const tool of Object.keys(callCounters)) {
     lines.push(`commander_tool_calls_total{tool="${tool}"} ${callCounters[tool]}`);
@@ -246,17 +220,75 @@ mcp.get("/sse", (c) => {
   });
 });
 
+// ─── Request body validation ──────────────────────────────────────────────
+// Lightweight runtime check — we avoid adding zod as a runtime dep. Matches the
+// known TOOL_SCHEMAS shape and rejects malformed input fast.
+function validateCallBody(body: unknown):
+  | { ok: true; kind: "call"; tool: string; args: Record<string, unknown>; jsonrpcId?: unknown }
+  | { ok: true; kind: "list"; jsonrpcId: string | number }
+  | { ok: false; error: string } {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return { ok: false, error: "Body must be a JSON object" };
+  }
+  const b = body as Record<string, unknown>;
+  if (b.jsonrpc === "2.0" && typeof b.method === "string") {
+    const params = b.params === undefined ? {} : b.params;
+    if (typeof params !== "object" || params === null || Array.isArray(params)) {
+      return { ok: false, error: "'params' must be an object" };
+    }
+
+    if (b.method === "tools/list") {
+      if (typeof b.id !== "string" && !(typeof b.id === "number" && Number.isFinite(b.id))) {
+        return { ok: false, error: "Missing or invalid JSON-RPC 'id' field" };
+      }
+      return { ok: true, kind: "list", jsonrpcId: b.id };
+    }
+
+    if (b.method === "tools/call") {
+      const p = params as Record<string, unknown>;
+      if (typeof p.name !== "string" || p.name.length === 0) {
+        return { ok: false, error: "Missing or invalid JSON-RPC 'params.name' field" };
+      }
+      const rawArgs = p.arguments ?? p.args ?? {};
+      if (typeof rawArgs !== "object" || rawArgs === null || Array.isArray(rawArgs)) {
+        return { ok: false, error: "JSON-RPC 'params.arguments' must be an object" };
+      }
+      return { ok: true, kind: "call", tool: p.name, args: rawArgs as Record<string, unknown>, jsonrpcId: b.id };
+    }
+
+    if (b.method.startsWith("commander_")) {
+      return { ok: true, kind: "call", tool: b.method, args: params as Record<string, unknown>, jsonrpcId: b.id };
+    }
+  }
+
+  if (typeof b.tool !== "string" || b.tool.length === 0) {
+    return { ok: false, error: "Missing or invalid 'tool' field" };
+  }
+  if (b.tool.length > 128) {
+    return { ok: false, error: "'tool' field too long" };
+  }
+  let args: Record<string, unknown> = {};
+  if (b.args !== undefined) {
+    if (typeof b.args !== "object" || b.args === null || Array.isArray(b.args)) {
+      return { ok: false, error: "'args' must be an object" };
+    }
+    args = b.args as Record<string, unknown>;
+  }
+  return { ok: true, kind: "call", tool: b.tool, args };
+}
+
 // ─── Tool call endpoint ────────────────────────────────────────────────────
 mcp.post("/call", async (c) => {
   const auth = c.get("auth") as AuthContext;
 
-  // The same parsed body the rate limiter billed (read once, byte-limited).
-  const body = await readJsonBody(c);
-  if (!body.ok) {
-    return c.json({ error: body.error }, body.status);
+  let rawBody: unknown;
+  try {
+    rawBody = await c.req.json();
+  } catch {
+    return c.json({ error: "Invalid JSON body" }, 400);
   }
 
-  const parsed = validateCallBody(body.value);
+  const parsed = validateCallBody(rawBody);
   if (!parsed.ok) {
     return c.json({ error: parsed.error }, 400);
   }
@@ -271,9 +303,7 @@ mcp.post("/call", async (c) => {
 
   const reqId = c.get("reqId");
   // PRIVACY: `args` are NOT logged here and NOT sent to any third party at any point in this
-  // handler. Tool inputs are processed transiently and NOT retained, with one disclosed
-  // exception: commander_notes_pin stores the note text (see tools/notes-pin.ts for the
-  // retention window and the delete action).
+  // handler. Tool inputs are processed transiently, server-side, and are NOT stored or retained.
   logger.info({ userId: auth.userId, tool, reqId }, "Tool call");
   const t0 = Date.now();
 
@@ -377,7 +407,7 @@ app.get("/.well-known/oauth-protected-resource/mcp", protectedResourceMetadata);
 // same burst + monthly-cap enforcement as /v1 — different wire protocol.
 const mcpStreamable = new Hono();
 mcpStreamable.use("*", mcpAuthMiddleware);
-mcpStreamable.use("*", mcpRateLimitMiddleware);
+mcpStreamable.use("*", rateLimitMiddleware);
 mcpStreamable.route(
   "/",
   createMcpTransportApp({ dispatchTool, recordCall })
