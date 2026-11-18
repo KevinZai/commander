@@ -267,7 +267,10 @@ if (args.includes('--skills')) {
   // bigint stats: large inode numbers (APFS, ZFS, NTFS file ids) do not lose precision.
   function fileId(p) { try { var st = fs.statSync(p, { bigint: true }); return st.dev + ':' + st.ino; } catch (_e) { return null; } }
   // Layered on top of the inode check: lexical and realpath comparisons, and roots.
-  function pathKey(p) { return path.resolve(p).replace(/[\\/]+$/, '').toLowerCase(); }
+  // Fold case only where the filesystem usually does (macOS, Windows); elsewhere a
+  // case-only alias is caught by the dev+ino comparison, not the path text.
+  var foldCase = process.platform === 'darwin' || process.platform === 'win32';
+  function pathKey(p) { var k = path.resolve(p).replace(/[\\/]+$/, ''); return foldCase ? k.toLowerCase() : k; }
   function realOrNull(p) { try { return fs.realpathSync.native(p); } catch (_e) { return null; } }
   function isRootPath(p) {
     var r = path.resolve(p);
@@ -324,11 +327,11 @@ if (args.includes('--skills')) {
       // filesystem follows an intermediate symlink. Let stat resolve the parent.
       var raw = fs.readlinkSync(dst).replace(/[\\/]+$/, '');
       var full = path.isAbsolute(raw) ? raw : path.dirname(dst) + path.sep + raw;
-      var cut = Math.max(full.lastIndexOf('/'), path.sep === '\\' ? full.lastIndexOf('\\') : -1);
-      if (cut < 0) return false;
-      var name = full.slice(cut + 1);
+      // path.dirname/basename split on the last separator without normalizing '..',
+      // and keep the drive root (C:\external -> C:\).
+      var name = path.basename(full);
       if (!name || name === '.' || name === '..') return false;
-      var parent = full.slice(0, cut) || path.sep;
+      var parent = path.dirname(full);
       return skillsSourceId !== null && fileId(parent) === skillsSourceId;
     } catch (_e) { return false; }
   }
