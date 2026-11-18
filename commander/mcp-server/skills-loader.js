@@ -150,9 +150,12 @@ function readSkillLicense(skillFile, skillMd) {
   var dirs = [dir];
   var parent = path.dirname(dir);
   if (path.basename(parent) !== 'skills' && parent !== dir) dirs.push(parent);
+  var declared = declaredLicenseName(skillMd);
+  // A declared file name is the only one that counts; otherwise any standard name.
+  var names = declared ? [declared] : LICENSE_NAMES;
   for (var i = 0; i < dirs.length; i++) {
-    for (var j = 0; j < LICENSE_NAMES.length; j++) {
-      var file = path.join(dirs[i], LICENSE_NAMES[j]);
+    for (var j = 0; j < names.length; j++) {
+      var file = path.join(dirs[i], names[j]);
       if (!fs.existsSync(file)) continue;
       // A notice that exists but cannot be read means the skill is not served.
       try { return { text: fs.readFileSync(file, 'utf8') }; } catch (e) {
@@ -160,7 +163,6 @@ function readSkillLicense(skillFile, skillMd) {
       }
     }
   }
-  var declared = declaredLicenseName(skillMd);
   if (declared) return { error: 'This skill declares ' + declared + ' but the file is missing; not serving it without the notice.' };
   return null;
 }

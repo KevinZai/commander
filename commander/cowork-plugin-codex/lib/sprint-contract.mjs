@@ -34,8 +34,8 @@ export function splitCriterion(raw) {
       // check-json: the command is a JSON string inside one code span, so
       // newlines and boundary whitespace survive exactly.
       const inner = unwrapCodeSpan(m[2].trim());
-      try { check = inner === null ? null : JSON.parse(inner); } catch { check = null; }
-      if (typeof check !== 'string') check = null;
+      try { check = inner === null ? undefined : JSON.parse(inner); } catch { check = undefined; }
+      if (typeof check !== 'string' || !check) return { text, check: null, checkError: 'check-json is not one code span holding a non-empty JSON string' };
       return { text, check };
     }
     check = m[2].trim();
@@ -68,13 +68,16 @@ export function codeSpan(command) {
 
 /** A command that renders as a plain one-backtick span and reads back unchanged. */
 function plainCommand(s) {
-  return s.length > 0 && !/[`\n\r]/.test(s) && s === s.trim();
+  return s.length > 0 && !/[`\n\r\u2028\u2029\\]/.test(s) && s === s.trim();
 }
 
 /** How a check command is written in the contract: plain span, else JSON in a span. */
 export function renderCheck(command) {
   const s = String(command);
-  return plainCommand(s) ? `check: ${codeSpan(s)}` : `check-json: ${codeSpan(JSON.stringify(s))}`;
+  if (plainCommand(s)) return `check: ${codeSpan(s)}`;
+  // U+2028/2029 are legal in JSON strings but end a line for many readers; escape them too.
+  const json = JSON.stringify(s).replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+  return `check-json: ${codeSpan(json)}`;
 }
 
 /**
@@ -182,8 +185,8 @@ export function parseContract(markdown) {
   const criteria = bullets(sectionLines(text, /acceptance criteria/i)).map((b, i) => {
     const idm = b.body.match(ID_PREFIX);
     const body = idm ? b.body.slice(idm[0].length) : b.body;
-    const { text: ctext, check } = splitCriterion(body);
-    return { id: idm ? idm[1] : `AC${i + 1}`, text: ctext, check: check && check !== 'manual' ? check : null, done: b.done };
+    const { text: ctext, check, checkError } = splitCriterion(body);
+    return { id: idm ? idm[1] : `AC${i + 1}`, text: ctext, check: check && check !== 'manual' ? check : null, done: b.done, ...(checkError ? { checkError } : {}) };
   });
   return {
     marker: firstLine.includes(MARKER),
@@ -209,7 +212,8 @@ export function validateContract(parsed) {
     if (seen.has(c.id)) errors.push(`duplicate criterion id ${c.id}`);
     seen.add(c.id);
     if (!c.text || c.text.length < 8) errors.push(`${c.id}: criterion text is too short to check`);
-    if (!c.check) warnings.push(`${c.id}: no check command; the verifier must find observable evidence`);
+    if (c.checkError) errors.push(`${c.id}: ${c.checkError}`);
+    else if (!c.check) warnings.push(`${c.id}: no check command; the verifier must find observable evidence`);
   }
   return { ok: errors.length === 0, errors, warnings };
 }

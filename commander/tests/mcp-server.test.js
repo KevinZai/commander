@@ -132,3 +132,26 @@ test('skills-loader refuses a skill whose declared LICENSE.txt is missing', func
     fs.existsSync = origExists;
   }
 });
+
+test('skills-loader does not accept another license file name for a declared LICENSE.txt', function() {
+  var loader = require('../mcp-server/skills-loader.js');
+  var fs = require('fs');
+  var p = require('path');
+  var origExists = fs.existsSync;
+  var origRead = fs.readFileSync;
+  var dir = p.join('canvas-design') + p.sep;
+  fs.existsSync = function(f) {
+    var s = String(f);
+    if (s.endsWith(dir + 'LICENSE.txt')) return false;
+    if (s.endsWith(dir + 'LICENSE.md')) return true;
+    return origExists.apply(fs, arguments);
+  };
+  fs.readFileSync = function(f) { return String(f).endsWith(dir + 'LICENSE.md') ? 'unrelated' : origRead.apply(fs, arguments); };
+  try {
+    var r = loader.getSkill('canvas-design');
+    assert.ok(r && r.error && /declares LICENSE\.txt/.test(r.error));
+  } finally {
+    fs.existsSync = origExists;
+    fs.readFileSync = origRead;
+  }
+});

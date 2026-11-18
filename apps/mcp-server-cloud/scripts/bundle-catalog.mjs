@@ -59,13 +59,14 @@ export function declaredLicenseName(skillMd) {
   return m ? m[1] : null;
 }
 
-export function findSkillLicense(repoRoot, source) {
+export function findSkillLicense(repoRoot, source, declared = null) {
   const dir = path.dirname(source);
   const dirs = [dir];
   const parent = path.dirname(dir);
   if (!/(^|\/)skills$/.test(parent) && parent !== "." && parent !== dir) dirs.push(parent);
   for (const d of dirs) {
-    for (const name of LICENSE_NAMES) {
+    // A declared file name is the only one that counts; otherwise any standard name.
+    for (const name of declared ? [declared] : LICENSE_NAMES) {
       const rel = path.join(d, name);
       if (existsSync(path.join(repoRoot, rel))) return rel;
     }
@@ -225,8 +226,8 @@ export function bundleCatalog({ repoRoot = DEFAULT_REPO_ROOT, dataDir = DEFAULT_
       continue;
     }
     const registryDescription = s.description.startsWith("name:") ? "" : s.description;
-    const licenseSource = findSkillLicense(repoRoot, source);
     const declared = declaredLicenseName(body.toString("utf8"));
+    const licenseSource = findSkillLicense(repoRoot, source, declared);
     if (declared && !licenseSource) {
       // Never ship a skill without the notice it declares: withhold it and say so.
       withheld.push({ id: s.id, source, reason: `declares ${declared}, which is missing` });

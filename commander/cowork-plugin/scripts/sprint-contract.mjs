@@ -141,7 +141,7 @@ function main(argv) {
       errors.push(`report fingerprint ${JSON.stringify(verdict && verdict.fingerprint)} does not match this contract (${fingerprint}); re-run the verifier on ${target}`);
     }
     // The full 40-character SHA, compared exactly: a prefix or a look-alike is not this commit.
-    const rh = verdict && typeof verdict.head === 'string' ? verdict.head.trim() : '';
+    const rh = verdict && typeof verdict.head === 'string' ? verdict.head : '';
     if (!/^[0-9a-f]{40}$/.test(head) || rh !== head) {
       errors.push(`report head ${JSON.stringify(rh || null)} is not the full current HEAD (${head}); re-run the verifier at this commit with \`git rev-parse HEAD\``);
     }

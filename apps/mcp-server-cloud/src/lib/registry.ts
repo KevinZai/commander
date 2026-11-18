@@ -70,7 +70,7 @@ function findLicenseFile(contentFile: string, declared: string | null = null): s
   const parent = path.dirname(dir);
   if (path.basename(parent) !== "skills" && parent !== dir) dirs.push(parent);
   for (const d of dirs) {
-    for (const name of LICENSE_NAMES) {
+    for (const name of declared ? [declared] : LICENSE_NAMES) {
       const file = path.join(d, name);
       if (existsSync(file)) return file;
     }

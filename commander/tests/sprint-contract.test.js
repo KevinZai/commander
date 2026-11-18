@@ -149,7 +149,7 @@ test('CLI: record refuses evidence for another contract or another commit', () =
   const wrongContract = run(dir, ['record', '-', 'tasks/b.md'], pass(a.json.fingerprint, head));
   assert.strictEqual(wrongContract.code, 1);
   assert.match(wrongContract.json.errors.join(' '), /fingerprint/);
-  for (const h of ['aaaaaaa', head.slice(0, 7), head.slice(0, 7) + '-typo', head + 'x']) {
+  for (const h of ['aaaaaaa', head.slice(0, 7), head.slice(0, 7) + '-typo', head + 'x', ` ${head} `]) {
     const wrongHead = run(dir, ['record', '-', 'tasks/b.md'], pass(b.json.fingerprint, h));
     assert.strictEqual(wrongHead.code, 1, h);
     assert.match(wrongHead.json.errors.join(' '), /HEAD/);
@@ -165,7 +165,7 @@ test('CLI: record refuses evidence for another contract or another commit', () =
 
 test('check commands with backticks round-trip verbatim', async () => {
   const lib = await libP;
-  const checks = ['node -e "console.log(`hi ${1+1}`)"', '`echo` a', 'a ``b`` c', 'plain', ' lead and trail\\ ', 'line one\nline two', '`x`'];
+  const checks = ['node -e "console.log(`hi ${1+1}`)"', '`echo` a', 'a ``b`` c', 'plain', ' lead and trail\\ ', 'line one\nline two', '`x`', 'a\u2028b', 'echo one\\ two'];
   const md = lib.renderContract({ title: 'Ticks', criteria: checks.map((check, i) => ({ text: `criterion number ${i}`, check })) });
   assert.deepStrictEqual(lib.parseContract(md).criteria.map((c) => c.check), checks);
 });
@@ -181,4 +181,15 @@ test('the fingerprint covers the out-of-scope list', async () => {
   const a = lib.contractFingerprint(lib.parseContract(lib.renderContract({ ...base, outOfScope: ['billing'] })));
   const b = lib.contractFingerprint(lib.parseContract(lib.renderContract({ ...base, outOfScope: ['nothing'] })));
   assert.notStrictEqual(a, b);
+});
+
+test('malformed check-json fails validation instead of becoming manual', async () => {
+  const lib = await libP;
+  const md = lib.renderContract({ title: 'Bad', criteria: [{ text: 'criterion text here', check: 'x\ny' }] })
+    .replace(/check-json: `"x\\ny"`/, 'check-json: `"x\\ny`');
+  const parsed = lib.parseContract(md);
+  assert.strictEqual(parsed.criteria[0].check, null);
+  const v = lib.validateContract(parsed);
+  assert.strictEqual(v.ok, false);
+  assert.match(v.errors.join(' '), /AC1: check-json/);
 });

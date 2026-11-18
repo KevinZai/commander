@@ -447,3 +447,20 @@ describe("a declared license file is required", () => {
     assert.equal(registry.declaredLicenseName("# no frontmatter\nlicense: see LICENSE.txt\n"), null);
   });
 });
+
+describe("the declared license file name is the one resolved", () => {
+  it("serves a declared LICENCE, and an unrelated LICENSE.md does not stand in for a declared LICENSE.txt", () => {
+    const repo = makeRepo();
+    tempDirs.push(repo);
+    writeFile(repo, "skills/ab-test-setup/SKILL.md", "---\nname: ab-test-setup\nlicense: See LICENCE\n---\n# A/B\n");
+    writeFile(repo, "skills/ab-test-setup/LICENCE", "BRITISH SPELLING\n");
+    writeFile(repo, "skills/ccc-data/SKILL.md", "---\nname: ccc-data\nlicense: Complete terms in LICENSE.txt\n---\n# Data\n");
+    writeFile(repo, "skills/ccc-data/LICENSE.md", "unrelated\n");
+    const m = bundler.bundleCatalog({ repoRoot: repo, dataDir: tmp("ccc-catalog-licence-") }) as Manifest & {
+      skills: Array<{ id: string; licenseSource?: string }>;
+      withheldSkills: Array<{ id: string }>;
+    };
+    assert.equal(m.skills.find((s) => s.id === "ecosystem/ab-test-setup")!.licenseSource, "skills/ab-test-setup/LICENCE");
+    assert.ok(m.withheldSkills.some((w) => w.id === "ecosystem/ccc-data"));
+  });
+});

@@ -62,14 +62,12 @@ QUOTA_REVIEWED="4ee19ee"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/ccc-verify.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 QUOTA_MIG_4EE19EE="$WORK/20261119000000_at_4ee19ee.sql"
-if git -C "$ROOT" cat-file -e "$QUOTA_REVIEWED:supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql" 2>/dev/null; then
-  git -C "$ROOT" show "$QUOTA_REVIEWED:supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql" >"$QUOTA_MIG_4EE19EE"
-  cmp -s "$QUOTA_MIG" "$QUOTA_MIG_4EE19EE" || {
-    echo "FAIL: $QUOTA_MIG differs from $QUOTA_REVIEWED; ship schema changes in a new migration" >&2; exit 1; }
-else
-  echo "  note: commit $QUOTA_REVIEWED unavailable; path C uses the in-tree 20261119000000" >&2
-  cp "$QUOTA_MIG" "$QUOTA_MIG_4EE19EE"
-fi
+# Pinned git blob id of the reviewed file: checked unconditionally, so a
+# shallow checkout without 4ee19ee cannot vouch for an edited migration.
+QUOTA_REVIEWED_BLOB="a7a65c96313635a24613824d9a39529b8b57d087"
+[ "$(git hash-object "$QUOTA_MIG")" = "$QUOTA_REVIEWED_BLOB" ] || {
+  echo "FAIL: $QUOTA_MIG differs from its reviewed content ($QUOTA_REVIEWED); ship schema changes in a new migration" >&2; exit 1; }
+cp "$QUOTA_MIG" "$QUOTA_MIG_4EE19EE"
 
 # Two sessions: the first holds its transaction open while the second runs.
 race() { # <db> <first sql> <second sql>  -> prints the second session's result
