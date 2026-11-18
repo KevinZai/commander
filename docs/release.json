@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "version": "8.1.6",
+  "tag": "v8.1.6",
+  "package_name": "cc-commander",
+  "plugin_name": "commander",
+  "marketplace_name": "commander-hub",
+  "repo": "KevinZai/commander",
+  "homepage": "https://commanderplugin.com",
+  "license": "MIT",
+  "counts": {
+    "plugin_skills": 93,
+    "specialist_agents": 22,
+    "lifecycle_hooks": 28,
+    "hook_handlers": 46,
+    "bundled_mcp_servers": 2,
+    "opt_in_mcp_servers": 16,
+    "ecosystem_skills": 467,
+    "ccc_domains": 11
+  },
+  "sources": [
+    "package.json",
+    "commander/contract.json"
+  ]
+}

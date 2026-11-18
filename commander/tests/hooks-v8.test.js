@@ -125,26 +125,29 @@ describe('permission-denied-logger.js (PermissionDenied)', () => {
     assert.equal(rows[0].sessionId, 'abc123');
     assert.equal(rows[0].toolName, 'Bash');
     assert.match(rows[0].decision, /denied/, 'safety-snapshot classifies /denied/ as blocked');
-    assert.equal(rows[0].commandSnippet, 'rm -rf /tmp/build');
+    assert.equal(rows[0].program, 'rm');
+    assert.ok(!('commandSnippet' in rows[0]), 'raw command text must not be logged');
+    assert.ok(!JSON.stringify(rows[0]).includes('/tmp/build'));
     assert.ok(!Number.isNaN(Date.parse(rows[0].timestamp)));
   });
 
-  it('redacts credentials in the command snippet and the reason before writing to disk', () => {
+  it('never logs command text and redacts the reason before writing to disk', () => {
     const home = tempDir('ccc-v8-pd-redact-');
     const r = runHook('permission-denied-logger.js', {
       session_id: 'abc123',
       hook_event_name: 'PermissionDenied',
       tool_name: 'Bash',
-      tool_input: { command: 'curl -H "Authorization: Bearer sk-ant-api03-SECRETSECRETSECRET" https://example.test' },
+      tool_input: { command: 'API_TOKEN=ghp_abcdefghijklmnop1234 curl -H "Authorization: Bearer sk-ant-api03-SECRETSECRETSECRET" https://example.test' },
       reason: 'token=ghp_abcdefghijklmnop1234 looked like exfiltration',
     }, { home });
     assert.equal(r.status, 0, r.stderr);
     const rows = readJsonl(path.join(home, '.claude', 'commander', 'analytics', 'permission-gate.jsonl'));
     assert.equal(rows.length, 1);
-    assert.ok(!rows[0].commandSnippet.includes('SECRETSECRET'), 'API key must not reach the log: ' + rows[0].commandSnippet);
-    assert.ok(!/Bearer\s+sk-/.test(rows[0].commandSnippet), 'bearer token must be redacted');
-    assert.ok(rows[0].commandSnippet.includes('[redacted]'));
-    assert.ok(!rows[0].reason.includes('ghp_abcdefghijklmnop1234'), 'reason must be redacted too: ' + rows[0].reason);
+    const raw = JSON.stringify(rows[0]);
+    assert.ok(!raw.includes('SECRETSECRET') && !raw.includes('ghp_abcdefghijklmnop1234') && !raw.includes('Bearer'), 'no credential may reach the log: ' + raw);
+    assert.equal(rows[0].program, 'curl', 'the program name skips the VAR=value prefix');
+    assert.ok(!('commandSnippet' in rows[0]));
+    assert.ok(rows[0].reason.includes('[redacted]'));
   });
   it('is counted as blocked by lib/safety-snapshot.js', async () => {
     const home = tempDir('ccc-v8-pd-safety-');

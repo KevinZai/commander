@@ -303,6 +303,30 @@ describe('permission-gate: dangerous operations → always reject', () => {
     }
   });
 
+  // Audit #27: neither the denial reason nor the log may carry the command text.
+  it('logs the rule id, tool and program name only, and never echoes the command', () => {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-gate-secret-'));
+    try {
+      const command = 'DB_PASSWORD=hunter2hunter2 rm -rf / --token sk-live-ABCDEFGHIJKLMNOP';
+      const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'secret-session' },
+        { HOME: home, USERPROFILE: home, CCC_TELEMETRY: '0', MCP_DISABLED: '1' });
+      const decision = r.parsed?.hookSpecificOutput?.decision;
+      assert.equal(decision?.behavior, 'deny');
+      assert.match(decision.message, /rule rm-root-or-home/);
+      for (const leak of ['hunter2', 'sk-live', 'DB_PASSWORD']) assert.ok(!r.stdout.includes(leak), `denial must not echo ${leak}`);
+      const log = path.join(home, '.claude', 'commander', 'analytics', 'permission-gate.jsonl');
+      const text = fs.readFileSync(log, 'utf8');
+      for (const leak of ['hunter2', 'sk-live', 'DB_PASSWORD']) assert.ok(!text.includes(leak), `log must not contain ${leak}`);
+      const row = JSON.parse(text.trim().split('\n').pop());
+      assert.equal(row.decision, 'rejected-dangerous');
+      assert.equal(row.toolName, 'Bash');
+      assert.equal(row.rule, 'rm-root-or-home');
+      assert.equal(row.commandHead, 'rm');
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true });
+    }
+  });
+
   // Audit P0 (2026-11-18): routine deletes go to the user's own prompt instead of a hard deny
   it('returns no decision for routine destructive commands so the user decides', () => {
     for (const command of ['rm -rf /tmp/project', 'rm -rf node_modules && npm ci', 'rm -f build/tmp.log', 'git reset --hard HEAD~3', 'git clean -fd', 'git commit -m "drop rm -rf usage"']) {

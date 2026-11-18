@@ -306,13 +306,16 @@ describe("dispatchTool", () => {
     );
   });
 
-  it("dispatches commander_update synchronously", async () => {
+  it("dispatches commander_update synchronously", async (t) => {
+    // Hermetic: the tool reads the published version from GitHub through the global fetch.
+    t.mock.method(globalThis, "fetch", async () => Response.json({ version: SERVER_VERSION }));
     const result = await dispatchTool("commander_update", {}, {
       userId: "u1",
       tier: "free",
       licenseKey: "k",
     });
-    const r = result as { upToDate: boolean; currentVersion: string };
+    const r = result as { upToDate: boolean; currentVersion: string; checked: boolean };
+    assert.equal(r.checked, true);
     assert.equal(r.upToDate, true);
     assert.equal(r.currentVersion, SERVER_VERSION);
   });
