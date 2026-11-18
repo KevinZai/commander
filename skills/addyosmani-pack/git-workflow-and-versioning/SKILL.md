@@ -220,15 +220,14 @@ Before every commit:
 ( set -euo pipefail
   repo_root=$(git rev-parse --show-toplevel)     # its own statement: fails outside a repository
   [ -n "$repo_root" ]
-  repo_root=$(cd "$repo_root" && pwd -P)         # physical path, so it compares with pwd -P below
-  [ -n "$repo_root" ]
   # The package whose tests and lint run below: the nearest package.json at or above
-  # the current directory, without leaving the repository. Both sides are physical
-  # paths, so a symlinked spelling of the checkout cannot walk past the repo root.
+  # the current directory, without leaving the repository. Start from the physical
+  # directory and compare by file identity (-ef), so neither a symlinked spelling nor
+  # a case difference can walk past the repo root.
   pkg_dir=$(pwd -P)
   [ -n "$pkg_dir" ]
   while [ ! -f "$pkg_dir/package.json" ]; do
-    [ "$pkg_dir" != "$repo_root" ] && [ "$pkg_dir" != / ] || { echo "stop: no package.json between here and $repo_root"; exit 1; }
+    ! [ "$pkg_dir" -ef "$repo_root" ] && ! [ "$pkg_dir" -ef / ] || { echo "stop: no package.json between here and $repo_root"; exit 1; }
     pkg_dir=$(dirname "$pkg_dir")
   done
   cd "$repo_root"
