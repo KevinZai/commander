@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 # Verify the migration chain on a DISPOSABLE local Postgres (15+).
 #
-# Builds two throwaway databases and runs the same role, quota and
-# entitlement assertions (reconcile-assertions.sql) on both:
-#   A  clean install via the chain: beta_v4 -> reconcile -> quota/stripe
-#      (each applied twice)
+# Builds three throwaway databases and runs the same role, quota and
+# entitlement assertions (reconcile-assertions.sql) on each:
+#   A  clean install via the chain: beta_v4 -> reconcile -> quota/stripe ->
+#      claim tokens (each applied twice)
 #   B  upgrade of a database built from the legacy hosted snapshot
 #      (apps/mcp-server-cloud/src/db/schema.sql + 002 + creators-schema.sql)
+#   C  upgrade of a database that already recorded 20261119000000 with its
+#      tokenless Stripe claim RPCs (the file as reviewed at commit 4ee19ee),
+#      holding an in-flight claim, to 20261120000000_stripe_claim_tokens
 #
 # It also checks the quota and Stripe RPCs (quota-stripe-assertions.sql) and
-# runs two concurrency checks with two live sessions: a duplicate Stripe event
+# runs, on each database, two concurrency checks with two live sessions: a duplicate Stripe event
 # claim, and an older subscription event racing a newer one.
 #
 # It creates the cluster-wide roles anon, authenticated and service_role and
-# drops databases named ccc_verify_a / ccc_verify_b. NEVER point it at a
+# drops databases named ccc_verify_a / ccc_verify_b / ccc_verify_c. NEVER point it at a
 # Supabase project or any database you care about.
 #
 # Usage:
@@ -42,7 +45,8 @@ expect_denied() { # <db> <role> <sql>
   grep -q "permission denied" <<<"$out" || { echo "FAIL: unexpected error: $out" >&2; exit 1; }
 }
 
-admin -c "drop database if exists ccc_verify_a" -c "drop database if exists ccc_verify_b"
+admin -c "drop database if exists ccc_verify_a" -c "drop database if exists ccc_verify_b" \
+  -c "drop database if exists ccc_verify_c"
 for role in anon authenticated service_role; do
   admin -c "do \$\$ begin if not exists (select 1 from pg_roles where rolname = '$role') then
     execute format('create role %I nologin', '$role'); end if; end \$\$"
@@ -50,6 +54,22 @@ done
 admin -c "alter role service_role bypassrls"
 stub_db() { sed -n '/^create schema auth/,$p' "$HERE/supabase-stub.sql" | "${PSQL[@]}" -d "$1"; }
 QUOTA_MIG="$MIG/20261119000000_quota_reserve_and_stripe_claims.sql"
+TOKEN_MIG="$MIG/20261120000000_stripe_claim_tokens.sql"
+
+# An applied migration version must never change: `db push` skips a version a
+# database already recorded. 20261119000000 is pinned to its content at 4ee19ee.
+QUOTA_REVIEWED="4ee19ee"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/ccc-verify.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
+QUOTA_MIG_4EE19EE="$WORK/20261119000000_at_4ee19ee.sql"
+if git -C "$ROOT" cat-file -e "$QUOTA_REVIEWED:supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql" 2>/dev/null; then
+  git -C "$ROOT" show "$QUOTA_REVIEWED:supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql" >"$QUOTA_MIG_4EE19EE"
+  cmp -s "$QUOTA_MIG" "$QUOTA_MIG_4EE19EE" || {
+    echo "FAIL: $QUOTA_MIG differs from $QUOTA_REVIEWED; ship schema changes in a new migration" >&2; exit 1; }
+else
+  echo "  note: commit $QUOTA_REVIEWED unavailable; path C uses the in-tree 20261119000000" >&2
+  cp "$QUOTA_MIG" "$QUOTA_MIG_4EE19EE"
+fi
 
 # Two sessions: the first holds its transaction open while the second runs.
 race() { # <db> <first sql> <second sql>  -> prints the second session's result
@@ -87,6 +107,8 @@ stub_db ccc_verify_a
 end \$\$"
 "${PSQL[@]}" -d ccc_verify_a -f "$QUOTA_MIG"
 "${PSQL[@]}" -d ccc_verify_a -f "$QUOTA_MIG"
+"${PSQL[@]}" -d ccc_verify_a -f "$TOKEN_MIG"
+"${PSQL[@]}" -d ccc_verify_a -f "$TOKEN_MIG"
 "${PSQL[@]}" -d ccc_verify_a -c "do \$\$ declare r record; begin
   select * into r from reserve_call('fp-legacy', '2026-11', 5);
   assert r.allowed and r.calls_used = 1, 'legacy fingerprint user can reserve';
@@ -124,6 +146,7 @@ end \$\$"
 # A database that also ran the hand-applied 003 file converges on the same function and grants.
 "${PSQL[@]}" -d ccc_verify_b -f "$APP/migrations/003_quota-reserve.sql"
 "${PSQL[@]}" -d ccc_verify_b -f "$QUOTA_MIG"
+"${PSQL[@]}" -d ccc_verify_b -f "$TOKEN_MIG"
 "${PSQL[@]}" -d ccc_verify_b -c "do \$\$ declare r record; begin
   select * into r from reserve_call('$UID_B', '2026-10', 5);
   assert r.allowed and r.calls_used = 2, 'uuid-era user continues its count';
@@ -132,5 +155,44 @@ end \$\$"
 "${PSQL[@]}" -d ccc_verify_b -f "$HERE/quota-stripe-assertions.sql"
 concurrency_checks ccc_verify_b
 
-admin -c "drop database ccc_verify_a" -c "drop database ccc_verify_b"
+echo "== C: upgrade from 20261119000000 as of $QUOTA_REVIEWED (tokenless claims)"
+admin -c "create database ccc_verify_c"
+stub_db ccc_verify_c
+"${PSQL[@]}" -d ccc_verify_c -f "$MIG/20260417000000_beta_v4.sql"
+"${PSQL[@]}" -d ccc_verify_c -f "$MIG/20261118000000_reconcile_hosted_schema.sql"
+"${PSQL[@]}" -d ccc_verify_c -f "$QUOTA_MIG_4EE19EE"
+# State left by the tokenless RPCs: one claim in flight (a worker on the old
+# webhook mid-apply), one released, one completed.
+"${PSQL[@]}" -d ccc_verify_c -c "set role service_role" -c "do \$\$ begin
+  assert to_regprocedure('public.release_stripe_event(text)') is not null, 'starts from the tokenless RPCs';
+  assert public.claim_stripe_event('evt_old_live', 'x') = 'claimed', 'old claim';
+  assert public.claim_stripe_event('evt_old_done', 'x') = 'claimed', 'old claim to complete';
+  perform public.complete_stripe_event('evt_old_done', 'x');
+  assert public.claim_stripe_event('evt_old_gone', 'x') = 'claimed', 'old claim to release';
+  perform public.release_stripe_event('evt_old_gone');
+end \$\$"
+"${PSQL[@]}" -d ccc_verify_c -f "$TOKEN_MIG"
+"${PSQL[@]}" -d ccc_verify_c -f "$TOKEN_MIG"
+"${PSQL[@]}" -d ccc_verify_c -c "set role service_role" -c "do \$\$ declare c record; t uuid; begin
+  assert (select claim_token from public.stripe_event_claims where event_id = 'evt_old_live') is not null,
+    'in-flight claim got a token';
+  select * into c from public.claim_stripe_event('evt_old_live', 'x');
+  assert c.status = 'in_flight', 'in-flight claim from the old RPC stays live until its lease ends';
+  select * into c from public.claim_stripe_event('evt_old_done', 'x');
+  assert c.status = 'processed', 'event completed by the old RPC stays processed';
+  select * into c from public.claim_stripe_event('evt_old_gone', 'x');
+  assert c.status = 'claimed' and c.claim_token is not null, 'released event can be claimed with a token';
+  assert public.complete_stripe_event('evt_old_gone', 'x', c.claim_token), 'new owner completes';
+  update public.stripe_event_claims set claimed_at = now() - interval '10 minutes' where event_id = 'evt_old_live';
+  select * into c from public.claim_stripe_event('evt_old_live', 'x');
+  assert c.status = 'claimed', 'expired pre-upgrade claim is taken over';
+  t := c.claim_token;
+  assert public.release_stripe_event('evt_old_live', t), 'takeover owner releases';
+end \$\$"
+echo "  upgrade: tokenless RPCs replaced, in-flight claim kept with a token"
+"${PSQL[@]}" -d ccc_verify_c -f "$HERE/reconcile-assertions.sql"
+"${PSQL[@]}" -d ccc_verify_c -f "$HERE/quota-stripe-assertions.sql"
+concurrency_checks ccc_verify_c
+
+admin -c "drop database ccc_verify_a" -c "drop database ccc_verify_b" -c "drop database ccc_verify_c"
 echo "== migration chain verified"

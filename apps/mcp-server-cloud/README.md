@@ -123,6 +123,7 @@ The schema is one ordered migration chain in
 | 1 | `20260417000000_beta_v4.sql` | Original beta tables (history, unchanged) |
 | 2 | `20261118000000_reconcile_hosted_schema.sql` | Converges every earlier setup on one end state |
 | 3 | `20261119000000_quota_reserve_and_stripe_claims.sql` | Atomic `reserve_call(text, text, integer)`; Stripe event claims and the ordered `apply_stripe_subscription` |
+| 4 | `20261120000000_stripe_claim_tokens.sql` | Stripe event claims carry an ownership token; complete and release need it |
 
 The end state: text `user_id` keys; `users`, `usage_counters`, `surveys`,
 `feedback`, `agent_messages`, `stripe_events`, `oauth_identities`, `creators`
@@ -139,13 +140,14 @@ bumps `key_version` when an issued license key changes.
 
 - **New database:** `supabase link --project-ref <ref>`, then `supabase db push`.
 - **Database built from the chain (beta_v4):** `supabase db push` applies the
-  reconcile migration.
+  migrations it has not recorded, in order (2 to 4).
 - **Database built from `src/db/schema.sql`** (with or without
   `src/db/migrations/002_paywall_tiers.sql` and `src/db/creators-schema.sql`):
   run `supabase/migrations/20261118000000_reconcile_hosted_schema.sql` and then
-  `supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql` once
-  each in the SQL Editor. Then record the chain as applied with
-  `supabase migration repair --status applied 20260417000000 20261118000000 20261119000000`.
+  `supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql` and
+  `supabase/migrations/20261120000000_stripe_claim_tokens.sql` once each, in
+  that order, in the SQL Editor. Then record the chain as applied with
+  `supabase migration repair --status applied 20260417000000 20261118000000 20261119000000 20261120000000`.
   `beta_v4` cannot run on that database's uuid keys. The reconcile file
   converts them to text.
 

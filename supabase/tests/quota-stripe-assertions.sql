@@ -1,4 +1,5 @@
--- Assertions for 20261119000000_quota_reserve_and_stripe_claims.sql.
+-- Assertions for 20261119000000_quota_reserve_and_stripe_claims.sql followed by
+-- 20261120000000_stripe_claim_tokens.sql (the final state of both).
 -- Run as postgres with ON_ERROR_STOP after reconcile-assertions.sql (uses its
 -- seed rows 'u-free' and the uuid-string user auto@example.com).
 \set ON_ERROR_STOP 1
@@ -21,6 +22,12 @@ do $$ begin
   assert (select count(*) from pg_proc where proname = 'reserve_call') = 1, 'one reserve_call overload';
   assert to_regprocedure('public.reserve_call(text,text,integer)') is not null, 'reserve_call(text,text,integer)';
   assert to_regclass('public.stripe_event_claims') is not null, 'claims table';
+  assert exists (select 1 from information_schema.columns
+                  where table_schema = 'public' and table_name = 'stripe_event_claims'
+                    and column_name = 'claim_token' and is_nullable = 'NO'), 'claims carry a token';
+  assert (select count(*) from pg_proc where proname = 'claim_stripe_event') = 1, 'one claim_stripe_event';
+  assert (select count(*) from pg_proc where proname = 'complete_stripe_event') = 1, 'one complete_stripe_event';
+  assert (select count(*) from pg_proc where proname = 'release_stripe_event') = 1, 'one release_stripe_event';
   assert to_regprocedure('public.complete_stripe_event(text,text)') is null, 'tokenless complete is gone';
   assert to_regprocedure('public.release_stripe_event(text)') is null, 'tokenless release is gone';
 end $$;

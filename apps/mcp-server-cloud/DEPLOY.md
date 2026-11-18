@@ -103,10 +103,11 @@ The Dockerfile copies `data/` and runs `--verify`; the image build fails if the 
 
 ### Database migrations (before the server that needs them)
 
-Apply these to the production Supabase database before the matching server build deploys; both are idempotent:
+Apply these, in order, to the production Supabase database before the matching server build deploys; all are idempotent:
 
 1. `supabase/migrations/20261118000000_reconcile_hosted_schema.sql` (repository root, applied by `supabase db push`). Converges every earlier schema on one chain: billing state, creators privacy, entitlement column protection, OAuth bindings and license-token revocation. The Stripe webhook answers non-2xx until it is applied. See README.md "Database" for the legacy-database path.
 2. `supabase/migrations/20261119000000_quota_reserve_and_stripe_claims.sql` (same chain, applied by the same `supabase db push`). Adds the atomic `reserve_call(text, text, integer)` RPC, the Stripe event claim RPCs and the ordered `apply_stripe_subscription` RPC, all executable by `service_role` only. Without it the quota middleware fails closed (HTTP 503 `quota_storage_unavailable`) and the Stripe webhook answers 500 so Stripe retries. `apps/mcp-server-cloud/src/db/migrations/003_quota-reserve.sql` is a superseded copy of its `reserve_call` section; a database that already ran 003 by hand still needs this migration.
+3. `supabase/migrations/20261120000000_stripe_claim_tokens.sql` (same chain, same `supabase db push`). Gives every Stripe event claim an ownership token: `claim_stripe_event` returns `(status, claim_token)` and `complete_stripe_event`/`release_stripe_event` take the token, so a worker whose lease was taken over cannot record or drop the replacement claim. It replaces the tokenless RPCs from step 2, so apply it before deploying a webhook that sends the token; that webhook answers 500 (Stripe retries) against the tokenless RPCs. A claim in flight during the upgrade is kept and taken over once its lease expires.
 
 Watch logs during a release:
 
