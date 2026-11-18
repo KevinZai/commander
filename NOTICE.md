@@ -68,3 +68,11 @@ These toolkit skills only describe how to install and route to upstream projects
 ## MIT-Derived Skills (science-pack)
 
 `skills/science-pack/` holds 48 skills copied from [K-Dense-AI/scientific-agent-skills](https://github.com/K-Dense-AI/scientific-agent-skills), pinned at `ec59a29a03d5c40f73ab40878df04860bc00e876`. Only skills whose own `license:` is MIT were taken; the repository license (MIT) is in `skills/science-pack/LICENSE.txt`. CC Commander changes (`disable-model-invocation: true`, "CCC safety:" notes before remote writes or sending data out) are listed in each Source section and in `DECISIONS.md`, which also lists every skill excluded by license, size or overlap. Each sub-skill folder carries the license so it can be installed on its own. Local changes: a "CCC safety:" consent note in pathway-enrichment; exa-search defines `SKILL_PATH` and reads only `EXA_API_KEY` instead of the whole `.env`; esm points its test runner at the upstream checkout.
+
+## MIT-Derived Skill (caveman)
+
+`skills/caveman/` derives from [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) as it was published under the MIT License (Copyright (c) 2026 Julius Brussee). Upstream was MIT from commit `af5375d` (2026-04-04) until commit `921eab8` relicensed the repository to Apache-2.0 on 2026-09-24. The closest upstream source is the first release, `af5375d` (`caveman/SKILL.md`, 2026-04-04; unchanged in substance through `d84127c`, 2026-04-06): about a fifth of Commander's lines match it, and the rest is Commander's own text. The MIT text is in `skills/caveman/LICENSE.txt`. CC Commander keeps the MIT-era text and does not sync later upstream changes; taking them would need an Apache-2.0 NOTICE section first.
+
+## MIT-Derived Skill (cloudflare-security-audit)
+
+`skills/ccc-security/cloudflare-security-audit/` is copied from [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) (`skills/security-audit/`), pinned at `c1c8a8c`. MIT License, Copyright (c) 2025-2026 Cloudflare, Inc.; the full text is in `skills/ccc-security/cloudflare-security-audit/LICENSE.txt`. CC Commander renamed it, set `disable-model-invocation`, added Next step and Source sections, and added one "CCC safety:" line requiring the skill directory to be the trusted install, outside the target; the rest of the body is unchanged.

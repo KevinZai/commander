@@ -99,5 +99,33 @@ Based on benchmarks from JuliusBrussee/caveman:
 
 ## Attribution
 
-Based on [caveman](https://github.com/JuliusBrussee/caveman) by Julius Brussee (MIT license).
+Based on [caveman](https://github.com/JuliusBrussee/caveman) by Julius Brussee, from the first MIT-licensed release, `af5375d` (2026-04-04; MIT text in `LICENSE.txt`). Upstream is Apache-2.0 since 2026-09-24, so later upstream changes are not synced here.
 Integrated into CC Commander by Kevin Z.
+
+### License
+
+This notice travels with the skill body because some hosts serve SKILL.md without its folder. The same text is in `LICENSE.txt` beside this file.
+
+```text
+MIT License
+
+Copyright (c) 2026 Julius Brussee
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

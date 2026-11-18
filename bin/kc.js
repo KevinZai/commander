@@ -18,7 +18,7 @@ process.on('unhandledRejection', function(reason) { _fatalHandler(reason instanc
 
 
 if (args.includes('--help') || args.includes('-h')) {
-  console.log('\n  CC Commander — 575 skills. One command. Your AI work, managed by AI.\n');
+  console.log('\n  CC Commander — 576 skills. One command. Your AI work, managed by AI.\n');
   console.log('  Usage:  ccc\n');
   console.log('  --version    Show version');
   console.log('  --test       Validate all modules');
