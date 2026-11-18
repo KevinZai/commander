@@ -53,4 +53,32 @@ Never cut: validation at trust boundaries, error handling that prevents data los
 
 ## Source
 
-Copied unchanged from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) `skills/ponytail/SKILL.md`, pinned at `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846`. MIT License; the full text is in `LICENSE.txt` beside this file. In CC Commander it is also a mode: see `skills/mode-switcher/modes/ponytail.md`. The upstream plugin adds `ponytail-review`, `ponytail-audit` and `ponytail-debt`: `/plugin marketplace add DietrichGebert/ponytail` then `/plugin install ponytail@ponytail`.
+Copied unchanged from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) `skills/ponytail/SKILL.md`, pinned at `96608e078b2d5ea607c5c3b8b5a54d1c1fba6846`. In CC Commander it is also a mode: see `skills/mode-switcher/modes/ponytail.md`. The upstream plugin adds `ponytail-review`, `ponytail-audit` and `ponytail-debt`; install from the upstream README, reviewed at [`96608e0`](https://github.com/DietrichGebert/ponytail/tree/96608e078b2d5ea607c5c3b8b5a54d1c1fba6846#readme). CCC safety: the plugin marketplace serves the current upstream revision, not the reviewed one. Before installing, confirm the marketplace source is `github.com/DietrichGebert/ponytail` itself and not a same-named plugin from another publisher, and tell the user if upstream has changed since `96608e0`.
+
+### License
+
+This notice travels with the skill body because some hosts serve SKILL.md without its folder. The same text is in `LICENSE.txt` beside this file.
+
+```text
+MIT License
+
+Copyright (c) 2026 DietrichGebert
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

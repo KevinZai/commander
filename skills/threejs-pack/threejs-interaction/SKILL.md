@@ -419,15 +419,21 @@ function ndc(event) {
   );
 }
 
-document.addEventListener("pointerdown", (event) => {
+const canvas = renderer.domElement;
+let dragging = false; // only drags that start on the canvas select anything
+
+canvas.addEventListener("pointerdown", (event) => {
+  dragging = true;
   selectionBox.startPoint.copy(ndc(event));
 });
 
-document.addEventListener("pointermove", (event) => {
-  if (helper.isDown) selectionBox.endPoint.copy(ndc(event));
+canvas.addEventListener("pointermove", (event) => {
+  if (dragging && helper.isDown) selectionBox.endPoint.copy(ndc(event));
 });
 
 document.addEventListener("pointerup", (event) => {
+  if (!dragging) return; // a click on unrelated page controls never runs a selection
+  dragging = false;
   selectionBox.endPoint.copy(ndc(event));
   const selected = selectionBox.select(); // InstancedMesh and BatchedMesh hits go to selectionBox.instances and .batches
   console.log(selected);

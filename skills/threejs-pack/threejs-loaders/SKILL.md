@@ -376,9 +376,11 @@ Blob URLs and data URLs work as loader URLs:
 ```javascript
 async function loadTextureFromBlob(blob) {
   const url = URL.createObjectURL(blob);
-  const texture = await new THREE.TextureLoader().loadAsync(url);
-  URL.revokeObjectURL(url);
-  return texture;
+  try {
+    return await new THREE.TextureLoader().loadAsync(url);
+  } finally {
+    URL.revokeObjectURL(url); // also runs when decoding fails
+  }
 }
 ```
 
