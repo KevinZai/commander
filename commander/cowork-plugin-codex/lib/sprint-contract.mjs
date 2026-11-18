@@ -15,7 +15,7 @@ export const ARCHIVE_DIR = 'tasks/contracts';
 export const MARKER = 'ccc-sprint-contract v1';
 export const MAX_CRITERIA = 20;
 
-const CHECK_SPLIT = /\s+(?:·|—|-{1,2})\s+check(-json)?:(?:\s+(.*\S))?\s*$/i;
+const CHECK_SPLIT = /\s+(?:·|—|-{1,2})\s+check(-json)?:\s*(.*?)\s*$/i;
 const CHECK_JSON_ERROR = 'check-json is not one code span holding a non-empty JSON string';
 const ITEM = /^\s*[-*]\s+(?:\[( |x|X)\]\s+)?(.*\S)\s*$/;
 const ID_PREFIX = /^(AC\d+)\s*(?:—|-|:|·)\s*/;
@@ -107,7 +107,9 @@ function unwrapCodeSpan(raw) {
 export function contractFingerprint(parsed) {
   const body = JSON.stringify({
     title: parsed.title || '',
-    criteria: (parsed.criteria || []).map((c) => [c.id, c.text, c.check || null]),
+    // The raw bullet text (minus the tick) is hashed, so any edit to a
+    // criterion line, including one that breaks its check, changes identity.
+    criteria: (parsed.criteria || []).map((c) => [c.id, c.text, c.check || null, c.raw ?? null]),
     outOfScope: parsed.outOfScope || [],
   });
   return createHash('sha256').update(body).digest('hex').slice(0, 16);
@@ -191,7 +193,7 @@ export function parseContract(markdown) {
     const idm = b.body.match(ID_PREFIX);
     const body = idm ? b.body.slice(idm[0].length) : b.body;
     const { text: ctext, check, checkError } = splitCriterion(body);
-    return { id: idm ? idm[1] : `AC${i + 1}`, text: ctext, check: check && check !== 'manual' ? check : null, done: b.done, ...(checkError ? { checkError } : {}) };
+    return { id: idm ? idm[1] : `AC${i + 1}`, text: ctext, check: check && check !== 'manual' ? check : null, done: b.done, raw: b.body, ...(checkError ? { checkError } : {}) };
   });
   return {
     marker: firstLine.includes(MARKER),

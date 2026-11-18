@@ -112,14 +112,16 @@ function main(argv) {
     const target = args[0] || CONTRACT_PATH;
     if (!fs.existsSync(target)) return out({ exists: false, path: target });
     const parsed = parseContract(fs.readFileSync(target, 'utf8'));
+    const v = validateContract(parsed);
     const head = gitHead();
     const fingerprint = contractFingerprint(parsed);
     const verifiedHead = (parsed.verified || '').match(/ at (\S+) \(/);
     const verifiedFp = (parsed.verified || '').match(/ · contract ([0-9a-f]+)/);
     // Current only when verified at this commit, for this exact contract, with a clean tree.
-    const current = parsed.status === 'verified' && verifiedHead && verifiedHead[1] === head
+    // An invalid contract is never current, whatever its recorded verification says.
+    const current = v.ok && parsed.status === 'verified' && verifiedHead && verifiedHead[1] === head
       && verifiedFp && verifiedFp[1] === fingerprint && !gitDirty();
-    return out({ exists: true, path: target, title: parsed.title, status: parsed.status, verified: parsed.verified, head, fingerprint, current: !!current, criteria: parsed.criteria.length });
+    return out({ exists: true, path: target, title: parsed.title, status: parsed.status, verified: parsed.verified, head, fingerprint, current: !!current, valid: v.ok, ...(v.ok ? {} : { errors: v.errors }), criteria: parsed.criteria.length });
   }
   if (cmd === 'record') {
     const src = args[0];
@@ -138,6 +140,8 @@ function main(argv) {
     const parsed = parseContract(md);
     const fingerprint = contractFingerprint(parsed);
     const head = gitHead();
+    const valid = validateContract(parsed);
+    if (!valid.ok) return out({ ok: false, path: target, head, fingerprint, errors: valid.errors }, 1);
     // The report must be for this contract and this revision; otherwise nothing is recorded.
     const errors = [];
     if (!verdict || verdict.fingerprint !== fingerprint) {

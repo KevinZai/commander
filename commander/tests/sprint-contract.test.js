@@ -211,3 +211,28 @@ test('an empty or undecodable check-json is a hard error in validate and from-pl
     assert.ok(!fs.existsSync(path.join(dir, 'tasks', 'sprint-contract.md')), 'nothing written');
   }
 });
+
+test('check-json with no space after the colon is still decoded (and rejected when malformed)', async () => {
+  const lib = await libP;
+  assert.match(lib.splitCriterion('Works well · check-json:not-json').checkError || '', /check-json/);
+  assert.strictEqual(lib.splitCriterion('Works well · check-json:`"echo hi"`').check, 'echo hi');
+});
+
+test('CLI: breaking a verified criterion makes status not current and record refuse', () => {
+  const dir = tmpRepo();
+  const made = run(dir, ['new', '--title', 'Gate', '--criterion', 'A manual thing is checked :: manual']);
+  assert.strictEqual(made.code, 0, JSON.stringify(made.json));
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  const report = (fp) => JSON.stringify({ fingerprint: fp, head, verdict: 'PASS', criteria: [{ id: 'AC1', status: 'pass', evidence: 'looked' }] });
+  assert.strictEqual(run(dir, ['record', '-'], report(made.json.fingerprint)).code, 0);
+  assert.strictEqual(run(dir, ['status']).json.current, true);
+  const p = path.join(dir, 'tasks', 'sprint-contract.md');
+  fs.writeFileSync(p, fs.readFileSync(p, 'utf8').replace('· check: `manual`', '· check-json:'));
+  const st = run(dir, ['status']);
+  assert.strictEqual(st.json.current, false);
+  assert.strictEqual(st.json.valid, false);
+  assert.notStrictEqual(st.json.fingerprint, made.json.fingerprint, 'raw criterion text is fingerprinted');
+  const rec = run(dir, ['record', '-'], report(made.json.fingerprint));
+  assert.strictEqual(rec.code, 1);
+  assert.match(rec.json.errors.join(' '), /AC1: check-json/);
+});
