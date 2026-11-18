@@ -23,13 +23,10 @@ ISTIO_VERSION=<release from github.com/istio/istio/releases>
   # Install Istio with default profile
   "$istioctl" install --set profile=default -y
   "$istioctl" verify-install
+  # Enable sidecar injection only after every step above succeeded
+  kubectl label namespace production istio-injection=enabled
+  kubectl get pods -n istio-system                   # check the control plane
 )
-
-# Enable sidecar injection for namespace
-kubectl label namespace production istio-injection=enabled
-
-# Check the control plane
-kubectl get pods -n istio-system
 ```
 
 Later examples call `istioctl` by name. Put the verified `istio-${ISTIO_VERSION}/bin` first on `PATH` only after the block above has succeeded.
@@ -347,13 +344,10 @@ LINKERD_VERSION=<release tag from github.com/linkerd/linkerd2/releases>
   "$linkerd" install --crds | kubectl apply -f -      # CRDs (pipefail stops on a failed render)
   "$linkerd" install | kubectl apply -f -             # control plane
   "$linkerd" check
+  # Enable and apply injection only after every step above succeeded
+  kubectl annotate namespace production linkerd.io/inject=enabled
+  kubectl get deploy -n production -o yaml | "$linkerd" inject - | kubectl apply -f -
 )
-
-# Enable injection for namespace
-kubectl annotate namespace production linkerd.io/inject=enabled
-
-# Inject existing deployments
-kubectl get deploy -n production -o yaml | "$HOME/.local/bin/linkerd" inject - | kubectl apply -f -
 ```
 
 ## Linkerd Service Profile

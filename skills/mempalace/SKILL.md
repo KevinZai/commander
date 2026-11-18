@@ -23,10 +23,17 @@ Install from the upstream README, reviewed at [`fec575b`](https://github.com/Mem
 CLI and MCP only:
 
 ```bash
-uv tool install mempalace==3.12.0   # or: pipx install mempalace==3.12.0 (pinned; fails if that version is unavailable)
-mempalace init ~/projects/myapp
-claude mcp add mempalace -- mempalace-mcp
+# One errexit subshell, run on its own: a failed install stops before init or registration,
+# and both use the binaries this install just placed, never whatever is first on PATH.
+( set -euo pipefail
+  uv tool install mempalace==3.12.0          # pinned; fails if that version is unavailable
+  bin="$(uv tool dir --bin)"
+  "$bin/mempalace" init ~/projects/myapp
+  claude mcp add mempalace -- "$bin/mempalace-mcp"
+)
 ```
+
+With pipx instead of uv, use `pipx install mempalace==3.12.0` and `$(pipx environment --value PIPX_BIN_DIR)` for `bin`.
 
 Check first with `claude mcp list` and `claude plugin list`.
 

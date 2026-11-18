@@ -257,8 +257,23 @@ if (args.includes('--list-skills')) {
 if (args.includes('--skills')) {
   var os = require('os');
   // Same target as install.sh: CLAUDE_CONFIG_DIR when set, else ~/.claude
-  var skillsInstallDir = path.join(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'), 'skills');
+  var claudeProfileDir = path.resolve(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'));
+  // Same guard as install.sh: never treat / or the home directory itself as the profile.
+  if (claudeProfileDir === path.parse(claudeProfileDir).root || claudeProfileDir === path.resolve(os.homedir())) {
+    console.error('Invalid CLAUDE_CONFIG_DIR (' + claudeProfileDir + '): refusing to manage skills there.');
+    process.exit(1);
+  }
+  var skillsInstallDir = path.join(claudeProfileDir, 'skills');
   var skillsSourceDir = path.join(__dirname, '..', 'skills');
+  // A link is Commander's only if it points into this package's skills/ directory.
+  function isManagedSkillLink(dst) {
+    try {
+      if (!fs.lstatSync(dst).isSymbolicLink()) return false;
+      var target = path.resolve(path.dirname(dst), fs.readlinkSync(dst));
+      var root = path.resolve(skillsSourceDir) + path.sep;
+      return target.indexOf(root) === 0;
+    } catch (_e) { return false; }
+  }
   var tiersFilePath = path.join(skillsSourceDir, '_tiers.json');
   var tiers = {};
   try { tiers = JSON.parse(fs.readFileSync(tiersFilePath, 'utf8')); } catch (_e) {}
@@ -423,10 +438,10 @@ if (args.includes('--skills')) {
     }
     try {
       var removeStat = fs.lstatSync(removeDst);
-      if (removeStat.isSymbolicLink()) {
+      if (removeStat.isSymbolicLink() && isManagedSkillLink(removeDst)) {
         fs.unlinkSync(removeDst);
       } else {
-        console.error(removeName + ' is not a symlink — refusing to remove. Delete manually if intended.');
+        console.error(removeName + ' is not a Commander-managed symlink — refusing to remove. Delete manually if intended.');
         process.exit(1);
       }
       console.log('Removed: ' + removeName);
@@ -461,8 +476,8 @@ if (args.includes('--skills')) {
     currentInstalled.forEach(function(s) {
       var dst = path.join(skillsInstallDir, s);
       try {
-        var st = fs.lstatSync(dst);
-        if (st.isSymbolicLink()) { fs.unlinkSync(dst); removed++; }
+        // Only links into this package's skills/; other tools' links stay.
+        if (isManagedSkillLink(dst)) { fs.unlinkSync(dst); removed++; }
       } catch (_e) {}
     });
     // Install tier skills
