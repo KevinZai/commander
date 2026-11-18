@@ -400,7 +400,7 @@ test('install.sh re-run with no changes writes nothing and backs up nothing', ()
 test('install.sh tier switch removes the previous tier\'s unchanged entries and keeps the user\'s', () => {
   withHome('ccc-install-tier-', (home) => {
     const claude = join(home, '.claude');
-    ok(install(home), 'full install');
+    ok(install(home, ['--skills=full']), 'full install');
     assert.ok(lstatSync(join(claude, 'skills', 'ccc-seo')).isDirectory());
     writeFileSync(join(claude, 'skills', 'ccc-seo', 'MY-NOTES.md'), 'mine'); // the user's file inside a kit skill
     const res = install(home, ['--skills=essential']);
@@ -515,6 +515,47 @@ test('install.sh does not adopt an identical preexisting file; uninstall keeps i
     assert.ok(!readManifest(claude).entries.some((e) => e.path === 'commands/ccc-ao.md'));
     ok(uninstall(home), 'uninstall');
     assert.strictEqual(readFileSync(join(claude, 'commands', 'ccc-ao.md'), 'utf8'), readFileSync(join(REPO_ROOT, 'commands', 'ccc-ao.md'), 'utf8'));
+  });
+});
+
+// An unattended --force run (install-remote.sh, ccc --update) never opts the user into the full tier.
+function tierSkills(tier) {
+  const tiers = JSON.parse(readFileSync(join(REPO_ROOT, 'skills', '_tiers.json'), 'utf8')).tiers;
+  const out = new Set(tiers[tier].skills || []);
+  for (const inc of tiers[tier].includes || []) for (const s of tiers[inc].skills || []) out.add(s);
+  if (tier === 'recommended') for (const s of (tiers.domain && tiers.domain.skills) || []) out.add(s);
+  return out;
+}
+
+test('install.sh --force without --skills installs the essential tier into a fresh config dir', () => {
+  withHome('ccc-install-unattended-', (home) => {
+    const cfg = join(home, 'claude-fresh');
+    const res = run(INSTALL_SH, home, ['--force', '--skip-deps'], { CLAUDE_CONFIG_DIR: cfg });
+    ok(res, 'unattended install');
+    assert.strictEqual(readManifest(cfg).tier, 'essential');
+    const allowed = tierSkills('essential');
+    const installed = readdirSync(join(cfg, 'skills')).filter((n) => !n.startsWith('_'));
+    assert.ok(installed.length > 0, 'essential skills are installed');
+    for (const n of installed) assert.ok(allowed.has(n), `only essential-tier skills are installed, found ${n}`);
+    for (const pack of ['science-pack', 'specialist-pack', 'addyosmani-pack', 'threejs-pack']) {
+      assert.ok(!existsSync(join(cfg, 'skills', pack)), `${pack} must not be installed without opting in`);
+    }
+    assert.ok(installed.every((n) => !/-pack$/.test(n)), 'no optional skill packs');
+  });
+});
+
+test('install.sh --force without --skills keeps the tier the previous install recorded', () => {
+  withHome('ccc-install-keeptier-', (home) => {
+    const claude = join(home, '.claude');
+    ok(install(home, ['--skills=recommended']), 'recommended install');
+    const before = readdirSync(join(claude, 'skills')).sort();
+    const res = install(home); // the update path: install.sh --force, no --skills
+    ok(res, 'update');
+    assert.match(res.stdout, /Skill tier: recommended \(kept from the previous install/);
+    assert.strictEqual(readManifest(claude).tier, 'recommended');
+    assert.deepStrictEqual(readdirSync(join(claude, 'skills')).sort(), before);
+    const allowed = tierSkills('recommended');
+    for (const n of before.filter((x) => !x.startsWith('_'))) assert.ok(allowed.has(n), n);
   });
 });
 

@@ -71,7 +71,9 @@ while [[ $# -gt 0 ]]; do
       echo "  --clean            Replace ~/.claude skills, commands and hooks instead of merging (backed up first)"
       echo "  --mode=MODE        Install mode: full|essentials|scripts|dashboard|config"
       echo "  --skills=TIER      Skill tier: essential (default), recommended, full, custom"
-      echo "                     (a tier other than full needs jq; --force defaults to full)"
+      echo "                     (a tier other than full needs jq). Without --skills, a re-install or"
+      echo "                     update keeps the tier recorded by the previous install, else essential;"
+      echo "                     full is installed only when asked for"
       echo "  --install-cli      Allow npm install -g of Claude Code / context-mode when missing"
       echo "  --skip-deps        Do not run npm install in this checkout"
       echo "  --help             Show this help"
@@ -329,11 +331,22 @@ fi
 tier=""
 tiers_file="$SCRIPT_DIR/skills/_tiers.json"
 if should_install "skills"; then
-  # Determine skill tier (--force defaults to full for reliability)
-  if $FORCE && [ -z "$SKILLS_TIER" ]; then
-    tier="full"
+  # Skill tier: --skills wins. Otherwise (including unattended --force runs from install-remote.sh and
+  # ccc --update) keep the tier the previous install recorded in its manifest, else essential. Optional
+  # skill packs (full) are installed only when the user asks for them.
+  if [ -n "$SKILLS_TIER" ]; then
+    tier="$SKILLS_TIER"
   else
-    tier="${SKILLS_TIER:-essential}"
+    stored_tier="$(node -e '
+      try {
+        var t = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).tier;
+        if (typeof t === "string" && /^[a-z][a-z0-9-]{0,31}$/.test(t)) process.stdout.write(t);
+      } catch (_e) { /* no manifest: first install */ }
+    ' "$MANIFEST" 2>/dev/null || true)"
+    tier="${stored_tier:-essential}"
+    if [ -n "$stored_tier" ]; then
+      cc_status_line "·" "Skill tier: $tier (kept from the previous install; pass --skills=TIER to change it)"
+    fi
   fi
   if [[ "$tier" == "custom" ]]; then
     cc_status_line "!" "Custom skill picker not yet implemented — using essential tier"
