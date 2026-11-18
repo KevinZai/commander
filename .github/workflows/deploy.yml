@@ -1,3 +1,7 @@
+# Single production deploy path for the MCP cloud app (Fly.io) and the site
+# (Vercel). deploy-mcp.yml was removed so one change cannot deploy twice under
+# two different gates. Order: release gate + MCP verify -> deploy (production
+# environment, canary) -> post-deploy smoke.
 name: Deploy (v4 Beta)
 
 on:
@@ -10,6 +14,9 @@ on:
       - 'scripts/deploy.sh'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: deploy-commander-production
@@ -27,7 +34,7 @@ jobs:
       site: ${{ steps.paths.outputs.site }}
       site_ready: ${{ steps.vercel.outputs.ready }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with: { fetch-depth: 0 }
       - name: Changed paths
         id: paths
@@ -65,30 +72,57 @@ jobs:
             echo "::notice::Site deploy skipped: VERCEL_ORG_ID / VERCEL_PROJECT_ID / VERCEL_TOKEN are not set."
           fi
 
+  # The same release gate list the tag workflow and prepublishOnly run
+  # (scripts/release-gate.js): version parity, contract, counts, registry drift,
+  # lint, Codex mirror drift, test:ci, smoke and the full suite.
   test:
+    name: Release gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          submodules: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with: { node-version: '24' }
       - name: Install deps
         run: npm ci --prefer-offline --no-audit
-      - name: Full test suite
-        run: |
-          npm test
-          node bin/kc.js --test
-          bash tests/smoke.sh
-      - name: Registry drift
-        run: node scripts/build-from-registry.js --check
+      - name: Release gate
+        run: node scripts/release-gate.js
+
+  # Typecheck, tests and build of the MCP cloud app itself.
+  mcp-verify:
+    name: MCP cloud build, typecheck, test
+    needs: changes
+    if: needs.changes.outputs.mcp == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mcp-server-cloud
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/mcp-server-cloud/package-lock.json
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Smoke script syntax
+        run: bash -n scripts/smoke-test.sh
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
 
   deploy-mcp:
-    needs: [test, changes]
+    needs: [test, changes, mcp-verify]
     if: needs.changes.outputs.mcp == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: superfly/flyctl-actions/setup-flyctl@98172f70657cb3e15db199af139be99bd3e61200 # master as of 2026-11-18 (latest tag 1.6 predates it)
       - name: Deploy MCP cloud (canary)
         working-directory: apps/mcp-server-cloud
         run: flyctl deploy --strategy canary --app commander-mcp --remote-only
@@ -108,10 +142,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with: { node-version: '24' }
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
         with: { version: 10 }
       - name: Require explicit Vercel production target
         env:
