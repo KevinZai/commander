@@ -809,6 +809,11 @@ skills:
     domain: general
     tier: free
     description: "name: sales-enablement"
+  - id: science-pack
+    path: skills/science-pack/SKILL.md
+    domain: general
+    tier: free
+    description: "name: science-pack"
   - id: self-healing
     path: skills/self-healing/SKILL.md
     domain: general
