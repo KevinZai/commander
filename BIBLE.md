@@ -350,7 +350,7 @@ Detected from `package.json`, `Dockerfile`, `go.mod`, `.github/workflows/`, fram
 
 #### Tier 3: User intent (pattern match)
 
-Pattern-matches your last 5 prompts against the 473-skill catalog, cross-references the trending skills window (last 7 days), and boosts skills that succeeded in your past sessions. If a **third-party plugin** serves the intent better than CC Commander's own tools, it is named:
+Pattern-matches your last 5 prompts against the 487-skill catalog, cross-references the trending skills window (last 7 days), and boosts skills that succeeded in your past sessions. If a **third-party plugin** serves the intent better than CC Commander's own tools, it is named:
 
 - Recall-heavy intent ("what did I decide about X?") → **`claude-mem`**
 - Structured planning drift ("keep losing the thread") → **`superpowers`**
@@ -413,7 +413,7 @@ Every pass — explicit invocation and ambient tick alike — runs **three PM le
 
 ## The 93 Plugin Skills
 
-> *Every skill that ships with `/plugin install commander`. Not the 473-skill ecosystem — just the curated plugin surface.*
+> *Every skill that ships with `/plugin install commander`. Not the 487-skill ecosystem — just the curated plugin surface.*
 
 | Skill | What it does |
 |---|---|
@@ -1475,12 +1475,12 @@ Skills are installed in tiers — smaller tiers load faster and save ~10k tokens
 | Essential | `--skills=essential` (default) | ~30 | Most developers — core workflows |
 | Recommended | `--skills=recommended` | ~100 | Active builders who use many domains |
 | Domain | `--skills=domain` | 11 routers | Load one ccc-domain per domain as needed |
-| Full | `--skills=full` | 473 | Legacy behavior — everything installed |
+| Full | `--skills=full` | 487 | Legacy behavior — everything installed |
 
 ```bash
 ./install.sh --skills=essential   # Default — saves ~10k tokens per session
 ./install.sh --skills=recommended # Good balance for full-time users
-./install.sh --skills=full        # All 473+ skills (original behavior)
+./install.sh --skills=full        # All 487+ skills (original behavior)
 ```
 
 Tiers are defined in `skills/_tiers.json`. You can always load an on-demand skill mid-session with: `"use the skill-name skill"`.
@@ -2787,7 +2787,7 @@ ccc --repair
 | **Level-based defaults** | Guided = `sonnet` / $5, Assisted = `opus` / $5, Power = `fable` / $10 |
 | **Project import** | Reads local CLAUDE.md without modifying .claude/ |
 | **Session tracking** | Persistent history across days/weeks |
-| **Skill browser** | Browse all 473+ skills from within Commander |
+| **Skill browser** | Browse all 487+ skills from within Commander |
 | **Stats dashboard** | Sparklines, activity heatmap, streak tracking |
 | **Progressive disclosure** | Guided → Assisted (5 sessions) → Power (20 sessions) |
 | **Rich footer bar** | 12-segment status line with color-coded limits |
@@ -3002,7 +3002,7 @@ This context is passed to the skill recommender and the dispatcher, so relevant 
 
 **File:** `commander/skill-browser.js`
 
-`recommendSkills(task, techStack)` ranks all 473+ skills using three signals:
+`recommendSkills(task, techStack)` ranks all 487+ skills using three signals:
 
 ```
 Stack match:    +10 pts per matching technology
@@ -3190,7 +3190,7 @@ CCC skills are fully compatible with this format. Cherry-pick individual skills 
 
 CCC does not replace these skills. It organizes and orchestrates them.
 
-- **Curation:** the 473 ecosystem skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
+- **Curation:** the 487 ecosystem skills are pre-screened. Low-signal skills are excluded. High-signal ones are cross-wired.
 - **Guidance:** The intent classifier reads your message and routes to the right skill automatically. You don't need to know which skill does what.
 - **Pre-wired MCPs:** 2 credential-free bundled MCP servers (context7 + sequential-thinking) ship out of the box; 19 more are opt-in via `/ccc-connect` (Tavily, GitHub, Linear, Supabase, Figma, etc.) when you need them.
 - **Domain coherence:** 11 `ccc-*` domains group related skills into coherent workflows. `ccc-design` (41 skills) behaves like a single expert, not 41 separate prompts.

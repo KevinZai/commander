@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- **Three.js pack (CC-2136).** `skills/threejs-pack/` adds 13 MIT skills from CloudAI-X/threejs-skills (scene setup, geometry, materials, lighting, textures, loaders, animation, shaders, post-processing, interaction, performance, asset pipeline, React Three Fiber) behind one router, routed from `skills/ccc-design`. Opt-in, not in the default load path. Ecosystem skills 473 to 487.
 - **Six MIT add-ons.** `ponytail` (DietrichGebert/ponytail, copied with its LICENSE) is a toolkit skill and a new mode in `mode-switcher`: the smallest complete change, never cutting validation or security. Five opt-in skills install from upstream without copying source: `diagram-design` (50 diagram types as HTML+SVG), `claude-video` (`/watch`, Code sessions only), `mempalace` (searchable local memory, an MIT alternative to AGPL claude-mem), `qmd` (on-device search over notes and docs) and `codebase-memory-mcp` (local code graph, now the preferred code mapper with graphify as the fallback). `/ccc-connect` gains a Code map category and lists codebase-memory-mcp, MemPalace and qmd (opt-in MCP servers 16 to 19); `/ccc-suggest` names all six. Ecosystem skills 467 to 473. NOTICE.md lists the sources.
 
 ### Changed

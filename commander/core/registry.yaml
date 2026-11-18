@@ -919,6 +919,11 @@ skills:
     domain: general
     tier: free
     description: "name: teach-impeccable"
+  - id: threejs-pack
+    path: skills/threejs-pack/SKILL.md
+    domain: general
+    tier: free
+    description: "name: threejs-pack"
   - id: trading-analysis
     path: skills/trading-analysis/SKILL.md
     domain: general

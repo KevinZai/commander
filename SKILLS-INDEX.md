@@ -295,6 +295,7 @@ Claude sees 32 of them (model-visible: the 12 core skills plus the skills their 
 | `task-commander` | Multi-agent orchestration — Claude manages ACP agents (Codex, OpenCode, Kimi, Pi) for complex tasks |
 | `taskmaster` | TaskMaster — structured PRD→task decomposition, complexity analysis, and implementation pipeline |
 | `teach-impeccable` | One-time setup that gathers design context for your project and saves it to your AI config file. Run once to establis... |
+| `threejs-pack` | Optional MIT pack from CloudAI-X/threejs-skills: a router plus 13 Three.js sub-skills (fundamentals, geometry, materials, lighting, textures, loaders, animation, shaders, postprocessing, interaction, performance, asset pipeline, React Three Fiber). |
 | `trading-analysis` | Market data analysis for Kevin's trading workspace. Fetches quotes via yf, |
 | `turborepo-monorepo` | (no description) |
 | `twilio-communications` | Build communication features with Twilio: SMS messaging, voice calls, WhatsApp Business API, and user verification (2... |

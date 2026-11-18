@@ -4,7 +4,7 @@
 
 CC Commander is a PM and orchestration layer over Claude's agent capabilities. The primary product is the Desktop plugin at `commander/cowork-plugin/`; the CLI toolkit and the Codex mirror are additional supported surfaces. Core skills, agents, hooks, mods, workflows and connectors remain free. Revenue comes from disclosed affiliates, consulting, an optional community, and sponsorship; preserve the public product's portability and opt-in integrations.
 
-Version: read `package.json`. Release history: `CHANGELOG.md`. Product and install guidance: `README.md`. For current skills, agents, hooks, workflows, evals, and connectors, inspect the source directories, the plugin manifest, `commander/contract.json`, and `CONNECTORS.md`; do not copy volatile counts into instructions. The CLI toolkit's ecosystem catalog under `skills/` holds 473 skills; that figure lives in `commander/contract.json` as `ecosystem_skills` and is checked by `bin/doc-sync.js`.
+Version: read `package.json`. Release history: `CHANGELOG.md`. Product and install guidance: `README.md`. For current skills, agents, hooks, workflows, evals, and connectors, inspect the source directories, the plugin manifest, `commander/contract.json`, and `CONNECTORS.md`; do not copy volatile counts into instructions. The CLI toolkit's ecosystem catalog under `skills/` holds 487 skills; that figure lives in `commander/contract.json` as `ecosystem_skills` and is checked by `bin/doc-sync.js`.
 
 Release-check marker: **8.1.6**; **20 vendor** packages. `scripts/audit-counts.js --check` requires these two literals; keep them synchronized through release validation. Other counts stay in their canonical sources.
 

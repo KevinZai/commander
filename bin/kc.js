@@ -18,7 +18,7 @@ process.on('unhandledRejection', function(reason) { _fatalHandler(reason instanc
 
 
 if (args.includes('--help') || args.includes('-h')) {
-  console.log('\n  CC Commander — 473 skills. One command. Your AI work, managed by AI.\n');
+  console.log('\n  CC Commander — 487 skills. One command. Your AI work, managed by AI.\n');
   console.log('  Usage:  ccc\n');
   console.log('  --version    Show version');
   console.log('  --test       Validate all modules');
@@ -256,8 +256,85 @@ if (args.includes('--list-skills')) {
 // Agent API: --skills
 if (args.includes('--skills')) {
   var os = require('os');
-  var skillsInstallDir = path.join(os.homedir(), '.claude', 'skills');
+  // Same target as install.sh: CLAUDE_CONFIG_DIR when set, else ~/.claude
+  var claudeProfileDir = path.resolve(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'));
+  var skillsInstallDir = path.join(claudeProfileDir, 'skills');
   var skillsSourceDir = path.join(__dirname, '..', 'skills');
+  // Same guard as install.sh, applied after resolving links: neither the profile nor its
+  // skills directory may be /, the home directory, or a directory that contains home.
+  // Compare by device and inode, not path text, so case-insensitive filesystems
+  // (/Users vs /users on APFS) cannot slip past.
+  // bigint stats: large inode numbers (APFS, ZFS, NTFS file ids) do not lose precision.
+  function fileId(p) { try { var st = fs.statSync(p, { bigint: true }); return st.dev + ':' + st.ino; } catch (_e) { return null; } }
+  // Layered on top of the inode check: lexical and realpath comparisons, and roots.
+  // Fold case only where the filesystem usually does (macOS, Windows); elsewhere a
+  // case-only alias is caught by the dev+ino comparison, not the path text.
+  var foldCase = process.platform === 'darwin' || process.platform === 'win32';
+  function pathKey(p) { var k = path.resolve(p).replace(/[\\/]+$/, ''); return foldCase ? k.toLowerCase() : k; }
+  function realOrNull(p) { try { return fs.realpathSync.native(p); } catch (_e) { return null; } }
+  function isRootPath(p) {
+    var r = path.resolve(p);
+    if (path.parse(r).root === r) return true;
+    if (/^[A-Za-z]:[\\/]?$/.test(r)) return true;                 // another drive's root
+    if (/^(\\\\|\/\/)[^\\/]+[\\/][^\\/]+[\\/]?$/.test(r)) return true; // UNC share root
+    if (process.platform === 'win32' && path.win32.parse(r).root === r) return true;
+    return false;
+  }
+  function refuseProfile(p, why) {
+    console.error('Invalid CLAUDE_CONFIG_DIR: ' + p + ' ' + why + '; refusing to manage skills there.');
+    process.exit(1);
+  }
+  (function guardProfile() {
+    var homeRaw = os.homedir();
+    if (!homeRaw || !path.isAbsolute(homeRaw) || fileId(homeRaw) === null) {
+      refuseProfile(claudeProfileDir, 'cannot be checked because the home directory (' + (homeRaw || 'unset') + ') does not exist');
+    }
+    var homeAndAncestors = {};   // dev:ino ids
+    var homeKeys = {};           // lexical keys
+    // Walk the ancestors of both the logical home and the physical (realpath) home.
+    [path.resolve(homeRaw), realOrNull(homeRaw)].forEach(function(start) {
+      if (!start) return;
+      var cur = start;
+      while (true) {
+        var id = fileId(cur);
+        if (id) homeAndAncestors[id] = true;
+        homeKeys[pathKey(cur)] = true;
+        var up = path.dirname(cur);
+        if (up === cur) break;
+        cur = up;
+      }
+    });
+    [claudeProfileDir, skillsInstallDir].forEach(function(p) {
+      [p, realOrNull(p)].forEach(function(form) {
+        if (!form) return;
+        if (isRootPath(form)) refuseProfile(p, 'is a filesystem root');
+        if (homeKeys[pathKey(form)]) refuseProfile(p, 'is the home directory or a directory above it');
+        var id = fileId(form);
+        if (id && homeAndAncestors[id]) refuseProfile(p, 'is /, the home directory, or a directory above it');
+      });
+    });
+  })();
+  // A link is Commander's only if its IMMEDIATE target is an entry of this package's
+  // skills/ directory: the target's parent must be that directory (same device and
+  // inode), and the entry itself is not dereferenced. So skills/mintlify, which is
+  // itself a link, still counts, and a user alias pointing at some other directory
+  // that happens to end in a Commander skill does not.
+  var skillsSourceId = fileId(skillsSourceDir);
+  function isManagedSkillLink(dst) {
+    try {
+      if (!fs.lstatSync(dst).isSymbolicLink()) return false;
+      // Keep the raw link text: path.resolve/join would collapse '..' before the
+      // filesystem follows an intermediate symlink. Let stat resolve the parent.
+      var raw = fs.readlinkSync(dst).replace(/[\\/]+$/, '');
+      var full = path.isAbsolute(raw) ? raw : path.dirname(dst) + path.sep + raw;
+      // path.dirname/basename split on the last separator without normalizing '..',
+      // and keep the drive root (C:\external -> C:\).
+      var name = path.basename(full);
+      if (!name || name === '.' || name === '..') return false;
+      var parent = path.dirname(full);
+      return skillsSourceId !== null && fileId(parent) === skillsSourceId;
+    } catch (_e) { return false; }
+  }
   var tiersFilePath = path.join(skillsSourceDir, '_tiers.json');
   var tiers = {};
   try { tiers = JSON.parse(fs.readFileSync(tiersFilePath, 'utf8')); } catch (_e) {}
@@ -422,10 +499,10 @@ if (args.includes('--skills')) {
     }
     try {
       var removeStat = fs.lstatSync(removeDst);
-      if (removeStat.isSymbolicLink()) {
+      if (removeStat.isSymbolicLink() && isManagedSkillLink(removeDst)) {
         fs.unlinkSync(removeDst);
       } else {
-        console.error(removeName + ' is not a symlink — refusing to remove. Delete manually if intended.');
+        console.error(removeName + ' is not a Commander-managed symlink — refusing to remove. Delete manually if intended.');
         process.exit(1);
       }
       console.log('Removed: ' + removeName);
@@ -460,8 +537,8 @@ if (args.includes('--skills')) {
     currentInstalled.forEach(function(s) {
       var dst = path.join(skillsInstallDir, s);
       try {
-        var st = fs.lstatSync(dst);
-        if (st.isSymbolicLink()) { fs.unlinkSync(dst); removed++; }
+        // Only links into this package's skills/; other tools' links stay.
+        if (isManagedSkillLink(dst)) { fs.unlinkSync(dst); removed++; }
       } catch (_e) {}
     });
     // Install tier skills
