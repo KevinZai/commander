@@ -166,9 +166,10 @@ const GIT_PUSH = /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|-[a-zA-Z]|--(?:git-di
 const QUOTED_BRACE = { '{': '\uE000', ',': '\uE001', '}': '\uE002' };
 
 function shellView(cmd, { glue = false, params = 'unset', subs = 'text' } = {}) {
-  // glue: whitespace that the shell keeps inside one word (quoted or escaped) becomes `_`, so `-C "a b" push` keeps -C's value one word.
+  // glue: whitespace and operators (; & | < > ( )) that the shell keeps inside one word (quoted or escaped) become `_`, so `-C "a b" push`
+  // keeps -C's value one word and ~/"a & b/.." stays one rm operand.
   // Quoted or escaped { , } are literal for bash, so they become private-use characters that expandBraces() leaves alone.
-  const lit = (t) => { const kept = t.replace(/[{,}]/g, (b) => QUOTED_BRACE[b]); return glue ? kept.replace(/\s/g, '_') : kept; };
+  const lit = (t) => { const kept = t.replace(/[{,}]/g, (b) => QUOTED_BRACE[b]); return glue ? kept.replace(/[\s;&|<>()]/g, '_') : kept; };
   let out = '';
   const bodies = [];   // each substitution's text on its own: bash runs it whatever text follows it
   const stack = [{ kind: 'top', parens: 0 }];   // top | sub ($(...)) | bt (`...`) | dq ("...") | param (${x:-word})
