@@ -1,6 +1,17 @@
-// Registry-driven skill catalog.
-// On cold start: reads commander/core/registry.yaml + skill files from skills/ dir.
-// Rebuilds on SIGHUP or every 10 min. Fails gracefully if skills dir is absent.
+// Registry-driven skill and agent catalog.
+//
+// Two local sources, never the network:
+//   - "repo":   a repository checkout (development and tests). Reads
+//               commander/core/registry.yaml and resolves each listed path
+//               against the real source roots (repo root, then
+//               commander/cowork-plugin/), so either path spelling works.
+//   - "bundle": the release-pinned data/ directory baked into the image by
+//               scripts/bundle-catalog.mjs (manifest.json + skill/agent bodies).
+// COMMANDER_CATALOG_DIR forces bundle mode from that directory. When neither
+// source exists the catalog is empty and /health reports it as unavailable;
+// there is no fallback agent list and no remote index.
+//
+// Rebuilds on SIGHUP or every 10 min.
 
 import { readFile, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -8,15 +19,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { logger } from "./logger.js";
 
-// Walk up from apps/mcp-server-cloud/src/lib/ → repo root
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../");
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+// Walk up from apps/mcp-server-cloud/{src,dist}/lib/ → repo root
+const ROOT = path.resolve(HERE, "../../../../");
 const REGISTRY_PATH = path.join(ROOT, "commander/core/registry.yaml");
-const SKILLS_DIR = path.join(ROOT, "skills");
-const AGENTS_DIR = path.join(ROOT, "commander/cowork-plugin/agents");
-
-// Fallback for containerized deployment: bundled data/ dir
-const BUNDLED_DATA_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "../../data");
-const BUNDLED_REGISTRY_PATH = path.join(BUNDLED_DATA_DIR, "registry.yaml");
+const PLUGIN_ROOT_REL = "commander/cowork-plugin";
+const AGENTS_DIR_REL = `${PLUGIN_ROOT_REL}/agents`;
+const BUNDLED_DATA_DIR = path.resolve(HERE, "../../data");
 
 export type SkillEntry = {
   id: string;
@@ -24,6 +33,7 @@ export type SkillEntry = {
   domain: string;
   tier: "free" | "pro";
   description: string;
+  /** Repo-relative path of the resolved source file (used for GitHub links). */
   path: string;
 };
 
@@ -34,170 +44,266 @@ export type AgentEntry = {
   githubUrl: string;
 };
 
+export type CatalogSource = "repo" | "bundle" | "none";
+export type SkillOrigin = "plugin" | "ecosystem";
+
+type InternalSkill = SkillEntry & { contentFile: string; origin: SkillOrigin };
+type InternalAgent = AgentEntry & { contentFile: string };
+
 type RegistryState = {
-  skills: SkillEntry[];
-  agents: AgentEntry[];
+  source: CatalogSource;
+  release: string | null;
+  gitCommit: string | null;
+  skills: InternalSkill[];
+  agents: InternalAgent[];
+  skillsMissingContent: string[];
   loadedAt: number;
-  skillsLoaded: number;
-  agentsLoaded: number;
   uptimeStart: number;
 };
 
 const REFRESH_INTERVAL_MS = 10 * 60 * 1000; // 10 min
-const STATIC_AGENTS: AgentEntry[] = [
-  { name: "reviewer", tier: "free", description: "Severity-rated code reviewer. Files P0-P3 findings with fix suggestions.", githubUrl: "https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/agents/reviewer.md" },
-  { name: "builder", tier: "free", description: "MVP-first implementer. Ships the simplest thing that works.", githubUrl: "https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/agents/builder.md" },
-  { name: "researcher", tier: "free", description: "Source-cited analyst. Facts, inferences, and opinions are always separated.", githubUrl: "https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/agents/researcher.md" },
-  { name: "debugger", tier: "free", description: "Root-cause detective. Iron Law: no fix without confirmed root cause.", githubUrl: "https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/agents/debugger.md" },
-  { name: "fleet-worker", tier: "free", description: "Strict-report executor. Non-overlapping file domains. Structured output.", githubUrl: "https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/agents/fleet-worker.md" },
-];
 
 let state: RegistryState = {
+  source: "none",
+  release: null,
+  gitCommit: null,
   skills: [],
-  agents: STATIC_AGENTS,
+  agents: [],
+  skillsMissingContent: [],
   loadedAt: 0,
-  skillsLoaded: 0,
-  agentsLoaded: 0,
   uptimeStart: Date.now(),
 };
 
-// Parse minimal YAML subset (key: value, list items with -)
-function parseYamlRegistry(raw: string): SkillEntry[] {
-  const skills: SkillEntry[] = [];
-  const lines = raw.split("\n");
-  let current: Partial<SkillEntry> | null = null;
+// ─── Parsing helpers (mirrored by scripts/bundle-catalog.mjs) ───────────────
 
-  for (const line of lines) {
-    if (line.match(/^  - id:/)) {
-      if (current?.id) skills.push(current as SkillEntry);
-      const id = line.replace(/^  - id:\s*/, "").trim();
-      current = { id, name: id, domain: "general", tier: "free", description: "", path: "" };
-    } else if (current && line.match(/^    path:/)) {
-      current.path = line.replace(/^    path:\s*/, "").trim();
-    } else if (current && line.match(/^    domain:/)) {
-      current.domain = line.replace(/^    domain:\s*/, "").trim() || "general";
-    } else if (current && line.match(/^    tier:/)) {
-      const tier = line.replace(/^    tier:\s*/, "").trim();
-      current.tier = tier === "pro" ? "pro" : "free";
-    } else if (current && line.match(/^    description:/)) {
-      const raw_desc = line.replace(/^    description:\s*/, "").trim().replace(/^["']|["']$/g, "");
-      current.description = raw_desc;
+type RawEntry = { id: string; name: string; path: string; source: string; domain: string; tier: "free" | "pro"; description: string };
+
+/** Strips YAML quotes; double-quoted values are JSON-parsed so escapes survive. */
+function unquote(value: string): string {
+  const v = value.trim();
+  if (v.startsWith('"')) {
+    try {
+      return String(JSON.parse(v));
+    } catch {
+      // fall through to a plain strip
     }
   }
-  if (current?.id) skills.push(current as SkillEntry);
-  return skills;
+  return v.replace(/^["']|["']$/g, "");
 }
 
-async function loadSkillDescriptions(skills: SkillEntry[]): Promise<SkillEntry[]> {
-  if (!existsSync(SKILLS_DIR)) return skills;
-
-  const enriched = await Promise.all(
-    skills.map(async (skill) => {
-      if (skill.description && !skill.description.startsWith("name:")) return skill;
-      const skillMdPath = path.join(ROOT, skill.path);
-      try {
-        const content = await readFile(skillMdPath, "utf8");
-        const lines = content.split("\n");
-        let description = "";
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed && !trimmed.startsWith("#") && !trimmed.startsWith("---") && !trimmed.startsWith("**")) {
-            description = trimmed.slice(0, 150);
-            break;
-          }
-        }
-        return { ...skill, description: description || skill.name };
-      } catch {
-        return skill;
-      }
-    })
-  );
-  return enriched;
-}
-
-async function loadAgentsFromFs(): Promise<AgentEntry[]> {
-  if (!existsSync(AGENTS_DIR)) return STATIC_AGENTS;
-  try {
-    const entries = await readdir(AGENTS_DIR, { withFileTypes: true });
-    const agents: AgentEntry[] = [];
-    for (const entry of entries) {
-      if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
-      const name = entry.name.replace(".md", "");
-      const existing = STATIC_AGENTS.find((a) => a.name === name);
-      const content = await readFile(path.join(AGENTS_DIR, entry.name), "utf8").catch(() => "");
-      let description = existing?.description ?? "";
-      if (!description) {
-        const lines = content.split("\n");
-        for (const line of lines) {
-          const t = line.trim();
-          if (t && !t.startsWith("#") && !t.startsWith("---") && !t.startsWith("**")) {
-            description = t.slice(0, 150);
-            break;
-          }
-        }
-      }
-      agents.push({
-        name,
-        tier: existing?.tier ?? "free",
-        description: description || name,
-        githubUrl: `https://github.com/KevinZai/commander/blob/main/commander/cowork-plugin/agents/${entry.name}`,
-      });
+/** Parses only the `skills:` and `agents:` sections; other sections' ids are ignored. */
+export function parseRegistrySections(raw: string): { version: string; skills: RawEntry[]; agents: RawEntry[] } {
+  const out = { version: "", skills: [] as RawEntry[], agents: [] as RawEntry[] };
+  let section = "";
+  let current: RawEntry | null = null;
+  const flush = () => {
+    if (current?.id && (section === "skills" || section === "agents")) out[section].push(current);
+    current = null;
+  };
+  for (const line of raw.split("\n")) {
+    const top = line.match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
+    if (top) {
+      flush();
+      section = top[1];
+      if (section === "version") out.version = unquote(top[2]);
+      continue;
     }
-    return agents.length > 0 ? agents : STATIC_AGENTS;
-  } catch {
-    return STATIC_AGENTS;
+    if (section !== "skills" && section !== "agents") continue;
+    const item = line.match(/^  - id:\s*(.*)$/);
+    if (item) {
+      flush();
+      current = { id: unquote(item[1]), name: "", path: "", source: "", domain: "general", tier: "free", description: "" };
+      continue;
+    }
+    const field = current && line.match(/^    (name|path|source|domain|tier|description):\s*(.*)$/);
+    if (current && field) {
+      const key = field[1] as "name" | "path" | "source" | "domain" | "tier" | "description";
+      const value = unquote(field[2]);
+      if (key === "tier") current.tier = value === "pro" ? "pro" : "free";
+      else if (key === "domain") current.domain = value || "general";
+      else current[key] = value;
+    }
   }
+  flush();
+  return out;
+}
+
+function isSafeRelative(rel: string): boolean {
+  return rel.length > 0 && !path.isAbsolute(rel) && !rel.split(/[\\/]/).includes("..");
+}
+
+/** Resolves a registry path against the repo root, then commander/cowork-plugin/. */
+export function resolveSourcePath(repoRoot: string, rel: string): string | null {
+  if (!isSafeRelative(rel)) return null;
+  const candidates = [rel];
+  if (!rel.startsWith(`${PLUGIN_ROOT_REL}/`)) candidates.push(`${PLUGIN_ROOT_REL}/${rel}`);
+  for (const candidate of candidates) {
+    if (existsSync(path.join(repoRoot, candidate))) return candidate;
+  }
+  return null;
+}
+
+export function frontmatterDescription(content: string): string {
+  const fm = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!fm) return "";
+  const lines = fm[1].split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^description:\s*(.*)$/);
+    if (!m) continue;
+    const value = m[1].trim();
+    if (value && !/^[>|][+-]?$/.test(value)) return unquote(value).slice(0, 300);
+    const block: string[] = [];
+    for (let j = i + 1; j < lines.length && /^\s+\S/.test(lines[j]); j++) block.push(lines[j].trim());
+    return block.join(" ").slice(0, 300);
+  }
+  return "";
+}
+
+/** Registry `source:` when present (plugin | ecosystem), else inferred from the resolved path. */
+function originOf(declared: string | undefined, sourceRel: string): SkillOrigin {
+  if (declared === "plugin" || declared === "ecosystem") return declared;
+  return sourceRel.startsWith(`${PLUGIN_ROOT_REL}/skills/`) ? "plugin" : "ecosystem";
+}
+
+function agentGithubUrl(sourceRel: string): string {
+  return `https://github.com/KevinZai/commander/blob/main/${sourceRel}`;
+}
+
+// ─── Loaders ────────────────────────────────────────────────────────────────
+
+type Loaded = Pick<RegistryState, "source" | "release" | "gitCommit" | "skills" | "agents">;
+
+async function loadFromRepo(repoRoot: string): Promise<Loaded> {
+  const raw = await readFile(path.join(repoRoot, "commander/core/registry.yaml"), "utf8");
+  const parsed = parseRegistrySections(raw);
+
+  const skills: InternalSkill[] = [];
+  const seen = new Set<string>();
+  for (const entry of parsed.skills) {
+    if (seen.has(entry.id)) continue; // generated registry can repeat an entry
+    seen.add(entry.id);
+    const source = resolveSourcePath(repoRoot, entry.path) ?? entry.path;
+    const contentFile = path.join(repoRoot, source);
+    let description = entry.description.startsWith("name:") ? "" : entry.description;
+    if (!description) {
+      description = frontmatterDescription(await readFile(contentFile, "utf8").catch(() => ""));
+    }
+    skills.push({
+      id: entry.id,
+      name: entry.name || entry.id,
+      domain: entry.domain,
+      tier: entry.tier,
+      description: description || entry.name || entry.id,
+      path: source,
+      contentFile,
+      origin: originOf(entry.source, source),
+    });
+  }
+
+  let agentEntries = parsed.agents;
+  if (agentEntries.length === 0) {
+    // Older registries have no agents section: scan the plugin agents dir.
+    const dir = path.join(repoRoot, AGENTS_DIR_REL);
+    const files = existsSync(dir) ? await readdir(dir) : [];
+    agentEntries = files
+      .filter((f) => f.endsWith(".md"))
+      .map((f) => ({ id: f.slice(0, -3), name: "", path: `${AGENTS_DIR_REL}/${f}`, source: "", domain: "", tier: "free" as const, description: "" }));
+  }
+  const agents: InternalAgent[] = [];
+  for (const entry of agentEntries) {
+    const source = resolveSourcePath(repoRoot, entry.path || `agents/${entry.id}.md`);
+    if (!source) continue;
+    const contentFile = path.join(repoRoot, source);
+    const content = await readFile(contentFile, "utf8").catch(() => "");
+    agents.push({
+      name: entry.id,
+      tier: entry.tier,
+      description: frontmatterDescription(content) || entry.id,
+      githubUrl: agentGithubUrl(source),
+      contentFile,
+    });
+  }
+
+  return { source: "repo", release: parsed.version || null, gitCommit: null, skills, agents };
+}
+
+type ManifestEntry = {
+  id?: string;
+  name?: string;
+  domain?: string;
+  tier?: string;
+  description?: string;
+  source: string;
+  origin?: string;
+  bundled: string;
+};
+
+async function loadFromBundle(dataDir: string): Promise<Loaded> {
+  const manifest = JSON.parse(await readFile(path.join(dataDir, "manifest.json"), "utf8")) as {
+    release?: string;
+    gitCommit?: string | null;
+    skills?: ManifestEntry[];
+    agents?: ManifestEntry[];
+  };
+  const safeFile = (rel: string) => {
+    if (!isSafeRelative(rel)) throw new Error(`unsafe bundled path ${rel}`);
+    return path.join(dataDir, rel);
+  };
+  const skills: InternalSkill[] = (manifest.skills ?? []).map((s) => ({
+    id: String(s.id),
+    name: s.name || String(s.id),
+    domain: s.domain || "general",
+    tier: s.tier === "pro" ? "pro" : "free",
+    description: s.description || String(s.id),
+    path: s.source,
+    contentFile: safeFile(s.bundled),
+    origin: originOf(s.origin, s.source),
+  }));
+  const agents: InternalAgent[] = (manifest.agents ?? []).map((a) => ({
+    name: String(a.name),
+    tier: a.tier === "pro" ? "pro" : "free",
+    description: a.description || String(a.name),
+    githubUrl: agentGithubUrl(a.source),
+    contentFile: safeFile(a.bundled),
+  }));
+  return { source: "bundle", release: manifest.release ?? null, gitCommit: manifest.gitCommit ?? null, skills, agents };
+}
+
+/** Which local source this process would load from. Exported for tests. */
+export function selectCatalogSource(): { source: CatalogSource; location: string | null } {
+  const forced = process.env.COMMANDER_CATALOG_DIR;
+  if (forced) {
+    const dir = path.resolve(forced);
+    return existsSync(path.join(dir, "manifest.json")) ? { source: "bundle", location: dir } : { source: "none", location: dir };
+  }
+  if (existsSync(REGISTRY_PATH)) return { source: "repo", location: ROOT };
+  if (existsSync(path.join(BUNDLED_DATA_DIR, "manifest.json"))) return { source: "bundle", location: BUNDLED_DATA_DIR };
+  return { source: "none", location: null };
 }
 
 async function buildIndex(): Promise<void> {
   try {
-    let skills: SkillEntry[] = [];
-    let registryToLoad = "";
-
-    // Try repo-local registry first (dev), then bundled (production container)
-    if (existsSync(REGISTRY_PATH)) {
-      registryToLoad = REGISTRY_PATH;
-    } else if (existsSync(BUNDLED_REGISTRY_PATH)) {
-      registryToLoad = BUNDLED_REGISTRY_PATH;
-    } else {
-      // Fallback: fetch from GitHub (production containers don't have local files)
-      try {
-        logger.info("Fetching registry.yaml from GitHub...");
-        const response = await fetch(
-          "https://raw.githubusercontent.com/KevinZai/commander/main/commander/core/registry.yaml"
-        );
-        if (response.ok) {
-          const raw = await response.text();
-          skills = parseYamlRegistry(raw);
-          skills = await loadSkillDescriptions(skills);
-          logger.info({ count: skills.length, source: "github" }, "Registry loaded from GitHub");
-        } else {
-          logger.warn({ status: response.status }, "GitHub fetch failed");
-        }
-      } catch (fetchErr) {
-        logger.warn({ err: (fetchErr as Error).message }, "GitHub fetch error");
-      }
+    const selected = selectCatalogSource();
+    let loaded: Loaded;
+    if (selected.source === "repo") loaded = await loadFromRepo(selected.location!);
+    else if (selected.source === "bundle") loaded = await loadFromBundle(selected.location!);
+    else {
+      logger.error({ location: selected.location }, "No local catalog found (no repo registry, no data/manifest.json) — serving an empty catalog");
+      loaded = { source: "none", release: null, gitCommit: null, skills: [], agents: [] };
     }
 
-    if (registryToLoad && !skills.length) {
-      const raw = await readFile(registryToLoad, "utf8");
-      skills = parseYamlRegistry(raw);
-      skills = await loadSkillDescriptions(skills);
-      logger.info({ count: skills.length, path: registryToLoad }, "Registry loaded");
+    const skillsMissingContent = loaded.skills.filter((s) => !existsSync(s.contentFile)).map((s) => s.id);
+    if (skillsMissingContent.length > 0) {
+      logger.error({ count: skillsMissingContent.length, sample: skillsMissingContent.slice(0, 5) }, "Catalog skills without readable content");
     }
 
-    const agents = await loadAgentsFromFs();
-
-    state = {
-      ...state,
-      skills,
-      agents,
-      loadedAt: Date.now(),
-      skillsLoaded: skills.length,
-      agentsLoaded: agents.length,
-    };
+    state = { ...state, ...loaded, skillsMissingContent, loadedAt: Date.now() };
+    logger.info(
+      { source: loaded.source, release: loaded.release, skills: loaded.skills.length, agents: loaded.agents.length },
+      "Registry loaded"
+    );
   } catch (err) {
-    logger.error({ err }, "Registry build failed — keeping previous state");
+    logger.error({ err: (err as Error).message }, "Registry build failed — keeping previous state");
   }
 }
 
@@ -211,49 +317,107 @@ export async function initRegistry(): Promise<void> {
       buildIndex().catch((err) => logger.error({ err }, "Registry refresh failed"));
     }, REFRESH_INTERVAL_MS);
     refreshTimer.unref();
-  }
 
-  process.on("SIGHUP", () => {
-    logger.info("SIGHUP received — rebuilding registry");
-    buildIndex().catch((err) => logger.error({ err }, "SIGHUP registry rebuild failed"));
-  });
+    process.on("SIGHUP", () => {
+      logger.info("SIGHUP received — rebuilding registry");
+      buildIndex().catch((err) => logger.error({ err }, "SIGHUP registry rebuild failed"));
+    });
+  }
 }
 
+/** Rebuilds the index now. Exported for tests. */
+export async function reloadRegistry(): Promise<void> {
+  await buildIndex();
+}
+
+const publicSkill = ({ contentFile: _c, origin: _o, ...rest }: InternalSkill): SkillEntry => rest;
+const publicAgent = ({ contentFile: _c, ...rest }: InternalAgent): AgentEntry => rest;
+
 export function getSkills(): SkillEntry[] {
-  return state.skills;
+  return state.skills.map(publicSkill);
 }
 
 export function getAgents(): AgentEntry[] {
-  return state.agents;
+  return state.agents.map(publicAgent);
+}
+
+export type CatalogHealth = {
+  ok: boolean;
+  problems: string[];
+  source: CatalogSource;
+  release: string | null;
+  gitCommit: string | null;
+  skillsLoaded: number;
+  pluginSkills: number;
+  ecosystemSkills: number;
+  skillsMissingContent: number;
+  agentsLoaded: number;
+};
+
+/** Readiness of the catalog: non-empty skills and agents, and every listed skill body readable. */
+export function getCatalogHealth(): CatalogHealth {
+  const problems: string[] = [];
+  if (state.source === "none") problems.push("no_catalog_source");
+  if (state.skills.length === 0) problems.push("zero_skills");
+  if (state.agents.length === 0) problems.push("zero_agents");
+  if (state.skillsMissingContent.length > 0) problems.push("skill_content_missing");
+  return {
+    ok: problems.length === 0,
+    problems,
+    source: state.source,
+    release: state.release,
+    gitCommit: state.gitCommit,
+    skillsLoaded: state.skills.length,
+    pluginSkills: state.skills.filter((s) => s.origin === "plugin").length,
+    ecosystemSkills: state.skills.filter((s) => s.origin === "ecosystem").length,
+    skillsMissingContent: state.skillsMissingContent.length,
+    agentsLoaded: state.agents.length,
+  };
 }
 
 export function getRegistryState() {
   return {
-    skillsLoaded: state.skillsLoaded,
-    agentsLoaded: state.agentsLoaded,
+    skillsLoaded: state.skills.length,
+    agentsLoaded: state.agents.length,
     uptimeSeconds: Math.floor((Date.now() - state.uptimeStart) / 1000),
     lastRefreshed: state.loadedAt,
   };
 }
 
+/**
+ * Finds a skill the way tools/skill-source.ts does: exact id first, then the
+ * first registry row whose `name` or last path directory matches, so bare
+ * lookups such as `ccc-data` still resolve after ids gained source prefixes.
+ */
+export function findSkill(lookup: string): SkillEntry | null {
+  const skill = findInternalSkill(lookup);
+  return skill ? publicSkill(skill) : null;
+}
+
+function findInternalSkill(lookup: string): InternalSkill | undefined {
+  const key = lookup.trim().replace(/^\/+|\/+$/g, "");
+  if (!key) return undefined;
+  return (
+    state.skills.find((s) => s.id === key) ??
+    state.skills.find((s) => s.name === key || s.path.replace(/\/SKILL\.md$/i, "").split("/").pop() === key)
+  );
+}
+
 export async function getSkillContent(skillId: string): Promise<string | null> {
-  const skill = state.skills.find((s) => s.id === skillId || s.name === skillId);
-  if (!skill?.path) return null;
-  const fullPath = path.join(ROOT, skill.path);
+  const skill = findInternalSkill(skillId);
+  if (!skill) return null;
   try {
-    return await readFile(fullPath, "utf8");
+    return await readFile(skill.contentFile, "utf8");
   } catch {
     return null;
   }
 }
 
 export async function getAgentContent(agentName: string): Promise<string | null> {
-  const resolved = path.resolve(AGENTS_DIR, `${agentName}.md`);
-  if (!resolved.startsWith(path.resolve(AGENTS_DIR) + path.sep)) {
-    return null;
-  }
+  const agent = state.agents.find((a) => a.name === agentName);
+  if (!agent) return null;
   try {
-    return await readFile(resolved, "utf8");
+    return await readFile(agent.contentFile, "utf8");
   } catch {
     return null;
   }

@@ -31,7 +31,15 @@ const originalTz = process.env.TZ;
 afterEach(() => {
   if (originalTz === undefined) delete process.env.TZ;
   else process.env.TZ = originalTz;
+  delete process.env.CCC_SURVEY_GATE;
+  delete process.env.CCC_SURVEY_URL;
 });
+
+// The survey gate is off unless both variables are set (Codex audit #18).
+function enableSurveyGate() {
+  process.env.CCC_SURVEY_GATE = "1";
+  process.env.CCC_SURVEY_URL = "https://commanderplugin.com/survey";
+}
 
 type Calls = {
   monthFilters: string[];
@@ -71,9 +79,19 @@ function mockBackends(t: TestContext, opts: { callsUsed: number; surveysThisMont
     };
     return query;
   });
-  t.mock.method(db, "rpc", async (name: string, args?: { p_month?: string }) => {
-    if (name === "increment_usage" && args?.p_month) calls.incrementMonths.push(args.p_month);
-    return { data: name === "get_effective_cap" ? CAP : null, error: null };
+  // Mirrors migration 003_quota-reserve.sql: increments only while below the cap.
+  let used = opts.callsUsed;
+  t.mock.method(db, "rpc", async (name: string, args?: { p_month?: string; p_cap?: number }) => {
+    if (name === "get_effective_cap") return { data: CAP, error: null };
+    if (name === "reserve_call") {
+      if (used < (args?.p_cap ?? 0)) {
+        used++;
+        if (args?.p_month) calls.incrementMonths.push(args.p_month);
+        return { data: [{ allowed: true, calls_used: used }], error: null };
+      }
+      return { data: [{ allowed: false, calls_used: used }], error: null };
+    }
+    return { data: null, error: null };
   });
   return calls;
 }
@@ -85,7 +103,7 @@ function callRequest(): RequestInit {
       "content-type": "application/json",
       authorization: `Bearer ${jwt.sign({ sub: "cap-user" }, process.env.JWT_SECRET!)}`,
     },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "commander_list_skills", arguments: {} } }),
   };
 }
 
@@ -110,11 +128,10 @@ describe("free-tier cap: UTC month boundary", () => {
   ];
 
   for (const [name, iso, month] of cases) {
-    it(`${name} reads and increments counter ${month}`, async (t) => {
+    it(`${name} reserves against counter ${month}`, async (t) => {
       const calls = mockBackends(t, { callsUsed: 0 });
       const response = await callAt(t, iso);
       assert.equal(response.status, 200);
-      assert.deepEqual(calls.monthFilters, [month]);
       assert.deepEqual(calls.incrementMonths, [month]);
     });
   }
@@ -124,7 +141,7 @@ describe("free-tier cap: UTC month boundary", () => {
     process.env.TZ = "America/Los_Angeles";
     const calls = mockBackends(t, { callsUsed: 0 });
     await callAt(t, "2026-02-01T03:00:00.000Z");
-    assert.deepEqual(calls.monthFilters, ["2026-02"]);
+    assert.deepEqual(calls.incrementMonths, ["2026-02"]);
   });
 
   it("uses the UTC month even when the host timezone is still in the previous month", async (t) => {
@@ -132,7 +149,7 @@ describe("free-tier cap: UTC month boundary", () => {
     process.env.TZ = "Asia/Tokyo";
     const calls = mockBackends(t, { callsUsed: 0 });
     await callAt(t, "2026-01-31T20:00:00.000Z");
-    assert.deepEqual(calls.monthFilters, ["2026-01"]);
+    assert.deepEqual(calls.incrementMonths, ["2026-01"]);
   });
 
   it("a user at the cap in one UTC month is served again the first millisecond of the next", async (t) => {
@@ -159,6 +176,7 @@ describe("free-tier cap: 429 regression", () => {
 
   it("serves exactly the 100th call when the monthly survey is answered", async (t) => {
     // callsUsed 99 -> call 100 (a feedback-gate call); a survey this month lets it through.
+    enableSurveyGate();
     mockBackends(t, { callsUsed: CAP - 1, surveysThisMonth: 1 });
     const response = await callAt(t, "2026-03-10T12:00:00.000Z");
     assert.equal(response.status, 200);
@@ -193,7 +211,8 @@ describe("free-tier cap: 429 regression", () => {
     assert.equal(response.headers.get("retry-after"), null);
   });
 
-  it("the feedback gate fires on every 20th call (402, not 429) when no survey is answered", async (t) => {
+  it("the feedback gate fires on every 20th call (402, not 429) when configured and no survey is answered", async (t) => {
+    enableSurveyGate();
     const calls = mockBackends(t, { callsUsed: 19, surveysThisMonth: 0 });
     const response = await callAt(t, "2026-03-10T12:00:00.000Z");
     assert.equal(response.status, 402);
@@ -204,6 +223,7 @@ describe("free-tier cap: 429 regression", () => {
 describe("free-tier cap: survey lookback window", () => {
   it("the survey lookback starts at the first instant of the UTC month", async (t) => {
     process.env.TZ = "UTC"; // pin so the result does not depend on the CI host timezone
+    enableSurveyGate();
     const calls = mockBackends(t, { callsUsed: 19, surveysThisMonth: 1 });
     await callAt(t, "2026-03-10T12:00:00.000Z");
     assert.deepEqual(calls.surveyGte, ["2026-03-01T00:00:00.000Z"]);
@@ -213,6 +233,7 @@ describe("free-tier cap: survey lookback window", () => {
   // non-UTC host the window started in the wrong month.
   it("the survey lookback is the UTC month start on a non-UTC host", async (t) => {
     process.env.TZ = "Asia/Tokyo";
+    enableSurveyGate();
     const calls = mockBackends(t, { callsUsed: 19, surveysThisMonth: 1 });
     // 2026-02-28T20:00Z is already Mar 1 05:00 in Tokyo.
     await callAt(t, "2026-02-28T20:00:00.000Z");

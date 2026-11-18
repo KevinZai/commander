@@ -42,7 +42,7 @@ process.env.POSTHOG_API_KEY = "fake-stale-key-ignored";
 process.env.METRICS_AUTH_TOKEN = "";
 
 const { app } = await import("../src/index.js");
-const { validateEvent, checkRateLimit, ALLOWED_EVENTS, scrubProperties, SCRUB_ALLOWLIST } = await import(
+const { validateEvent, checkRateLimit, ALLOWED_EVENTS, scrubProperties, SCRUB_ALLOWLIST, readBodyWithLimit, MAX_PAYLOAD_BYTES } = await import(
   "../src/routes/events.js"
 );
 
@@ -450,5 +450,73 @@ describe("scrubProperties — adversarial inputs", () => {
         assert.ok(!("prompt" in meta), "prompt must be scrubbed from nested metadata");
       }
     }
+  });
+});
+
+// ─── Streaming byte limit (Codex audit #29) ──────────────────────────────
+describe("POST /v1/events — byte limit before parsing", () => {
+  function streamOf(chunks: Uint8Array[], onPull?: () => void): ReadableStream<Uint8Array> {
+    let i = 0;
+    return new ReadableStream({
+      pull(controller) {
+        onPull?.();
+        if (i < chunks.length) controller.enqueue(chunks[i++]);
+        else controller.close();
+      },
+    });
+  }
+
+  it("rejects a declared Content-Length over the limit without reading the body", async () => {
+    let pulls = 0;
+    const req = new Request("http://test/v1/events", {
+      method: "POST",
+      headers: { "content-length": String(MAX_PAYLOAD_BYTES + 1) },
+      body: streamOf([new Uint8Array(10)], () => pulls++),
+      duplex: "half",
+    } as RequestInit);
+    const result = await readBodyWithLimit(req, MAX_PAYLOAD_BYTES);
+    assert.equal(result.ok, false);
+    if (!result.ok) assert.equal(result.status, 413);
+    assert.ok(pulls <= 1, "body must not be consumed");
+  });
+
+  it("stops reading a chunked body as soon as it passes the limit", async () => {
+    const chunk = new Uint8Array(16 * 1024).fill(0x20);
+    let pulls = 0;
+    const req = new Request("http://test/v1/events", {
+      method: "POST",
+      body: streamOf(Array.from({ length: 100 }, () => chunk), () => pulls++), // 1.6 MB offered
+      duplex: "half",
+    } as RequestInit);
+    const result = await readBodyWithLimit(req, MAX_PAYLOAD_BYTES);
+    assert.equal(result.ok, false);
+    if (!result.ok) assert.equal(result.status, 413);
+    assert.ok(pulls <= 8, `read ${pulls} chunks; must stop just past ${MAX_PAYLOAD_BYTES} bytes`);
+  });
+
+  it("measures UTF-8 bytes, not string length", async () => {
+    // 20,000 "€" = ~20K characters (under the 51,200 limit) but ~60K bytes.
+    const body = JSON.stringify({
+      events: [{ name: "hook_fired", distinct_id: "mb", properties: { v: "€".repeat(20_000) } }],
+    });
+    assert.ok(body.length < MAX_PAYLOAD_BYTES && Buffer.byteLength(body) > MAX_PAYLOAD_BYTES);
+    const res = await fetchApp("/v1/events", { method: "POST", headers: { "Content-Type": "application/json" }, body });
+    assert.equal(res.status, 413);
+  });
+
+  it("still accepts a normal multibyte batch under the byte limit", async () => {
+    const res = await postEvents({
+      events: [{ name: "hook_fired", distinct_id: "mb-ok-" + Date.now(), properties: { hook: "héllo €" } }],
+    });
+    assert.equal(res.status, 200);
+  });
+
+  it("returns 400 for invalid UTF-8", async () => {
+    const res = await fetchApp("/v1/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: new Uint8Array([0x7b, 0xff, 0xfe, 0x7d]),
+    });
+    assert.equal(res.status, 400);
   });
 });
