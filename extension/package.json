@@ -10,33 +10,96 @@
     "url": "https://github.com/KevinZai/commander.git",
     "directory": "extension"
   },
-  "keywords": ["claude-code", "ai", "commander", "skills", "anthropic"],
-  "engines": { "vscode": "^1.74.0" },
-  "categories": ["Other"],
+  "keywords": [
+    "claude-code",
+    "ai",
+    "commander",
+    "skills",
+    "anthropic"
+  ],
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
   "icon": "icon.png",
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "ccCommander.open", "title": "CC Commander: Open", "terminal": "ccc" },
-      { "command": "ccCommander.stats", "title": "CC Commander: Stats", "terminal": "ccc --stats" },
-      { "command": "ccCommander.skills", "title": "CC Commander: Skills", "terminal": "ccc --list-skills" },
-      { "command": "ccCommander.dispatch", "title": "CC Commander: Dispatch Task", "terminal": "ccc --dispatch" },
-      { "command": "ccCommander.status", "title": "CC Commander: Health Check", "terminal": "ccc --status" }
+      {
+        "command": "ccCommander.open",
+        "title": "CC Commander: Open",
+        "terminal": "ccc"
+      },
+      {
+        "command": "ccCommander.stats",
+        "title": "CC Commander: Stats",
+        "terminal": "ccc --stats"
+      },
+      {
+        "command": "ccCommander.skills",
+        "title": "CC Commander: Skills",
+        "terminal": "ccc --list-skills"
+      },
+      {
+        "command": "ccCommander.dispatch",
+        "title": "CC Commander: Dispatch Task",
+        "terminal": "ccc --dispatch"
+      },
+      {
+        "command": "ccCommander.status",
+        "title": "CC Commander: Health Check",
+        "terminal": "ccc --status"
+      },
+      {
+        "command": "ccCommander.yolo",
+        "title": "CC Commander: YOLO Mode",
+        "terminal": "ccc"
+      },
+      {
+        "command": "ccCommander.linear",
+        "title": "CC Commander: Linear Status",
+        "terminal": "ccc --stats"
+      }
     ],
     "viewsContainers": {
-      "activitybar": [{
-        "id": "cc-commander",
-        "title": "CC Commander",
-        "icon": "$(rocket)"
-      }]
+      "activitybar": [
+        {
+          "id": "cc-commander",
+          "title": "CC Commander",
+          "icon": "$(rocket)"
+        }
+      ]
     },
     "views": {
       "cc-commander": [
-        { "id": "ccCommander.menu", "name": "Menu", "type": "webview" },
-        { "id": "ccCommander.sessions", "name": "Sessions" },
-        { "id": "ccCommander.stats", "name": "Stats" }
+        {
+          "id": "ccCommander.menu",
+          "name": "Menu",
+          "type": "webview"
+        },
+        {
+          "id": "ccCommander.sessions",
+          "name": "Sessions"
+        },
+        {
+          "id": "ccCommander.stats",
+          "name": "Stats"
+        }
       ]
+    },
+    "configuration": {
+      "title": "CC Commander",
+      "properties": {
+        "ccCommander.cliPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "Absolute path to the installed `ccc` CLI. Leave empty to find `ccc` on PATH or in `~/.local/bin`. Paths inside the open workspace are ignored."
+        }
+      }
     }
   },
   "scripts": {
@@ -44,7 +107,15 @@
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
+    "@types/node": "^20.10.6",
     "@types/vscode": "^1.74.0",
     "typescript": "^5.0.0"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "CC Commander runs the ccc CLI inside the workspace, so every command is disabled until the workspace is trusted."
+    },
+    "virtualWorkspaces": false
   }
 }

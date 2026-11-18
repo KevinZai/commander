@@ -27,6 +27,11 @@ function countSkillFiles() {
   ).length;
 }
 
+// An empty directory used as the whole PATH: the build is spawned by absolute
+// node path, so no `claude` binary (even one installed beside node) can be found.
+const EMPTY_BIN = fs.mkdtempSync(path.join(os.tmpdir(), 'cc-directory-mirror-emptybin-'));
+process.on('exit', () => fs.rmSync(EMPTY_BIN, { recursive: true, force: true }));
+
 let outDir;
 let manifest;
 let buildOutput;
@@ -37,7 +42,7 @@ test.before(() => {
   buildOutput = execFileSync(process.execPath, [BUILD_SCRIPT, '--out', outDir], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
-    env: { ...process.env, PATH: path.dirname(process.execPath) },
+    env: { ...process.env, PATH: EMPTY_BIN },
   });
   manifest = JSON.parse(fs.readFileSync(path.join(outDir, '.claude-plugin', 'plugin.json'), 'utf8'));
 });
@@ -118,11 +123,10 @@ test('build prints a summary and tolerates a missing claude binary', () => {
 });
 
 function runBuild(args, { extraPath = '' } = {}) {
-  const nodeDir = path.dirname(process.execPath);
   return spawnSync(process.execPath, [BUILD_SCRIPT, ...args], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
-    env: { ...process.env, PATH: extraPath ? `${extraPath}${path.delimiter}${nodeDir}` : nodeDir },
+    env: { ...process.env, PATH: extraPath ? `${extraPath}${path.delimiter}${EMPTY_BIN}` : EMPTY_BIN },
   });
 }
 
@@ -316,7 +320,7 @@ test('staging temp dir is removed when the build fails and after a successful --
     spawnSync(process.execPath, [BUILD_SCRIPT, '--out', out], {
       cwd: REPO_ROOT,
       encoding: 'utf8',
-      env: { ...process.env, PATH: path.dirname(process.execPath), TMPDIR: tmpRoot },
+      env: { ...process.env, PATH: EMPTY_BIN, TMPDIR: tmpRoot },
     });
   try {
     const ok = build();
