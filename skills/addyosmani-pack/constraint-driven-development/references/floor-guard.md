@@ -9,7 +9,7 @@ This is the reference. Adapt the patterns to your stack; keep the contract ident
 - **Input:** the diff between the merge base and the working tree (added *and* removed lines, plus untracked files). A guard that reads only `git diff` misses new files and staged-but-uncommitted work.
 - **Detects the five Step 6 moves:** a weakened threshold in `CONSTRAINTS.md`, a test made easier (`.skip`, a deleted test file, an assertion removed from a test that stayed), a silenced checker (a new suppression comment), unfinished work (a stub or empty `catch`), a new Exceptions row.
 - **Exit codes:** `0` clean, `1` at least one floor violation (block the change), `2` the guard could not run (no merge base, not a git repo). Never let a `2` read as a `0`.
-- **Reports the rule and the location, never the matched secret value.** Redaction is not optional (Step 4).
+- **Reports the rule and the file, never the flagged source line.** Only `CONSTRAINTS.md` rule text is echoed. Redaction is not optional (Step 4).
 - **Tightening is silent, loosening is loud:** only surfaces moves that lower the bar.
 
 ## Reference (Node, ~stack-agnostic patterns)
@@ -79,7 +79,9 @@ for (const line of diff.split('\n')) {
 }
 
 const findings = [];
-const flag = (rule, f, text) => findings.push({ rule, file: f, text: text.trim().slice(0, 120) });
+// CCC safety: source lines are never echoed (a flagged line can hold a secret next to `gitleaks:allow`).
+// Only CONSTRAINTS.md rule text, which is policy and not source, is shown.
+const flag = (rule, f, text) => findings.push({ rule, file: f, text: isConstraints(f) ? text.trim().slice(0, 120) : '' });
 const isTest = (f) => /\.(test|spec)\.|_test\.|test_/.test(f);
 const isConstraints = (f) => /CONSTRAINTS\.md$/.test(f);
 
@@ -164,7 +166,7 @@ for (const r of removedRules) {
 
 if (findings.length === 0) { console.log('floor-guard: clean'); process.exit(0); }
 console.error('floor-guard: ' + findings.length + ' floor violation(s):');
-for (const f of findings) console.error(`  [${f.rule}] ${f.file}: ${f.text}`);
+for (const f of findings) console.error(`  [${f.rule}] ${f.file}` + (f.text ? `: ${f.text}` : ''));
 if (findings.some((f) => f.rule === 'rule-removed')) {
   console.error('\nA rule-removed finding can also mean the rule\'s label changed: rename a rule in one commit and change its thresholds in another.');
 }

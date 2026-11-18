@@ -29,7 +29,7 @@ Codex: ask each picker as a plain-text question with the same options.
 | Routing and context | `design-router` (intent routing), `design-context` (brand, palette, fonts, motion preferences, performance budget) |
 | Animation and motion | `animate`, `motion-design`, `framer-motion-patterns`, `gsap-patterns`, `svg-animation` |
 | Visual effects | `interactive-visuals`, `particle-systems`, `generative-backgrounds`, `webgl-shader`, `retro-pixel`, `canvas-design` |
-| 3D and WebGL | 3D web, WebGL, Three.js, React Three Fiber requests: load `${CLAUDE_SKILL_DIR}/../threejs-pack/SKILL.md` (optional MIT pack, 13 sub-skills; installed by the full tier or `--skills=custom`). If it is missing, say so and offer to install it |
+| 3D and WebGL | 3D web, WebGL, Three.js, React Three Fiber requests: load `${CLAUDE_SKILL_DIR}/../threejs-pack/SKILL.md` (optional MIT pack, 13 sub-skills; installed by the full tier or `ccc --skills install threejs-pack`). If it is missing, say so and offer to install it |
 | Pages and systems | `frontend-design`, `landing-page-builder`, `interactive-landing`, `design-consultation`, `colorize`, `theme-factory` |
 | Output | `frontend-slides`, `screenshots`, `web-artifacts-builder` |
 | Look-book and capture | `looks` (named aesthetic directions), `capture` (video, HTML or live page into a reusable design prompt) |

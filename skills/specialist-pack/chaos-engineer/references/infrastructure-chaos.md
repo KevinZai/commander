@@ -230,36 +230,36 @@ pumba stop --duration 2m "re2:^chaos-test-.*"
 ```python
 # Using dnsmasq or editing /etc/hosts for DNS chaos
 
+import re
 import subprocess
 import time
 from contextlib import contextmanager
 
 class DNSChaos:
+    # CCC safety: run this only inside a disposable test container or VM, never on a shared host.
+    # The domain is validated and no shell is used, so it cannot inject commands under sudo,
+    # and cleanup removes only the exact line this run added.
+    HOSTNAME = re.compile(r"^(?=.{1,253}$)([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$")
+
     @staticmethod
     @contextmanager
     def block_domain(domain: str, duration_seconds: int = 60):
         """Block DNS resolution for domain by pointing to localhost."""
+        if not DNSChaos.HOSTNAME.match(domain):
+            raise ValueError(f"not a plain hostname: {domain!r}")
+        entry = f"127.0.0.1 {domain}  # chaos-test"
+        subprocess.run(['sudo', 'tee', '-a', '/etc/hosts'], input=entry + "\n",
+                       text=True, stdout=subprocess.DEVNULL, check=True)
         try:
-            # Add entry to /etc/hosts
-            subprocess.run([
-                'sudo', 'sh', '-c',
-                f'echo "127.0.0.1 {domain}" >> /etc/hosts'
-            ], check=True)
-
             print(f"Blocked DNS for {domain}")
             yield
-
-        finally:
-            # Wait for duration
             time.sleep(duration_seconds)
-
-            # Remove entry from /etc/hosts
-            subprocess.run([
-                'sudo', 'sed', '-i',
-                f'/127.0.0.1 {domain}/d',
-                '/etc/hosts'
-            ], check=True)
-
+        finally:
+            hosts = subprocess.run(['sudo', 'cat', '/etc/hosts'], capture_output=True,
+                                   text=True, check=True).stdout.splitlines()
+            kept = [line for line in hosts if line != entry]
+            subprocess.run(['sudo', 'tee', '/etc/hosts'], input="\n".join(kept) + "\n",
+                           text=True, stdout=subprocess.DEVNULL, check=True)
             print(f"Restored DNS for {domain}")
 
     @staticmethod

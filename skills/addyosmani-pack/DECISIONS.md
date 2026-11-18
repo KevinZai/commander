@@ -31,3 +31,14 @@ Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) 
 | using-agent-skills | SKIP | Meta-skill for the upstream catalog; Commander routing is `/ccc-suggest`, `skills/using-superpowers` and this pack's router. |
 
 Totals: 13 ADD, 12 SKIP.
+
+## code-simplification provenance
+
+Upstream says this skill is "inspired by" Anthropic's Code Simplifier plugin (Apache-2.0). On 2026-11-18 it was compared line by line with that agent file at anthropics/claude-plugins-official `e6143c9807a001832badb63e89d58ffe25d542ec` (`plugins/code-simplifier/agents/code-simplifier.md`). None of its 114 long lines appears there verbatim, so it is treated as Addy Osmani's own MIT text that credits the idea, and no Apache notice is required. If a later sync copies text from the plugin, add an Apache-2.0 section to NOTICE.md first.
+
+## Second Codex pass (2026-11-18)
+
+- `floor-guard.md` no longer echoes flagged source lines (only rule, file, and `CONSTRAINTS.md` rule text). A local run with a fake secret beside `gitleaks:allow` printed only `[silenced-checker] a.js`.
+- `chrome-devtools-mcp` is pinned to `1.13.0`. `doubt-driven-development` uses a private `mktemp` prompt file removed on exit. Copying `quality-gate.mjs` now copies the full MIT text with it.
+- The two upstream reference files that were not copied (`orchestration-patterns.md`, `observability-checklist.md`) are linked at the pinned commit.
+

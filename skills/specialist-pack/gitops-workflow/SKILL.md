@@ -35,11 +35,13 @@ Implement declarative, Git-based continuous delivery for Kubernetes using ArgoCD
 # Create namespace
 kubectl create namespace argocd
 
-# Install ArgoCD
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+# Install ArgoCD from a pinned release tag, not the moving "stable" ref
+ARGOCD_VERSION=<release tag, e.g. from github.com/argoproj/argo-cd/releases>
+kubectl apply -n argocd -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"
 
-# Get admin password
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+# Admin password: CCC safety: the user reads it in their own terminal.
+# Never print it in an agent session, where it would land in the transcript.
+#   kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
 **Reference:** See `references/argocd-setup.md` for detailed setup
@@ -289,12 +291,11 @@ argocd app sync my-app --force
 
 ## Related Skills
 
-- `k8s-manifest-generator` - For creating manifests
-- `helm-chart-scaffolding` - For packaging applications
+- `kubernetes-specialist` (this pack) - For manifests, Helm and cluster setup; see its `references/gitops.md`
 
 ## Source
 
 - Repo: https://github.com/wshobson/agents
 - Path: `plugins/kubernetes-operations/skills/gitops-workflow/`
 - Pinned sha: `9c61ab243def98f72da12abd41cfcf5bcd91af9d`
-- License: MIT, copy at `skills/specialist-pack/licenses/wshobson_agents-LICENSE.txt`
+- License: MIT, full text in `LICENSE.txt` beside this file (also at `skills/specialist-pack/licenses/wshobson_agents-LICENSE.txt`)

@@ -191,8 +191,9 @@ establish account access, service availability or prediction quality.
 ## Verification and sources
 
 [references/review.md](references/review.md) records official sources, executed
-CPU tests and limitations. Run `python tests/run_all.py --isolated esm` from the
-repository to exercise synthetic local models, pooling, input serialization,
+CPU tests and limitations. Upstream runs `python tests/run_all.py --isolated esm` from a checkout of
+K-Dense-AI/scientific-agent-skills at `ec59a29a03d5c40f73ab40878df04860bc00e876`
+(the runner is not part of CC Commander) to exercise synthetic local models, pooling, input serialization,
 PDB round trips and mocked hosted contracts. Pretrained ESM3/ESMC/ESMFold2,
 CUDA inference and authenticated services were not executed.
 
@@ -222,7 +223,7 @@ or publisher DOI, cite the published version instead.
 - Path: `skills/esm/`
 - Pinned commit: `ec59a29a03d5c40f73ab40878df04860bc00e876`
 - License: MIT (SKILL.md frontmatter `license:` and the repository LICENSE.md)
-- License text: `skills/science-pack/LICENSE.txt`
+- License text: `LICENSE.txt` beside this file (also `skills/science-pack/LICENSE.txt`)
 - Part of the opt-in CC Commander science pack; see `skills/science-pack/DECISIONS.md`.
 - CCC: added `disable-model-invocation: true` to the frontmatter so this sub-skill loads only through the `science-pack` router.
 - CCC: added a "CCC safety:" note under the title about sending data to third-party services.

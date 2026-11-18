@@ -13,7 +13,8 @@ Loaded by [../SKILL.md](../SKILL.md) after the first pick, or when a request nam
 | "Interactive effects" / "cursor trails" | `interactive-visuals` | `animate` (non-interactive) |
 | "Particles" / "confetti" / "snow" | `particle-systems` | `generative-backgrounds` (no discrete particles) |
 | "Background effects" / "noise gradients" | `generative-backgrounds` | `particle-systems` (discrete particles) |
-| "3D" / "WebGL" / "shaders" | `webgl-shader` | `canvas-design` (2D) |
+| "Three.js" / "React Three Fiber" / a 3D scene, model or game | `threejs-pack` (if installed) | `webgl-shader` (pack missing) |
+| "Shaders" / a fullscreen WebGL effect without a scene graph | `webgl-shader` | `canvas-design` (2D) |
 | "Retro" / "pixel art" / "glitch" | `retro-pixel` | `generative-backgrounds` |
 | "Poster" / "art piece" / PNG or PDF visual | `canvas-design` | `screenshots` (product captures) |
 | "Landing page" / "hero section" | `landing-page-builder` + `interactive-landing` | `frontend-design` (system, not page) |

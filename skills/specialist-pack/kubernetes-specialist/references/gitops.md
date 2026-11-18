@@ -21,8 +21,9 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 # Wait for pods
 kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
 
-# Get initial admin password
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+# Initial admin password: CCC safety: the user reads it in their own terminal;
+# never print it in an agent session, where it would land in the transcript.
+#   kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 
 # Install CLI
 brew install argocd

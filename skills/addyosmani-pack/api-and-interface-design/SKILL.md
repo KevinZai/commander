@@ -372,5 +372,5 @@ After designing an API:
 
 - Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), path `skills/api-and-interface-design/`
 - Pinned commit: `39b723ceebf81474d0557c1fecd01eddab585563`
-- License: MIT, Copyright (c) 2025 Addy Osmani. The full text is in `LICENSE.txt` at the root of `skills/addyosmani-pack/`.
+- License: MIT, Copyright (c) 2025 Addy Osmani. The full text is in `LICENSE.txt` beside this file (and at the root of `skills/addyosmani-pack/`).
 - Copied unchanged into CC Commander except for this section and any lines marked "CCC safety:".

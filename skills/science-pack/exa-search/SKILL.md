@@ -78,18 +78,10 @@ uv pip install "exa-py>=2.23.0,<3"
 
 All commands read the API key from the `EXA_API_KEY` environment variable. Get your Exa API key at [dashboard.exa.ai/api-keys](https://dashboard.exa.ai/api-keys).
 
-First, check if a `.env` file exists in the project root and contains `EXA_API_KEY`. If so, load it:
+CCC safety: never load the whole project `.env` into the command, which would expose every other credential in it to `uv` and the script, and never type the key into an agent session. The user sets only this variable in their own terminal before starting the session:
 
 ```bash
-dotenv -f .env run -- uv run "$SKILL_PATH/scripts/exa_search.py" "your query"
-```
-
-If `dotenv` isn't available, install it: `uv pip install 'python-dotenv[cli]'`.
-
-If there's no `.env`, export the key for the session:
-
-```bash
-export EXA_API_KEY="your-key"
+export EXA_API_KEY=...   # the user runs this themselves; the value never goes in the transcript
 ```
 
 Use `--help` to verify installation and CLI parsing; it does not require an API key or validate authentication. Authentication is checked only when a real query is made.
@@ -141,7 +133,7 @@ Every script in this skill sets the `x-exa-integration` request header to `k-den
 - Path: `skills/exa-search/`
 - Pinned commit: `ec59a29a03d5c40f73ab40878df04860bc00e876`
 - License: MIT (SKILL.md frontmatter `license:` and the repository LICENSE.md)
-- License text: `skills/science-pack/LICENSE.txt`
+- License text: `LICENSE.txt` beside this file (also `skills/science-pack/LICENSE.txt`)
 - Part of the opt-in CC Commander science pack; see `skills/science-pack/DECISIONS.md`.
 - CCC: added `disable-model-invocation: true` to the frontmatter so this sub-skill loads only through the `science-pack` router.
 - CCC: added a "CCC safety:" note under the title about sending data to third-party services.

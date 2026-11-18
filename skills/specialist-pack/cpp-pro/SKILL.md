@@ -124,4 +124,4 @@ Maintained by [@jeffallan](https://github.com/jeffallan), Principal Consultant a
 - Repo: https://github.com/Jeffallan/claude-skills
 - Path: `skills/cpp-pro/`
 - Pinned sha: `67c1961b180dc92cf08983344627109e983e8f51`
-- License: MIT, copy at `skills/specialist-pack/licenses/Jeffallan_claude-skills-LICENSE.txt`
+- License: MIT, full text in `LICENSE.txt` beside this file (also at `skills/specialist-pack/licenses/Jeffallan_claude-skills-LICENSE.txt`)

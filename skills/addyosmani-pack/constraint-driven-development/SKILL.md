@@ -167,7 +167,7 @@ Five things that will bite you if you skip them:
 4. **Coverage needs no second test run.** Read the lcov your suite already writes and intersect it with `git diff`. Running the suite twice to get a number is the fastest way to make people hate this.
 5. **Semgrep's registry rules are free to run; check the licence before redistributing them.** `opengrep` is a drop-in fork with the same rule format and JSON output if that matters to your legal team.
 
-`semgrep scan` and `axe` can exit 0 on findings; copy [scripts/quality-gate.mjs](scripts/quality-gate.mjs) into the project's `scripts/` directory to enforce these thresholds. CCC safety: the script is MIT (Copyright (c) 2025 Addy Osmani); when you copy it, add a header comment with that copyright line and a pointer to the MIT license in `addyosmani-pack/LICENSE.txt`, or copy that LICENSE next to it.
+`semgrep scan` and `axe` can exit 0 on findings; copy [scripts/quality-gate.mjs](scripts/quality-gate.mjs) into the project's `scripts/` directory to enforce these thresholds. CCC safety: the script is MIT (Copyright (c) 2025 Addy Osmani). When you copy it, also copy `addyosmani-pack/LICENSE.txt` next to it (for example as `scripts/quality-gate.LICENSE.txt`) so the full MIT text travels with it; a header pointing back to this pack is not enough.
 Keep the scanner before `&&` so a failed scan stops the command.
 
 Add each one to the project's own script so it's reproducible without an agent:
@@ -324,5 +324,5 @@ The skill was applied correctly when:
 
 - Upstream: [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), path `skills/constraint-driven-development/`
 - Pinned commit: `39b723ceebf81474d0557c1fecd01eddab585563`
-- License: MIT, Copyright (c) 2025 Addy Osmani. The full text is in `LICENSE.txt` at the root of `skills/addyosmani-pack/`.
+- License: MIT, Copyright (c) 2025 Addy Osmani. The full text is in `LICENSE.txt` beside this file (and at the root of `skills/addyosmani-pack/`).
 - Copied unchanged into CC Commander except for this section and any lines marked "CCC safety:".
