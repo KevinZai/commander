@@ -25,7 +25,6 @@ export const HANDLERS = Object.freeze([
   ['cost-tracker', costTracker],
   ['cost-ceiling-enforcer', costCeiling],
   ['secret-leak-guard', secretGuard],
-  ['subagent-skill-router', recordAgentCall],
 ]);
 
 export function mergeOutputs(outputs) {
@@ -45,7 +44,12 @@ export async function dispatch(input) {
       outputs.push(emitSilent());
     }
   }
-  return mergeOutputs(outputs);
+  const merged = mergeOutputs(outputs);
+  // Queue an Agent/Task call's task for the subagent router only once no handler here denied it.
+  if (merged?.hookSpecificOutput?.permissionDecision !== 'deny') {
+    try { recordAgentCall(input); } catch {}
+  }
+  return merged;
 }
 
 readStdinJson()

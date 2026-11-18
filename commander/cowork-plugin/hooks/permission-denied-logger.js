@@ -16,6 +16,7 @@ import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
 import { emitSilent } from './lib/emit.mjs';
+import { dropAgentCall } from './subagent-skill-router.js';
 
 const clip = (v, n) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, n);
 
@@ -84,6 +85,8 @@ async function main() {
       // Logging failure must never affect the session.
     }
   }
+  // A denied Agent/Task call never starts its subagent: drop its queued task.
+  dropAgentCall(input);
   process.stdout.write(JSON.stringify(emitSilent()) + '\n');
 }
 

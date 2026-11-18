@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, existsSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -154,4 +154,39 @@ test('workers are never offered hidden skills', () => {
 test('"review the last commit" routes to ccc-review', () => {
   const c = scoreRoutes('review the last commit for bugs', routes);
   assert.equal(c[0] && c[0].route.id, 'ccc-review');
+});
+
+test('queue: expired entries, drops, missing type/session and off mode', async () => {
+  const { recordAgentCall, dropAgentCall, claimTask } = await import('../cowork-plugin/hooks/subagent-skill-router.js');
+  const { readdirSync } = await import('node:fs');
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-q-'));
+  const prev = process.env.CCC_CONFIG_DIR;
+  process.env.CCC_CONFIG_DIR = dir;
+  const env = { CCC_CONFIG_DIR: dir };
+  try {
+    const call = (id, e = env) => recordAgentCall({ session_id: 's2', tool_name: 'Agent', tool_use_id: id, tool_input: { prompt: 'Review this PR before I merge' } }, e);
+    call('off1', { ...env, CCC_ROUTE_MODE: 'off' });
+    const start = { session_id: 's2', agent_type: 'general-purpose' };
+    assert.equal(claimTask(start), '', 'nothing recorded while routing is off');
+    call('d1');
+    dropAgentCall({ session_id: 's2', tool_use_id: 'd1' });
+    assert.equal(claimTask(start), '', 'dropped call is not handed out');
+    call('m1');
+    assert.equal(claimTask({ session_id: 's2' }), '', 'no type, no claim');
+    assert.equal(claimTask({ agent_type: 'general-purpose' }), '', 'no session, no claim');
+    // Age the queued entry past the TTL by renaming it with an old timestamp.
+    const { renameSync } = await import('node:fs');
+    const qdir = readdirSync(join(dir, 'commander', 'route-state')).map((d) => join(dir, 'commander', 'route-state', d)).find((d) => d.includes('s2'));
+    for (const n of readdirSync(qdir)) renameSync(join(qdir, n), join(qdir, n.replace(/^\d+/, String(Date.now() - 120000).padStart(15, '0'))));
+    assert.equal(claimTask(start), '', 'expired entry is dropped');
+    assert.equal(readdirSync(qdir).length, 0, 'expired entry removed from disk');
+  } finally {
+    if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('PreToolUse dispatcher does not queue a denied Agent call', () => {
+  const src = readFileSync(join(HOOKS, 'orchestrator', 'pre-tool-use-dispatcher.js'), 'utf8');
+  assert.match(src, /permissionDecision !== 'deny'\)\s*\{\s*try \{ recordAgentCall\(input\)/);
 });

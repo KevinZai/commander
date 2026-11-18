@@ -34,33 +34,47 @@ import { readablePath, stateDir } from '../lib/lane-state.js';
 // calls made from Code Mode programs), queueing the task as one file per call.
 // SubagentStart then claims the oldest queued call for its agent type with an
 // atomic rename, so parallel workers each get their own task, in spawn order.
+// A queued call is only trusted briefly: a subagent starts within seconds of
+// its Agent call, so an entry older than this belongs to a call that was
+// denied, cancelled or failed and is dropped instead of handed out.
 const AGENT_TOOLS = new Set(['Agent', 'Task']);
-const QUEUE_TTL_MS = 10 * 60 * 1000;
+const QUEUE_TTL_MS = 60 * 1000;
 const TEXT_MAX = 2000;
+const DEFAULT_AGENT_TYPE = 'general-purpose';
 
-function slug(value, fallback) {
-  return String(value || '').replace(/[^\w-]/g, '').slice(0, 80) || fallback;
+function slug(value) {
+  return String(value || '').replace(/[^\w-]/g, '').slice(0, 80);
 }
 
 function queueDir(sessionId) {
-  return join(stateDir(), 'route-state', `${slug(sessionId, 'default')}-agents`);
+  return join(stateDir(), 'route-state', `${slug(sessionId)}-agents`);
+}
+
+function routingOn(env = process.env) {
+  if (String(env.CCC_SUBAGENT_ROUTE || '').toLowerCase() === 'off') return false;
+  const mode = routeMode(env, savedRouteMode());
+  return mode === 'auto' || mode === 'always';
 }
 
 let seq = 0;
 
-/** PreToolUse handler: queue an Agent/Task call's task text. Never blocks. */
-export function recordAgentCall(input = {}) {
+/**
+ * Queue an Agent/Task call's task text for SubagentStart. Called by the
+ * PreToolUse dispatcher only after no handler there denied the call. Nothing
+ * is written when routing is off or the call has no session id.
+ */
+export function recordAgentCall(input = {}, env = process.env) {
   try {
     const tool = input.tool_name || input.toolName || '';
     const ti = input.tool_input && typeof input.tool_input === 'object' ? input.tool_input : null;
-    if (!AGENT_TOOLS.has(tool) || !ti) return emitSilent();
+    if (!AGENT_TOOLS.has(tool) || !ti || !slug(input.session_id) || !routingOn(env)) return emitSilent();
     const text = [ti.description, ti.prompt].filter((v) => typeof v === 'string' && v.trim()).join('\n').slice(0, TEXT_MAX);
     if (!text) return emitSilent();
     const dir = queueDir(input.session_id);
-    mkdirSync(dir, { recursive: true });
-    const name = `${String(Date.now()).padStart(15, '0')}-${process.pid}-${seq++}-${slug(input.tool_use_id, 'call')}.json`;
+    mkdirSync(dir, { recursive: true, mode: 0o700 });
+    const name = `${String(Date.now()).padStart(15, '0')}-${process.pid}-${seq++}-${slug(input.tool_use_id) || 'call'}.json`;
     const tmp = join(dir, `.${name}.tmp`);
-    writeFileSync(tmp, JSON.stringify({ type: String(ti.subagent_type || ''), text }));
+    writeFileSync(tmp, JSON.stringify({ type: String(ti.subagent_type || DEFAULT_AGENT_TYPE), text }), { mode: 0o600 });
     renameSync(tmp, join(dir, name));
   } catch {
     // routing state is best-effort
@@ -68,28 +82,48 @@ export function recordAgentCall(input = {}) {
   return emitSilent();
 }
 
-/** SubagentStart: claim the oldest queued call for this agent type, or ''. */
+/** Drop a queued call whose tool failed or was denied (PostToolUseFailure, PermissionDenied). */
+export function dropAgentCall(input = {}) {
+  try {
+    const id = slug(input.tool_use_id);
+    if (!id || !slug(input.session_id)) return;
+    const dir = queueDir(input.session_id);
+    for (const name of readdirSync(dir)) if (name.endsWith(`-${id}.json`)) try { unlinkSync(join(dir, name)); } catch {}
+  } catch {}
+}
+
+function ageOf(name) {
+  return Date.now() - Number(name.replace(/^\./, '').split('-')[0]);
+}
+
+/**
+ * SubagentStart: claim the oldest live queued call for this agent type, or ''.
+ * Expired entries and leftover temp or claimed files are removed on the way;
+ * a worker without a type or session id claims nothing.
+ */
 export function claimTask(input = {}) {
+  const type = String(input.agent_type || input.subagent_type || '');
+  if (!type || !slug(input.session_id)) return '';
   const dir = queueDir(input.session_id);
   let names;
-  try { names = readdirSync(dir).filter((n) => n.endsWith('.json')).sort(); } catch { return ''; }
-  const type = String(input.agent_type || input.subagent_type || '');
-  const now = Date.now();
+  try { names = readdirSync(dir).sort(); } catch { return ''; }
+  let text = '';
   for (const name of names) {
     const file = join(dir, name);
-    if (now - Number(name.split('-')[0]) > QUEUE_TTL_MS) {
-      try { unlinkSync(file); } catch {}
+    if (!name.endsWith('.json') || ageOf(name) > QUEUE_TTL_MS) {
+      if (ageOf(name) > QUEUE_TTL_MS || !(ageOf(name) >= 0)) try { unlinkSync(file); } catch {}
       continue;
     }
+    if (text) continue;
     let entry;
     try { entry = JSON.parse(readFileSync(file, 'utf8')); } catch { continue; }
-    if (type && entry.type && entry.type !== type) continue;
+    if ((entry.type || DEFAULT_AGENT_TYPE) !== type) continue;
     // The rename is the claim: only one concurrent SubagentStart wins it.
     try { renameSync(file, `${file}.claimed`); } catch { continue; }
     try { unlinkSync(`${file}.claimed`); } catch {}
-    return typeof entry.text === 'string' ? entry.text : '';
+    text = typeof entry.text === 'string' ? entry.text : '';
   }
-  return '';
+  return text;
 }
 
 function savedRouteMode() {
@@ -117,10 +151,11 @@ export function taskText(input = {}) {
 
 export function run(input = {}, env = process.env) {
   try {
-    if (String(env.CCC_SUBAGENT_ROUTE || '').toLowerCase() === 'off') return emitSilent();
+    if (!routingOn(env)) return emitSilent();
     const mode = routeMode(env, savedRouteMode());
-    if (mode !== 'auto' && mode !== 'always') return emitSilent();
-    const text = taskText(input) || claimTask(input);
+    // Always claim, so a worker that carries its own task still consumes its queue entry.
+    const claimed = claimTask(input);
+    const text = taskText(input) || claimed;
     // A worker already told to use a specific skill needs no hint.
     if (!text.trim() || /(?:^|\s)[/$]ccc[\w-]*|commander:ccc/.test(text)) return emitSilent();
     const context = renderSubagentContext(scoreRoutes(text, loadRoutes()), detectHost(env), mode);
