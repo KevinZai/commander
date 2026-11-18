@@ -40,6 +40,7 @@ const CLASSIFICATION = {
   'MPL-2.0': { verdict: 'FAIL', label: '❌ MPL-2.0' },
   'LicenseRef-Anthropic-Proprietary': { verdict: 'FAIL', label: '❌ Anthropic-Proprietary (no redistribution)' },
   'LicenseRef-Informational-Wrapper': { verdict: 'OK', label: '✅ Informational wrapper (no code copy)' },
+  'LicenseRef-Unverified': { verdict: 'WARN', label: '⚠️  Unverified (upstream unreachable, no license text shipped)' },
   'UNKNOWN': { verdict: 'FAIL', label: '❓ UNKNOWN (unclassified)' },
 };
 

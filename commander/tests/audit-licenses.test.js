@@ -32,6 +32,7 @@ const CLASSIFICATION = {
   'MPL-2.0': { verdict: 'FAIL' },
   'LicenseRef-Anthropic-Proprietary': { verdict: 'FAIL' },
   'LicenseRef-Informational-Wrapper': { verdict: 'OK' },
+  'LicenseRef-Unverified': { verdict: 'WARN' },
   'UNKNOWN': { verdict: 'FAIL' },
 };
 
@@ -172,6 +173,10 @@ test('copied-content.json is valid JSON with required shape', function () {
     assert.ok(typeof entry.vendor === 'string', 'each copy must have a vendor field');
     assert.ok(typeof entry.license === 'string', 'each copy must have a license field');
   }
+});
+
+test('an unverified copy warns instead of passing or failing', function () {
+  assert.strictEqual(CLASSIFICATION['LicenseRef-Unverified'].verdict, 'WARN');
 });
 
 test('every license in copied-content.json is in CLASSIFICATION map', function () {

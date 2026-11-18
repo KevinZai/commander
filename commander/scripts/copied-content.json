@@ -153,6 +153,12 @@
       "notes": "Based on ayghri/i-have-adhd (MIT); attribution in body. Upstream unchanged since 2026-10-11."
     },
     {
+      "file": "skills/mode-switcher/modes/adhd.md",
+      "vendor": "i-have-adhd",
+      "license": "MIT",
+      "notes": "Mode summary of ayghri/i-have-adhd (MIT); attribution in the frontmatter description and body."
+    },
+    {
       "file": "skills/caveman/SKILL.md",
       "vendor": "caveman",
       "license": "MIT",
@@ -161,8 +167,8 @@
     {
       "file": "skills/ccc-design/screenshots/SKILL.md",
       "vendor": "shpigford-skills",
-      "license": "MIT",
-      "notes": "Frontmatter source: github.com/Shpigford/skills/tree/main/screenshots. Upstream repo no longer publicly reachable (checked 2026-11-18); copy kept as is."
+      "license": "LicenseRef-Unverified",
+      "notes": "Frontmatter source: github.com/Shpigford/skills/tree/main/screenshots. Upstream returns 404 (checked 2026-11-18) and the copy ships no license text, so its license cannot be verified. The audit warns until the license is recovered or the skill is replaced."
     },
     {
       "file": "skills/ponytail/SKILL.md",
@@ -187,6 +193,6 @@
     "tstack": "MIT",
     "i-have-adhd": "MIT",
     "caveman": "MIT (Apache-2.0 from 3.0.0)",
-    "shpigford-skills": "MIT"
+    "shpigford-skills": "LicenseRef-Unverified (upstream unreachable)"
   }
 }
