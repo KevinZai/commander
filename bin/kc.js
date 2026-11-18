@@ -257,21 +257,35 @@ if (args.includes('--list-skills')) {
 if (args.includes('--skills')) {
   var os = require('os');
   // Same target as install.sh: CLAUDE_CONFIG_DIR when set, else ~/.claude
+  // Resolve symlinks where the path exists (so /tmp and /private/tmp compare equal).
+  function realOrResolved(p) { try { return fs.realpathSync(p); } catch (_e) { return path.resolve(p); } }
   var claudeProfileDir = path.resolve(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'));
-  // Same guard as install.sh: never treat / or the home directory itself as the profile.
-  if (claudeProfileDir === path.parse(claudeProfileDir).root || claudeProfileDir === path.resolve(os.homedir())) {
-    console.error('Invalid CLAUDE_CONFIG_DIR (' + claudeProfileDir + '): refusing to manage skills there.');
-    process.exit(1);
-  }
   var skillsInstallDir = path.join(claudeProfileDir, 'skills');
   var skillsSourceDir = path.join(__dirname, '..', 'skills');
+  // Same guard as install.sh, applied after resolving links: neither the profile nor its
+  // skills directory may be /, the home directory, or a directory that contains home.
+  (function guardProfile() {
+    var home = realOrResolved(os.homedir());
+    [claudeProfileDir, skillsInstallDir].forEach(function(p) {
+      var real = realOrResolved(p);
+      if (real === path.parse(real).root || home === real || home.indexOf(real + path.sep) === 0) {
+        console.error('Invalid CLAUDE_CONFIG_DIR: ' + p + ' resolves to ' + real + '; refusing to manage skills there.');
+        process.exit(1);
+      }
+    });
+  })();
   // A link is Commander's only if it points into this package's skills/ directory.
+  // Live links compare real paths; a dangling link compares its resolved target text
+  // against both spellings of the source root.
   function isManagedSkillLink(dst) {
     try {
       if (!fs.lstatSync(dst).isSymbolicLink()) return false;
       var target = path.resolve(path.dirname(dst), fs.readlinkSync(dst));
-      var root = path.resolve(skillsSourceDir) + path.sep;
-      return target.indexOf(root) === 0;
+      var roots = [path.resolve(skillsSourceDir), realOrResolved(skillsSourceDir)].map(function(r) { return r + path.sep; });
+      var live = fs.existsSync(dst);
+      var candidate = live ? fs.realpathSync(dst) : target;
+      return roots.some(function(r) { return candidate.indexOf(r) === 0 || target.indexOf(r) === 0; }) &&
+        (!live || roots.some(function(r) { return candidate.indexOf(r) === 0; }));
     } catch (_e) { return false; }
   }
   var tiersFilePath = path.join(skillsSourceDir, '_tiers.json');
