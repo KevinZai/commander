@@ -264,23 +264,51 @@ if (args.includes('--skills')) {
   // skills directory may be /, the home directory, or a directory that contains home.
   // Compare by device and inode, not path text, so case-insensitive filesystems
   // (/Users vs /users on APFS) cannot slip past.
-  function fileId(p) { try { var st = fs.statSync(p); return st.dev + ':' + st.ino; } catch (_e) { return null; } }
+  // bigint stats: large inode numbers (APFS, ZFS, NTFS file ids) do not lose precision.
+  function fileId(p) { try { var st = fs.statSync(p, { bigint: true }); return st.dev + ':' + st.ino; } catch (_e) { return null; } }
+  // Layered on top of the inode check: lexical and realpath comparisons, and roots.
+  function pathKey(p) { return path.resolve(p).replace(/[\\/]+$/, '').toLowerCase(); }
+  function realOrNull(p) { try { return fs.realpathSync.native(p); } catch (_e) { return null; } }
+  function isRootPath(p) {
+    var r = path.resolve(p);
+    if (path.parse(r).root === r) return true;
+    if (/^[A-Za-z]:[\\/]?$/.test(r)) return true;                 // another drive's root
+    if (/^(\\\\|\/\/)[^\\/]+[\\/][^\\/]+[\\/]?$/.test(r)) return true; // UNC share root
+    if (process.platform === 'win32' && path.win32.parse(r).root === r) return true;
+    return false;
+  }
+  function refuseProfile(p, why) {
+    console.error('Invalid CLAUDE_CONFIG_DIR: ' + p + ' ' + why + '; refusing to manage skills there.');
+    process.exit(1);
+  }
   (function guardProfile() {
-    var homeAndAncestors = {};
-    var cur = path.resolve(os.homedir());
-    while (true) {
-      var id = fileId(cur);
-      if (id) homeAndAncestors[id] = true;
-      var up = path.dirname(cur);
-      if (up === cur) break;
-      cur = up;
+    var homeRaw = os.homedir();
+    if (!homeRaw || !path.isAbsolute(homeRaw) || fileId(homeRaw) === null) {
+      refuseProfile(claudeProfileDir, 'cannot be checked because the home directory (' + (homeRaw || 'unset') + ') does not exist');
     }
-    [claudeProfileDir, skillsInstallDir].forEach(function(p) {
-      var id = fileId(p);
-      if (id && homeAndAncestors[id]) {
-        console.error('Invalid CLAUDE_CONFIG_DIR: ' + p + ' is /, the home directory, or a directory above it; refusing to manage skills there.');
-        process.exit(1);
+    var homeAndAncestors = {};   // dev:ino ids
+    var homeKeys = {};           // lexical keys
+    // Walk the ancestors of both the logical home and the physical (realpath) home.
+    [path.resolve(homeRaw), realOrNull(homeRaw)].forEach(function(start) {
+      if (!start) return;
+      var cur = start;
+      while (true) {
+        var id = fileId(cur);
+        if (id) homeAndAncestors[id] = true;
+        homeKeys[pathKey(cur)] = true;
+        var up = path.dirname(cur);
+        if (up === cur) break;
+        cur = up;
       }
+    });
+    [claudeProfileDir, skillsInstallDir].forEach(function(p) {
+      [p, realOrNull(p)].forEach(function(form) {
+        if (!form) return;
+        if (isRootPath(form)) refuseProfile(p, 'is a filesystem root');
+        if (homeKeys[pathKey(form)]) refuseProfile(p, 'is the home directory or a directory above it');
+        var id = fileId(form);
+        if (id && homeAndAncestors[id]) refuseProfile(p, 'is /, the home directory, or a directory above it');
+      });
     });
   })();
   // A link is Commander's only if its IMMEDIATE target is an entry of this package's
