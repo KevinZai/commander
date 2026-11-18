@@ -20,6 +20,7 @@
 import { track } from '../lib/telemetry.mjs';
 import { join } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
+import { isCodeModePoll, POLL_PASS } from './lib/code-mode.mjs';
 
 const CCC_DIR = stateDir();
 const STDIN_MAX_BYTES = 256 * 1024;
@@ -53,6 +54,7 @@ function firstString(...candidates) {
 async function main() {
   try {
     const input = await readStdinJson();
+    if (isCodeModePoll(input)) { process.stdout.write(JSON.stringify(POLL_PASS) + '\n'); return; }
 
     // Prompt is read only to MEASURE it — never written to disk (see SECURITY above).
     const prompt =

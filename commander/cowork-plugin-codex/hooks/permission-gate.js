@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * permission-gate.js
- * Hook: PermissionRequest (Codex Desktop only)
+ * Hook: PermissionRequest (Claude Code and Codex Desktop)
  *
  * Gates /ccc-review autofix writes and other destructive tool calls behind
  * explicit user approval in Codex Desktop's native approval dialog.
@@ -12,7 +12,8 @@
  * Behavior:
  *   - Read-only tool calls (Read, Glob, Grep, Bash reads) → auto-approve (exit 0)
  *   - /ccc-review autofix writes → reject unless CCC_AUTOFIX_APPROVED=1 env flag
- *   - Explicitly dangerous operations (rm -rf, git reset --hard) → reject always
+ *   - Explicitly dangerous operations (rm -rf on / or ~, force push, device writes) → reject always
+ *   - Routine destructive commands (rm -rf <dir>, git reset --hard, git clean) → no decision; the user's prompt decides
  *   - Missing/malformed payload → fail open (approve) to avoid blocking sessions
  *
  * Payload shape (Codex PermissionRequest):
@@ -55,11 +56,12 @@ const READ_ONLY_TOOLS = new Set([
   'TodoRead', 'NotebookRead',
 ]);
 
-// Bash command patterns considered always-dangerous — always reject
+// Bash command patterns considered always-dangerous — always reject.
+// Ordinary deletes (rm -rf node_modules, rm -f build/tmp.log), git reset --hard and git clean are NOT here:
+// they go to REVIEW_PATTERNS, which return no decision so the user's own approval prompt decides (audit P0, 2026-11-18).
+// rm stays a hard deny only when it targets the filesystem root or the home directory.
 const DANGEROUS_PATTERNS = [
-  /rm\s+-[rRf]+\s/,
-  /rm\s+--recursive/i,
-  /git\s+reset\s+--hard/,
+  /(?<![\w./-])rm\s+(?:-[a-zA-Z]*\s+|--[a-z-]+\s+)*(?:--\s+)?["']?(?:\/\*?|~\/?\*?|\$\{?HOME\}?\/?\*?)["']?(?=\s|$|[;&|)])/,
   /git\s+push\s+--force/,   // kept as-is so nothing denied before CC-654 is allowed now
   // CC-654, any force push: --force[-with-lease], -f (alone or bundled, before or after the remote), a +refspec.
   // `git` starts a word (a path like /usr/bin/git or a quoted `sh -c "git ..."` counts) and only global options
@@ -68,7 +70,6 @@ const DANGEROUS_PATTERNS = [
   // A bare `:` (matching branches, quoted or followed by a separator) is not a delete.
   // git takes any unambiguous prefix of a long option (--forc, --dele), so prefixes of those four deny too.
   /(?<![^\s;&|("'/])git(?:\s+(?:-[Cc]\s+\S+|-[a-zA-Z]|--(?:git-dir|work-tree|namespace|config-env|attr-source|shallow-file|super-prefix)\s+\S+|--[a-z][a-z-]*(?:=\S+)?))*\s+push\b[^;&|\n]*\s["']?(?:--(?:fo(?:r(?:ce?)?)?|de(?:l(?:e(?:te?)?)?)?|mi(?:r(?:r(?:or?)?)?)?|pr(?:u(?:ne?)?)?)\b|-[a-zA-Z]*[fd][a-zA-Z]*\b|\+\S|:["']?[^\s"';&|)])/,
-  /git\s+clean\s+-[fdx]/,
   /chmod\s+-R\s+777/,
   /:\s*>\s*\/etc\//,       // truncate system files
   /dd\s+if=.*of=/,         // disk wipe
@@ -76,6 +77,20 @@ const DANGEROUS_PATTERNS = [
   /shred\s+/,
   />\s*\/dev\/sd[a-z]/,    // overwrite block device
 ];
+
+// Destructive but routine: no decision is returned, so Claude Code (or Codex Desktop) shows its own approval prompt
+// and the user decides. Matching here is only logged, never denied.
+const REVIEW_PATTERNS = [
+  /rm\s+-[rRf]+\s/,
+  /rm\s+--recursive/i,
+  /git\s+reset\s+--hard/,
+  /git\s+clean\s+-[fdx]/,
+];
+
+function needsReview(toolInput) {
+  const cmd = toolInput?.command || toolInput?.cmd || '';
+  return typeof cmd === 'string' && REVIEW_PATTERNS.some(pat => pat.test(cmd));
+}
 
 // /ccc-review autofix write operations: Write, Edit, MultiEdit to source files
 // These require explicit CCC_AUTOFIX_APPROVED=1 flag or context.phase !== 'autofix'
@@ -200,6 +215,12 @@ function isDangerousCommand(toolInput) {
   return NESTED_EXPANSION.test(joined) && views.some(view => GIT_PUSH.test(view));
 }
 
+// Only the program name reaches the log: full commands can carry tokens (audit P2, 2026-11-18).
+function commandHead(cmd) {
+  const first = String(cmd).trim().split(/\s+/)[0] || '';
+  return first.replace(/[^\w./-]/g, '').slice(0, 40);
+}
+
 async function logDecision(entry) {
   try {
     const analyticsDir = join(CCC_DIR, 'analytics');
@@ -254,13 +275,27 @@ async function main() {
       sessionId,
       decision: 'rejected-dangerous',
       toolName,
-      commandSnippet: cmd.slice(0, 120),
+      commandHead: commandHead(cmd),
     });
     process.stdout.write(JSON.stringify(denyDecision(
       `CCC PERMISSION GATE: Dangerous operation blocked — "${cmd.slice(0, 80)}" ` +
       `matched a destructive command pattern. ` +
       `Review the command and run manually if you are certain it is safe.`
     )) + '\n');
+    return;
+  }
+
+  // 2b. Routine destructive commands → no decision: the user's own prompt decides
+  if (toolName === 'Bash' && needsReview(toolInput)) {
+    const cmd = toolInput?.command || toolInput?.cmd || '';
+    await logDecision({
+      timestamp: new Date().toISOString(),
+      sessionId,
+      decision: 'deferred-to-user',
+      toolName,
+      commandHead: commandHead(cmd),
+    });
+    process.stdout.write('{}\n');   // no decision and no continue flag: the normal approval prompt is shown
     return;
   }
 

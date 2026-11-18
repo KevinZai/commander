@@ -220,16 +220,19 @@ function stripComments(content) {
  * Handlers the SessionStart orchestrator imports ({ file: '../x.js' } entries),
  * as paths relative to hooksDir ('fable-armed-nudge.js', '_archive/session-start.js').
  */
-function orchestratorHandlers(hooksDir) {
-  var content = safeRead(path.join(hooksDir, ORCHESTRATOR_REL));
+function orchestratorHandlers(hooksDir, rel) {
+  var orchestratorRel = rel || ORCHESTRATOR_REL;
+  var content = safeRead(path.join(hooksDir, orchestratorRel));
   if (!content) return [];
-  var orchestratorDir = path.dirname(path.join(hooksDir, ORCHESTRATOR_REL));
+  var orchestratorDir = path.dirname(path.join(hooksDir, orchestratorRel));
   var out = [];
-  var re = /\bfile:\s*['"]([^'"]+\.js)['"]/g;
+  // SessionStart lists { file: '../x.js' } entries; the PreToolUse dispatcher statically imports
+  // `run` from '../x.js'. Both run those handlers without their own hooks.json entry.
+  var re = /\bfile:\s*['"]([^'"]+\.js)['"]|\bfrom\s+['"](\.\.\/[^'"\/]+\.js)['"]/g;
   var m;
   var body = stripComments(content);
   while ((m = re.exec(body)) !== null) {
-    out.push(path.relative(hooksDir, path.resolve(orchestratorDir, m[1])).split(path.sep).join('/'));
+    out.push(path.relative(hooksDir, path.resolve(orchestratorDir, m[1] || m[2])).split(path.sep).join('/'));
   }
   return out;
 }
@@ -310,9 +313,11 @@ function hookChainReport(hooksDir) {
     });
   });
   // Handlers the orchestrator imports run on SessionStart without their own hooks.json entry.
-  if (referenced.has(ORCHESTRATOR_REL.split(path.sep).join('/'))) {
-    orchestratorHandlers(hooksDir).forEach(function (rel) { referenced.add(rel); });
-  }
+  // Handlers an orchestrator or dispatcher imports run without their own hooks.json entry.
+  Array.from(referenced).forEach(function (ref) {
+    if (ref.indexOf('orchestrator/') !== 0) return;
+    orchestratorHandlers(hooksDir, ref).forEach(function (rel) { referenced.add(rel); });
+  });
 
   referenced.forEach(function (rel) {
     var p = path.join(hooksDir, rel);

@@ -59,13 +59,13 @@ test('passes when every surface matches the filesystem', (t) => {
 
 test('fails with file:line on injected count drift', (t) => {
   const root = fixture(t);
-  write(root, 'README.md', fs.readFileSync(path.join(root, 'README.md'), 'utf8') + 'Now with 9 plugin skills and 30 hooks x 51 handlers.\n');
+  write(root, 'README.md', fs.readFileSync(path.join(root, 'README.md'), 'utf8') + 'Now with 9 plugin skills and 30 hooks x 49 handlers.\n');
   const r = runCheck(root);
   assert.equal(r.status, 1);
   assert.match(r.stderr, /3 mismatch\(es\)/);
   assert.match(r.stderr, /README\.md:6 {2}plugin skills "9 plugin skills" expected 2/);
   assert.match(r.stderr, /README\.md:6 {2}hooks "30 hooks" expected 2/);
-  assert.match(r.stderr, /README\.md:6 {2}handlers "51 handlers" expected 3/);
+  assert.match(r.stderr, /README\.md:6 {2}handlers "49 handlers" expected 3/);
 });
 
 test('fails on a stale version in a globbed docs file', (t) => {

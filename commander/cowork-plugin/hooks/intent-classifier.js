@@ -54,6 +54,7 @@ import { fleetRouteEnabled, matchFleetIntent, fleetTools, checkinLine, renderFle
 import { join } from 'node:path';
 import { stateDir, readablePath } from '../lib/lane-state.js';
 import { existsSync, writeFileSync, mkdirSync, readFileSync, appendFileSync, openSync, readSync, fstatSync, closeSync, renameSync, readdirSync, statSync, unlinkSync } from 'node:fs';
+import { isCodeModePoll, POLL_PASS } from './lib/code-mode.mjs';
 
 // Deep-reasoning signals for Fable escalation nudge
 const FABLE_SIGNALS = [
@@ -379,6 +380,7 @@ async function main() {
     for await (const chunk of process.stdin) input += chunk;
 
     const data = JSON.parse(input);
+    if (isCodeModePoll(data)) { console.log(JSON.stringify(POLL_PASS)); return; }
     event = data.hook_event_name || (data.prompt !== undefined || data.message !== undefined ? 'UserPromptSubmit' : 'Stop');
     const out = event === 'UserPromptSubmit' ? handlePrompt(data) : handleStop(data);
     console.log(JSON.stringify(out));

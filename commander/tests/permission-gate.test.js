@@ -293,28 +293,23 @@ describe('permission-gate: missing payload → fail open', () => {
 // Case 5: Dangerous operation → always reject
 // ============================================================================
 describe('permission-gate: dangerous operations → always reject', () => {
-  it('denies Bash rm -rf command (exit 0 + deny decision)', () => {
-    const r = runGate({
-      tool_name: 'Bash',
-      tool_input: { command: 'rm -rf /tmp/project' },
-      session_id: 'test-session-dangerous-001',
-    });
-    assert.equal(r.exitCode, 0, `Deny must exit 0 (stdout on exit 1 is discarded), got ${r.exitCode}`);
-    const decision = r.parsed?.hookSpecificOutput?.decision;
-    assert.equal(decision?.behavior, 'deny', 'rm -rf must be denied');
-    assert.ok(
-      decision?.message?.includes('dangerous') || decision?.message?.includes('Dangerous'),
-      `deny message should indicate danger. Got: ${decision?.message}`
-    );
+  it('denies rm -rf on the filesystem root or home (exit 0 + deny decision)', () => {
+    for (const command of ['rm -rf /', 'rm -rf ~', 'sudo rm -rf / --no-preserve-root', 'rm -rf "$HOME"', 'rm -rf /*']) {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command }, session_id: 'test-session-dangerous-001' });
+      assert.equal(r.exitCode, 0, `Deny must exit 0 (stdout on exit 1 is discarded), got ${r.exitCode}`);
+      const decision = r.parsed?.hookSpecificOutput?.decision;
+      assert.equal(decision?.behavior, 'deny', `${command} must be denied`);
+      assert.match(decision?.message || '', /[Dd]angerous/);
+    }
   });
 
-  it('denies git reset --hard', () => {
-    const r = runGate({
-      tool_name: 'Bash',
-      tool_input: { command: 'git reset --hard HEAD~3' },
-    });
-    assert.equal(r.exitCode, 0);
-    assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
+  // Audit P0 (2026-11-18): routine deletes go to the user's own prompt instead of a hard deny
+  it('returns no decision for routine destructive commands so the user decides', () => {
+    for (const command of ['rm -rf /tmp/project', 'rm -rf node_modules && npm ci', 'rm -f build/tmp.log', 'git reset --hard HEAD~3', 'git clean -fd', 'git commit -m "drop rm -rf usage"']) {
+      const r = runGate({ tool_name: 'Bash', tool_input: { command } });
+      assert.equal(r.exitCode, 0);
+      assert.deepEqual(r.parsed, {}, `${command} must return an empty decision, got ${r.stdout}`);
+    }
   });
 
   it('denies git push --force', () => {
@@ -461,8 +456,9 @@ describe('permission-gate: always outputs valid JSON', () => {
       assert.ok(r.parsed !== null, `Payload ${i + 1} should produce parseable JSON. Got: ${r.stdout}`);
       const isApprove = typeof r.parsed.continue === 'boolean';
       const isDeny = r.parsed.hookSpecificOutput?.decision?.behavior === 'deny';
+      const isDeferred = Object.keys(r.parsed).length === 0;
       assert.ok(
-        isApprove || isDeny,
+        isApprove || isDeny || isDeferred,
         `output must be an approve (boolean continue) or a deny decision. Got: ${JSON.stringify(r.parsed)}`
       );
     });

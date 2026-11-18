@@ -43,6 +43,7 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { isCodeModePoll, POLL_PASS } from './lib/code-mode.mjs';
 
 const STATE_DIR = stateDir();
 const LOG_FILE = path.join(STATE_DIR, 'suggest-log.jsonl');
@@ -1006,6 +1007,7 @@ if (isMain) {
       for await (const chunk of process.stdin) input += chunk;
       if (input.trim()) payload = JSON.parse(input);
     } catch { payload = {}; }
+    if (isCodeModePoll(payload)) { process.stdout.write(JSON.stringify(POLL_PASS) + '\n'); process.exit(0); }
 
     try {
       const result = await main(payload);

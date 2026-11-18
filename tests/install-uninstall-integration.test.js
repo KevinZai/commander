@@ -19,7 +19,7 @@
 const assert = require('node:assert');
 const { test, after, before } = require('node:test');
 const { spawnSync } = require('node:child_process');
-const { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readdirSync } = require('node:fs');
+const { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readdirSync, readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const { tmpdir } = require('node:os');
 
@@ -273,3 +273,34 @@ test('uninstall.sh honors CLAUDE_CONFIG_DIR', () => {
 // See readdirSync for unused-import lint suppression: the symbol is reserved
 // for future expansion to inventory artifacts created by a sandboxed install.
 void readdirSync;
+
+// Audit P0 (2026-11-18): a non-interactive install (what install-remote.sh runs) merges into an existing
+// config instead of deleting the user's own skills, commands and hooks, and backs up without transcripts.
+test('install.sh --force merges into an existing ~/.claude without deleting user files', () => {
+  const home = mkdtempSync(join(tmpdir(), 'ccc-install-merge-'));
+  try {
+    const claude = join(home, '.claude');
+    mkdirSync(join(claude, 'skills', 'my-skill'), { recursive: true });
+    mkdirSync(join(claude, 'commands'), { recursive: true });
+    mkdirSync(join(claude, 'hooks'), { recursive: true });
+    mkdirSync(join(claude, 'projects', 'p'), { recursive: true });
+    writeFileSync(join(claude, 'skills', 'my-skill', 'SKILL.md'), 'mine');
+    writeFileSync(join(claude, 'commands', 'mine.md'), 'mine');
+    writeFileSync(join(claude, 'hooks', 'hooks.json'), '{"mine":1}');
+    writeFileSync(join(claude, 'projects', 'p', 'session.jsonl'), 'transcript');
+    const res = spawnSync('bash', [INSTALL_SH, '--force', '--mode=essentials'], {
+      env: hermeticEnv(home, { CC_NO_COLOR: '1', CC_NO_ANIMATION: '1', CI: '1' }),
+      encoding: 'utf8', timeout: 240_000, cwd: REPO_ROOT, input: '',
+    });
+    assert.strictEqual(res.status, 0, `install should exit 0, got ${res.status}\n${res.stdout.slice(-800)}\n${res.stderr}`);
+    assert.strictEqual(readFileSync(join(claude, 'skills', 'my-skill', 'SKILL.md'), 'utf8'), 'mine');
+    assert.strictEqual(readFileSync(join(claude, 'commands', 'mine.md'), 'utf8'), 'mine');
+    assert.strictEqual(readFileSync(join(claude, 'hooks', 'hooks.json'), 'utf8'), '{"mine":1}');
+    assert.ok(existsSync(join(claude, 'hooks', 'hooks.commander.json')), 'Commander hooks config is written beside the user\'s');
+    const backups = readdirSync(home).filter((n) => n.startsWith('.claude.backup.'));
+    assert.strictEqual(backups.length, 1);
+    assert.ok(!existsSync(join(home, backups[0], 'projects')), 'the backup must not copy session transcripts');
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});

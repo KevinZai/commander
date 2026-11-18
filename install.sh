@@ -25,6 +25,7 @@ USER_NAME=""
 DRY_RUN=false
 VERIFY_ONLY=false
 FORCE=false
+CLEAN=false   # --clean: replace skills/commands/hooks instead of merging into them (audit P0, 2026-11-18)
 BACKUP_DIR=""
 INSTALL_MODE="full"
 SKILLS_TIER=""
@@ -39,6 +40,7 @@ while [[ $# -gt 0 ]]; do
     --dry-run)  DRY_RUN=true; shift ;;
     --verify)   VERIFY_ONLY=true; shift ;;
     --force)    FORCE=true; shift ;;
+    --clean)    CLEAN=true; shift ;;
     --mode=*)   INSTALL_MODE="${1#*=}"; shift ;;
     --skills=*) SKILLS_TIER="${1#*=}"; shift ;;
     --help|-h)
@@ -48,6 +50,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --dry-run          Preview what would be installed"
       echo "  --verify           Validate an existing installation"
       echo "  --force            Skip confirmation prompts"
+      echo "  --clean            Replace ~/.claude skills, commands and hooks instead of merging (backed up first)"
       echo "  --mode=MODE        Install mode: full|essentials|scripts|dashboard|config"
       echo "  --skills=TIER      Skill tier: essential (default), recommended, full, custom"
       echo "  --help             Show this help"
@@ -231,8 +234,8 @@ fi
 if ! $FORCE; then
   echo ""
   if [ -d "$CLAUDE_DIR" ]; then
-    echo -e "  ${M_AMBER}This will archive your existing ~/.claude/ setup and replace it.${NC}"
-    echo -e "  ${M_DIM}Your old config will be safely backed up with a restore command.${NC}"
+    echo -e "  ${M_AMBER}This will back up your ~/.claude/ config and merge CC Commander into it.${NC}"
+    echo -e "  ${M_DIM}Your own skills, commands and hooks are kept (use --clean to replace them).${NC}"
   else
     echo -e "  ${M_DIM}This will create a new ~/.claude/ setup.${NC}"
   fi
@@ -307,12 +310,17 @@ if [ -d "$CLAUDE_DIR" ]; then
   [ "$old_hooks" -eq 1 ] && cc_status_line "·" "hooks.json"
   echo ""
 
-  cp -r "$CLAUDE_DIR" "$BACKUP_DIR"
+  # Back up only what the installer can change. Session transcripts (projects/) and other runtime state are
+  # never touched, so they are not copied (they can be gigabytes).
+  mkdir -p "$BACKUP_DIR"
+  for item in skills commands hooks lib templates CLAUDE.md settings.json; do
+    [ -e "$CLAUDE_DIR/$item" ] && cp -R "$CLAUDE_DIR/$item" "$BACKUP_DIR/" 2>/dev/null
+  done
 
   cc_status_line "✓" "Archived to: ${M_WHITE}${BACKUP_DIR}${NC}"
   echo ""
   echo -e "  ${M_DIM}Restore command:${NC}"
-  echo -e "  ${M_CYAN}rm -rf \"${CLAUDE_DIR}\" && mv \"${BACKUP_DIR}\" \"${CLAUDE_DIR}\"${NC}"
+  echo -e "  ${M_CYAN}cp -R \"${BACKUP_DIR}/.\" \"${CLAUDE_DIR}/\"${NC}"
 fi
 
 # ── OpenClaw Detection ──────────────────────────────────────────────────────
@@ -370,7 +378,7 @@ if should_install "skills"; then
     echo "❌ Refusing to rm -rf outside a .claude config dir — got: $CLAUDE_DIR/skills"
     exit 1
   fi
-  rm -rf "$CLAUDE_DIR/skills"
+  if $CLEAN; then rm -rf "$CLAUDE_DIR/skills"; fi
   mkdir -p "$CLAUDE_DIR/skills"
 
   if [[ "$tier" == "full" ]] || [[ ! -f "$tiers_file" ]]; then
@@ -465,8 +473,9 @@ if should_install "commands"; then
     echo "❌ Refusing to rm -rf outside a .claude config dir — got: $CLAUDE_DIR/commands"
     exit 1
   fi
-  rm -rf "$CLAUDE_DIR/commands"
-  cp -r "$SCRIPT_DIR/commands/" "$CLAUDE_DIR/commands/"
+  if $CLEAN; then rm -rf "$CLAUDE_DIR/commands"; fi
+  mkdir -p "$CLAUDE_DIR/commands"
+  cp -R "$SCRIPT_DIR/commands/." "$CLAUDE_DIR/commands/"
   cmd_count=$(find "$CLAUDE_DIR/commands" -name '*.md' | wc -l | tr -d ' ')
   cc_status_line "✓" "$cmd_count commands installed"
 fi
@@ -480,7 +489,7 @@ if should_install "hooks"; then
     echo "❌ Refusing to rm -rf outside a .claude config dir — got: $CLAUDE_DIR/hooks"
     exit 1
   fi
-  rm -rf "$CLAUDE_DIR/hooks"
+  if $CLEAN; then rm -rf "$CLAUDE_DIR/hooks"; fi
   mkdir -p "$CLAUDE_DIR/hooks"
   # Copy hook scripts
   find "$SCRIPT_DIR/hooks/" -name '*.js' -o -name '*.sh' | while read f; do
@@ -488,7 +497,13 @@ if should_install "hooks"; then
   done
   # Use standalone hooks config (doesn't require oh-my-claudecode plugin)
   if [ -f "$SCRIPT_DIR/hooks/hooks-standalone.json" ]; then
-    cp "$SCRIPT_DIR/hooks/hooks-standalone.json" "$CLAUDE_DIR/hooks/hooks.json"
+    if [ -f "$CLAUDE_DIR/hooks/hooks.json" ] && ! $CLEAN; then
+      # Never overwrite the user's own hook config: write ours beside it
+      cp "$SCRIPT_DIR/hooks/hooks-standalone.json" "$CLAUDE_DIR/hooks/hooks.commander.json"
+      cc_status_line "!" "Kept your hooks.json; CC Commander's is in hooks/hooks.commander.json" "$M_AMBER"
+    else
+      cp "$SCRIPT_DIR/hooks/hooks-standalone.json" "$CLAUDE_DIR/hooks/hooks.json"
+    fi
   fi
   cc_status_line "✓" "Hooks installed (standalone mode)"
 fi
@@ -554,10 +569,11 @@ if should_install "claude-md" || should_install "settings"; then
     # as distinct and re-clones into temp_<timestamp> dirs on every session start).
     # Ensure only the canonical commander-hub (git-form) entry is present.
     if [ -f "$CLAUDE_DIR/settings.json" ] && command -v python3 &>/dev/null; then
-      python3 - <<'DEDUP'
+      dedup_exit=0
+      python3 - "$CLAUDE_DIR/settings.json" <<'DEDUP' || dedup_exit=$?
 import json, os, sys, tempfile
 
-p = os.path.expanduser('~/.claude/settings.json')
+p = sys.argv[1]   # the lane's settings.json (CLAUDE_CONFIG_DIR aware), not a hard-coded ~/.claude
 try:
     with open(p) as f:
         d = json.load(f)
@@ -603,7 +619,6 @@ except Exception:
 
 print('deduped extraKnownMarketplaces: removed ' + ', '.join(removed))
 DEDUP
-      dedup_exit=$?
       if [ $dedup_exit -eq 0 ]; then
         cc_status_line "✓" "extraKnownMarketplaces deduplicated"
       fi
@@ -733,7 +748,7 @@ echo ""
 
 if [ -n "$BACKUP_DIR" ]; then
   echo -e "  ${M_AMBER}Old setup archived:${NC} ${M_DIM}${BACKUP_DIR}${NC}"
-  echo -e "  ${M_DIM}Restore: rm -rf ~/.claude && mv ${BACKUP_DIR} ~/.claude${NC}"
+  echo -e "  ${M_DIM}Restore: cp -R \"${BACKUP_DIR}/.\" \"${CLAUDE_DIR}/\"${NC}"
   echo ""
 fi
 

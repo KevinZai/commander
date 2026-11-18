@@ -19,6 +19,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
 import { existsSync } from 'node:fs';
+import { isMainModule } from './lib/code-mode.mjs';
 
 const SESSIONS_DIR = join(stateDir(), 'sessions');
 
@@ -27,9 +28,10 @@ const UNIT_PER_CALL = 0.01;
 const ALERT_CALLS = 1000;  // "~$10"
 const WARN_CALLS = 700;    // "~$7"
 
-async function main() {
+export async function run(input = {}) {
+  let out = { continue: true, suppressOutput: true };
   try {
-    const SESSION_KEY = sessionKey(await readStdinJson());
+    const SESSION_KEY = sessionKey(input);
     const COST_FILE = join(SESSIONS_DIR, `active-cost-${SESSION_KEY}.json`);
     let costData = { toolCalls: 0, estimatedCost: 0, sessionId: SESSION_KEY, startedAt: new Date().toISOString() };
     try {
@@ -43,21 +45,27 @@ async function main() {
     await writeFile(COST_FILE, JSON.stringify(costData, null, 2));
 
     if (costData.toolCalls > ALERT_CALLS) {
-      console.log(JSON.stringify(emitUser(
+      out = emitUser(
         `CCC tool-call budget alert: ${costData.toolCalls} calls this session (budget unit ~$${costData.estimatedCost.toFixed(2)} at $0.01/call — not real spend) — consider wrapping up`
-      )));
+      );
     } else if (costData.toolCalls > WARN_CALLS) {
-      console.log(JSON.stringify(emitUser(
+      out = emitUser(
         `CCC tool-call budget warning: ${costData.toolCalls} calls this session (budget unit ~$${costData.estimatedCost.toFixed(2)})`
-      )));
+      );
     } else {
-      console.log(JSON.stringify(emitSilent()));
+      out = emitSilent();
     }
   } catch {
-    console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+    out = { continue: true, suppressOutput: true };
   }
 
   track('hook_fired', { hook: 'PreToolUse', handler: 'cost-tracker' });
+  return out;
 }
 
-main();
+// Standalone entry (hooks.json may still call this file directly); the PreToolUse dispatcher imports run() instead.
+if (isMainModule(import.meta.url)) {
+  readStdinJson().then(run).catch(() => ({ continue: true })).then((out) => {
+    process.stdout.write(JSON.stringify(out) + '\n');
+  });
+}

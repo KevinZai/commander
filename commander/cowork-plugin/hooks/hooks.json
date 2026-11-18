@@ -101,19 +101,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/cost-tracker.js\"",
-            "timeout": 3,
-            "async": true
-          },
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/cost-ceiling-enforcer.js\"",
-            "timeout": 3
-          },
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/secret-leak-guard.js\"",
-            "timeout": 5
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/pre-tool-use-dispatcher.js\"",
+            "timeout": 8
           }
         ]
       },

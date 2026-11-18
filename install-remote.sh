@@ -36,7 +36,7 @@ fi
 
 # Check for node/npm (needed for Claude Code)
 if ! command -v node &>/dev/null; then
-  echo -e "  ${RED}✗${NC} Node.js not found. Install Node.js 18+ first."
+  echo -e "  ${RED}✗${NC} Node.js not found. Install Node.js 20.19+ (or 22.12+) first."
   echo -e "    ${DIM}https://nodejs.org${NC}"
   exit 1
 fi
