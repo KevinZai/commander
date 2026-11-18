@@ -10,10 +10,7 @@ Opt-in add-on. [bradautomates/claude-video](https://github.com/bradautomates/cla
 
 ## Install
 
-```text
-/plugin marketplace add bradautomates/claude-video
-/plugin install watch@claude-video
-```
+Install from the upstream README, reviewed at [`03ceb42`](https://github.com/bradautomates/claude-video/tree/03ceb42f7fa2c4439aca01752118044baabffb8f#readme). CCC safety: the plugin marketplace serves the current upstream revision, not the reviewed one. Before installing, confirm the marketplace source is `github.com/bradautomates/claude-video` itself and not a same-named plugin from another publisher, and tell the user if upstream has changed since `03ceb42`.
 
 Then start a new session and run `/watch <url or path>`.
 

@@ -18,15 +18,12 @@ Offer one memory backend, not both. If `claude-mem` is already installed, say so
 
 Claude Code plugin (MCP server, auto-save hooks and a guided setup skill). CCC safety: the plugin's hooks save every conversation verbatim on the device. Say so before installing it, and offer the CLI-and-MCP path below, which adds no hooks:
 
-```text
-/plugin marketplace add MemPalace/mempalace
-/plugin install mempalace@mempalace
-```
+Install from the upstream README, reviewed at [`fec575b`](https://github.com/MemPalace/mempalace/tree/fec575bb4be04d4db244c2f724fa75ee6b9667ca#readme). CCC safety: the plugin marketplace serves the current upstream revision, not the reviewed one. Before installing, confirm the marketplace source is `github.com/MemPalace/mempalace` itself and not a same-named plugin from another publisher, and tell the user if upstream has changed since `fec575b`.
 
 CLI and MCP only:
 
 ```bash
-uv tool install mempalace          # or: pipx install mempalace
+uv tool install mempalace==3.12.0   # or: pipx install mempalace==3.12.0 (pinned; fails if that version is unavailable)
 mempalace init ~/projects/myapp
 claude mcp add mempalace -- mempalace-mcp
 ```
