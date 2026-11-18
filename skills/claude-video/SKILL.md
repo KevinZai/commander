@@ -15,7 +15,9 @@ Opt-in add-on. [bradautomates/claude-video](https://github.com/bradautomates/cla
 /plugin install watch@claude-video
 ```
 
-Then start a new session and run `/watch <url or path>`. Codex and other Agent Skills hosts: follow the upstream README's "Choose your app" table.
+Then start a new session and run `/watch <url or path>`.
+
+CCC safety: before the first `/watch` in a session, check which backends it will use and tell the user. Transcription with Groq or OpenAI sends the audio to that provider, and any cloud vision or upload path sends the video off the machine. Ask before using any remote backend; prefer native captions or local WhisperX when available. Codex and other Agent Skills hosts: follow the upstream README's "Choose your app" table.
 
 Check first: if `claude plugin list` already shows `watch`, skip the install.
 
