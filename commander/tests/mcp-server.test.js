@@ -97,3 +97,23 @@ test('skills-loader getSkill returns the adjacent LICENSE text for copied skills
   var expected = fs.readFileSync(path.join(__dirname, '..', '..', 'skills', 'claude-api', 'LICENSE.txt'), 'utf8');
   assert.equal(skill.license, expected);
 });
+
+test('skills-loader serves nested skills with their license, and refuses when a notice is unreadable', function() {
+  var loader = require('../mcp-server/skills-loader.js');
+  var fs = require('fs');
+  var nested = loader.getSkill('canvas-design');
+  assert.strictEqual(nested.id, 'ccc-design/canvas-design');
+  assert.ok(nested.license && nested.license.length > 0);
+  var orig = fs.readFileSync;
+  fs.readFileSync = function(file) {
+    if (String(file).endsWith(require('path').join('claude-api', 'LICENSE.txt'))) { var e = new Error('denied'); e.code = 'EACCES'; throw e; }
+    return orig.apply(fs, arguments);
+  };
+  try {
+    var r = loader.getSkill('claude-api');
+    assert.ok(r && r.error && /EACCES/.test(r.error), JSON.stringify(r && Object.keys(r)));
+    assert.strictEqual(r.content, undefined);
+  } finally {
+    fs.readFileSync = orig;
+  }
+});

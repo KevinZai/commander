@@ -81,6 +81,7 @@ function handleSuggestFor(args) {
 function handleInvokeSkill(args) {
   var skill = loader.getSkill(args.name);
   if (!skill) return { error: 'Skill not found: ' + args.name, confidence: 0 };
+  if (skill.error) return { error: skill.error, confidence: 0 };
   return {
     skill: args.name,
     content: skill.content,

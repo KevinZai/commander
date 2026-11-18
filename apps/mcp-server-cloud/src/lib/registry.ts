@@ -433,15 +433,15 @@ export async function getSkillContent(skillId: string): Promise<string | null> {
   }
 }
 
-/** The license notice shipped with a copied skill, or null when it has none. */
+/**
+ * The license notice shipped with a copied skill, or null when it has none.
+ * Throws when the skill has a notice that cannot be read, so the caller never
+ * serves the skill without it.
+ */
 export async function getSkillLicense(skillId: string): Promise<string | null> {
   const skill = findInternalSkill(skillId);
   if (!skill?.licenseFile) return null;
-  try {
-    return await readFile(skill.licenseFile, "utf8");
-  } catch {
-    return null;
-  }
+  return await readFile(skill.licenseFile, "utf8");
 }
 
 /** Source commit of the served catalog, when known (bundle builds record it). */

@@ -62,9 +62,36 @@ function buildCatalog() {
 
   scanDir(SKILLS_DIR, 'free');
   scanDir(PLUGIN_SKILLS_DIR, 'free');
+  // Nested skills (pack and router children such as ccc-design/canvas-design),
+  // listed after the top level so a top-level name keeps winning lookups.
+  scanNested(SKILLS_DIR, 'free', skills);
 
   _catalog = skills;
   return _catalog;
+}
+
+function scanNested(root, tier, out) {
+  var parents;
+  try { parents = fs.readdirSync(root, { withFileTypes: true }); } catch (_) { return; }
+  for (var p of parents) {
+    if (!p.isDirectory() || p.name.startsWith('.') || p.name.startsWith('_')) continue;
+    var children;
+    try { children = fs.readdirSync(path.join(root, p.name), { withFileTypes: true }); } catch (_) { continue; }
+    for (var c of children) {
+      if (!c.isDirectory() || c.name.startsWith('.') || c.name.startsWith('_')) continue;
+      var skillPath = path.join(root, p.name, c.name, 'SKILL.md');
+      if (!fs.existsSync(skillPath)) continue;
+      var description = '';
+      try {
+        var lines = fs.readFileSync(skillPath, 'utf8').split('\n');
+        for (var line of lines) {
+          var t = line.trim();
+          if (t && !t.startsWith('#') && !t.startsWith('---')) { description = t.slice(0, 120); break; }
+        }
+      } catch (_) {}
+      out.push({ id: p.name + '/' + c.name, name: c.name, domain: p.name.startsWith('ccc-') ? p.name : 'general', tier: tier || 'free', description: description, path: skillPath });
+    }
+  }
 }
 
 function listSkills(opts) {
@@ -91,14 +118,15 @@ function listSkills(opts) {
 
 function getSkill(name) {
   var catalog = buildCatalog();
-  var skill = catalog.find(function(s) { return s.name === name || s.id === name; });
+  var skill = catalog.find(function(s) { return s.id === name; }) || catalog.find(function(s) { return s.name === name; });
   if (!skill) return null;
 
   try {
     var content = fs.readFileSync(skill.path, 'utf8');
     var out = { id: skill.id, name: skill.name, domain: skill.domain, tier: skill.tier, content: content };
     var license = readSkillLicense(skill.path);
-    if (license) out.license = license;
+    if (license && license.error) return { error: license.error };
+    if (license) out.license = license.text;
     return out;
   } catch (_) {
     return null;
@@ -116,7 +144,12 @@ function readSkillLicense(skillFile) {
   if (path.basename(parent) !== 'skills' && parent !== dir) dirs.push(parent);
   for (var i = 0; i < dirs.length; i++) {
     for (var j = 0; j < LICENSE_NAMES.length; j++) {
-      try { return fs.readFileSync(path.join(dirs[i], LICENSE_NAMES[j]), 'utf8'); } catch (_) {}
+      var file = path.join(dirs[i], LICENSE_NAMES[j]);
+      if (!fs.existsSync(file)) continue;
+      // A notice that exists but cannot be read means the skill is not served.
+      try { return { text: fs.readFileSync(file, 'utf8') }; } catch (e) {
+        return { error: 'License notice for this skill could not be read (' + (e.code || 'error') + '); not serving it without the notice.' };
+      }
     }
   }
   return null;

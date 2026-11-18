@@ -367,3 +367,27 @@ describe("license notices travel with served skills", () => {
     assert.doesNotMatch(String(got.content), /npx|install via/i);
   });
 });
+
+describe("an unreadable license notice blocks serving", () => {
+  it("get_skill and invoke_skill return an error instead of an unlicensed body", async () => {
+    const repo = makeRepo();
+    tempDirs.push(repo);
+    writeFile(repo, "skills/ab-test-setup/LICENSE.txt", "MIT License\n");
+    const dataDir = tmp("ccc-catalog-unreadable-");
+    const manifest = bundler.bundleCatalog({ repoRoot: repo, dataDir }) as Manifest & { skills: Array<{ id: string; licenseBundled?: string }> };
+    const lic = manifest.skills.find((s) => s.id === "ecosystem/ab-test-setup")!.licenseBundled!;
+    // Replace the notice with a directory: it exists but cannot be read as a file (works as root too).
+    rmSync(path.join(dataDir, lic));
+    mkdirSync(path.join(dataDir, lic));
+    process.env.COMMANDER_CATALOG_DIR = dataDir;
+    await registry.reloadRegistry();
+    const { getSkill } = await import("../src/tools/get-skill.js");
+    const { invokeSkill } = await import("../src/tools/invoke-skill.js");
+    const got = await getSkill({ name: "ecosystem/ab-test-setup" });
+    assert.equal(got.ok, false);
+    assert.equal(got.content, undefined);
+    const inv = (await invokeSkill({ name: "ecosystem/ab-test-setup" })) as Record<string, unknown>;
+    assert.equal(inv.ok, false);
+    assert.equal(inv.invocationGuide, undefined);
+  });
+});

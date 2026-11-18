@@ -17,7 +17,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import {
   CONTRACT_PATH, criteriaFromPlan, titleFromPlan, renderContract, parseContract,
-  validateContract, normalizeVerdict, applyVerdict, archiveName,
+  validateContract, normalizeVerdict, applyVerdict, archiveName, contractFingerprint,
 } from '../lib/sprint-contract.mjs';
 
 function out(obj, code = 0) {
@@ -71,7 +71,7 @@ function writeContract(target, text) {
 function report(target, extra = {}) {
   const parsed = parseContract(fs.readFileSync(target, 'utf8'));
   const v = validateContract(parsed);
-  return { path: target, title: parsed.title, status: parsed.status, criteria: parsed.criteria, ...v, ...extra };
+  return { path: target, title: parsed.title, status: parsed.status, fingerprint: contractFingerprint(parsed), criteria: parsed.criteria, ...v, ...extra };
 }
 
 function main(argv) {
@@ -110,9 +110,13 @@ function main(argv) {
     if (!fs.existsSync(target)) return out({ exists: false, path: target });
     const parsed = parseContract(fs.readFileSync(target, 'utf8'));
     const head = gitHead();
+    const fingerprint = contractFingerprint(parsed);
     const verifiedHead = (parsed.verified || '').match(/ at (\S+) \(/);
-    const current = parsed.status === 'verified' && verifiedHead && verifiedHead[1] === head && !gitDirty();
-    return out({ exists: true, path: target, title: parsed.title, status: parsed.status, verified: parsed.verified, head, current: !!current, criteria: parsed.criteria.length });
+    const verifiedFp = (parsed.verified || '').match(/ · contract ([0-9a-f]+)/);
+    // Current only when verified at this commit, for this exact contract, with a clean tree.
+    const current = parsed.status === 'verified' && verifiedHead && verifiedHead[1] === head
+      && verifiedFp && verifiedFp[1] === fingerprint && !gitDirty();
+    return out({ exists: true, path: target, title: parsed.title, status: parsed.status, verified: parsed.verified, head, fingerprint, current: !!current, criteria: parsed.criteria.length });
   }
   if (cmd === 'record') {
     const src = args[0];
@@ -128,9 +132,21 @@ function main(argv) {
       return out({ ok: false, errors: [`verdict is not JSON: ${e.message}`] }, 1);
     }
     const md = fs.readFileSync(target, 'utf8');
-    const normalized = normalizeVerdict(parseContract(md), verdict);
+    const parsed = parseContract(md);
+    const fingerprint = contractFingerprint(parsed);
     const head = gitHead();
-    fs.writeFileSync(target, applyVerdict(md, normalized, { head }));
+    // The report must be for this contract and this revision; otherwise nothing is recorded.
+    const errors = [];
+    if (!verdict || verdict.fingerprint !== fingerprint) {
+      errors.push(`report fingerprint ${JSON.stringify(verdict && verdict.fingerprint)} does not match this contract (${fingerprint}); re-run the verifier on ${target}`);
+    }
+    const rh = verdict && typeof verdict.head === 'string' ? verdict.head.trim() : '';
+    if (!rh || head === 'no-git' || !(head.startsWith(rh) || rh.startsWith(head)) || rh.length < 7) {
+      errors.push(`report head ${JSON.stringify(rh || null)} is not the current HEAD (${head}); re-run the verifier at this commit`);
+    }
+    if (errors.length) return out({ ok: false, path: target, head, fingerprint, errors }, 1);
+    const normalized = normalizeVerdict(parsed, verdict);
+    fs.writeFileSync(target, applyVerdict(md, normalized, { head, fingerprint }));
     return out({ ok: true, path: target, head, ...normalized }, normalized.verdict === 'PASS' ? 0 : 2);
   }
   return out({ ok: false, errors: ['usage: sprint-contract.mjs from-plan|new|validate|status|record'] }, 1);

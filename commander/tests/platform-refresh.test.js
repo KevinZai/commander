@@ -163,3 +163,17 @@ test('context budget: recorded, and the current plugin fits it', () => {
   const r = spawnSync(process.execPath, [path.join(__dirname, '..', '..', 'scripts', 'context-budget.js'), '--check'], { encoding: 'utf8' });
   assert.equal(r.status, 0, r.stderr);
 });
+
+test('context budget: fails when hooks cannot be measured', () => {
+  const stub = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-budget-stub-'));
+  try {
+    fs.writeFileSync(path.join(stub, 'node'), '#!/bin/sh\nexit 1\n', { mode: 0o755 });
+    const r = spawnSync(process.execPath, [path.join(__dirname, '..', '..', 'scripts', 'context-budget.js'), '--check'], {
+      encoding: 'utf8', env: { ...process.env, PATH: `${stub}:${process.env.PATH}` },
+    });
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /failed \(exit 1\); its injected context was not measured/);
+  } finally {
+    fs.rmSync(stub, { recursive: true, force: true });
+  }
+});

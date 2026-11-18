@@ -8,6 +8,8 @@
 // Pure functions only (parse, render, validate, apply a verdict); the CLI in
 // ../scripts/sprint-contract.mjs does the file and git I/O.
 
+import { createHash } from 'node:crypto';
+
 export const CONTRACT_PATH = 'tasks/sprint-contract.md';
 export const ARCHIVE_DIR = 'tasks/contracts';
 export const MARKER = 'ccc-sprint-contract v1';
@@ -33,13 +35,49 @@ export function splitCriterion(raw) {
     const cmd = text.match(/`([^`]+)`/);
     if (cmd) check = cmd[1].trim();
   }
-  if (check && /^`[^`]+`$/.test(check)) check = check.slice(1, -1);
+  if (check) check = unwrapCodeSpan(check);
   const manual = check && check.match(/^manual\b\s*(?:[—:-]+\s*)?(.*)$/i);
   if (manual) {
     check = null;
     if (manual[1] && !text.includes('(observe:')) text = `${text} (observe: ${manual[1].trim()})`;
   }
   return { text, check };
+}
+
+/**
+ * A command as an inline code span that round-trips verbatim: the fence is one
+ * backtick longer than the longest run inside, padded with a space when the
+ * command starts or ends with a backtick (CommonMark code-span rules).
+ */
+export function codeSpan(command) {
+  const s = String(command);
+  const longest = Math.max(0, ...(s.match(/`+/g) || []).map((r) => r.length));
+  const fence = '`'.repeat(longest + 1);
+  const pad = /^`|`$/.test(s) ? ' ' : '';
+  return `${fence}${pad}${s}${pad}${fence}`;
+}
+
+function unwrapCodeSpan(raw) {
+  const s = String(raw);
+  const fence = (s.match(/^`+/) || [''])[0];
+  if (!fence || s.length < 2 * fence.length + 1 || !s.endsWith(fence)) return s;
+  let inner = s.slice(fence.length, s.length - fence.length);
+  if (inner.startsWith('`') || inner.endsWith('`')) return s;
+  if (inner.length >= 2 && inner.startsWith(' ') && inner.endsWith(' ') && inner.trim()) inner = inner.slice(1, -1);
+  return inner;
+}
+
+/**
+ * Identity of a contract's content: title plus every criterion's id, text and
+ * check. A verifier report must name this value, so evidence for one contract
+ * can never be recorded against another.
+ */
+export function contractFingerprint(parsed) {
+  const body = JSON.stringify({
+    title: parsed.title || '',
+    criteria: (parsed.criteria || []).map((c) => [c.id, c.text, c.check || null]),
+  });
+  return createHash('sha256').update(body).digest('hex').slice(0, 16);
 }
 
 /** Lines of the first section whose heading matches `re`, up to the next `## `. */
@@ -82,7 +120,7 @@ export function titleFromPlan(markdown) {
 export function renderContract({ title, source = 'manual', created = new Date().toISOString(), criteria = [], outOfScope = [] }) {
   const items = criteria.map((c, i) => {
     const id = c.id || `AC${i + 1}`;
-    const check = c.check ? ` · check: \`${String(c.check).replace(/`/g, "'")}\`` : ' · check: manual';
+    const check = c.check ? ` · check: ${codeSpan(c.check)}` : ' · check: manual';
     return `- [${c.done ? 'x' : ' '}] ${id} — ${c.text}${check}`;
   });
   return [
@@ -170,12 +208,12 @@ export function normalizeVerdict(parsed, report) {
 }
 
 /** Apply a normalized verdict to the contract text: status line, ticks, log entry. */
-export function applyVerdict(markdown, normalized, { head = 'unknown', at = new Date().toISOString(), by = 'verifier' } = {}) {
+export function applyVerdict(markdown, normalized, { head = 'unknown', at = new Date().toISOString(), by = 'verifier', fingerprint = null } = {}) {
   const passed = new Set(normalized.results.filter((r) => r.status === 'pass').map((r) => r.id));
   const status = normalized.verdict === 'PASS' ? 'verified' : 'failed';
   let text = String(markdown)
     .replace(/^Status:\s*.*$/m, `Status: ${status}`)
-    .replace(/^Verified:\s*.*$/m, `Verified: ${at} at ${head} (${normalized.verdict})`);
+    .replace(/^Verified:\s*.*$/m, `Verified: ${at} at ${head} (${normalized.verdict})${fingerprint ? ` · contract ${fingerprint}` : ''}`);
   const lines = text.split('\n');
   let inAc = false;
   for (let i = 0; i < lines.length; i++) {

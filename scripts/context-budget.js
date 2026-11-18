@@ -97,7 +97,9 @@ function hookInjection() {
           try { text += modelText(JSON.parse(line)); } catch { /* not JSON: not model-facing */ }
         }
         const file = (/\/hooks\/([\w./-]+\.js)"/.exec(h.command) || [])[1] || h.command;
-        rows.push({ event, handler: file, chars: text.length, tokens: text ? counter.count(text) : 0 });
+        // A hook that could not start, timed out or exited non-zero was not measured.
+        const failed = r.error ? String(r.error.code || r.error.message) : r.status !== 0 ? `exit ${r.status === null ? r.signal : r.status}` : null;
+        rows.push({ event, handler: file, chars: text.length, tokens: text ? counter.count(text) : 0, ...(failed ? { failed } : {}) });
       }
     }
   } finally {
@@ -159,6 +161,7 @@ function main(argv = process.argv.slice(2)) {
       problems.push(`model-visible context is ${m.total_tokens} tokens, over the budget of ${file.budget_tokens} (${JSON.stringify(m.parts)})`);
     }
     for (const s of m.mcp.filter((x) => !x.deferred)) problems.push(`bundled MCP server ${s.name} loads upfront; set "alwaysLoad": false`);
+    for (const r of m.hooks.filter((x) => x.failed)) problems.push(`hook ${r.event} ${r.handler} failed (${r.failed}); its injected context was not measured`);
     if (problems.length) {
       for (const p of problems) process.stderr.write(`context-budget: ${p}\n`);
       return 1;

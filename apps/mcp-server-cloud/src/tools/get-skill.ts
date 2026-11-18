@@ -1,5 +1,5 @@
 import { getSkills, getSkillContent, getSkillLicense, getCatalogCommit } from "../lib/registry.js";
-import { skillNotFound, invalidParam } from "../lib/errors.js";
+import { skillNotFound, invalidParam, internalError } from "../lib/errors.js";
 
 export type GetSkillArgs = { name: string };
 
@@ -17,7 +17,14 @@ export async function getSkill(args: GetSkillArgs): Promise<Record<string, unkno
     return skillNotFound(args.name);
   }
 
-  const [content, license] = await Promise.all([getSkillContent(skill.id), getSkillLicense(skill.id)]);
+  let license: string | null;
+  try {
+    license = await getSkillLicense(skill.id);
+  } catch {
+    // A copied skill is never served without its license notice.
+    return internalError("license-unreadable", `License notice for '${skill.name}' could not be read; the skill is not served without it.`);
+  }
+  const content = await getSkillContent(skill.id);
   // Link the exact revision the catalog was built from, never a moving branch.
   const commit = getCatalogCommit();
   const ref = commit && /^[0-9a-f]{7,40}$/.test(commit) ? commit : null;

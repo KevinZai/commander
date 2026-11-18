@@ -99,8 +99,12 @@ test('CLI: from-plan, record, status, and archive on a new contract', () => {
   assert.strictEqual(made.code, 0, made.stderr);
   assert.strictEqual(made.json.criteria.length, 3);
   assert.ok(fs.existsSync(path.join(dir, 'tasks', 'sprint-contract.md')));
+  const fingerprint = made.json.fingerprint;
+  assert.match(fingerprint, /^[0-9a-f]{16}$/);
+  const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  const bind = { fingerprint, head };
 
-  const failing = run(dir, ['record', '-'], JSON.stringify({ verdict: 'PASS', criteria: [{ id: 'AC1', status: 'pass', evidence: 'exit 0' }] }));
+  const failing = run(dir, ['record', '-'], JSON.stringify({ ...bind, verdict: 'PASS', criteria: [{ id: 'AC1', status: 'pass', evidence: 'exit 0' }] }));
   assert.strictEqual(failing.code, 2, 'FAIL exits 2');
   assert.strictEqual(failing.json.verdict, 'FAIL');
   let text = fs.readFileSync(path.join(dir, 'tasks', 'sprint-contract.md'), 'utf8');
@@ -108,7 +112,7 @@ test('CLI: from-plan, record, status, and archive on a new contract', () => {
   assert.match(text, /- \[x\] AC1/);
   assert.match(text, /- \[ \] AC2/);
 
-  const passing = run(dir, ['record', '-'], 'verifier says:\n' + JSON.stringify({ verdict: 'PASS', criteria: ['AC1', 'AC2', 'AC3'].map((id) => ({ id, status: 'pass', evidence: 'ok' })) }));
+  const passing = run(dir, ['record', '-'], 'verifier says:\n' + JSON.stringify({ ...bind, verdict: 'PASS', criteria: ['AC1', 'AC2', 'AC3'].map((id) => ({ id, status: 'pass', evidence: 'ok' })) }));
   assert.strictEqual(passing.code, 0);
   text = fs.readFileSync(path.join(dir, 'tasks', 'sprint-contract.md'), 'utf8');
   assert.match(text, /^Status: verified$/m);
@@ -133,4 +137,33 @@ test('CLI: validate fails cleanly with no contract', () => {
   assert.strictEqual(r.code, 1);
   assert.strictEqual(r.json.exists, false);
   assert.strictEqual(run(dir, ['status']).json.exists, false);
+});
+
+test('CLI: record refuses evidence for another contract or another commit', () => {
+  const dir = tmpRepo();
+  const a = run(dir, ['new', '--out', 'tasks/a.md', '--title', 'Contract A', '--criterion', 'The A thing works fine :: true']);
+  const b = run(dir, ['new', '--out', 'tasks/b.md', '--title', 'Contract B', '--criterion', 'The B thing works fine :: true']);
+  const head = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  const pass = (fp, h) => JSON.stringify({ fingerprint: fp, head: h, verdict: 'PASS', criteria: [{ id: 'AC1', status: 'pass', evidence: 'ok' }] });
+  const before = fs.readFileSync(path.join(dir, 'tasks/b.md'), 'utf8');
+  const wrongContract = run(dir, ['record', '-', 'tasks/b.md'], pass(a.json.fingerprint, head));
+  assert.strictEqual(wrongContract.code, 1);
+  assert.match(wrongContract.json.errors.join(' '), /fingerprint/);
+  const wrongHead = run(dir, ['record', '-', 'tasks/b.md'], pass(b.json.fingerprint, 'aaaaaaa'));
+  assert.strictEqual(wrongHead.code, 1);
+  assert.match(wrongHead.json.errors.join(' '), /HEAD/);
+  assert.strictEqual(run(dir, ['record', '-', 'tasks/b.md'], JSON.stringify({ verdict: 'PASS', criteria: [] })).code, 1, 'unbound report refused');
+  assert.strictEqual(fs.readFileSync(path.join(dir, 'tasks/b.md'), 'utf8'), before, 'nothing recorded');
+  assert.strictEqual(run(dir, ['record', '-', 'tasks/b.md'], pass(b.json.fingerprint, head)).code, 0);
+  // Editing the contract after verification makes it not current.
+  const p = path.join(dir, 'tasks/b.md');
+  fs.writeFileSync(p, fs.readFileSync(p, 'utf8').replace('The B thing works fine', 'The B thing works differently'));
+  assert.strictEqual(run(dir, ['status', 'tasks/b.md']).json.current, false);
+});
+
+test('check commands with backticks round-trip verbatim', async () => {
+  const lib = await libP;
+  const checks = ['node -e "console.log(`hi ${1+1}`)"', '`echo` a', 'a ``b`` c', 'plain'];
+  const md = lib.renderContract({ title: 'Ticks', criteria: checks.map((check, i) => ({ text: `criterion number ${i}`, check })) });
+  assert.deepStrictEqual(lib.parseContract(md).criteria.map((c) => c.check), checks);
 });
