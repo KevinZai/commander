@@ -20,7 +20,7 @@ Claude Code plugin (MCP server, auto-save hooks and a guided setup skill). CCC s
 
 Install from the upstream README, reviewed at [`fec575b`](https://github.com/MemPalace/mempalace/tree/fec575bb4be04d4db244c2f724fa75ee6b9667ca#readme). CCC safety: the plugin marketplace serves the current upstream revision, not the reviewed one. Before installing, confirm the marketplace source is `github.com/MemPalace/mempalace` itself and not a same-named plugin from another publisher, and tell the user if upstream has changed since `fec575b`.
 
-CLI and MCP only:
+CLI and MCP only (macOS and Linux; on native Windows the uv tool layout differs, so follow the upstream README there):
 
 ```bash
 # One errexit subshell, run on its own: a failed install stops before init or registration,
@@ -28,7 +28,7 @@ CLI and MCP only:
 ( set -euo pipefail
   uv tool install mempalace==3.12.0          # pinned; fails if that version is unavailable
   bin="$(uv tool dir --bin)"            # its own statement, so a failed lookup stops here
-  case "$bin" in /*) ;; *) echo "stop: no uv tool bin directory"; exit 1;; esac
+  case "$bin" in /?*) ;; *) echo "stop: no uv tool bin directory"; exit 1;; esac
   [ -x "$bin/mempalace" ] && [ -x "$bin/mempalace-mcp" ]
   "$bin/mempalace" init ~/projects/myapp
   claude mcp add mempalace -- "$bin/mempalace-mcp"
