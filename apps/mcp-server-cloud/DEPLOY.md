@@ -10,7 +10,8 @@
 fly apps create commander-mcp --org personal
 
 # Create Supabase project (manual — https://supabase.com/dashboard)
-# Run the schema from db/schema.sql (kept out of the public tree — request it from the maintainer)
+# Apply the migration chain: supabase link --project-ref <ref> && supabase db push
+# (supabase/migrations/ at the repo root; see README.md "Database")
 
 # Create Upstash Redis (manual — https://console.upstash.com)
 ```

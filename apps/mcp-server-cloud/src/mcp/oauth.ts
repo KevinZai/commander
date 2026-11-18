@@ -9,9 +9,15 @@
 // against it, and present the resulting Bearer token here.
 //
 // Token → key-record mapping: a verified external token resolves to the SAME
-// Supabase `users` row the /v1 license-key path uses — by `sub` claim
-// (users.user_id UUID) first, then by `email` claim (users.email). The issuer
-// Kevin configures MUST mint tokens carrying one of those claims.
+// Supabase `users` row the /v1 license-key path uses, in this order:
+//   1. an existing (iss, sub) binding in public.oauth_identities;
+//   2. `sub` equal to users.user_id (an issuer that mints our user ids);
+//   3. `email` equal to users.email, ONLY when the issuer asserts
+//      email_verified = true (Codex audit #09: an issuer that admits
+//      unverified email must not be able to link someone else's account).
+// A successful 2/3 match records the (iss, sub) binding, so later tokens
+// resolve by issuer + subject and an email change at the issuer cannot
+// re-point the account.
 //
 // Inert until OAUTH_ISSUER_URL is set. See PAYWALL.md for the full config.
 
@@ -82,40 +88,94 @@ export async function verifyOAuthAccessToken(
  * Map a verified issuer token to a CC Commander user record — the same
  * records /v1 Bearer license keys resolve to.
  */
+type OAuthUserRow = { user_id: string; tier: string | null; license_key: string | null };
+
+function toAuth(user: OAuthUserRow, fallbackKey: string): AuthContext {
+  return {
+    userId: user.user_id,
+    tier: normalizeTier(user.tier),
+    licenseKey: user.license_key ?? fallbackKey,
+  };
+}
+
+/** OIDC `email_verified` is a boolean; some issuers send the string "true". */
+export function emailIsVerified(payload: JWTPayload): boolean {
+  return payload.email_verified === true || payload.email_verified === "true";
+}
+
+async function userBy(column: "user_id" | "email", value: string): Promise<OAuthUserRow | null> {
+  const { data, error } = await db
+    .from("users")
+    .select("user_id, tier, license_key")
+    .eq(column, value)
+    .maybeSingle();
+  if (error) {
+    logger.error({ err: error }, `OAuth subject lookup by ${column} failed`);
+    return null;
+  }
+  return (data as OAuthUserRow | null) ?? null;
+}
+
+async function boundUserId(issuer: string, subject: string): Promise<string | null> {
+  const { data, error } = await db
+    .from("oauth_identities")
+    .select("user_id")
+    .eq("issuer", issuer)
+    .eq("subject", subject)
+    .maybeSingle();
+  if (error) {
+    // Missing table (migration not applied) or backend error: fall through to
+    // the verified-claim paths, which never weaken the checks below.
+    logger.warn({ err: error }, "oauth_identities lookup failed");
+    return null;
+  }
+  return (data as { user_id: string } | null)?.user_id ?? null;
+}
+
+async function bindIdentity(issuer: string, subject: string, userId: string): Promise<void> {
+  const { error } = await db
+    .from("oauth_identities")
+    .upsert(
+      { issuer, subject, user_id: userId },
+      { onConflict: "issuer,subject", ignoreDuplicates: true }
+    );
+  if (error) logger.warn({ err: error, userId }, "oauth_identities bind failed (non-fatal)");
+}
+
 export async function resolveOAuthSubject(payload: JWTPayload): Promise<AuthContext | null> {
-  const sub = payload.sub;
-  if (sub && UUID_RE.test(sub)) {
-    const { data: user, error } = await db
-      .from("users")
-      .select("user_id, tier, license_key")
-      .eq("user_id", sub)
-      .maybeSingle();
-    if (error) {
-      logger.error({ err: error, sub }, "OAuth subject lookup by user_id failed");
-    } else if (user) {
-      return {
-        userId: user.user_id,
-        tier: normalizeTier(user.tier),
-        licenseKey: user.license_key ?? sub,
-      };
+  const sub = typeof payload.sub === "string" && payload.sub ? payload.sub : undefined;
+  // jwtVerify already pinned `iss` to the configured issuer.
+  const iss = typeof payload.iss === "string" && payload.iss ? payload.iss : env.oauthIssuerUrl;
+
+  // 1. Established issuer + subject binding.
+  if (sub) {
+    const boundId = await boundUserId(iss, sub);
+    if (boundId) {
+      const user = await userBy("user_id", boundId);
+      if (user) return toAuth(user, sub);
+      logger.warn({ boundId }, "OAuth binding points at a missing user");
+      return null;
     }
   }
 
-  const email = typeof payload.email === "string" ? payload.email : undefined;
-  if (email) {
-    const { data: user, error } = await db
-      .from("users")
-      .select("user_id, tier, license_key")
-      .eq("email", email)
-      .maybeSingle();
-    if (error) {
-      logger.error({ err: error }, "OAuth subject lookup by email failed");
-    } else if (user) {
-      return {
-        userId: user.user_id,
-        tier: normalizeTier(user.tier),
-        licenseKey: user.license_key ?? email,
-      };
+  // 2. Issuer mints CC Commander user ids as `sub`.
+  if (sub && UUID_RE.test(sub)) {
+    const user = await userBy("user_id", sub);
+    if (user) {
+      await bindIdentity(iss, sub, user.user_id);
+      return toAuth(user, sub);
+    }
+  }
+
+  // 3. Email, only when the issuer vouches that the address is verified.
+  const email = typeof payload.email === "string" && payload.email ? payload.email : undefined;
+  if (email && !emailIsVerified(payload)) {
+    logger.warn({ hasSub: Boolean(sub) }, "OAuth email not verified by issuer; refusing email linking");
+  } else if (email) {
+    const user = await userBy("email", email);
+    if (user) {
+      if (sub) await bindIdentity(iss, sub, user.user_id);
+      return toAuth(user, email);
     }
   }
 

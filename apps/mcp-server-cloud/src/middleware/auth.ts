@@ -29,12 +29,65 @@ export type ResolveTokenResult =
   | { ok: true; auth: AuthContext }
   | { ok: false; status: 401 | 503; error: string };
 
+/** Postgres "undefined column": the users.key_version migration is not applied yet. */
+const UNDEFINED_COLUMN = "42703";
+
+/**
+ * The key version a license JWT was minted for. Tokens carry it as the `kv`
+ * claim (mint with `kv = users.key_version`). Tokens minted before revocation
+ * existed have no `kv` and count as version 1, the column default, so they stay
+ * valid until the user's key is first rotated. Returns null for a malformed kv.
+ */
+export function tokenKeyVersion(payload: jwt.JwtPayload): number | null {
+  if (payload.kv === undefined) return 1;
+  return typeof payload.kv === "number" && Number.isInteger(payload.kv) && payload.kv >= 1
+    ? payload.kv
+    : null;
+}
+
+type LicenseUserRow = {
+  user_id: string;
+  tier: string | null;
+  license_key: string | null;
+  key_version?: number | null;
+};
+
+async function lookupLicenseUser(
+  userId: string
+): Promise<{ user: LicenseUserRow | null; error: unknown; revocationEnforced: boolean }> {
+  const { data, error } = await db
+    .from("users")
+    .select("user_id, tier, license_key, key_version")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error?.code !== UNDEFINED_COLUMN) {
+    return { user: (data as LicenseUserRow | null) ?? null, error, revocationEnforced: true };
+  }
+  // Pre-migration database: fall back to the legacy lookup rather than locking
+  // every user out. Revocation needs supabase/migrations/20261118000000_*.
+  logger.error("users.key_version missing: apply the reconcile migration; license revocation is not enforced");
+  const legacy = await db
+    .from("users")
+    .select("user_id, tier, license_key")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return {
+    user: (legacy.data as LicenseUserRow | null) ?? null,
+    error: legacy.error,
+    revocationEnforced: false,
+  };
+}
+
 /**
  * Verify a CC Commander license JWT (HS256, JWT_SECRET) and resolve it to the
  * user/tier record it maps to. Shared by the /v1 Bearer path (authMiddleware)
  * and the /mcp OAuth resource-server path — both transports resolve tokens to
- * the SAME key records. Behavior (status codes + error strings) is identical
- * to the original inline authMiddleware implementation.
+ * the SAME key records.
+ *
+ * Revocation (Codex audit #09): the token's key version (`kv` claim) must
+ * equal the user's current users.key_version. Rotating users.license_key bumps
+ * key_version in the database (users_guard trigger), so every token minted for
+ * the old key stops verifying here. Bumping key_version alone also revokes.
  */
 export async function resolveLicenseToken(token: string): Promise<ResolveTokenResult> {
   // Verify JWT
@@ -55,12 +108,13 @@ export async function resolveLicenseToken(token: string): Promise<ResolveTokenRe
     return { ok: false, status: 401, error: "Token missing subject claim" };
   }
 
+  const presentedVersion = tokenKeyVersion(payload);
+  if (presentedVersion === null) {
+    return { ok: false, status: 401, error: "Invalid token payload" };
+  }
+
   // Lookup user in DB
-  const { data: user, error } = await db
-    .from("users")
-    .select("user_id, tier, license_key")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { user, error, revocationEnforced } = await lookupLicenseUser(userId);
 
   if (error) {
     logger.error({ err: error, userId }, "User lookup failed");
@@ -70,6 +124,11 @@ export async function resolveLicenseToken(token: string): Promise<ResolveTokenRe
   if (!user) {
     logger.warn({ userId }, "User not found in DB");
     return { ok: false, status: 401, error: "User not found" };
+  }
+
+  if (revocationEnforced && presentedVersion !== (user.key_version ?? 1)) {
+    logger.warn({ userId }, "License token revoked (key version mismatch)");
+    return { ok: false, status: 401, error: "Token revoked" };
   }
 
   const tier = normalizeTier(user.tier);

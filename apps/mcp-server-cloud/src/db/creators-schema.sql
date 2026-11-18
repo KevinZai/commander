@@ -2,10 +2,14 @@
 -- Apply to the same Supabase project as users/usage_counters (CC-653).
 -- This schema implements CC-665 (creator program: GitHub OAuth + /r/{slug} pages).
 --
--- Apply via Supabase SQL Editor or `supabase db push`.
--- Service-role bypasses RLS; anon/authenticated get public-read only on creators.
+-- The canonical copy of this schema is part of the migration chain:
+-- supabase/migrations/20261118000000_reconcile_hosted_schema.sql. This file
+-- is kept for databases that applied it directly; re-running it is safe.
+-- Service-role bypasses RLS; anon/authenticated can read only the
+-- creators_public view (approved creators, public profile columns).
 --
 -- Tables: creators, creator_clicks
+-- Views:  creators_public
 -- RPCs:   increment_creator_clicks(p_slug text)
 
 create extension if not exists "pgcrypto";
@@ -79,25 +83,40 @@ create index if not exists creator_clicks_creator_ts on public.creator_clicks (c
 alter table public.creators       enable row level security;
 alter table public.creator_clicks enable row level security;
 
--- Public read on creators (slug-based lookup for landing pages, anon traffic).
--- Never expose email or ls_affiliate_id to anon — those are service-role only.
--- NB: Postgres CREATE POLICY has no IF NOT EXISTS — guard with a DO block (same
--- pattern this file uses for the creators_set_updated_at trigger below).
-do $do$
-begin
-  if not exists (
-    select 1 from pg_policies
-    where schemaname = 'public' and tablename = 'creators' and policyname = 'creators_public_read'
-  ) then
-    create policy creators_public_read on public.creators
-      for select
-      using (true);
-  end if;
-end
-$do$;
+-- No client role reads or writes the base tables (Codex audit #07). The old
+-- creators_public_read policy (USING (true)) let anyone holding the anon key
+-- read every row and column: email, affiliate ids, commissions and
+-- unapproved creators. RLS filters rows, not columns, so the public surface
+-- is the creators_public view below instead.
+drop policy if exists creators_public_read on public.creators;
 
--- No public write — only service-role inserts/updates.
--- (creator_clicks has no public policies — inserted via service-role only)
+revoke all on table public.creators, public.creator_clicks from public, anon, authenticated;
+revoke all on sequence public.creator_clicks_id_seq from public, anon, authenticated;
+grant all on table public.creators, public.creator_clicks to service_role;
+grant usage, select on sequence public.creator_clicks_id_seq to service_role;
+
+-- Landing pages (/r/{slug}) read this view. It runs with its owner's rights
+-- (no security_invoker), so it is the only public path to creator data:
+-- approved creators, public profile columns only.
+create or replace view public.creators_public as
+  select slug,
+         display_name,
+         github_username,
+         github_avatar_url,
+         github_followers,
+         tier,
+         custom_pitch_md,
+         embedded_tweet_url,
+         embedded_youtube_url,
+         custom_quote,
+         twitter_handle,
+         youtube_channel,
+         approved_at
+    from public.creators
+   where approved_at is not null;
+
+revoke all on table public.creators_public from public, anon, authenticated;
+grant select on table public.creators_public to anon, authenticated, service_role;
 
 -- ─── RPC: increment_creator_clicks ───────────────────────────────────────────
 -- Called by the edge function that handles /r/{slug} page visits.
@@ -114,10 +133,12 @@ begin
   set
     total_clicks = total_clicks + 1,
     updated_at   = now()
-  where slug = p_slug;
+  where slug = p_slug
+    and approved_at is not null;
 end;
 $$;
 
+revoke all on function public.increment_creator_clicks(text) from public;
 grant execute on function public.increment_creator_clicks(text)
   to service_role, anon, authenticated;
 
