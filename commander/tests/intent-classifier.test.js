@@ -448,3 +448,15 @@ test('CCC_ROUTE_MENU=list keeps Codex skill naming', function () {
   assert.match(ctx, /numbered list/);
   assert.match(ctx, /\$ccc-deploy-check/);
 });
+
+test('Codex Fable nudge recommends the registry deep model (CODEX_ROUTING.deep)', async function () {
+  const { CODEX_ROUTING } = await import(path.join(__dirname, '..', 'adapters', 'codex', 'models.js'));
+  const r = runHook(
+    { hook_event_name: 'UserPromptSubmit', session_id: 'nudge', prompt: 'plan the architecture and migration for the billing service' },
+    { PLUGIN_ROOT: '/tmp/codex-plugin' }
+  ).out;
+  const text = JSON.stringify(r);
+  const m = text.match(/\/model ([\w.-]+)/);
+  assert.ok(m, 'expected a /model nudge, got: ' + text);
+  assert.strictEqual(m[1], CODEX_ROUTING.deep);
+});

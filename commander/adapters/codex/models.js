@@ -17,16 +17,21 @@
  *     generation; gpt-5.5 retires from Codex on 2026-10-14.
  *   - gpt-5.4 and gpt-5.4-mini retired 2026-08-31 and are not listed.
  *   - Every id below answered `codex exec -m <id> "reply with exactly: OK"`
- *     on the local codex CLI (ChatGPT OAuth) on 2026-10-13.
+ *     on the local codex CLI (ChatGPT OAuth) on its `verified` date.
+ *   - GPT-6.2 Sol and GPT-6.2 Astra (developers.openai.com model pages,
+ *     2026-11-17) replace gpt-6.1-sol and gpt-6-astra as routing targets; (model-refresh: keep)
+ *     both answered on Codex 0.166.0 (ChatGPT OAuth) on 2026-11-17. The
+ *     previous ids stay as legacy fallbacks. 6.2 rejects
+ *     `reasoning_effort: none`. Luna has no 6.2 release: gpt-6-luna stays.
  *
- * Commander routing (v8): deep/verify -> gpt-6-astra; default executor ->
- * gpt-6.1-sol; bounded implementation -> gpt-6-sol; mechanical/bulk ->
+ * Commander routing (v8): deep/verify -> gpt-6.2-astra; default executor ->
+ * gpt-6.2-sol; bounded implementation -> gpt-6-sol; mechanical/bulk ->
  * gpt-6-luna.
  *
  * @typedef {Object} CodexModelEntry
  * @property {string} id - Codex CLI model identifier (`codex exec -m <id>`).
  * @property {'flagship'|'balanced'|'light'} tier - Capability/cost tier.
- * @property {'6.1'|'6'|'5.6'|'5.5'} family - Model generation.
+ * @property {'6.2'|'6.1'|'6'|'5.6'|'5.5'} family - Model generation.
  * @property {'deep'|'default'|'bounded'|'bulk'} [role] - Commander routing
  *   role for current entries.
  * @property {'current'|'legacy'|'retiring'} status - Lifecycle status.
@@ -40,26 +45,27 @@
  */
 
 const VERIFIED = '2026-10-13';
+const VERIFIED_6_2 = '2026-11-17';
 
 /** @type {CodexModelEntry[]} */
 export const CODEX_MODEL_REGISTRY = Object.freeze([
   Object.freeze({
-    id: 'gpt-6-astra',
+    id: 'gpt-6.2-astra',
     tier: 'flagship',
-    family: '6',
+    family: '6.2',
     role: 'deep',
     status: 'current',
-    verified: VERIFIED,
-    fallback: 'gpt-6.1-sol',
+    verified: VERIFIED_6_2,
+    fallback: 'gpt-6.2-sol',
   }),
   Object.freeze({
-    id: 'gpt-6.1-sol',
+    id: 'gpt-6.2-sol',
     tier: 'balanced',
-    family: '6.1',
+    family: '6.2',
     role: 'default',
     status: 'current',
     default: true,
-    verified: VERIFIED,
+    verified: VERIFIED_6_2,
     fallback: 'gpt-6-sol',
   }),
   Object.freeze({
@@ -79,6 +85,22 @@ export const CODEX_MODEL_REGISTRY = Object.freeze([
     status: 'current',
     verified: VERIFIED,
     fallback: 'gpt-5.6-luna',
+  }),
+  Object.freeze({
+    id: 'gpt-6-astra', // model-refresh: keep (legacy fallback)
+    tier: 'flagship',
+    family: '6',
+    status: 'legacy',
+    verified: VERIFIED,
+    fallback: 'gpt-6.1-sol', // model-refresh: keep (legacy fallback)
+  }),
+  Object.freeze({
+    id: 'gpt-6.1-sol', // model-refresh: keep (legacy fallback)
+    tier: 'balanced',
+    family: '6.1',
+    status: 'legacy',
+    verified: VERIFIED,
+    fallback: 'gpt-6-sol',
   }),
   Object.freeze({
     id: 'gpt-5.6-sol',
@@ -117,8 +139,8 @@ export const CODEX_MODEL_REGISTRY = Object.freeze([
 
 /** Commander's Codex routing roles, mapped to registry ids. */
 export const CODEX_ROUTING = Object.freeze({
-  deep: 'gpt-6-astra',
-  default: 'gpt-6.1-sol',
+  deep: 'gpt-6.2-astra',
+  default: 'gpt-6.2-sol',
   bounded: 'gpt-6-sol',
   bulk: 'gpt-6-luna',
 });
