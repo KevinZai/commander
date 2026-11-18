@@ -180,6 +180,40 @@ test('session detail returns file content and rejects traversal', async () => {
   assert.equal(traversal.statusCode, 400);
 });
 
+test('session detail does not follow a symlink out of the sessions dir (audit #36)', async (t) => {
+  const outside = path.join(tmpRoot, 'outside-secret.txt');
+  await fs.writeFile(outside, 'top secret\n', 'utf8');
+  const link = path.join(sessionsDir, 'linked.tmp');
+  try {
+    await fs.symlink(outside, link);
+  } catch (error) {
+    t.skip(`symlinks unavailable: ${error.code}`);
+    return;
+  }
+  try {
+    const server = createServer({ sessionsDir });
+    const response = await dispatch(server, '/api/sessions/linked.tmp');
+    assert.equal(response.statusCode, 404);
+    assert.ok(!response.body.includes('top secret'));
+
+    const listing = await dispatch(server, '/api/sessions');
+    assert.ok(!JSON.parse(listing.body).some((s) => s.name === 'linked.tmp'), 'symlinks are not listed');
+  } finally {
+    await fs.rm(link, { force: true });
+  }
+});
+
+test('session detail rejects a directory named like a session', async () => {
+  const dir = path.join(sessionsDir, 'dir.tmp');
+  await fs.mkdir(dir);
+  try {
+    const response = await dispatch(createServer({ sessionsDir }), '/api/sessions/dir.tmp');
+    assert.equal(response.statusCode, 404);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
+
 test('non-GET requests are rejected', async () => {
   const server = createServer({ sessionsDir });
   const response = await dispatch(server, '/api/health', { method: 'POST' });

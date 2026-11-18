@@ -18,6 +18,9 @@ var fs = require('fs');
 var path = require('path');
 var os = require('os');
 var pkg = require('../package.json');
+// The one offline switch shared with the plugin's hooks and libs:
+// CCC_OFFLINE=1 or "offline": true in ~/.commander/config.json.
+var isOffline = require('./cowork-plugin/lib/network-mode').isOffline;
 
 var LOCAL_VERSION = pkg.version;
 var DEFAULT_REMOTE_URL = 'https://raw.githubusercontent.com/KevinZai/commander/main/package.json';
@@ -98,9 +101,12 @@ function defaultFetchImpl(url, timeoutMs) {
  * @param {number} [opts.ttlMs]         - cache freshness window (default 4h)
  * @param {number} [opts.timeoutMs]     - fetch timeout (default 3000ms)
  * @param {function} [opts.fetchImpl]   - (url, timeoutMs) => Promise<string>
- * @returns {Promise<{status: 'current'|'outdated'|'unknown', latest: string|null, installed: string}>}
+ * @param {object}   [opts.env]         - env for the offline check (default process.env)
+ * @returns {Promise<{status: 'current'|'outdated'|'unknown', latest: string|null, installed: string, offline?: true}>}
  *   Never rejects — any failure (offline, timeout, malformed JSON/version)
- *   resolves to status: 'unknown'.
+ *   resolves to status: 'unknown'. In offline mode no request is made: a
+ *   fresh cache still answers, otherwise status is 'unknown'; either way the
+ *   result carries offline: true.
  */
 function checkForUpdate(opts) {
   opts = opts || {};
@@ -112,6 +118,10 @@ function checkForUpdate(opts) {
   var fetchImpl = opts.fetchImpl || defaultFetchImpl;
 
   var cached = readCache(cachePath, ttlMs);
+  var offline = isOffline(opts.env || process.env);
+  if (offline && !cached) {
+    return Promise.resolve({ status: 'unknown', latest: null, installed: localVersion, offline: true });
+  }
   var fetchPromise = cached
     ? Promise.resolve(cached)
     : Promise.resolve()
@@ -125,11 +135,13 @@ function checkForUpdate(opts) {
 
   return fetchPromise
     .then(function (remoteVersion) {
-      return {
+      var result = {
         status: semverCompare(remoteVersion, localVersion) > 0 ? 'outdated' : 'current',
         latest: remoteVersion,
         installed: localVersion,
       };
+      if (offline) result.offline = true;
+      return result;
     })
     .catch(function () {
       return { status: 'unknown', latest: null, installed: localVersion };
@@ -191,6 +203,7 @@ module.exports = {
   semverCompare: semverCompare,
   remediationText: remediationText,
   detectSurface: detectSurface,
+  isOffline: isOffline,
   LOCAL_VERSION: LOCAL_VERSION,
   DEFAULT_REMOTE_URL: DEFAULT_REMOTE_URL,
   DEFAULT_CACHE_PATH: DEFAULT_CACHE_PATH,
