@@ -106,7 +106,7 @@ User: "What did we decide about bundling MCP servers?"
 
 ---
 
-*Adapted from [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) (MIT license). Attribution required per MIT terms.*
+*The layered-search idea is credited to [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) (Apache-2.0 since 2026; earlier releases AGPL-3.0). No claude-mem code or text is copied: this skill is original CC Commander work under Commander's MIT license.*
 
 ---
 
