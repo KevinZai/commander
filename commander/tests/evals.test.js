@@ -17,6 +17,9 @@ const SKILLS = path.join(PLUGIN, 'skills');
 // as a todo until the skill directory lands, then enforced like every other case.
 const PENDING_SKILLS = new Set(['ccc-codex']);
 const REQUIRED_SKILLS = ['ccc', 'ccc-plan', 'ccc-review', 'ccc-doctor', 'ccc-fable', 'ccc-update', 'ccc-suggest', 'ccc-codex'];
+// Flagship workflows (first run, understand, plan, build, review, ship): each
+// needs a case tagged `flagship` with a deterministic grader and an llm grader.
+const FLAGSHIPS = ['ccc-start', 'ccc-xray', 'ccc-plan', 'ccc-build', 'ccc-review', 'ccc-ship'];
 
 const TOP_KEYS = new Set(['schema_version', 'name', 'description', 'tags', 'plugins', 'context', 'execution', 'runs', 'graders', 'expected_outcome']);
 const EXEC_KEYS = new Set(['prompt', 'max_turns', 'timeout_seconds', 'model', 'allowed_tools', 'artifact_publish', 'growthbook_overrides', 'append_system_prompt', 'env']);
@@ -51,6 +54,20 @@ test('suite has at least 8 cases and covers the required skills', () => {
   const covered = new Set(CASES.map(n => skillOf(load(n))));
   for (const s of REQUIRED_SKILLS) assert.ok(covered.has(s), `no eval case for ${s}`);
 });
+
+test('every flagship has a flagship-tagged case with deterministic and llm graders', () => {
+  for (const flagship of FLAGSHIPS) {
+    const cases = CASES.map(load).filter(c => skillOf(c) === flagship && (c.tags || []).includes('flagship'));
+    assert.ok(cases.length > 0, `no flagship-tagged eval case for ${flagship}`);
+    assert.ok(cases.some(c => c.graders.some(g => g.type === 'llm')), `${flagship}: no llm grader on its flagship case`);
+    assert.ok(cases.some(c => c.graders.filter(g => g.type !== 'llm' && g.type !== 'baseline').length >= 2), `${flagship}: fewer than two deterministic graders`);
+  }
+});
+
+function hiddenSkill(skill) {
+  const file = path.join(SKILLS, skill, 'SKILL.md');
+  return fs.existsSync(file) && /^disable-model-invocation:\s*true\s*$/m.test(fs.readFileSync(file, 'utf8').split(/\n---/)[0]);
+}
 
 for (const name of CASES) {
   test(`${name}: case.yaml matches the 1.x schema`, () => {
@@ -104,7 +121,11 @@ for (const name of CASES) {
   test(`${name}: names an existing plugin skill (${skill})`, { todo: pending ? `${skill} is being written by another lane` : false }, () => {
     assert.ok(fs.existsSync(skillPath), `${path.relative(ROOT, skillPath)} exists`);
     const skillGrader = c.graders.find(g => g.type === 'tool_used' && g.tool === 'Skill');
-    assert.ok(skillGrader, 'case checks that the skill fired');
+    // A user-invoked-only skill cannot be reached through the Skill tool, so its
+    // case may type the slash command instead of grading a Skill call.
+    const typed = new RegExp(`^/(commander:)?${skill}(\\s|$)`).test(c.execution.prompt.trim());
+    if (!skillGrader && typed && hiddenSkill(skill)) return;
+    assert.ok(skillGrader, 'case checks that the skill fired (or, for a user-invoked skill, types its slash command)');
     const re = new RegExp(skillGrader.input_match);
     assert.ok(re.test(`{"skill":"commander:${skill}"}`), 'input_match accepts the namespaced skill');
     assert.ok(re.test(`{"skill": "${skill}"}`), 'input_match accepts the bare skill');

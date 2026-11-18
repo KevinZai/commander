@@ -6,8 +6,8 @@ Hooks run on lifecycle events: before and after tool calls (`PreToolUse`, `PostT
 
 - Handler types: `command`, `http`, `mcp_tool`, `prompt`, `agent`.
 - Quote `"${CLAUDE_PLUGIN_ROOT}"` in shell-form commands; desktop installs live under a path with a space.
-- A hook that must stop the action on failure sets `onFailure: "block"`; the default is to continue.
-- Codex supports a smaller event set and no `args`, `onFailure`, `if`, or `once`. Commander keeps shell-form commands so one `hooks.json` mirrors to both.
+- A hook that must stop the action on failure sets `onFailure: "block"`; the default is to continue, except in Code Mode, where a `PreToolUse` hook that fails or times out refuses the call unless it sets `onFailure: "continue"`. Advisory hooks set `"continue"`; safety hooks leave it unset.
+- Codex supports a smaller event set and no `args`, `onFailure`, `if`, or `once`. Commander keeps shell-form commands so one `hooks.json` mirrors to both, and the Codex build strips `onFailure`.
 - Hook output is evidence. Read it when it affects the task; never disable or weaken a hook to make a check pass.
 
 ## Mods

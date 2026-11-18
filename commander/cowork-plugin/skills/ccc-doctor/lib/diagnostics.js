@@ -622,7 +622,7 @@ function checkBundledMcpServers(root) {
 // v8 routing table (commander/tests/agent-personas.test.js pins the same):
 // aliases track the newest model in each line, so an alias or the current
 // full id is correct; an older pinned id is an upgrade candidate.
-var EXPECTED_FABLE_AGENTS = ['architect', 'security-auditor'];
+var EXPECTED_FABLE_AGENTS = ['architect', 'security-auditor', 'verifier'];
 var EXPECTED_SONNET_AGENTS = ['technical-writer', 'content-strategist', 'fleet-worker'];
 var ACCEPTED_MODELS = {
   fable: ['fable', 'claude-fable-5-2'],

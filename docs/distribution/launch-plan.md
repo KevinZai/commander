@@ -4,7 +4,7 @@ DRAFT for review. Nothing here has been posted, scheduled or sent. Dates are pro
 
 Goal: weekly active users (the 90-day north star, see `metrics.md`). Activation, a first finished result, is the leading signal. Every post therefore points at a one-line install and a first command (`/ccc-start`), not at the pricing or consulting pages. Revenue is secondary.
 
-Evidence rule: draft posts state only what the repo backs. No install, user, star or revenue numbers (telemetry shows near zero; `docs/stats.json`). Numbers used: 93 plugin skills, 22 agents, 28 hook events, 47 handlers, 467 ecosystem skills (`commander/contract.json`), and the session-start token figures measured in CC-2112 (say "in our measurement").
+Evidence rule: draft posts state only what the repo backs. No install, user, star or revenue numbers (telemetry shows near zero; `docs/stats.json`). Numbers used: 93 plugin skills, 23 agents, 28 hook events, 47 handlers, 467 ecosystem skills (`commander/contract.json`), and the session-start token figures measured in CC-2112 (say "in our measurement").
 
 ## Sequence
 
@@ -90,7 +90,7 @@ Title: `I built a free Claude Code plugin that plans, builds, reviews and ships 
 
 > I'm the author. CC Commander is a Claude Code plugin that acts as a guided project manager: `/ccc` reads your repo and offers one recommended next step plus alternatives as a click-first menu.
 >
-> What it does that I haven't seen bundled elsewhere: `/ccc-build` has the lead session verify a scaffold instead of trusting the agent's report; `/ccc-plan` writes evals before code; `/ccc-ship` gives a GO, CAUTION or NO-GO pre-flight; `/ccc-xray` scores repo health; `/ccc-review` rates findings by severity. There are also 22 specialist agents and lifecycle hooks (28 events) that keep session state and block secret leaks.
+> What it does that I haven't seen bundled elsewhere: `/ccc-build` has the lead session verify a scaffold instead of trusting the agent's report; `/ccc-plan` writes evals before code; `/ccc-ship` gives a GO, CAUTION or NO-GO pre-flight; `/ccc-xray` scores repo health; `/ccc-review` rates findings by severity. There are also 23 specialist agents and lifecycle hooks (28 events) that keep session state and block secret leaks.
 >
 > It's MIT, telemetry is off unless you opt in, and every outbound call is listed in the README. Install: `/plugin install commander --marketplace KevinZai/commander`, then `/ccc-start`. Feedback welcome, especially on where `/ccc-start` confuses you.
 

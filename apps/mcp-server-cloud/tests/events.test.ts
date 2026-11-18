@@ -151,7 +151,7 @@ describe("validateEvent", () => {
 
 // ─── ALLOWED_EVENTS whitelist ─────────────────────────────────────────────
 describe("ALLOWED_EVENTS", () => {
-  it("includes all 8 expected event names", () => {
+  it("includes all 9 expected event names", () => {
     const expected = [
       "hook_fired",
       "plugin_session_started",
@@ -161,10 +161,28 @@ describe("ALLOWED_EVENTS", () => {
       "session_ended",
       "skill_invoked",
       "agent_dispatched",
+      "first_result",
     ];
     for (const name of expected) {
       assert.equal(ALLOWED_EVENTS.has(name), true, `missing: ${name}`);
     }
+  });
+});
+
+// ─── first_result activation counter ─────────────────────────────────────
+describe("first_result", () => {
+  it("counts first_result per flagship skill on /metrics, other skills as other", async () => {
+    const res = await postEvents({
+      events: [
+        { name: "first_result", distinct_id: "activation-a-" + Date.now(), properties: { skill: "ccc-xray", seconds_since_first_run: 120 } },
+        { name: "first_result", distinct_id: "activation-a-" + Date.now(), properties: { skill: "not-a-flagship" } },
+      ],
+    });
+    assert.equal(res.status, 200);
+    const metrics = await (await fetchApp("/metrics")).text();
+    assert.match(metrics, /commander_first_result_total\{skill="ccc-xray"\} [1-9]/);
+    assert.match(metrics, /commander_first_result_total\{skill="other"\} [1-9]/);
+    assert.doesNotMatch(metrics, /activation-a-/, "no device id reaches /metrics");
   });
 });
 

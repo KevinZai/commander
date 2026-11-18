@@ -1,0 +1,33 @@
+schema_version: "1.1"
+name: ccc-start
+description: First run goes from a fresh install to one finished result (an x-ray summary or a plan) with at most one question.
+tags: [skill:ccc-start, onboarding, first-run, flagship]
+execution:
+  prompt: I just installed CC Commander and this is my first time. Get me to something useful for this repo quickly.
+  max_turns: 25
+  timeout_seconds: 420
+  allowed_tools: [Skill, Read, Glob, Grep, AskUserQuestion, Bash]
+graders:
+  - type: tool_used
+    name: start-skill-invoked
+    tool: Skill
+    input_match: '"skill":\s*"(commander:)?ccc-start"'
+  - type: tool_used
+    name: at-most-one-question
+    tool: AskUserQuestion
+    max: 1
+  - type: tool_used
+    name: ran-first-run-detection
+    tool: Bash
+    input_match: 'activation\.mjs'
+    min: 1
+  - type: regex
+    name: no-typed-letter-menu
+    pattern: '(reply|type|enter)\s+(with\s+)?[A-D1-4]\b|\b[A-D]\)\s.*\n\s*[A-D]\)\s'
+    flags: i
+    match: not_contains
+  - type: llm
+    name: finished-result-not-a-menu
+    weight: 2
+    criteria: |
+      Pass if the reply delivers one finished, useful result for the repository: an x-ray health summary with scored rows and a single fix-first recommendation, or a plan with numbered steps and at least one observable acceptance check, and names where it was saved (a start file or plan path). Fail if it only lists menus or options, chains more than one question, describes what it would do without doing it, or claims a file was written without naming the path.

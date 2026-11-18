@@ -35,7 +35,12 @@ const ALLOWED_EVENTS = new Set([
   // Generic skill/agent tracking
   "skill_invoked",
   "agent_dispatched",
+  // Activation: sent once per install when a flagship skill finishes its first result
+  "first_result",
 ]);
+
+// Flagship skills a first_result may name; anything else is counted as "other".
+const FIRST_RESULT_SKILLS = new Set(["ccc-start", "ccc-xray", "ccc-plan", "ccc-build", "ccc-review", "ccc-ship"]);
 
 // Keys in this allowlist are NEVER scrubbed regardless of regex match.
 // Add known-safe event-schema keys here when the regex would produce false positives.
@@ -149,12 +154,23 @@ if (typeof pruneInterval.unref === "function") {
 }
 
 // ─── Aggregate discard counters ─────────────────────────────────────────────
-// Process-lifetime totals only. No per-device or per-event-name breakdown, so
-// nothing here can be tied back to an anon device ID.
+// Process-lifetime totals only. No per-device breakdown, so nothing here can be
+// tied back to an anon device ID. The one per-name figure is first_result by
+// flagship skill: each install sends it once, so the count is the number of
+// activated installs since the process started.
 const telemetryCounters = { batches: 0, eventsDiscarded: 0 };
+const firstResults: Record<string, number> = {};
 
-function getTelemetryCounters(): { batches: number; eventsDiscarded: number } {
-  return { ...telemetryCounters };
+function getTelemetryCounters(): { batches: number; eventsDiscarded: number; firstResults: Record<string, number> } {
+  return { ...telemetryCounters, firstResults: { ...firstResults } };
+}
+
+function countFirstResult(evt: EventBody): void {
+  if (evt.name !== "first_result") return;
+  const skill = typeof evt.properties.skill === "string" && FIRST_RESULT_SKILLS.has(evt.properties.skill)
+    ? evt.properties.skill
+    : "other";
+  firstResults[skill] = (firstResults[skill] ?? 0) + 1;
 }
 
 // ─── Validation helpers ─────────────────────────────────────────────────────
@@ -311,6 +327,7 @@ eventsRouter.post("/", async (c) => {
   const accepted = validated.length;
   telemetryCounters.batches++;
   telemetryCounters.eventsDiscarded += accepted;
+  for (const evt of validated) countFirstResult(evt);
   logger.info(
     {
       accepted,
@@ -331,6 +348,6 @@ eventsRouter.post("/", async (c) => {
 });
 
 // Exported for tests
-export { MAX_PAYLOAD_BYTES, validateEvent, checkRateLimit, ALLOWED_EVENTS, scrubProperties, SCRUB_ALLOWLIST, SENSITIVE_PATTERN };
+export { MAX_PAYLOAD_BYTES, validateEvent, checkRateLimit, ALLOWED_EVENTS, FIRST_RESULT_SKILLS, scrubProperties, SCRUB_ALLOWLIST, SENSITIVE_PATTERN };
 // Read by the /metrics handler in index.ts.
 export { getTelemetryCounters };

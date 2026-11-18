@@ -233,7 +233,9 @@ function translateMatcherGroups(groups, event, log) {
 function codexDescription(claudeManifest) {
   const m = String(claudeManifest.description || '').match(/(\d+) plugin skills/);
   const skills = m ? `${m[1]} plugin skills` : 'click-first plugin skills';
-  return (`Guided AI PM for Codex, running on the Commander Method: 12 enforceable gates (plan before build, verifier separate from worker, prove before alarm). ${skills} (click-first $ccc-* workflows incl. $ccc-codex for the Codex CLI), 22 specialist subagents generated as TOML, the Codex-supported hook subset, 2 bundled MCP servers + 16 opt-in. Built for GPT-6 Astra and GPT-6.1 Sol. Telemetry is off unless you opt in. MIT-licensed.`)
+  const a = String(claudeManifest.description || '').match(/(\d+) specialist sub-?agents/);
+  const agents = a ? `${a[1]} specialist subagents` : 'specialist subagents';
+  return (`Guided AI PM for Codex, running on the Commander Method: 12 enforceable gates (plan before build, verifier separate from worker, prove before alarm). ${skills} (click-first $ccc-* workflows incl. $ccc-codex for the Codex CLI), ${agents} generated as TOML, the Codex-supported hook subset, 2 bundled MCP servers + 16 opt-in. Built for GPT-6 Astra and GPT-6.1 Sol. Telemetry is off unless you opt in. MIT-licensed.`)
     .replace(/\n/g, ' ').replace(/"/g, '\\"');
 }
 
@@ -404,8 +406,18 @@ export function codexSkillPolicyYaml(skillName) {
 }
 
 // .mcp.json - Codex accepts the same shape.
+// Claude Code-only MCP server keys. `alwaysLoad: false` keeps a server's tools behind Claude Code's
+// tool search (code.claude.com/docs/en/mcp#defer-a-servers-tools, v2.1.287+); Codex documents no such
+// key (platform facts §3.5), so the mirror drops it rather than hand Codex an unknown field.
+const CLAUDE_ONLY_MCP_KEYS = Object.freeze(['alwaysLoad']);
+
 export function translateMcp(claudeMcp) {
-  return claudeMcp;
+  const translated = JSON.parse(JSON.stringify(claudeMcp ?? {}));
+  for (const cfg of Object.values(translated.mcpServers ?? {})) {
+    if (!cfg || typeof cfg !== 'object') continue;
+    for (const key of CLAUDE_ONLY_MCP_KEYS) delete cfg[key];
+  }
+  return translated;
 }
 
 export function mcpToToml(claudeMcp, options = {}) {

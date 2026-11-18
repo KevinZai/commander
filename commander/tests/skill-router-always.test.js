@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -97,4 +97,42 @@ test('the hook script prints one JSON line and fails open on bad input', () => {
   const bad = spawnSync(process.execPath, [join(HOOKS, 'subagent-skill-router.js')], { input: '{not json', encoding: 'utf8' });
   assert.equal(bad.status, 0);
   assert.equal(JSON.parse(bad.stdout).continue, true);
+});
+
+test('always never auto-runs visible side-effect skills or unlisted hidden ones', async () => {
+  const { autoFollowable, FOLLOWABLE_HIDDEN_SKILLS } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
+  for (const prompt of ['update commander', 'modernize this PR', 'save my session']) {
+    const c = scoreRoutes(prompt, routes);
+    const out = renderRouteContext(c, tierFor(c, 'always'), 'claude-code', 'always');
+    if (out) assert.doesNotMatch(out, /Likely match|CCC skills that may help/, prompt);
+  }
+  for (const id of FOLLOWABLE_HIDDEN_SKILLS) assert.ok(!SIDE_EFFECT_SKILLS.has(id), id);
+  const byId = Object.fromEntries(routes.map((r) => [r.id, r]));
+  for (const r of routes) if (r.manual && !FOLLOWABLE_HIDDEN_SKILLS.has(r.id)) assert.equal(autoFollowable(r), false, r.id);
+  assert.equal(autoFollowable(byId['ccc-update']), false);
+});
+
+test('a medium match is only an option for workers in auto mode, never a directive', () => {
+  const c = scoreRoutes('Review this PR before I merge', routes);
+  const weaker = c.map((x, i) => (i === 0 ? { ...x, score: 0.6, patternHits: 0 } : x));
+  const out = renderSubagentContext(weaker, 'claude-code', 'auto');
+  if (out) assert.doesNotMatch(out, /Before starting/);
+});
+
+test('SubagentStart recovers the task from the parent transcript and claims it once', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-sub-'));
+  const env = { CCC_CONFIG_DIR: dir };
+  const prev = process.env.CCC_CONFIG_DIR;
+  process.env.CCC_CONFIG_DIR = dir;
+  try {
+    const transcript = join(dir, 't.jsonl');
+    const call = (id, type, prompt) => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', id, name: 'Agent', input: { subagent_type: type, description: 'task', prompt } }] } });
+    writeFileSync(transcript, [call('tu1', 'general-purpose', 'Review this PR before I merge'), call('tu2', 'Explore', 'hello there')].join('\n') + '\n');
+    const payload = { session_id: 's1', transcript_path: transcript, agent_type: 'general-purpose', hook_event_name: 'SubagentStart' };
+    assert.match(ctx(run(payload, env)), /ccc-review/);
+    assert.equal(ctx(run(payload, env)), undefined, 'the same call is not claimed twice');
+  } finally {
+    if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

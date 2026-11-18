@@ -1,0 +1,29 @@
+schema_version: "1.1"
+name: ccc-plan-contract
+description: Fast-mode planning writes a plan and a sprint contract of checkable acceptance criteria to tasks/sprint-contract.md.
+tags: [skill:ccc-plan, planning, sprint-contract, flagship]
+execution:
+  prompt: Use CC Commander to plan this in fast mode, no interview - add a /health endpoint that returns {"ok":true} to a small Node HTTP server. Approve the plan and write the sprint contract.
+  max_turns: 30
+  timeout_seconds: 480
+  allowed_tools: [Skill, Read, Glob, Grep, Write, Agent, EnterPlanMode, ExitPlanMode, TodoWrite, Bash(node:*), Bash(git:*), Bash(mkdir:*), Bash(test:*), Bash(ls:*), Bash(head:*), Bash(grep:*)]
+graders:
+  - type: tool_used
+    name: plan-skill-invoked
+    tool: Skill
+    input_match: '"skill":\s*"(commander:)?ccc-plan"'
+  - type: tool_used
+    name: contract-written-by-script
+    tool: Bash
+    input_match: 'sprint-contract\.mjs\s+from-plan'
+    min: 1
+  - type: file_exists
+    name: contract-file-exists
+    path: tasks/sprint-contract.md
+  - type: regex
+    name: names-the-contract
+    pattern: 'tasks/sprint-contract\.md'
+  - type: llm
+    name: criteria-are-checkable
+    criteria: |
+      Pass if the reply reports a sprint contract whose acceptance criteria are concrete and observable for the /health endpoint (for example a request to /health returns status 200 with {"ok":true}) and at least one criterion names a command that checks it. Fail if the criteria are vague ("works well", "is clean"), if no contract path is reported, or if the reply claims product code was written.

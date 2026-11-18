@@ -1,6 +1,6 @@
 ---
 name: ccc-start
-description: "First-run Commander onboarding: detects the setup, offers new project, import, tour or skip, writes a start plan. Use just after install."
+description: "First run: one question, then a finished result (repo x-ray or plan) in minutes; guided setup after. Use right after install or to get started."
 allowed-tools:
   - Read
   - Write
@@ -11,13 +11,13 @@ allowed-tools:
 argument-hint: "[new | existing | tour | skip]"
 ---
 
-# $ccc-start — oriented in ninety seconds
+# $ccc-start — one question, one result
 
-**CC Commander** · $ccc-start · a live setup summary, one picker, and a start plan file you can open.
+**CC Commander** · $ccc-start · on first run, one picker and then a finished result (an x-ray of this repo or a plan) saved to a file you can open.
 
-The whole flow is at most six turns: banner, context and picker; the user's pick; up to three follow-up pickers; the plan file; the hand-off. The plan file is the proof that onboarding landed. The user's selected model and permission mode are preserved.
+First run is the fast path (steps 2–3): one question, no menus of menus, a useful result in a few minutes. Returning users, and the `new` / `existing` / `tour` arguments, get the guided setup (steps 4–9). The user's selected model and permission mode are preserved. Nothing here needs Code Mode; when the `REPL` tool is present the x-ray checks run as one program, otherwise as one Bash call.
 
-On Codex, AskUserQuestion becomes a plain-text question with the same options, skills are invoked as `$ccc-<name>`, and ExitPlanMode is skipped.
+On Codex, AskUserQuestion becomes a plain-text question with the same options, skills are invoked as `$ccc-<name>`, and ExitPlanMode is skipped. Scripts use `${CLAUDE_PLUGIN_ROOT}`; in a repo checkout use `commander/cowork-plugin/scripts/…`.
 
 ## When to use / when not to
 
@@ -28,17 +28,65 @@ On Codex, AskUserQuestion becomes a plain-text question with the same options, s
 
 ### 1. Arguments
 
-- `skip` → run step 8 (mark complete), then invoke the `ccc` skill. No picker.
-- `new` / `existing` / `tour` → run steps 2 and 3, skip the step 4 picker, and go to the matching branch in step 5.
-- No argument → steps 2 to 4.
+- `skip` → run step 9 (mark complete), then invoke the `ccc` skill. No picker.
+- `new` / `existing` / `tour` → guided setup: steps 4 and 5, skip the step 6 picker, and go to the matching branch in step 7.
+- No argument → step 2.
 
-### 2. Banner
+### 2. Detect first run (one Bash call)
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/activation.mjs" detect --stamp
+echo "repo=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)"
+echo "code=$(ls package.json pyproject.toml requirements.txt Cargo.toml go.mod Gemfile composer.json pom.xml build.gradle 2>/dev/null | tr '\n' ' ')"
+```
+
+The first line prints JSON. `"first_run": true` (no Commander state, no onboarding, no first result yet) → step 3. Otherwise → guided setup from step 4. `--stamp` records the first-run time once in Commander's own state file so the first result can report how long it took. If `node` fails, treat it as a first run and continue.
+
+### 3. First-run fast path (one question, one finished result)
+
+Say one line: "👋 Welcome to CC Commander — one question, then a finished result." Then ask exactly one AskUserQuestion (header "Start", single select). Never ask a second question on this path.
+
+In a repository with code (`repo` and `code` non-empty):
+
+```yaml
+question: "What should Commander do first?"
+header: "Start"
+multiSelect: false
+options:
+  - label: "🟢 🔬 X-ray this repo"
+    description: "Scores code, docs, tests, deps and security 0-100 and names the one thing to fix first. Read-only, about a minute."
+  - label: "🎯 Plan one change"
+    description: "Type the change in the answer box; you get a plan with acceptance criteria and a sprint contract."
+  - label: "💡 Show me around"
+    description: "Browse skills and agents by category. No result file."
+  - label: "⏭️ Skip"
+    description: "Go straight to the /ccc hub."
+```
+
+Outside a repository or with no code, offer three options: "🟢 🎯 Plan something new" (type the idea in the answer box), "💡 Show me around", "⏭️ Skip".
+
+A free-text answer is the idea for the plan path. "Plan one change" picked without text falls back to the x-ray path, whose fix-first line becomes the suggested plan.
+
+**X-ray path.**
+
+1. Read `${CLAUDE_PLUGIN_ROOT}/skills/ccc-xray/SKILL.md` and follow its steps 1, 4, 7 and 8 with the Quick scope: no depth picker, no workflow, no cost or context rows, no fix offers. Use its Code Mode form of step 4 when `REPL` is available.
+2. Write the result file: `mkdir -p ~/.claude/plans`, then Write `~/.claude/plans/ccc-start-<YYYY-MM-DD>.md` with the scorecard table, the overall line, the 🎯 fix-first line, and "Next 3 steps" naming commands (`$ccc-plan "<fix-first area as a change>"`, `$ccc-review`, `/ccc`). Confirm with `test -s "<path>" && echo ok`.
+3. Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/activation.mjs" complete`, then `node "${CLAUDE_PLUGIN_ROOT}/scripts/activation.mjs" first-result ccc-start --via ccc-xray`. The second records this install's first finished result once and sends `first_result` only when telemetry is opted in. Do not mention its output.
+4. Reply: the scorecard, the 🎯 line, `📝 Saved: <path>`, and one next step: "Next: `$ccc-plan \"<fix-first change>\"` turns the top finding into a plan with acceptance criteria."
+
+**Plan path.** Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/activation.mjs" complete`, then invoke the `ccc-plan` skill with args `fast "<idea>"`. Fast mode asks nothing, writes the plan and, in a repository, the sprint contract, and records the first result itself.
+
+**Show me around / Skip.** Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/activation.mjs" complete`, then invoke the `ccc-browse` skill (show around) or the `ccc` skill (skip).
+
+## Guided setup (returning users, or `new` / `existing` / `tour`)
+
+### 4. Banner
 
 Read `${CLAUDE_PLUGIN_ROOT}/lib/banner.txt` and `${CLAUDE_PLUGIN_ROOT}/.codex-plugin/plugin.json`. Replace `{{VERSION}}` in the banner with the manifest's `version` and render it in a fenced code block. Never write the version from memory. Then one line:
 
 > **Welcome to CC Commander** — let's get you oriented in under 90 seconds.
 
-### 3. Context strip
+### 5. Context strip
 
 Run every check in one Bash call. Each one is silent on failure, and every count is computed here, never typed:
 
@@ -61,7 +109,7 @@ If there are no plugins, no plans and no repo, render instead: "🎯 Fresh insta
 
 For update status, point to `$ccc-update`; do not compare versions over the network here.
 
-### 4. Intent picker
+### 6. Intent picker
 
 Never render a numbered list or ask the user to type a number. Call AskUserQuestion with these four options. Exactly one option carries 🟢 and it goes first. The YAML below shows the no-repo case; when the strip says otherwise, move the matching option to the top and move the 🟢 to it:
 
@@ -88,7 +136,7 @@ options:
     preview: "Jumps straight to the top-level picker."
 ```
 
-### 5. Handle the selection
+### 7. Handle the selection
 
 **New project.** Ask three AskUserQuestion pickers, one at a time, four options each. The first option listed is the default: put it first and prefix its label with 🟢; the other options carry no 🟢:
 
@@ -96,22 +144,22 @@ options:
 2. "Who's the audience?" → 🟢 Solo or team / SMB / Enterprise / Public
 3. "What's the first milestone?" → 🟢 MVP demo / First paying user / Open-source launch / Internal tool
 
-Write the plan file (step 6), run step 7, then invoke the `ccc-build` skill with the matching template argument (`web-app`, `api`, `cli`, or `mobile`). Run step 8 before handing over.
+Write the plan file (step 8), ask the optional follow-ups (step 8b), then run step 9 and invoke the `ccc-build` skill with the matching template argument (`web-app`, `api`, `cli`, or `mobile`).
 
-**Import existing.** Invoke the `ccc-adopt` skill. It owns every CLAUDE.md write: diff preview, approval picker, backup, delimited block. Never write CLAUDE.md from this skill. When adopt finishes (applied or cancelled), use its detected stack to write the plan file (step 6), run steps 7 and 8, and return a one-line summary plus the plan path.
+**Import existing.** Invoke the `ccc-adopt` skill. It owns every CLAUDE.md write: diff preview, approval picker, backup, delimited block. Never write CLAUDE.md from this skill. When adopt finishes (applied or cancelled), use its detected stack to write the plan file (step 8), run steps 8b and 9, and return a one-line summary plus the plan path.
 
-**Show around.** Run step 8, then invoke the `ccc-browse` skill. It handles category pickers from there.
+**Show around.** Run step 9, then invoke the `ccc-browse` skill. It handles category pickers from there.
 
-**Skip.** Run step 8, then invoke the `ccc` skill with no wrapping text.
+**Skip.** Run step 9, then invoke the `ccc` skill with no wrapping text.
 
-### 6. Write the start plan
+### 8. Write the start plan
 
 1. If the system reminder carries a plan-mode "Plan File Info" block, write to that path and call ExitPlanMode afterwards so the plan appears in the Desktop Plan pane.
 2. Otherwise run `mkdir -p ~/.claude/plans` and Write `~/.claude/plans/ccc-start-<YYYY-MM-DD>.md`. Do not enter plan mode just to write this file.
 3. Fill the template in [references/start-plan-template.md](references/start-plan-template.md). Pick three agents with [references/agent-matrix.md](references/agent-matrix.md), checked against the live files in `${CLAUDE_PLUGIN_ROOT}/agents/`.
 4. Confirm the file exists: `test -s "<path>" && echo ok`.
 
-### 7. Optional follow-ups (non-blocking, after the plan file)
+### 8b. Optional follow-ups (guided setup only, after the plan file)
 
 **Answer-first output.** Ask once (this step runs on the new and import paths only). Answer-first is the 🟢 recommendation.
 
@@ -163,47 +211,39 @@ Close the tour once with the funding note in [references/sustain.md](references/
 
 Session tip, once: run `$ccc-save-session` before closing a working session and `$ccc-resume-session` at the start of the next one.
 
-### 8. Mark onboarding complete (on every path)
+### 9. Mark onboarding complete (on every path)
 
-Run this on every path, including skip and tour, before handing over to another skill. The `/ccc` gate reads the flag.
+Run this on every path, including skip and tour, before handing over to another skill. The `/ccc` gate reads the flag from the lane's `<config dir>/commander/state.json`.
 
 ```bash
-node -e "
-  const fs=require('fs'); const os=require('os'); const path=require('path');
-  const dir=path.join(process.env.CCC_CONFIG_DIR||process.env.CLAUDE_CONFIG_DIR||path.join(os.homedir(),'.claude'),'commander');
-  const p=path.join(dir,'state.json'); const legacy=path.join(os.homedir(),'.claude','commander','state.json');
-  let s={}; try{s=JSON.parse(fs.readFileSync(fs.existsSync(p)?p:legacy,'utf8'));}catch(e){}
-  s.onboardingCompleted=true;
-  s.completedAt=new Date().toISOString();
-  fs.mkdirSync(dir,{recursive:true});
-  fs.writeFileSync(p,JSON.stringify(s,null,2));
-  console.log('onboarding marked complete');
-"
+node "${CLAUDE_PLUGIN_ROOT}/scripts/activation.mjs" complete
 ```
 
-Expect `onboarding marked complete`, then reply: "✅ Onboarding complete. Next time you run `/ccc`, you go straight to the main menu." If the command fails, report the error and do not claim completion.
+Expect `onboarding marked complete` in its JSON. On the new and import paths, also run `node "${CLAUDE_PLUGIN_ROOT}/scripts/activation.mjs" first-result ccc-start` after the plan file exists (once-only record; sends `first_result` only when telemetry is opted in; do not mention its output). Then reply: "✅ Onboarding complete. Next time you run `/ccc`, you go straight to the main menu." If the command fails, report the error and do not claim completion.
 
 ## Done when
 
-- The context strip numbers came from the step 3 output in this turn.
-- New and import paths: `test -s "<plan path>"` printed `ok`, and the path was reported.
-- Step 8 printed `onboarding marked complete`.
+- First run: exactly one AskUserQuestion was asked; the x-ray path's `test -s` printed `ok`, the reply named the saved path, and `first-result` printed `"ok":true`; the plan path handed to `ccc-plan` with `fast`.
+- Guided setup: the context strip numbers came from the step 5 output in this turn; on the new and import paths `test -s "<plan path>"` printed `ok` and the path was reported.
+- Every path: `activation.mjs complete` printed `onboarding marked complete`.
 
 ## Guardrails
 
 - Never write CLAUDE.md here; `$ccc-adopt` owns that surface.
-- Never hardcode a version or an agent, skill or MCP count; compute them in step 3.
+- Never hardcode a version or an agent, skill or MCP count; compute them in step 5.
 - Never render a numbered or typed-letter menu; pickers only.
 - Never dump HTML expecting it to render; Desktop shows it as code.
 - Never mention the legacy `ccc` npm CLI or its modes; this audience is the plugin.
-- Never sign the user up for a partner, connect a service, or write anything beyond the plan file, `output-mode.json` (on opt-in) and `state.json`.
+- Never ask more than one question on the first-run path, and never chain menus there.
+- Never sign the user up for a partner, connect a service, or write anything beyond the start or plan file, `output-mode.json` (on opt-in) and `state.json`; the x-ray path never edits the repository.
 
 ## See also
 
 - `/ccc` — main hub
 - `$ccc-browse` — every skill and agent by category
 - `$ccc-adopt` — merge Commander conventions into an existing project
-- `$ccc-build` — scaffold a new project
+- `$ccc-xray` — the full health scorecard
+- `$ccc-plan` — plan with acceptance criteria and a sprint contract
 
 ---
 

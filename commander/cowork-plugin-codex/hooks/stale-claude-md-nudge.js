@@ -25,7 +25,7 @@
 import { stat, mkdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname, basename, isAbsolute } from 'node:path';
-import { stateDir } from '../lib/lane-state.js';
+import { hookDataDir, readableHookDataPath } from '../lib/lane-state.js';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { emitUser } from './lib/emit.mjs';
@@ -45,11 +45,13 @@ function looksLikeCodeRepo(cwd) {
 async function onceOnlyToday(env, cwd) {
   // Once-per-project-per-day marker; returns false if already nudged today.
   try {
-    const markerDir = stateDir(env);
+    // Hook-private marker: ${CLAUDE_PLUGIN_DATA} when the host sets it, with a read fallback to the lane copy.
+    const markerDir = hookDataDir(env);
     const projectHash = createHash('sha256').update(cwd).digest('hex').slice(0, 12);
     const today = new Date().toISOString().slice(0, 10);
-    const markerFile = join(markerDir, `claudemd-nudge-${projectHash}-${today}`);
-    if (existsSync(markerFile)) return false;
+    const markerName = `claudemd-nudge-${projectHash}-${today}`;
+    const markerFile = join(markerDir, markerName);
+    if (existsSync(readableHookDataPath(markerName, env))) return false;
     await mkdir(markerDir, { recursive: true });
     try { await writeFile(markerFile, '', { flag: 'wx' }); } catch { return false; }
     return true;

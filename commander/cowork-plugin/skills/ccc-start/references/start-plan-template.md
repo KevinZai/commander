@@ -1,6 +1,6 @@
 # Start plan template
 
-Used by `/ccc-start` step 6. Replace every angle-bracket field; delete none of the headings.
+Used by `/ccc-start` step 8 (guided setup). Replace every angle-bracket field; delete none of the headings.
 
 ```markdown
 # CC Commander Start Plan — <date>

@@ -203,10 +203,10 @@ function clamp(text) {
   return text.length <= MAX_CONTEXT_CHARS ? text : `${text.slice(0, MAX_CONTEXT_CHARS - 14)}…</ccc-route>`;
 }
 
-/** The <ccc-route> block for the model, or null for the low tier. */
-// Hidden (disable-model-invocation) skills that act outside the conversation:
-// deploys, pushes, publishing, tracker or fleet writes, settings, long loops.
-// `always` mode never auto-follows these; it still offers them as a menu.
+// Skills that act outside the conversation: deploys, pushes, publishing,
+// tracker, fleet or memory writes, settings, long loops. `always` mode never
+// tells the model to run these on its own, visible or hidden; it still offers
+// them as a menu. Visible ones keep auto mode's strict high-tier rule.
 export const SIDE_EFFECT_SKILLS = new Set([
   'ccc-deploy', 'ccc-rollback', 'ccc-full-send', 'ccc-full-stop', 'ccc-ship', 'ccc-yolo-setup',
   'ccc-night-mode', 'ccc-nightwatch', 'ccc-broadcast', 'ccc-upgrade', 'ccc-update', 'ccc-file-pr',
@@ -215,13 +215,28 @@ export const SIDE_EFFECT_SKILLS = new Set([
   'ccc-domains', 'ccc-ultracode', 'ccc-pr-comments', 'ccc-console', 'ccc-mission-control',
   'ccc-fleet', 'ccc-orchestrate', 'ccc-codex', 'ccc-memory', 'ccc-session', 'ccc-save-session',
   'ccc-resume-session', 'ccc-handoff', 'ccc-standup', 'ccc-smb-ops', 'ccc-ci', 'ccc-infra',
+  'ccc-modernize', 'ccc-council', 'ccc-triage', 'ccc-harden', 'ccc-content', 'ccc-safety',
+  'ccc-usage', 'ccc-knowledge', 'ccc-adhd', 'ccc-fable', 'ccc-ecc', 'ccc-prompt-fix',
+  'ccc-claudemd', 'ccc-plan-exec', 'ccc-debate', 'ccc-e2e', 'ccc-doc-sync', 'ccc-agent-writing',
+  'ccc-deploy-check', 'ccc-fleet-viz', 'ccc-makeover',
 ]);
+
+// Hidden (disable-model-invocation) skills that only read and advise, so
+// `always` mode may follow them by reading their SKILL.md. An allowlist: a
+// hidden skill is never followed unless it is named here.
+export const FOLLOWABLE_HIDDEN_SKILLS = new Set(['ccc-brainstorm', 'ccc-code-review', 'ccc-changelog']);
 
 const PLUGIN_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 /** A hidden skill the model may follow by reading its file (always mode only). */
 export function followable(route) {
-  return route.kind === 'skill' && !!route.manual && !SIDE_EFFECT_SKILLS.has(route.id);
+  return route.kind === 'skill' && !!route.manual && FOLLOWABLE_HIDDEN_SKILLS.has(route.id) && !SIDE_EFFECT_SKILLS.has(route.id);
+}
+
+/** May `always` mode tell the model to run this route without asking? */
+export function autoFollowable(route) {
+  if (route.kind !== 'skill' || SIDE_EFFECT_SKILLS.has(route.id)) return false;
+  return !route.manual || followable(route);
 }
 
 function skillCall(route, host) {
@@ -229,6 +244,7 @@ function skillCall(route, host) {
   return host === 'codex' ? `use the ${route.id} skill` : `invoke Skill commander:${route.id}`;
 }
 
+/** The <ccc-route> block for the model, or null for the low tier. */
 export function renderRouteContext(candidates, tier, host, mode = 'auto') {
   if (tier === 'low' || !candidates.length) return null;
   // Weak tail candidates only add menu noise.
@@ -236,11 +252,11 @@ export function renderRouteContext(candidates, tier, host, mode = 'auto') {
   const list = top3.map((c) => `${invokeText(c.route, host)} ${c.score.toFixed(2)}`).join(' | ');
   let body;
   if (tier === 'hint') {
-    const usable = top3.filter((c) => !c.route.manual || followable(c.route));
+    const usable = top3.filter((c) => autoFollowable(c.route));
     if (!usable.length) return null;
     const opts = usable.map((c) => optionText(c.route, host)).join('; ');
     body = `CCC skills that may help: ${opts}. If one fits the task, load it before you start; otherwise just answer.`;
-  } else if (tier !== 'high' && mode === 'always' && top3[0].route.kind === 'skill' && (!top3[0].route.manual || followable(top3[0].route))) {
+  } else if (tier !== 'high' && mode === 'always' && autoFollowable(top3[0].route)) {
     const top = top3[0].route;
     const alts = top3.slice(1).map((c) => invokeText(c.route, host)).join(', ');
     body = `Likely match: ${skillCall(top, host)} now and follow it (${top.label}). Say so in one line, unless it plainly does not fit${alts ? `; then consider ${alts}` : ''}. Skip skills for a quick factual answer.`;
@@ -280,19 +296,24 @@ export function renderNextContext(fromRoute, nextRoutes, host) {
 
 
 /**
- * The <ccc-skills> block injected at SubagentStart: the skills that fit the
- * subagent's task, so fleet and workflow workers use them too. Manual skills
- * (except followable ones in always mode) and agents are left out (a worker cannot type a command or should not fan
- * out further on a hint). Null when nothing scores.
+ * The <ccc-skills> block for a subagent's task, so fleet and workflow workers
+ * use the right skills too. Same gates as the parent router: only a high-tier
+ * match (score, margin and an intent pattern) is a directive; otherwise the
+ * matches are listed as options (from MEDIUM_THRESHOLD in auto mode, from
+ * HINT_THRESHOLD in always mode). Side-effect skills, hidden skills (except
+ * followable ones in always mode) and agents are never listed. Null when
+ * nothing qualifies.
  */
 export function renderSubagentContext(candidates, host, mode = 'auto') {
+  const floor = mode === 'always' ? HINT_THRESHOLD : MEDIUM_THRESHOLD;
   const usable = candidates
-    .filter((c) => c.route.kind === 'skill' && (!c.route.manual || (mode === 'always' && followable(c.route))) && c.score >= HINT_THRESHOLD)
+    .filter((c) => c.score >= floor && autoFollowable(c.route) && (!c.route.manual || mode === 'always'))
     .slice(0, 3);
   if (!usable.length) return null;
   const [top] = usable;
   const opts = usable.map((c) => `${c.route.manual ? c.route.id : invokeText(c.route, host)}: ${c.route.label}`).join('; ');
-  const lead = top.score >= MEDIUM_THRESHOLD
+  const directive = candidates[0] === top && tierFor(candidates, mode) === 'high';
+  const lead = directive
     ? `Before starting, ${skillCall(top.route, host)} and follow it for this task: ${top.route.label}.`
     : 'If one of these fits your task, load it before you start.';
   const text = `<ccc-skills for="subagent">\n${lead} Matching CCC skills: ${opts}.\n</ccc-skills>`;

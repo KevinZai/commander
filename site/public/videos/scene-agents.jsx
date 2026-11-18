@@ -1,4 +1,4 @@
-// scene-agents.jsx — "22 specialist agents"
+// scene-agents.jsx — "23 specialist agents"
 // 12s: empty grid → roster of 22 agents pop in with portraits → highlight a few → council formation
 
 const AGENTS_DUR = 12;
@@ -93,7 +93,7 @@ const AgentsScene = () => {
               fontFamily:'"Inter",sans-serif', fontSize:88, fontWeight:600,
               color:'#F5F5F0', letterSpacing:'-.025em', lineHeight:1.0,
             }}>
-              <span style={{color:'#FF6B47'}}>22</span> specialists.
+              <span style={{color:'#FF6B47'}}>23</span> specialists.
             </div>
             <div style={{
               fontFamily:'"Inter",sans-serif', fontSize:30, fontWeight:500,
@@ -109,7 +109,7 @@ const AgentsScene = () => {
       <Sprite start={2.2} end={9.6} keepMounted>
         {({ progress, localTime }) => {
           const op = animate({from:0,to:1,start:0,end:0.08})(progress);
-          // 6 cols × 3 rows (22 cells, 1 placeholder for council badge in last)
+          // 6 cols × 3 rows (23 cells, 1 placeholder for council badge in last)
           const cellsPerRow = 6;
           const cellW = 168, cellH = 116, gap = 14;
           const totalW = cellsPerRow*cellW + (cellsPerRow-1)*gap;
@@ -169,7 +169,7 @@ const AgentsScene = () => {
                     </div>
                     <div style={{ fontSize:12, color:'#A8A8A0', marginTop:2 }}>{role}</div>
                     <div style={{ position:'absolute', right:10, top:10, fontFamily:'"JetBrains Mono",monospace', fontSize:10, color:'#6E6E68', letterSpacing:'.06em' }}>
-                      {String(i+1).padStart(2,'0')}/22
+                      {String(i+1).padStart(2,'0')}/23
                     </div>
                   </div>
                 );
