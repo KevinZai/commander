@@ -28,10 +28,10 @@ const TIERS: Tier[] = [
     price: { monthly: "$0", yearly: "$0" },
     interval: { monthly: "free forever", yearly: "free forever" },
     features: [
-      "All 84 plugin skills (every /ccc-* workflow + /ccc-ultracode)",
-      "All 22 specialist sub-agent personas",
-      "All 30 lifecycle hooks (51 handlers)",
-      "2 credential-free bundled MCP servers + 16 opt-in",
+      "All 93 plugin skills (every /ccc-* workflow + /ccc-ultracode)",
+      "All 23 specialist sub-agent personas",
+      "All 28 lifecycle hooks (47 handlers)",
+      "2 credential-free bundled MCP servers + 19 opt-in",
       "100 hosted MCP calls/month (free anti-abuse cap)",
       "Community support via GitHub Discussions",
     ],
@@ -95,7 +95,7 @@ export function PricingTable() {
             <span className="text-zinc-500">Pro is on a waitlist — only if 500+ ask.</span>
           </h2>
           <p className="text-zinc-400 max-w-2xl mx-auto">
-            The plugin core (84 skills, 22 agents, 30 hooks, 6 dynamic workflows, hosted MCP with 100 free calls/mo) is free forever. Pro and Lifetime show what we'd build <em>if</em> there's demand — drop your email if you'd pay. No charge, no card, no commitment.
+            The plugin core (93 skills, 23 agents, 28 hooks, 6 dynamic workflows, hosted MCP with 100 free calls/mo) is free forever. Pro and Lifetime show what we'd build <em>if</em> there's demand — drop your email if you'd pay. No charge, no card, no commitment.
           </p>
         </div>
 

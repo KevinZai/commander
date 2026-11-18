@@ -94,7 +94,7 @@ const InstallScene = () => {
             { at: 2.2, kind:'fetch', a:'fetching', b:'commander@4.1.0', c:'github.com/KevinZai/commander' },
             { at: 2.9, kind:'verify', a:'verified', b:'sha256', c:'88f4…b71c' },
             { at: 3.5, kind:'load', a:'loaded', b:'61 skills', c:'11 domains · 502+ sub-skills' },
-            { at: 4.3, kind:'load', a:'loaded', b:'22 specialist agents', c:'with 22 portraits' },
+            { at: 4.3, kind:'load', a:'loaded', b:'23 specialist agents', c:'with portraits' },
             { at: 5.1, kind:'load', a:'loaded', b:'9 lifecycle hooks', c:'×24 handlers wired' },
             { at: 5.9, kind:'load', a:'loaded', b:'commands, prompts, templates', c:'· 142 files indexed' },
             { at: 6.7, kind:'wire', a:'wired', b:'.claude → commander/', c:'symlink ok' },
@@ -191,7 +191,7 @@ const InstallScene = () => {
                       borderLeft:'2px solid rgba(255,107,71,.4)', paddingLeft:14,
                       fontSize:13,
                     }}>
-                      <div style={{color:'#FF6B47'}}>/plan <span style={{color:'#A8A8A0'}}>— scope a feature with a 22-agent council</span></div>
+                      <div style={{color:'#FF6B47'}}>/plan <span style={{color:'#A8A8A0'}}>— scope a feature with a 23-agent council</span></div>
                       <div style={{color:'#A8A8A0'}}>/ship <span style={{color:'#6E6E68'}}>— build, review, test, commit</span></div>
                       <div style={{color:'#A8A8A0'}}>/audit <span style={{color:'#6E6E68'}}>— security · perf · a11y · types</span></div>
                       <div style={{color:'#A8A8A0'}}>/skills <span style={{color:'#6E6E68'}}>— browse 61 skills across 11 domains</span></div>

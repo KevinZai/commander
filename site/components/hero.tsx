@@ -8,15 +8,15 @@ const TERMINAL_LINES = [
   { prompt: "✓", text: "Marketplace added", color: "text-green-400" },
   { prompt: ">", text: "/plugin install commander" },
   { prompt: "✓", text: "Installed: commander v8.0.0 · Opus 5.5", color: "text-green-400" },
-  { prompt: " ", text: "84 skills · 22 agents · 30 hooks · 51 handlers · 2 bundled MCP + 16 opt-in", color: "text-zinc-500" },
+  { prompt: " ", text: "93 skills · 23 agents · 28 hooks · 47 handlers · 2 bundled MCP + 19 opt-in", color: "text-zinc-500" },
   { prompt: "✓", text: "Ready. Try /ccc-ultracode to ship something.", color: "text-green-400" },
 ];
 
 const STATS = [
-  { value: "84", label: "Plugin skills curated" },
-  { value: "22", label: "Specialist agents" },
-  { value: "30", label: "Lifecycle hooks · 51 handlers" },
-  { value: "18", label: "MCP integrations (2 bundled + 16 opt-in)" },
+  { value: "93", label: "Plugin skills curated" },
+  { value: "23", label: "Specialist agents" },
+  { value: "30", label: "Lifecycle hooks · 47 handlers" },
+  { value: "21", label: "MCP integrations (2 bundled + 19 opt-in)" },
 ];
 
 export function Hero() {

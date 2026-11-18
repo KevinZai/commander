@@ -164,7 +164,7 @@ const HeroScene = () => {
                   fontSize:22, color:'#A8A8A0', lineHeight:1.5,
                   opacity: animate({from:0,to:1,start:0.5,end:0.75})(t),
                 }}>
-                  84 plugin skills. 22 specialist agents. 30 lifecycle hooks. <br/>
+                  93 plugin skills. 23 specialist agents. 28 lifecycle hooks. <br/>
                   One install. Zero config. <span style={{color:'#D4A574'}}>Free for now.</span>
                 </div>
               </div>
@@ -228,7 +228,7 @@ const HeroScene = () => {
                   <div><span style={{color:'#FF6B47'}}>❯</span>&nbsp; {visible}{charProg < 1 && <span style={{display:'inline-block',width:9,height:18,verticalAlign:-3,background:'#F5F5F0',marginLeft:2,animation:'caretBlink 1s steps(1) infinite'}}/>}</div>
                   {showOk && (
                     <div style={{marginTop:14, opacity: animate({from:0,to:1,start:0,end:0.12})(clamp((localTime-2.0)/1.5,0,1))}}>
-                      <div><span style={{color:'#6BCF7F'}}>✓</span> <span style={{color:'#A8A8A0'}}>resolving</span> commander@4.1.0 <span style={{color:'#6E6E68'}}>· 61 skills · 22 agents · 9 hooks</span></div>
+                      <div><span style={{color:'#6BCF7F'}}>✓</span> <span style={{color:'#A8A8A0'}}>resolving</span> commander@4.1.0 <span style={{color:'#6E6E68'}}>· 61 skills · 23 agents · 9 hooks</span></div>
                       <div><span style={{color:'#6BCF7F'}}>✓</span> <span style={{color:'#A8A8A0'}}>installed</span> in <span style={{color:'#D4A574'}}>1.8s</span></div>
                       <div style={{marginTop:6}}><span style={{color:'#FF6B47'}}>›</span> <span style={{color:'#7FD4D4'}}>ready</span>. type <span style={{color:'#FF6B47'}}>/plan</span> to begin.</div>
                     </div>

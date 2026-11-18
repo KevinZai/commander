@@ -23,7 +23,7 @@ type Row = {
 
 const ROWS: Row[] = [
   { feature: "Curated skill collection", ccc: "60+ /ccc-* + 11 CCC domains (450+ ecosystem)", ecc: "150+ ECC skills, 65 rules", pocock: "17 skills (TDD, PRD, architecture)", anthropic: "5-10 official skills (Theme Factory, Frontend Design, etc.)" },
-  { feature: "Specialist sub-agents", ccc: "22 personas (architect, reviewer, debugger, designer, language-specific, etc.)", ecc: "38 agents (TDD, security, language-specific reviewers)", pocock: "—", anthropic: "Sub-agent primitive only, no curated personas" },
+  { feature: "Specialist sub-agents", ccc: "23 personas (architect, reviewer, debugger, designer, language-specific, etc.)", ecc: "38 agents (TDD, security, language-specific reviewers)", pocock: "—", anthropic: "Sub-agent primitive only, no curated personas" },
   { feature: "Lifecycle hooks", ccc: "9 events × 25 handlers", ecc: "Full hook lifecycle (SessionStart, PreToolUse, PostToolUse, Stop, PreCompact)", pocock: "—", anthropic: "Hook primitive only" },
   { feature: "Hosted MCP server", ccc: "commander-mcp.fly.dev — 100 free calls/mo per authed user, auth + rate-limit + usage tracking", ecc: "—", pocock: "—", anthropic: "Connectors directory (browse, not host)" },
   { feature: "MCP client compatibility", ccc: "Claude Code Desktop + CLI · Cursor · Windsurf · Codex (via hosted MCP)", ecc: "Claude Code-focused", pocock: "Claude Code Desktop / CLI", anthropic: "Claude Code Desktop / CLI" },
@@ -53,7 +53,7 @@ const PHILOSOPHY = [
   },
   {
     title: "How to pick.",
-    body: "If you want a one-click install that activates 84 skills + 22 agents + a hosted MCP with zero credit card friction, install CC Commander. If you need GitHub App automation across private repos, install ECC alongside it. If you want a focused, principle-first TDD/PRD workflow, install Pocock's skills directly. They compose — pick whatever helps.",
+    body: "If you want a one-click install that activates 93 skills + 23 agents + a hosted MCP with zero credit card friction, install CC Commander. If you need GitHub App automation across private repos, install ECC alongside it. If you want a focused, principle-first TDD/PRD workflow, install Pocock's skills directly. They compose — pick whatever helps.",
   },
 ];
 
@@ -125,7 +125,7 @@ export default function ComparePage() {
           <section className="border-t border-zinc-900 pt-12 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Try CC Commander</h2>
             <p className="text-zinc-400 mb-8 max-w-2xl mx-auto">
-              30-second install. No card. All 84 skills, 22 agents, and the hosted MCP free tier are yours immediately.
+              30-second install. No card. All 93 skills, 23 agents, and the hosted MCP free tier are yours immediately.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a

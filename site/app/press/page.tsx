@@ -9,19 +9,19 @@ export const metadata: Metadata = {
 };
 
 const TALKING_POINTS = [
-  "CC Commander is a free, open-source Claude Code plugin that aggregates 84 plugin skills, 22 specialist sub-agents, and 30 lifecycle hooks into a single install.",
+  "CC Commander is a free, open-source Claude Code plugin that aggregates 93 plugin skills, 23 specialist sub-agents, and 28 lifecycle hooks into a single install.",
   "It reduces Claude Code setup time from hours to under 10 seconds — one command installs a production-ready AI development workflow.",
-  "The plugin ships 22 specialist agents (architect, security-auditor, debugger, designer, QA engineer, etc.) that activate contextually based on what the developer is doing.",
+  "The plugin ships 23 specialist agents (architect, security-auditor, debugger, designer, QA engineer, etc.) that activate contextually based on what the developer is doing.",
   "CC Commander is built on Anthropic's Claude Agent SDK sub-agent architecture, making it compatible with Claude Cowork Desktop and Claude Code CLI out of the box.",
-  "Version 8.0.0 ships with 30 lifecycle hooks and 51 handlers — including auto-quality-gates, session persistence, pre-compact state saving, and permission orchestration.",
+  "Version 8.1.6 ships with 28 lifecycle hooks and 47 handlers — including auto-quality-gates, session persistence, pre-compact state saving, and permission orchestration.",
   "The project is MIT-licensed. Pro tier ($19/mo) funds development; the Starter tier stays free and MIT-licensed.",
 ];
 
 const TWEETS = [
-  `Just installed @cc_commander — 62 Claude skills + 22 agents in 10 seconds. This is insane. /plugin install commander`,
+  `Just installed @cc_commander — 93 Claude skills + 23 agents in 10 seconds. This is insane. /plugin install commander`,
   `The missing layer for @ClaudeAI Code is here. CC Commander turns Claude into a full dev workflow with one install. Free for now. github.com/KevinZai/commander`,
   `I stopped juggling 12 different Claude plugins. @cc_commander aggregated the best ones and made them talk to each other. One install, done.`,
-  `84 skills · 22 agents · 30 hooks · 2 bundled MCPs. @commanderplugin is the OS layer I always wanted on top of Claude Code.`,
+  `93 skills · 23 agents · 28 hooks · 2 bundled MCPs. @commanderplugin is the OS layer I always wanted on top of Claude Code.`,
 ];
 
 export default function PressPage() {
