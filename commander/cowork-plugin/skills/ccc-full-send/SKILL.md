@@ -16,7 +16,7 @@ disable-model-invocation: true
 
 **CC Commander** · /ccc-full-send · the user is away; own the work from its current state to a merged PR, behind a local gate.
 
-> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/full-send/SKILL.md` at `92e38e2cf677a84a142e8df296861c588542135c`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
+> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/full-send/SKILL.md` at `11e37a74d0a6868c121cd0910ab2b3bd9873b92a`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
 
 The user is not watching this thread; updates and the final message go unread until long after you stop. Upstream also supports T3 Code; this version targets Claude Code and Codex. The user's session model is kept. Codex: ask questions as plain text or with request_user_input.
 

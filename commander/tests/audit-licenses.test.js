@@ -32,6 +32,7 @@ const CLASSIFICATION = {
   'MPL-2.0': { verdict: 'FAIL' },
   'LicenseRef-Anthropic-Proprietary': { verdict: 'FAIL' },
   'LicenseRef-Informational-Wrapper': { verdict: 'OK' },
+  'LicenseRef-Unverified': { verdict: 'WARN' },
   'UNKNOWN': { verdict: 'FAIL' },
 };
 
@@ -174,6 +175,10 @@ test('copied-content.json is valid JSON with required shape', function () {
   }
 });
 
+test('an unverified copy warns instead of passing or failing', function () {
+  assert.strictEqual(CLASSIFICATION['LicenseRef-Unverified'].verdict, 'WARN');
+});
+
 test('every license in copied-content.json is in CLASSIFICATION map', function () {
   const jsonPath = path.join(__dirname, '..', 'scripts', 'copied-content.json');
   const { copies } = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
@@ -209,4 +214,16 @@ test('audit-licenses.js --check output shows 0 FAIL entries', function () {
   assert.ok(!result.stdout.includes('skills/pptx/SKILL.md'), 'pptx must NOT be in output (skill removed)');
   assert.ok(!result.stdout.includes('skills/pdf-official/SKILL.md'), 'pdf-official must NOT be in output (skill removed)');
   assert.ok(result.stdout.includes('0 ❌ FAIL'), 'Totals line must show 0 FAIL');
+});
+
+test('the real audit lists an unverified copy in its own group, never as acknowledged permissive', function () {
+  const { spawnSync } = require('node:child_process');
+  const script = path.join(__dirname, '..', 'scripts', 'audit-licenses.js');
+  const out = spawnSync(process.execPath, [script], { encoding: 'utf8' }).stdout;
+  const unverified = out.indexOf('LICENSE UNVERIFIED');
+  assert.ok(unverified > 0, 'the audit prints a LICENSE UNVERIFIED group');
+  const line = out.indexOf('skills/ccc-design/screenshots/SKILL.md (LicenseRef-Unverified)');
+  assert.ok(line > unverified, 'the screenshots copy is listed under LICENSE UNVERIFIED');
+  const permissive = out.indexOf('Kevin has explicitly acknowledged');
+  assert.ok(permissive < 0 || permissive < unverified, 'the unverified group is separate from the acknowledged list');
 });

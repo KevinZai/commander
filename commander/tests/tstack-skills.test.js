@@ -18,7 +18,7 @@ var PLUGIN = path.join(ROOT, 'commander', 'cowork-plugin');
 var CODEX = path.join(ROOT, 'commander', 'cowork-plugin-codex');
 var REGISTRY = path.join(PLUGIN, 'hooks', 'lib', 'ccc-routes.json');
 var SCORER = path.join(PLUGIN, 'hooks', 'lib', 'route-scorer.mjs');
-var PIN = '92e38e2cf677a84a142e8df296861c588542135c';
+var PIN = '11e37a74d0a6868c121cd0910ab2b3bd9873b92a';
 
 // CCC name -> upstream skill name.
 var SKILLS = {

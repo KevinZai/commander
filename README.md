@@ -83,7 +83,7 @@ Twelve enforceable gates that any model can be checked against: plan before buil
 
 ## PR workflows (adapted from tstack)
 
-Nine pull-request skills are adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) (MIT, pinned at `92e38e2c`). All load on demand: type the command, or the router offers it when your prompt matches. They also appear in the CLI menu under **PR workflows** and in Codex as `$ccc-<name>`.
+Nine pull-request skills are adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) (MIT, pinned at `11e37a74`). All load on demand: type the command, or the router offers it when your prompt matches. They also appear in the CLI menu under **PR workflows** and in Codex as `$ccc-<name>`.
 
 | Skill | Say | What it does |
 |---|---|---|

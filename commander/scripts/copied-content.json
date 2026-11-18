@@ -87,6 +87,90 @@
       "notes": "NOT a code copy — a usage wrapper for the external claude-mem project (Apache-2.0 since 2026, earlier AGPL-3.0; not a submodule, not bundled). Excluded from FAIL logic."
     },
     {
+      "file": "commander/cowork-plugin/skills/ccc-babysit-pr/SKILL.md",
+      "vendor": "tstack",
+      "license": "MIT",
+      "notes": "Adapted from t3dotgg/tstack skills/babysit-pr at 11e37a74; LICENSE.txt in the skill directory; safety rewrites in docs/tstack/SAFETY.md."
+    },
+    {
+      "file": "commander/cowork-plugin/skills/ccc-council/SKILL.md",
+      "vendor": "tstack",
+      "license": "MIT",
+      "notes": "Adapted from t3dotgg/tstack skills/council at 11e37a74; LICENSE.txt in the skill directory; safety rewrites in docs/tstack/SAFETY.md."
+    },
+    {
+      "file": "commander/cowork-plugin/skills/ccc-file-pr/SKILL.md",
+      "vendor": "tstack",
+      "license": "MIT",
+      "notes": "Adapted from t3dotgg/tstack skills/file-pr at 11e37a74; LICENSE.txt in the skill directory; safety rewrites in docs/tstack/SAFETY.md."
+    },
+    {
+      "file": "commander/cowork-plugin/skills/ccc-full-send/SKILL.md",
+      "vendor": "tstack",
+      "license": "MIT",
+      "notes": "Adapted from t3dotgg/tstack skills/full-send at 11e37a74; LICENSE.txt in the skill directory; safety rewrites in docs/tstack/SAFETY.md."
+    },
+    {
+      "file": "commander/cowork-plugin/skills/ccc-full-stop/SKILL.md",
+      "vendor": "tstack",
+      "license": "MIT",
+      "notes": "Adapted from t3dotgg/tstack skills/full-stop at 11e37a74; LICENSE.txt in the skill directory; safety rewrites in docs/tstack/SAFETY.md."
+    },
+    {
+      "file": "commander/cowork-plugin/skills/ccc-modernize/SKILL.md",
+      "vendor": "tstack",
+      "license": "MIT",
+      "notes": "Adapted from t3dotgg/tstack skills/modernize at 11e37a74; LICENSE.txt in the skill directory; safety rewrites in docs/tstack/SAFETY.md."
+    },
+    {
+      "file": "commander/cowork-plugin/skills/ccc-pr-comments/SKILL.md",
+      "vendor": "tstack",
+      "license": "MIT",
+      "notes": "Adapted from t3dotgg/tstack skills/leaving-pr-comments at 11e37a74; LICENSE.txt in the skill directory; safety rewrites in docs/tstack/SAFETY.md."
+    },
+    {
+      "file": "commander/cowork-plugin/skills/ccc-sol-loop/SKILL.md",
+      "vendor": "tstack",
+      "license": "MIT",
+      "notes": "Adapted from t3dotgg/tstack skills/sol-loop at 11e37a74; LICENSE.txt in the skill directory; safety rewrites in docs/tstack/SAFETY.md."
+    },
+    {
+      "file": "commander/cowork-plugin/skills/ccc-takeover/SKILL.md",
+      "vendor": "tstack",
+      "license": "MIT",
+      "notes": "Adapted from t3dotgg/tstack skills/takeover at 11e37a74; LICENSE.txt in the skill directory; safety rewrites in docs/tstack/SAFETY.md."
+    },
+    {
+      "file": "commander/cowork-plugin/skills/ccc-babysit-pr/scripts/pr-wait",
+      "vendor": "tstack",
+      "license": "MIT",
+      "notes": "Adapted from t3dotgg/tstack skills/babysit-pr/scripts/pr-wait at 11e37a74; header names the source."
+    },
+    {
+      "file": "commander/cowork-plugin/skills/ccc-adhd/SKILL.md",
+      "vendor": "i-have-adhd",
+      "license": "MIT",
+      "notes": "Based on ayghri/i-have-adhd (MIT); attribution in body. Upstream unchanged since 2026-10-11."
+    },
+    {
+      "file": "skills/mode-switcher/modes/adhd.md",
+      "vendor": "i-have-adhd",
+      "license": "MIT",
+      "notes": "Mode summary of ayghri/i-have-adhd (MIT); attribution in the frontmatter description and body."
+    },
+    {
+      "file": "skills/caveman/SKILL.md",
+      "vendor": "caveman",
+      "license": "MIT",
+      "notes": "Based on JuliusBrussee/caveman while it was MIT. Upstream relicensed to Apache-2.0 at 3.0.0 (LICENSE-MIT kept); pulling newer text would make this copy Apache-2.0."
+    },
+    {
+      "file": "skills/ccc-design/screenshots/SKILL.md",
+      "vendor": "shpigford-skills",
+      "license": "LicenseRef-Unverified",
+      "notes": "Frontmatter source: github.com/Shpigford/skills/tree/main/screenshots. Upstream returns 404 (checked 2026-11-18) and the copy ships no license text, so its license cannot be verified. The audit warns until the license is recovered or the skill is replaced."
+    },
+    {
       "file": "skills/ponytail/SKILL.md",
       "vendor": "ponytail",
       "license": "MIT",
@@ -105,6 +189,10 @@
     "superpowers": "MIT",
     "anthropic-skills": "mixed",
     "anthropic-skills-apache": "Apache-2.0",
-    "anthropic-skills-proprietary": "LicenseRef-Anthropic-Proprietary"
+    "anthropic-skills-proprietary": "LicenseRef-Anthropic-Proprietary",
+    "tstack": "MIT",
+    "i-have-adhd": "MIT",
+    "caveman": "MIT (Apache-2.0 from 3.0.0)",
+    "shpigford-skills": "LicenseRef-Unverified (upstream unreachable)"
   }
 }

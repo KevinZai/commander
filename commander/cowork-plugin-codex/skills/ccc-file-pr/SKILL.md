@@ -18,7 +18,7 @@ disable-model-invocation: true
 
 **CC Commander** · $ccc-file-pr · a draft PR with a human title, a problem-first description and recorded local proof.
 
-> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/file-pr/SKILL.md` at `92e38e2cf677a84a142e8df296861c588542135c`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
+> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/file-pr/SKILL.md` at `11e37a74d0a6868c121cd0910ab2b3bd9873b92a`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
 
 The user's selected model is preserved. Codex: ask the picker below as a plain-text question or request_user_input.
 

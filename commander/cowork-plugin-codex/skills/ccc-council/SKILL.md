@@ -16,7 +16,7 @@ disable-model-invocation: true
 
 **CC Commander** · $ccc-council · delegates from three providers review in parallel and you get findings, disagreements and a score table.
 
-> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/council/SKILL.md` at `92e38e2cf677a84a142e8df296861c588542135c`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
+> Adapted from [t3dotgg/tstack](https://github.com/t3dotgg/tstack) `skills/council/SKILL.md` at `11e37a74d0a6868c121cd0910ab2b3bd9873b92a`. MIT, Copyright (c) 2026 Theo Browne; see `LICENSE.txt`. Changes for CC Commander are marked "CCC safety:".
 
 The user's session model is preserved; only the delegates use other models. Upstream also supports T3 Code orchestration; this version uses Claude Code and Codex.
 
@@ -27,15 +27,16 @@ The user's session model is preserved; only the delegates use other models. Upst
 
 ## What happens
 
-1. **Resolve members.** If the user's instructions name members, use those. Otherwise use one strong model from each of three providers at high reasoning effort:
+1. **Prepare what the council reviews.** Before an audit of your own change, address outstanding PR comments, fix known issues and run the relevant checks, so the delegates review the updated implementation rather than findings you already know. CCC safety: this applies only when the user asked for fixes or a calling workflow owns the change; otherwise list the known issues in the brief instead of editing. Skip fixes to code the user plans to discard.
+2. **Resolve members.** If the user's instructions name members, use those. Otherwise use one strong model from each of three providers at high reasoning effort:
    - Claude: an Agent tool subagent on `opus` or `fable`.
    - OpenAI: `codex exec -m gpt-6-astra -s read-only --output-last-message <file> "<request>"`. Check `command -v codex` first.
    - Third provider: opt-in only. Use a flagship model from a third provider the user has configured (for example a CLI they name). Do not guess a provider and do not install anything.
-2. **Handle a missing member.** CCC safety: if a member is unavailable (no Codex, not signed in, no third provider configured), report which and why, then run with the members you have, labelled clearly as an incomplete council (for example "Council (2 of 3 providers: third provider not configured)"). Never substitute another model and never imply three providers reviewed.
-3. **Brief the delegates.** Give each the request and relevant context (diff command, intent, out-of-scope). For review or feedback, keep delegates read-only: no edits, commits, pushes or PR comments. Start them in parallel.
-4. **Collect and summarize.** Report useful findings, disagreements and recommended next steps. For a code review, ask each delegate for a score out of 10. Count each full review pass as one round; a fresh review after fixes starts a new round.
-5. **Fix only when asked, in bounded rounds.** The council itself is review-only. CCC safety: change code only when the user asked for fixes as well as review (or a calling workflow such as `ccc-full-send` owns the change); otherwise report the recommendations and stop. When fixing is authorized, apply the agreed recommendations with the smallest change, run the covering checks, and request a fresh round. Stop at agreement or after three rounds (five for security, permissions, auth or data loss while a real finding stays open), and report any disagreement for the user to decide. Do not let repeated reviews cause scope creep: it is your job to fight to keep scope limited.
-6. **Record results.** If the work ends in a pull request, put this section in the PR description before the model and harness line at the end. Edit the description (do not post a comment), and only when the user asked you to update the PR:
+3. **Handle a missing member.** CCC safety: if a member is unavailable (no Codex, not signed in, no third provider configured), report which and why, then run with the members you have, labelled clearly as an incomplete council (for example "Council (2 of 3 providers: third provider not configured)"). Never substitute another model and never imply three providers reviewed.
+4. **Brief the delegates.** Give each the request and relevant context (diff command, intent, out-of-scope). For review or feedback, keep delegates read-only: no edits, commits, pushes or PR comments. Start them in parallel.
+5. **Collect and summarize.** Do not wait idle: when a delegate's result arrives, check its findings against the code at once and decide what to fix while the others run (fixes only as step 6 allows). Do not edit files while a delegate still reviews the same checkout. If the user marks a delegate as non-blocking, do not wait for it; treat a late result as feedback and do not record its score. Report useful findings, disagreements and recommended next steps. For a code review, ask each delegate for a score out of 10. Count each full review pass as one round; a fresh review after fixes starts a new round.
+6. **Fix only when asked, in bounded rounds.** The council itself is review-only. CCC safety: change code only when the user asked for fixes as well as review (or a calling workflow such as `ccc-full-send` owns the change); otherwise report the recommendations and stop. When fixing is authorized, apply the agreed recommendations with the smallest change, run the covering checks, and request a fresh round. Stop at agreement or after three rounds (five for security, permissions, auth or data loss while a real finding stays open), and report any disagreement for the user to decide. Do not let repeated reviews cause scope creep: it is your job to fight to keep scope limited.
+7. **Record results.** If the work ends in a pull request, put this section in the PR description before the model and harness line at the end. Edit the description (do not post a comment), and only when the user asked you to update the PR:
 
    ```markdown
    ## Council review
@@ -57,7 +58,7 @@ The user's session model is preserved; only the delegates use other models. Upst
 
 ## Done when
 
-- Each available delegate returned a reply and a score or `no score`; the table and summary are delivered, with any missing member named.
+- Each available delegate returned a reply and a score or `no score`, or the user marked it non-blocking; the table and summary are delivered, with any missing member named.
 - Any change made after agreeing was followed by a fresh round, or the user accepted stopping.
 
 ## Guardrails

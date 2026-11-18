@@ -14,7 +14,7 @@ The authoritative terms are the LICENSE file inside each submodule.
 | claude-skills | alirezarezvani/claude-skills | MIT |
 | compound-engineering | EveryInc/compound-engineering-plugin | MIT |
 | everything-claude-code | affaan-m/everything-claude-code | MIT |
-| graphify | safishamsi/graphify | Apache-2.0 (also ships LICENSE-MIT) |
+| graphify | Graphify-Labs/graphify (formerly safishamsi/graphify) | Apache-2.0 (relicensed; earlier MIT contributions keep LICENSE-MIT, see its NOTICE) |
 | gstack | garrytan/gstack | MIT (with Apache-2.0 derived files listed in its NOTICE.md) |
 | mattpocock-skills | mattpocock/skills | MIT |
 | mengto-skills | MengTo/Skills | MIT |
@@ -24,7 +24,7 @@ The authoritative terms are the LICENSE file inside each submodule.
 | superpowers | obra/superpowers | MIT |
 | ui-ux-pro-max-skill | nextlevelbuilder/ui-ux-pro-max-skill | MIT |
 
-Summary (20 submodules, verified 2026-10-13 from each LICENSE file):
+Summary (20 submodules, verified 2026-11-18 from each LICENSE file at the pinned commit):
 16 MIT, 3 Apache-2.0, 1 CC-BY-SA-4.0.
 CC-BY-SA-4.0 is a share-alike license: material adapted from
 claude-code-ultimate-guide must keep attribution and the same terms.

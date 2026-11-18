@@ -1,6 +1,6 @@
 # tstack overlap review (CC-2124)
 
-Upstream: [t3dotgg/tstack](https://github.com/t3dotgg/tstack) at `92e38e2cf677a84a142e8df296861c588542135c` (MIT, Copyright (c) 2026 Theo Browne). Each upstream skill was compared with the plugin skills in `commander/cowork-plugin/skills/`, the toolkit commands in `commands/` and the ecosystem skills in `skills/`. NAMING.md rule 1 requires the `ccc-` prefix, so every skill is renamed; none duplicates an existing skill's job, so none is merged into another.
+Upstream: [t3dotgg/tstack](https://github.com/t3dotgg/tstack) at `11e37a74d0a6868c121cd0910ab2b3bd9873b92a` (MIT, Copyright (c) 2026 Theo Browne). Each upstream skill was compared with the plugin skills in `commander/cowork-plugin/skills/`, the toolkit commands in `commands/` and the ecosystem skills in `skills/`. NAMING.md rule 1 requires the `ccc-` prefix, so every skill is renamed; none duplicates an existing skill's job, so none is merged into another.
 
 | Upstream skill | Closest CCC equivalent | Decision | Why |
 |---|---|---|---|
