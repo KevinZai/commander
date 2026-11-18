@@ -879,6 +879,11 @@ skills:
     domain: general
     tier: free
     description: "name: spec-interviewer"
+  - id: specialist-pack
+    path: skills/specialist-pack/SKILL.md
+    domain: general
+    tier: free
+    description: "name: specialist-pack"
   - id: status-updates
     path: skills/status-updates/SKILL.md
     domain: general

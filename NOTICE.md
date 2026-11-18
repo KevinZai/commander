@@ -60,3 +60,7 @@ These toolkit skills only describe how to install and route to upstream projects
 ## MIT-Derived Skills (addyosmani-pack)
 
 `skills/addyosmani-pack/` holds 13 skills copied from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills), pinned at `39b723ceebf81474d0557c1fecd01eddab585563`. MIT License, Copyright (c) 2025 Addy Osmani; the full text is in `skills/addyosmani-pack/LICENSE.txt`. CC Commander changes are marked "CCC safety:" (git-workflow-and-versioning, constraint-driven-development). `DECISIONS.md` lists the 12 upstream skills left out and the Commander skill covering each.
+
+## MIT-Derived Skills (specialist-pack)
+
+`skills/specialist-pack/` holds 24 skills cherry-picked from four MIT repositories, with each license in `skills/specialist-pack/licenses/`: [Jeffallan/claude-skills](https://github.com/Jeffallan/claude-skills) at `67c1961b180dc92cf08983344627109e983e8f51` (18 skills), [wshobson/agents](https://github.com/wshobson/agents) at `9c61ab243def98f72da12abd41cfcf5bcd91af9d` (4), [VoltAgent/awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents) at `ed74d115b7fb7026a22a4f816a8e3250f425e3b4` (1, converted from a subagent to a skill) and [levnikolaevich/claude-code-skills](https://github.com/levnikolaevich/claude-code-skills) at `809845957a79a8e470d97a794ab7f19fa4f246b7` (1). `DECISIONS.md` lists what was added, skipped and edited.
