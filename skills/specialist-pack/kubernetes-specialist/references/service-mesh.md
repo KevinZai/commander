@@ -7,7 +7,7 @@
 ```bash
 # Install Istio CLI
 curl -L https://istio.io/downloadIstio | sh -
-export PATH=$PWD/istio-*/bin:$PATH
+cd istio-*/ && export PATH="$PWD/bin:$PATH" && cd -
 
 # Install Istio with default profile
 istioctl install --set profile=default -y

@@ -219,8 +219,10 @@ pumba netem \
     --rate 1mbit \
   myapp-container
 
-# Stop all containers matching pattern for 2 minutes
-pumba stop --duration 2m "re2:^production-.*"
+# Stop all containers matching a test-only pattern for 2 minutes
+# CCC safety: target only containers in a test or staging environment the user named,
+# with their go-ahead for this run. Never point a pattern at production.
+pumba stop --duration 2m "re2:^chaos-test-.*"
 ```
 
 ## DNS Failure Simulation

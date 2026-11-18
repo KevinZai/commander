@@ -28,6 +28,8 @@ Detailed pattern documentation lives in `references/details.md`. Read that file 
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
+// CCC safety: these tests deploy an attacker contract on a local Hardhat network only.
+// Never run them against a deployed contract or a funded address on a live or public test network.
 describe("Security Tests", function () {
   it("Should prevent reentrancy attack", async function () {
     const [attacker] = await ethers.getSigners();
@@ -48,6 +50,7 @@ describe("Security Tests", function () {
   });
 
   it("Should prevent integer overflow", async function () {
+    const [, attacker] = await ethers.getSigners();
     const Token = await ethers.getContractFactory("SecureToken");
     const token = await Token.deploy();
 

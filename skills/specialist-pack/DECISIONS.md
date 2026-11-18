@@ -71,8 +71,9 @@ License checks: every Jeffallan skill carries `license: MIT` in its own frontmat
 
 - All 24: a `## Source` section appended (repo, path, pinned commit, MIT, license copy location).
 - `elixir-expert`: frontmatter adapted from subagent to skill as described above.
-- No upstream text conflicted with Commander's safety rules (force-push, rebasing a pushed branch, skipped hooks, auto-merge), so no "CCC safety:" replacement was needed. The router repeats those rules as a precedence note.
+- "CCC safety:" notes were added after review: `chaos-engineer/references/infrastructure-chaos.md` (Pumba targets a test-only pattern, not production) and `solidity-security` (attack tests run on a local Hardhat network only). The router repeats Commander's safety rules as a precedence note.
+- Fixes: `kubernetes-specialist/references/service-mesh.md` no longer puts an unexpanded `istio-*` glob in PATH; `solidity-security`'s overflow test defines `attacker` in scope.
 
 ## Not done in this batch
 
-Counts, `commander/contract.json` (`ecosystem_skills`), `registry.yaml`, `_tiers.json`, `ccc-suggest`, README, NOTICE.md, CHANGELOG and the Codex mirror are untouched by instruction; the integration step owns them.
+The worker that copied these skills left counts, `commander/contract.json`, the registry, NOTICE.md, CHANGELOG and the Codex mirror alone. The PR's integration commit updates all of them; `_tiers.json` and `ccc-suggest` are unchanged.
