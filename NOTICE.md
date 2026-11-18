@@ -52,3 +52,7 @@ These toolkit skills only describe how to install and route to upstream projects
 - `skills/mempalace` — [MemPalace/mempalace](https://github.com/MemPalace/mempalace), MIT
 - `skills/qmd` — [tobi/qmd](https://github.com/tobi/qmd), MIT
 - `skills/codebase-memory-mcp` — [DeusData/codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp), MIT
+
+## MIT-Derived Skills (threejs-pack)
+
+`skills/threejs-pack/` holds 13 skills copied from [CloudAI-X/threejs-skills](https://github.com/CloudAI-X/threejs-skills), pinned at `0e181866f095b5f06d005133876e926515390d95`. MIT License, Copyright (c) 2026 CloudAI-X; the full text is in `skills/threejs-pack/LICENSE.txt`. Each SKILL.md ends with a Source section naming its upstream path.
