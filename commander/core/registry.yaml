@@ -4265,8 +4265,6 @@ hooks:
     path: commander/cowork-plugin/hooks/intent-classifier.js
   - id: knowledge-capture
     path: commander/cowork-plugin/hooks/knowledge-capture.js
-  - id: license-check
-    path: commander/cowork-plugin/hooks/license-check.js
   - id: mission-control-feed
     path: commander/cowork-plugin/hooks/mission-control-feed.js
   - id: model-switch-logger
