@@ -44,6 +44,8 @@ node -e 'console.log(JSON.stringify(require(process.argv[1]).writeCompletionMark
   '{"exit_code":0,"files_written":["src/foo.js"],"commit_hash":"abc1234","branch_pushed":false}'
 ```
 
+An id with characters outside `A-Za-z0-9._-` is encoded only in the filename (unsafe characters become `_`, plus a short hash); the payload's `worker_id` keeps the id as given, so progress and completion merge into one worker.
+
 Fields: `worker_id`, `exit_code` (integer, required; a failed worker uses its real non-zero code), `files_written`, `commit_hash` (string or null), `branch_pushed` (boolean or null), `completed_at` (set by the helper). The marker is the hand-off contract for synthesis.
 
 ## Failure isolation

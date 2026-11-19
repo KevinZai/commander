@@ -204,3 +204,30 @@ test('an unknown or invalid run id fails instead of falling back to the current 
   assert.throws(() => fleet.writeCompletionMarker('w1', { exit_code: 0 }, { env, runId: '../escape' }), /runId/);
   assert.ok(!fs.existsSync(path.join(b.runDir, 'w1-complete.json')));
 });
+
+// Codex #302 delta3 NM1: a worker id that needs encoding keeps its logical id in the completion payload, so
+// its progress and completion merge into one worker and the run settles. Only the filename is encoded.
+test('a worker id with a space settles: logical id in the payload, encoded only for the filename', async (t) => {
+  const { env } = lane(t);
+  const { runDir } = fleet.startFleetRun({ env });
+  fleet.emitFleetWorkerProgress({ worker_id: 'documentation worker', status: 'running' }, { env, stream: quiet });
+  const { markerPath, payload } = fleet.writeCompletionMarker('documentation worker', { exit_code: 0 }, { env });
+  assert.equal(payload.worker_id, 'documentation worker');
+  assert.equal(JSON.parse(fs.readFileSync(markerPath, 'utf8')).worker_id, 'documentation worker');
+  assert.match(path.basename(markerPath), /^documentation_worker-[0-9a-f]{8}-complete\.json$/);
+  const { collectFleetState } = await import(pathToFileURL(RENDERER).href);
+  const state = collectFleetState({ stateDir: runDir });
+  assert.deepEqual(state.workers.map((w) => [w.id, w.status]), [['documentation worker', 'done']]);
+  const { diffFleet } = await import(pathToFileURL(path.join(PLUGIN, 'monitors', 'fleet-watch.mjs')).href);
+  const { lines } = diffFleet(new Map(), state);
+  assert.ok(lines.some((l) => l.includes('"event":"settled"') && l.includes('"done":1')), lines.join('\n'));
+});
+
+test('two worker ids that encode alike get separate completion markers', (t) => {
+  const { env } = lane(t);
+  const a = fleet.writeCompletionMarker('a b', { exit_code: 0 }, { env });
+  const b = fleet.writeCompletionMarker('a_b', { exit_code: 1 }, { env });
+  assert.notEqual(a.markerPath, b.markerPath);
+  assert.equal(path.basename(b.markerPath), 'a_b-complete.json', 'a safe id keeps its plain filename');
+  assert.equal(JSON.parse(fs.readFileSync(a.markerPath, 'utf8')).worker_id, 'a b');
+});

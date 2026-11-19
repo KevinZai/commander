@@ -153,8 +153,14 @@ function ensureRunDir(options = {}) {
   return currentRunDir(options) || startFleetRun({ env: options.env }).runDir;
 }
 
-function safeWorkerId(workerId) {
-  return assertString(workerId, 'worker_id').replace(/[^a-zA-Z0-9._-]/g, '_');
+// The filename stem for a worker's marker. A plain id is used as is; an id that needs encoding gets its unsafe
+// characters replaced plus a short hash of the logical id, so `a b` and `a_b` never share a marker. The marker
+// payload always carries the logical id (Codex #302 delta3 NM1): readers merge progress and completion by it.
+function markerStem(workerId) {
+  const id = assertString(workerId, 'worker_id');
+  const safe = id.replace(/[^a-zA-Z0-9._-]/g, '_');
+  if (safe === id) return id;
+  return `${safe}-${crypto.createHash('sha256').update(id).digest('hex').slice(0, 8)}`;
 }
 
 function normalizeProgressEvent(event) {
@@ -193,11 +199,11 @@ function writeCompletionMarker(workerId, completion, options = {}) {
   let root = options.root;
   if (root) fs.mkdirSync(root, { recursive: true, mode: PRIVATE_DIR_MODE });
   else root = ensureRunDir(options);
-  const id = safeWorkerId(workerId);
-  const markerPath = path.join(root, `${id}-complete.json`);
-  const tmpPath = path.join(root, `${id}-complete.${process.pid}.tmp`);
+  const stem = markerStem(workerId);
+  const markerPath = path.join(root, `${stem}-complete.json`);
+  const tmpPath = path.join(root, `${stem}-complete.${process.pid}.tmp`);
   const payload = {
-    worker_id: id,
+    worker_id: workerId,
     exit_code: Number.isInteger(completion.exit_code) ? completion.exit_code : null,
     files_written: normalizeStringArray(completion.files_written, 'files_written'),
     commit_hash: completion.commit_hash || null,
