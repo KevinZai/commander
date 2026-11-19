@@ -449,6 +449,43 @@ assert_inside_config() {
   fi
 }
 
+# ── Claude Code CLI ──────────────────────────────────────────────────────────
+# Global npm installs are opt-in (--install-cli): the installer never adds an unpinned global CLI on its own.
+
+if ! command -v claude &>/dev/null; then
+  cc_section_header "CLAUDE CODE CLI"
+  if $INSTALL_CLI; then
+    echo -e "  ${M_DIM}Claude Code CLI not found. Running: npm install -g @anthropic-ai/claude-code${NC}"
+    npm install -g @anthropic-ai/claude-code
+    cc_status_line "✓" "Claude Code CLI installed"
+  else
+    cc_status_line "!" "Claude Code CLI not found. Install it from https://code.claude.com, or re-run with --install-cli" "$M_AMBER"
+  fi
+fi
+
+# ── Dependencies (before any profile change) ────────────────────────────────
+# The ccc CLI needs this checkout's runtime dependencies. They are installed from the lockfile (npm ci --omit=dev)
+# with npm's errors shown, and a failure stops the install here, before the config dir is touched. A require of
+# commander/tui.js then proves the CLI loads, with or without --skip-deps.
+
+if ! $SKIP_DEPS && [ -f "$SCRIPT_DIR/package.json" ] && [ ! -d "$SCRIPT_DIR/node_modules" ]; then
+  cc_section_header "DEPENDENCIES"
+  command -v npm &>/dev/null || install_fail "npm is required to install the CLI's dependencies (or re-run with --skip-deps after installing them yourself)."
+  if [ -f "$SCRIPT_DIR/package-lock.json" ]; then
+    deps_cmd=(npm ci --omit=dev)
+  else
+    deps_cmd=(npm install --omit=dev)
+  fi
+  cc_status_line "►" "Installing npm dependencies: ${deps_cmd[*]}"
+  if ! (cd "$SCRIPT_DIR" && "${deps_cmd[@]}" >/dev/null); then
+    install_fail "${deps_cmd[*]} failed in $SCRIPT_DIR (npm's errors are above)."
+  fi
+  cc_status_line "✓" "Dependencies installed"
+fi
+if ! smoke_err="$(node -e 'require(process.argv[1])' "$SCRIPT_DIR/commander/tui.js" 2>&1 >/dev/null)"; then
+  install_fail "The ccc CLI does not load (commander/tui.js): ${smoke_err%%$'\n'*}. Run: cd \"$SCRIPT_DIR\" && npm ci --omit=dev"
+fi
+
 # ── Backup ───────────────────────────────────────────────────────────────────
 # Merge installs back up each file they replace, file by file, into BACKUP_DIR; the directory is created only when
 # something is actually replaced. --clean backs up the whole skills/commands/hooks directories before replacing them.
@@ -480,28 +517,6 @@ detect_openclaw() {
 }
 
 detect_openclaw
-
-# ── Claude Code CLI ──────────────────────────────────────────────────────────
-# Global npm installs are opt-in (--install-cli): the installer never adds an unpinned global CLI on its own.
-
-if ! command -v claude &>/dev/null; then
-  cc_section_header "CLAUDE CODE CLI"
-  if $INSTALL_CLI; then
-    echo -e "  ${M_DIM}Claude Code CLI not found. Running: npm install -g @anthropic-ai/claude-code${NC}"
-    npm install -g @anthropic-ai/claude-code
-    cc_status_line "✓" "Claude Code CLI installed"
-  else
-    cc_status_line "!" "Claude Code CLI not found. Install it from https://code.claude.com, or re-run with --install-cli" "$M_AMBER"
-  fi
-fi
-
-# ── Install npm dependencies (if running from git clone) ────────────────────
-
-if ! $SKIP_DEPS && [ -f "$SCRIPT_DIR/package.json" ] && [ ! -d "$SCRIPT_DIR/node_modules" ]; then
-  cc_section_header "DEPENDENCIES"
-  cc_status_line "►" "Installing npm dependencies..."
-  (cd "$SCRIPT_DIR" && npm install --production 2>/dev/null) && cc_status_line "✓" "Dependencies installed" || cc_status_line "!" "npm install failed (ccc may not work — run: cd $SCRIPT_DIR && npm install)"
-fi
 
 # ── Install Components ───────────────────────────────────────────────────────
 # Components are first written to a plan (group, op, source, destination); one node pass then applies the plan,

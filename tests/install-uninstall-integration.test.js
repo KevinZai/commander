@@ -797,3 +797,59 @@ test('install.sh --clean works when ~/.claude is a symlink to a dotfiles folder'
     assert.ok(lstatSync(join(home, '.claude')).isSymbolicLink(), 'the ~/.claude link itself is kept');
   });
 });
+
+// H14: a checkout without node_modules (a symlink farm of this repo, with its own copy of commander/tui.js so
+// module resolution cannot reach the repo's node_modules), driven with a fake npm on PATH.
+function depsFarm(home) {
+  const farm = join(home, 'checkout');
+  mkdirSync(join(farm, 'commander'), { recursive: true });
+  for (const n of readdirSync(REPO_ROOT)) {
+    if (n === 'node_modules' || n === 'commander' || n === 'install.sh' || n === '.git') continue;
+    symlinkSync(join(REPO_ROOT, n), join(farm, n));
+  }
+  for (const n of readdirSync(join(REPO_ROOT, 'commander'))) {
+    if (n === 'tui.js' || n === 'node_modules') continue;
+    symlinkSync(join(REPO_ROOT, 'commander', n), join(farm, 'commander', n));
+  }
+  copyFileSync(join(REPO_ROOT, 'commander', 'tui.js'), join(farm, 'commander', 'tui.js'));
+  copyFileSync(INSTALL_SH, join(farm, 'install.sh'));
+  const bin = join(home, 'fakebin');
+  mkdirSync(bin);
+  writeFileSync(join(bin, 'npm'), `#!/bin/sh\necho "npm $*" >> "${join(home, 'npm.log')}"\necho "npm ERR! fake failure" >&2\nexit 1\n`);
+  chmodSync(join(bin, 'npm'), 0o755);
+  return { farm, path: `${bin}${delimiter}${process.env.PATH}` };
+}
+
+test('dependency failure stops before profile changes', () => {
+  withHome('ccc-install-deps-', (home) => {
+    const { farm, path } = depsFarm(home);
+    const claude = join(home, '.claude');
+    mkdirSync(join(claude, 'skills', 'my-skill'), { recursive: true });
+    writeFileSync(join(claude, 'skills', 'my-skill', 'SKILL.md'), 'mine');
+    const res = spawnSync('bash', [join(farm, 'install.sh'), '--force', '--mode=essentials', '--clean'], {
+      env: hermeticEnv(home, { PATH: path }), encoding: 'utf8', timeout: 120_000, cwd: farm, input: '',
+    });
+    assert.notStrictEqual(res.status, 0, 'install must fail when npm fails');
+    assert.match(readFileSync(join(home, 'npm.log'), 'utf8'), /^npm ci --omit=dev$/m);
+    assert.match(res.stdout, /npm ci --omit=dev failed/);
+    assert.match(res.stdout, /Nothing was changed/);
+    assert.match(res.stderr, /npm ERR! fake failure/, 'npm\'s errors are shown');
+    assert.deepStrictEqual(readdirSync(claude).sort(), ['skills'], '--clean did not run');
+    assert.strictEqual(readFileSync(join(claude, 'skills', 'my-skill', 'SKILL.md'), 'utf8'), 'mine');
+    assert.deepStrictEqual(backupsIn(home), []);
+    assert.ok(!existsSync(join(home, 'bin')), 'the ccc link must not be created');
+  });
+});
+
+test('--skip-deps still refuses a checkout whose CLI does not load', () => {
+  withHome('ccc-install-smoke-', (home) => {
+    const { farm, path } = depsFarm(home);
+    const res = spawnSync('bash', [join(farm, 'install.sh'), '--force', '--mode=essentials', '--skip-deps'], {
+      env: hermeticEnv(home, { PATH: path }), encoding: 'utf8', timeout: 120_000, cwd: farm, input: '',
+    });
+    assert.notStrictEqual(res.status, 0);
+    assert.match(res.stdout, /The ccc CLI does not load \(commander\/tui\.js\)/);
+    assert.ok(!existsSync(join(home, 'npm.log')), 'npm is not run under --skip-deps');
+    assert.ok(!existsSync(join(home, '.claude')), 'nothing written to the profile');
+  });
+});
