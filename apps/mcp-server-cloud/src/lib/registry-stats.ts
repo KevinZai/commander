@@ -5,20 +5,15 @@
 
 import { existsSync } from "node:fs";
 import { readdirSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { getRegistryState } from "./registry.js";
 import { TOOL_NAMES } from "../tools/index.js";
-
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../");
-const PLUGIN_SKILLS_DIR = path.join(ROOT, "commander/cowork-plugin/skills");
-const PLUGIN_AGENTS_DIR = path.join(ROOT, "commander/cowork-plugin/agents");
+import { AGENTS_REL, PLUGIN_SKILLS_REL, contentPath } from "./content-root.js";
 
 let cachedPluginSkills: number | null = null;
 let cachedPluginAgents: number | null = null;
 
-function countMarkdownDirs(dir: string): number {
-  if (!existsSync(dir)) return 0;
+function countMarkdownDirs(dir: string | null): number {
+  if (!dir || !existsSync(dir)) return 0;
   try {
     const entries = readdirSync(dir, { withFileTypes: true });
     let n = 0;
@@ -43,7 +38,7 @@ export function getEcosystemSkillCount(): number {
 
 export function getPluginSkillCount(): number {
   if (cachedPluginSkills !== null) return cachedPluginSkills;
-  cachedPluginSkills = countMarkdownDirs(PLUGIN_SKILLS_DIR);
+  cachedPluginSkills = countMarkdownDirs(contentPath(PLUGIN_SKILLS_REL));
   return cachedPluginSkills;
 }
 
@@ -52,7 +47,7 @@ export function getAgentCount(): number {
   const reg = getRegistryState().agentsLoaded;
   if (reg > 0) return reg;
   if (cachedPluginAgents !== null) return cachedPluginAgents;
-  cachedPluginAgents = countMarkdownDirs(PLUGIN_AGENTS_DIR);
+  cachedPluginAgents = countMarkdownDirs(contentPath(AGENTS_REL));
   return cachedPluginAgents;
 }
 

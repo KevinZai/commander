@@ -55,6 +55,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Offline content smoke
+        run: bash scripts/smoke-offline.sh
+
   deploy:
     name: Deploy to Fly.io
     runs-on: ubuntu-latest
@@ -63,6 +66,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # The image is built from apps/mcp-server-cloud/ only; bundle the
+      # registry, SKILL.md bodies, agents and license files into data/ first.
+      # The Dockerfile fails without data/manifest.json.
+      - name: Bundle content
+        working-directory: apps/mcp-server-cloud
+        run: |
+          node scripts/bundle-catalog.mjs
+          node scripts/bundle-catalog.mjs --verify data
 
       - name: Setup Fly
         uses: superfly/flyctl-actions/setup-flyctl@master
