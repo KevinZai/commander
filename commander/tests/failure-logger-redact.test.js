@@ -141,3 +141,25 @@ test('a long quoted token that runs past the old scan limit is still redacted', 
   const late = 'x'.repeat(17000) + ` GITHUB_TOKEN=${SECRETS.ghToken}`;
   assert.ok(!redactLogText(late, { max: 20000 }).includes(SECRETS.ghToken), 'a secret past 16000 chars leaked');
 });
+
+// Codex #302 delta3 P1: a structured error is redacted by key before it is serialised, so a credential held as an
+// object or a nested array of passwords never reaches the text passes intact.
+test('object-valued credentials and nested password arrays in a structured error are redacted', async () => {
+  const { redactLogText } = await import(pathToFileURL(REDACT).href);
+  const err = {
+    message: 'request failed',
+    credentials: { user: 'svc', secret_value: 'obj-cred-7f3a9c' },
+    config: { passwords: [['nested-pw-1', 'nested-pw-2'], { p: 'nested-pw-3' }], region: 'us-east-1' },
+    auth: { token: { value: 'deep-token-5b8e' } },
+  };
+  const out = redactLogText(err);
+  for (const leak of ['obj-cred-7f3a9c', 'nested-pw-1', 'nested-pw-2', 'nested-pw-3', 'deep-token-5b8e']) {
+    assert.ok(!out.includes(leak), `${leak} survived: ${out}`);
+  }
+  assert.match(out, /request failed/);
+  assert.match(out, /us-east-1/, 'ordinary fields stay');
+  const cyclic = { message: 'loop', password: 'cyc-pw-1' };
+  cyclic.self = cyclic;
+  const c = redactLogText(cyclic);
+  assert.ok(!c.includes('cyc-pw-1'), c);
+});
