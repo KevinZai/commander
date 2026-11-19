@@ -154,16 +154,32 @@ function parseArgs(argv) {
   return opts;
 }
 
+// One spelling per repo file: POSIX separators, normalized, no leading "./".
+// Both the packlist and copies.json go through it, so "./skills/x" and
+// "skills/x" compare equal (Codex #302 H15).
+function canonicalPath(p) {
+  const posix = path.posix.normalize(String(p).replace(/\\/g, '/'));
+  return posix.replace(/^(?:\.\/)+/, '');
+}
+
 // Accepts `npm pack --dry-run --json` output ([{ files: [{ path }] }]) or a
-// plain array of paths. Returns a Set of repo-relative POSIX paths.
+// plain array of paths. Returns a Set of canonical repo-relative paths. Any
+// other shape ({}, an entry without files[], a non-string path) throws, so an
+// unreadable list is treated as "unknown" and every unverified copy as packaged.
 function packlistFromJson(parsed) {
+  if (!Array.isArray(parsed) && !(parsed && typeof parsed === 'object' && Array.isArray(parsed.files))) {
+    throw new Error('packlist must be an array of paths or npm pack --json output');
+  }
   const entries = Array.isArray(parsed) ? parsed : [parsed];
   const files = new Set();
   for (const entry of entries) {
-    if (typeof entry === 'string') files.add(entry.replace(/\\/g, '/'));
-    else if (entry && Array.isArray(entry.files)) {
-      for (const f of entry.files) if (f && typeof f.path === 'string') files.add(f.path.replace(/\\/g, '/'));
-    }
+    if (typeof entry === 'string') files.add(canonicalPath(entry));
+    else if (entry && typeof entry === 'object' && Array.isArray(entry.files)) {
+      for (const f of entry.files) {
+        if (!f || typeof f.path !== 'string') throw new Error('packlist file entry without a string path');
+        files.add(canonicalPath(f.path));
+      }
+    } else throw new Error('packlist entry is neither a path nor { files: [...] }');
   }
   return files;
 }
@@ -233,7 +249,7 @@ function main() {
   }
   const results = classified.map(copy => {
     const packaged = needsPacklist && UNVERIFIED_SPDX.has(copy.spdx)
-      ? (packlist.files ? packlist.files.has(copy.file) : true)
+      ? (packlist.files ? packlist.files.has(canonicalPath(copy.file)) : true)
       : undefined;
     const cls = CLASSIFICATION[copy.spdx];
     if (copy.spdx === 'LicenseRef-Unverified' && packaged) {

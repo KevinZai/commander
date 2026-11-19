@@ -244,6 +244,24 @@ test('an UNKNOWN packaged copy fails and an unreadable file list fails closed', 
   assert.match(broken.stderr, /treating every unverified copy as packaged/);
 });
 
+// Codex #302 H15: path spellings compare canonically, and a packlist of the wrong shape fails closed.
+test('a ./-prefixed or backslash packlist path still counts as packaged', function () {
+  for (const spelling of ['./' + UNVERIFIED_COPY.file, UNVERIFIED_COPY.file.replace(/\//g, '\\'), 'skills/example/./fixture/SKILL.md']) {
+    assert.strictEqual(auditFixture([UNVERIFIED_COPY], npmPackJson([spelling]), ['--check']).status, 1, spelling);
+    assert.strictEqual(auditFixture([UNVERIFIED_COPY], [spelling], ['--check']).status, 1, spelling + ' (plain list)');
+  }
+  const dotCopy = { ...UNVERIFIED_COPY, file: './' + UNVERIFIED_COPY.file };
+  assert.strictEqual(auditFixture([dotCopy], npmPackJson([UNVERIFIED_COPY.file]), ['--check']).status, 1, './ in copies.json');
+});
+
+test('an invalid packlist schema fails closed', function () {
+  for (const bad of [{}, [{}], [{ files: [{ size: 1 }] }], [42], { files: 'x' }]) {
+    const r = auditFixture([UNVERIFIED_COPY], bad, ['--check']);
+    assert.strictEqual(r.status, 1, JSON.stringify(bad) + ' must not let an unverified copy pass');
+    assert.match(r.stderr, /treating every unverified copy as packaged/);
+  }
+});
+
 test('--copies and --packlist reject a missing value and unknown flags', function () {
   const { spawnSync } = require('node:child_process');
   assert.strictEqual(spawnSync(process.execPath, [SCRIPT, '--copies'], { encoding: 'utf8' }).status, 2);
