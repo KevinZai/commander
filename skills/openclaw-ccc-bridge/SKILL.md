@@ -106,7 +106,7 @@ HEALTH=$(echo "$STATUS" | jq -r '.health')
 
 if [ "$HEALTH" = "ok" ]; then
   # Dispatch to CCC
-  ccc --dispatch "$USER_REQUEST" --json --budget 3
+  ccc --dispatch --json --budget 3 -- "$USER_REQUEST"   # a request after "--" is never read as a flag
 else
   # Handle locally
   echo "CCC unavailable, handling directly"

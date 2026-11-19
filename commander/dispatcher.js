@@ -358,6 +358,10 @@ function dispatch(task, options) {
   var fallbackModel = options.fallbackModel !== undefined ? options.fallbackModel : 'sonnet';
   var worktree = options.worktree;
   var name = options.name;
+  var agent = options.agent;
+  if (agent !== undefined && agent !== null && (typeof agent !== 'string' || !require('./lib/dispatch-args').AGENT_RE.test(agent))) {
+    throw new Error('Invalid agent name: ' + String(agent));
+  }
   var stream = options.stream !== false;
   var costCeiling = options.costCeiling != null ? parseFloat(options.costCeiling) : null;
 
@@ -408,6 +412,7 @@ function dispatch(task, options) {
   }
   if (maxBudgetUsd) args.push('--max-budget-usd', String(maxBudgetUsd));
   if (name) args.push('--name', name);
+  if (agent) args.push('--agent', agent);
   if (worktree) args.push('--worktree', worktree);
   if (jsonSchema) args.push('--json-schema', JSON.stringify(jsonSchema));
   if (allowedTools && allowedTools.length > 0) args.push('--allowedTools', allowedTools.join(','));

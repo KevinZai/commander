@@ -141,7 +141,8 @@ function handleInvokeAgent(args) {
     agent: name,
     task: task,
     note: 'Local mode: use Claude Code /ccc-' + name + ' with the task context below.',
-    dispatch: { command: 'ccc', argv: ['--dispatch', task, '--agent', name] },
+    // The task follows "--", so a task that starts with "-" is never read as a ccc option.
+    dispatch: { command: 'ccc', argv: ['--dispatch', '--agent', name, '--', task] },
   };
 }
 

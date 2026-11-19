@@ -205,7 +205,7 @@ describe('commander_invoke_agent dispatch hint', () => {
     const task = 'fix "it"; rm -rf ~ $(whoami) `id`';
     const { isError, body } = await rpc('commander_invoke_agent', { name: 'reviewer', task });
     assert.equal(isError, false);
-    assert.deepEqual(body.dispatch, { command: 'ccc', argv: ['--dispatch', task, '--agent', 'reviewer'] });
+    assert.deepEqual(body.dispatch, { command: 'ccc', argv: ['--dispatch', '--agent', 'reviewer', '--', task] });
     assert.equal(body.dispatchHint, undefined, 'no shell-string hint');
   });
 
