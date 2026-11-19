@@ -4,8 +4,19 @@
 
 var test = require('node:test');
 var assert = require('node:assert');
+var fs = require('fs');
+var os = require('os');
 var path = require('path');
 var spawnSync = require('child_process').spawnSync;
+
+// Codex #302 delta3 NM4: this suite must never write the operator's profile (savings ledger, telemetry state).
+// The lane and HOME point at a temp dir before any Commander module resolves its paths; children inherit them.
+var tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-dispatch-args-'));
+process.env.HOME = tmp;
+process.env.USERPROFILE = tmp;
+process.env.CCC_CONFIG_DIR = path.join(tmp, 'lane');
+var LEDGER = path.join(tmp, 'lane', 'commander', 'savings.json');
+test.after(function() { fs.rmSync(tmp, { recursive: true, force: true }); });
 
 var da = require('../lib/dispatch-args');
 var dispatcher = require('../dispatcher');
@@ -51,4 +62,20 @@ test('dispatcher passes --agent to Claude Code', function() {
 test('the MCP dispatch hint puts the task after "--" and keeps --agent', function() {
   var hint = server.HANDLERS.commander_invoke_agent({ name: 'reviewer', task: '--help' });
   assert.deepStrictEqual(hint.dispatch.argv, ['--dispatch', '--agent', 'reviewer', '--', '--help']);
+});
+
+test('the savings ledger resolves inside the temp lane, never the operator profile', function() {
+  fs.mkdirSync(path.dirname(LEDGER), { recursive: true });
+  var real = function(p) { return path.join(fs.realpathSync(path.dirname(p)), path.basename(p)); };
+  assert.strictEqual(real(require('../lib/lane').statePath('savings.json')), real(LEDGER));
+});
+
+test('a dry-run or rejected dispatch records nothing in the savings ledger', function() {
+  try { fs.rmSync(LEDGER, { force: true }); } catch (_e) {}
+  dispatcher.dispatch('review it', { agent: 'reviewer', sync: false, bare: true, stream: false });
+  assert.throws(function() { dispatcher.dispatch('x', { agent: 'bad name', sync: false }); }, /agent/);
+  assert.throws(function() { dispatcher.dispatch('x', { agent: 'bad name' }); }, /agent/);
+  var over = dispatcher.dispatch('x', { sync: false, costCeiling: 0.000001, model: 'opus', maxTurns: 30 });
+  assert.ok(over.error || over.command, 'cost-gated dry run returns');
+  assert.strictEqual(fs.existsSync(LEDGER), false, 'no fictional dispatch was recorded');
 });

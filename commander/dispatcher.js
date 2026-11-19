@@ -327,10 +327,11 @@ function checkCostCeiling(task, options, costCeilingUsd) {
   return { allowed: true, reason: 'within-threshold', estimate: estimate };
 }
 
-function dispatch(task, options) {
-  if (!options) options = {};
+// Telemetry and the savings ledger count a dispatch only once it is validated, passed the cost gate and is
+// about to run: a rejected agent name, a cost-gated task or a sync:false command preview records nothing
+// (Codex #302 delta3 NM4). Savings are an estimate (±30%).
+function recordDispatchAccounting(task, options) {
   try { require('./lib/telemetry-cjs').track('cli_agent_dispatched', { model: options.model || 'sonnet', effort: options.effort || 'medium' }); } catch(_e) {}
-  // v6.0 savings tracking: estimate tokens then record (ESTIMATE ±30%)
   try {
     var _savings = require('./lib/savings');
     var _maxTurns = options.maxTurns || 30;
@@ -344,6 +345,10 @@ function dispatch(task, options) {
     else if (_modelStr.includes('opus')) _mKey = 'opus';
     _savings.recordDispatch({ modelKey: _mKey, inputTokens: Math.round(_inputTok), outputTokens: _outputTok });
   } catch(_e) {}
+}
+
+function dispatch(task, options) {
+  if (!options) options = {};
   var sync = options.sync !== undefined ? options.sync : true;
   var maxTurns = options.maxTurns || 30;
   var resume = options.resume;
@@ -425,6 +430,7 @@ function dispatch(task, options) {
 
   if (stream) {
     validateCwd(cwd);
+    recordDispatchAccounting(task, options);
     var childProc = null;
     var promise = new Promise(function(resolve, reject) {
       childProc = childProcess.spawn(command, args, {
@@ -529,6 +535,7 @@ function dispatch(task, options) {
 
   // Silent mode (stream=false): batch JSON for background jobs
   validateCwd(cwd);
+  recordDispatchAccounting(task, options);
   try {
     var stdout = childProcess.execFileSync(command, args, {
       encoding: 'utf8', maxBuffer: 50 * 1024 * 1024, timeout: 10 * 60 * 1000,
