@@ -904,6 +904,36 @@ test('--mode=config fresh install registers no status line', () => {
   });
 });
 
+// Codex #302 NEW HIGH 2: --replace-existing backs up a guard or status line of the user's and uninstall restores it.
+// If the fresh settings.json registered that path, the restore would activate a script that never ran before, so a
+// replaced file is left unregistered and uninstall leaves the settings without a reference to the restored file.
+test('fresh settings do not register a guard or status line that replaced a file of the user\'s', () => {
+  withHome('ccc-install-replaced-guard-', (home) => {
+    const claude = join(home, '.claude');
+    mkdirSync(join(claude, 'hooks'), { recursive: true });
+    mkdirSync(join(claude, 'lib'), { recursive: true });
+    const mineGuard = 'process.exit(0) // a dormant guard of mine\n';
+    const mineLine = '#!/bin/sh\necho my dormant status line\n';
+    writeFileSync(join(claude, 'hooks', 'careful-guard.js'), mineGuard);
+    writeFileSync(join(claude, 'lib', 'statusline.sh'), mineLine);
+    const res = install(home, ['--mode=full', '--skills=essential', '--replace-existing']);
+    ok(res, 'install');
+    assert.notStrictEqual(readFileSync(join(claude, 'hooks', 'careful-guard.js'), 'utf8'), mineGuard, 'replaced');
+    const cmds = guardCmds(claude);
+    assert.ok(!cmds.some((c) => c.includes('careful-guard')), 'a replaced guard is not registered: ' + cmds.join(' | '));
+    assert.ok(cmds.some((c) => c.includes('confidence-gate')), 'an unreplaced guard is registered');
+    assert.match(res.stdout, /Guard hook left inactive — careful-guard: it replaced a file of yours/);
+    assert.match(res.stdout, /Status line left inactive — lib\/statusline\.sh: it replaced a file of yours/);
+    const s = JSON.parse(readFileSync(join(claude, 'settings.json'), 'utf8'));
+    assert.strictEqual(s.statusLine, undefined);
+    ok(uninstall(home), 'uninstall');
+    assert.strictEqual(readFileSync(join(claude, 'hooks', 'careful-guard.js'), 'utf8'), mineGuard, 'restored');
+    assert.strictEqual(readFileSync(join(claude, 'lib', 'statusline.sh'), 'utf8'), mineLine, 'restored');
+    assert.ok(!guardCmds(claude).some((c) => c.includes('careful-guard')), 'the restored guard stays dormant');
+    assert.strictEqual(JSON.parse(readFileSync(join(claude, 'settings.json'), 'utf8')).statusLine, undefined);
+  });
+});
+
 test('--mode=config fresh install registers no absent guards', () => {
   withHome('ccc-install-config-guards-', (home) => {
     const claude = join(home, '.claude');

@@ -1123,6 +1123,7 @@ if should_install "claude-md" || should_install "settings"; then
       # Render hook paths for this config dir, as the hooks config is: "$HOME/.claude/hooks/x.js" -> "<config dir>/hooks/x.js".
       # A guard hook is registered only when this install wrote it and it verifies: the manifest records it with the
       # shipped content hash, the installed file has that hash, and hooks/ is a real directory inside the config dir.
+      # A guard or status line that replaced a file of the user's (--replace-existing) is not registered either.
       # A pre-existing guard the installer declined to manage, one under a symlinked hooks/, or a guard whose
       # component was not selected (--mode=config) is reported and left inactive (Codex #302).
       # The registered guards stay wrapped in `if [ -f … ]`, so they block (exit 2) and become no-ops after uninstall.
@@ -1141,6 +1142,9 @@ function installedProblem(dirName, fileName, component) {
   var rec = manifest && (manifest.entries || []).find(function(e) { return e.type === 'file' && e.path === rel; });
   if (!rec) return 'not written by this install (an existing file, a skipped ' + dirName + '/ dir, or the ' + component + ' component was not selected)';
   if (rec.sha !== shipped) return 'the recorded copy is not the shipped version';
+  // --replace-existing backed up a file of the user's here; uninstall restores it, and a registration would then run
+  // a script that never ran before (Codex #302).
+  if (rec.backup) return 'it replaced a file of yours (--replace-existing), which uninstall restores; register it yourself if you want it';
   var dir = path.join(root, dirName), st;
   try { st = fs.lstatSync(dir); } catch (_e) { return dirName + '/ is missing'; }
   if (st.isSymbolicLink() || !st.isDirectory()) return dirName + '/ is a symlink or not a directory';
