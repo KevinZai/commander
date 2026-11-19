@@ -265,6 +265,14 @@ test('a profile path through a non-directory is refused by the installer and the
     assert.strictEqual(lane.resolveLane(denv).problem, 'dangling');
     for (const p of [lane.statePath('fleet-hold.json', denv), laneState.stateDir(denv)]) assert.ok(p.startsWith(join(home, 'dang') + '/'), p);
     assert.throws(() => hold.set({ env: denv, reason: 'x' }), /cannot be resolved safely/);
+    // A profile that is itself a dangling link never falls back to the legacy copy.
+    mkdirSync(join(home, '.claude', 'commander'), { recursive: true });
+    writeFileSync(join(home, '.claude', 'commander', 'fleet-hold.json'), '{"hold":true}');
+    symlinkSync(join(home, 'gone'), join(home, '.claude-ai9'));
+    const genv = { HOME: home, CLAUDE_CONFIG_DIR: join(home, '.claude-ai9') };
+    assert.strictEqual(lane.resolveLane(genv).problem, 'dangling');
+    assert.ok(lane.readable('fleet-hold.json', genv).startsWith(join(home, '.claude-ai9')));
+    assert.ok(laneState.readablePath('fleet-hold.json', genv).startsWith(join(home, '.claude-ai9')));
   });
 });
 

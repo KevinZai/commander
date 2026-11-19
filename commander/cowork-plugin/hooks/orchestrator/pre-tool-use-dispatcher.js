@@ -32,6 +32,7 @@
  * Agent/Task calls, after the decision, and never changes it.
  */
 import { fork } from 'node:child_process';
+import { writeSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { isMainModule } from '../lib/code-mode.mjs';
 import { emitSilent, emitUser, emitDeny } from '../lib/emit.mjs';
@@ -75,7 +76,8 @@ export class Runner {
   start() {
     // No inherited execArgv (a test preload or --inspect); the child gets this process's env as it is now.
     const c = fork(fileURLToPath(new URL('./pre-tool-use-worker.mjs', import.meta.url)), [],
-      { stdio: ['ignore', 'ignore', 'ignore', 'ipc'], execArgv: [], env: { ...process.env } });
+      // detached: its own process group, so a kill takes anything the handler started with it.
+      { stdio: ['ignore', 'ignore', 'ignore', 'ipc'], execArgv: [], env: { ...process.env }, detached: process.platform !== 'win32' });
     const failAll = (message) => {
       if (this.child === c) this.child = null;
       for (const [id, p] of this.pending) {
@@ -112,7 +114,7 @@ export class Runner {
   }
 
   static drop(c) {
-    try { c.kill('SIGKILL'); } catch {}
+    try { if (process.platform !== 'win32' && c.pid) process.kill(-c.pid, 'SIGKILL'); else c.kill('SIGKILL'); } catch { try { c.kill('SIGKILL'); } catch {} }
     try { c.disconnect(); } catch {}
     c.unref();
   }
@@ -200,6 +202,11 @@ export async function dispatch(input, handlers = HANDLERS) {
   }
 }
 
+/** Write a short reason to stderr synchronously (fd 2), so it lands before the exit. */
+function require2stderr(text) {
+  writeSync(2, String(text).slice(0, 1000) + '\n');
+}
+
 /** Strict stdin JSON: anything unparseable becomes null (and is denied), never {}. */
 async function readInput() {
   const chunks = [];
@@ -218,20 +225,29 @@ export async function main(handlers = HANDLERS) {
   let answered = false;
   let delivered = false;
   let gotInput = false;
+  let reason = 'CCC: the PreToolUse dispatcher could not deliver its decision, so this call is blocked.';
+  // Exit 2 with a reason on stderr: both Claude Code and Codex read that as "block this call".
+  const fail = () => {
+    try { require2stderr(reason); } catch {}
+    process.exit(2);
+  };
   const answer = (out) => {
     if (answered) return false;
     answered = true;
-    process.stdout.write(JSON.stringify(out) + '\n', (err) => {
-      delivered = !err;
-      process.exit(err ? 2 : 0);
-    });
+    if (out?.hookSpecificOutput?.permissionDecision === 'deny') reason = out.hookSpecificOutput.permissionDecisionReason || reason;
+    try {
+      process.stdout.write(JSON.stringify(out) + '\n', (err) => {
+        delivered = !err;
+        if (err) fail(); else process.exit(0);
+      });
+    } catch { fail(); }
     return true;
   };
   setTimeout(() => {
     runner.kill();
     answer(gotInput ? guardFailed('', `no decision in ${WATCHDOG_MS} ms`) : emitDeny(`CCC: the tool call's hook input did not arrive within ${WATCHDOG_MS} ms, so it is blocked.`));
   }, WATCHDOG_MS).unref();
-  setTimeout(() => process.exit(delivered ? 0 : 2), EXIT_MS).unref();
+  setTimeout(() => (delivered ? process.exit(0) : fail()), EXIT_MS).unref();
   let out;
   try {
     const input = await readInput();

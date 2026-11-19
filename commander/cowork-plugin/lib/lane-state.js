@@ -105,10 +105,25 @@ function legacyStateDir(env) {
   return path.join(homeOf(envOf(env)), '.claude', 'commander');
 }
 
+/**
+ * Is a missing path missing only because a link on the way points nowhere (or the path is such a link)?
+ * Then it names a profile that is broken, not absent, and must not fall back to the legacy copy.
+ */
+function danglingAlong(p) {
+  for (var cur = p; ; cur = path.dirname(cur)) {
+    try {
+      if (fs.lstatSync(cur).isSymbolicLink()) { try { fs.statSync(cur); } catch (e) { return true; } }
+      return false; // the nearest existing component resolves
+    } catch (_e) { /* missing: look one level up */ }
+    if (path.dirname(cur) === cur) return false;
+  }
+}
+
 // Lane path when it exists or fails with anything but ENOENT; else the legacy
 // path when that exists; else the lane path (a fresh lane).
 function preferLane(own, legacy) {
   try { fs.statSync(own); return own; } catch (e) { if (e.code !== 'ENOENT') return own; }
+  if (danglingAlong(own)) return own;
   return fs.existsSync(legacy) ? legacy : own;
 }
 
@@ -156,6 +171,7 @@ function readableHookDataPath(rel, env) {
   if (!dir) return readablePath(rel, env);
   var own = path.join(dir, rel);
   try { fs.statSync(own); return own; } catch (e) { if (e.code !== 'ENOENT') return own; }
+  if (danglingAlong(own)) return own;
   var earlier = readablePath(rel, env);
   return fs.existsSync(earlier) ? earlier : own;
 }

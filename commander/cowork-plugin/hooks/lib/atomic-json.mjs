@@ -7,8 +7,9 @@
  * applies `mutate`, writes a temp file and renames it over the target, then releases the lock.
  *
  * Lock policy: wait up to `waitMs` (default 400 ms, polled every few ms). A lock holds "<pid>:<token>"; it is broken when
- * that process is gone, or when it is older than `staleMs` (default 30 s, well past any hook's timeout, so a
- * live writer's lock is never taken). Release removes the lock only while it still holds this writer's token. When the lock still can't be had
+ * that process is gone, or, when it holds no readable pid, once it is older than `staleMs` (default 2 s). A
+ * live writer's lock is never taken. Release removes the lock only while it still holds this writer's token
+ * (the check and the unlink are two steps; a lock is only ever broken once its writer is gone). When the lock still can't be had
  * the update proceeds unlocked (hooks must not stall the tool call, and the temp-file rename still guarantees no
  * reader ever sees a torn file), unless `requireLock` is set, which throws instead. The result says which
  * happened (`locked: true|false`). With `strict`, only a missing file starts from `fallback()`; a file that is
@@ -33,7 +34,10 @@ async function acquire(lockFile, { waitMs, staleMs }) {
     }
     try {
       const st = await stat(lockFile);
-      if (Date.now() - st.mtimeMs > staleMs || await ownerGone(lockFile)) {
+      const owner = await lockOwner(lockFile);
+      // A lock whose writer is gone is broken at once; one with no readable owner (a writer that died between
+      // creating and writing it) after staleMs. A live writer's lock is never taken, however old.
+      if (owner === 'gone' || (owner === 'unknown' && Date.now() - st.mtimeMs > staleMs)) {
         await unlink(lockFile).catch(() => {});
         continue;
       }
@@ -45,12 +49,13 @@ async function acquire(lockFile, { waitMs, staleMs }) {
   }
 }
 
-/** The lock's writer (a pid other than ours) no longer runs. */
-async function ownerGone(lockFile) {
+/** 'gone' (its writer's pid no longer runs), 'live', or 'unknown' (no readable pid). */
+async function lockOwner(lockFile) {
   let pid;
-  try { pid = Number(String(await readFile(lockFile, 'utf8')).trim().split(':')[0]); } catch { return false; }
-  if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid) return false;
-  try { process.kill(pid, 0); return false; } catch (err) { return err?.code === 'ESRCH'; }
+  try { pid = Number(String(await readFile(lockFile, 'utf8')).trim().split(':')[0]); } catch { return 'unknown'; }
+  if (!Number.isInteger(pid) || pid <= 0) return 'unknown';
+  if (pid === process.pid) return 'live';
+  try { process.kill(pid, 0); return 'live'; } catch (err) { return err?.code === 'ESRCH' ? 'gone' : 'live'; }
 }
 
 /** Write JSON through a unique temp file and rename, so a concurrent reader sees the old or the new file, never half. */
@@ -76,7 +81,7 @@ async function release(lockFile, token) {
   try { if (String(await readFile(lockFile, 'utf8')) === token) await unlink(lockFile); } catch {}
 }
 
-export async function updateJson(file, mutate, { fallback = () => ({}), waitMs = 400, staleMs = 30000, strict = false, requireLock = false } = {}) {
+export async function updateJson(file, mutate, { fallback = () => ({}), waitMs = 400, staleMs = 2000, strict = false, requireLock = false } = {}) {
   await mkdir(dirname(file), { recursive: true });
   const lockFile = `${file}.lock`;
   const token = await acquire(lockFile, { waitMs, staleMs });

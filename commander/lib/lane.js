@@ -44,7 +44,10 @@ var DOTDOT = process.platform === 'win32' ? /(^|[\\/])\.\.([\\/]|$)/ : /(^|\/)\.
 // A path the OS cannot open (through a non-directory, EACCES, ELOOP) becomes a dir under the component it stops
 // at, so every state path built from it fails the same way instead of path.join normalizing it elsewhere.
 function physicalConfigDir(raw) {
-  if (!DOTDOT.test(String(raw))) return { dir: path.resolve(raw), problem: null };
+  if (!DOTDOT.test(String(raw))) {
+    var dir = path.resolve(raw);
+    return { dir: dir, problem: danglingAlong(dir) ? 'dangling' : null };
+  }
   var r = profilePath.resolvePhysical(raw);
   var blocked = profilePath.blockedDir(r);
   if (blocked) return { dir: blocked, problem: r.problem };
@@ -127,6 +130,20 @@ function resolveLane(env) {
   };
 }
 
+/**
+ * Is a missing path missing only because a link on the way points nowhere (or the path is such a link)?
+ * Then it names a profile that is broken, not absent, and must not fall back to the legacy copy.
+ */
+function danglingAlong(p) {
+  for (var cur = p; ; cur = path.dirname(cur)) {
+    try {
+      if (fs.lstatSync(cur).isSymbolicLink()) { try { fs.statSync(cur); } catch (e) { return true; } }
+      return false; // the nearest existing component resolves
+    } catch (_e) { /* missing: look one level up */ }
+    if (path.dirname(cur) === cur) return false;
+  }
+}
+
 /** The pre-lane shared state dir (~/.claude/commander). */
 function legacyStateDir(env) {
   return path.join(homeOf(env || process.env), '.claude', 'commander');
@@ -146,6 +163,7 @@ function readable(name, env) {
   // Fall back to the legacy copy only when the lane copy is absent. Any other error (EACCES, ENOTDIR) keeps the lane
   // path so the caller's read fails and pause controls such as fleet-hold.json fail closed.
   try { fs.statSync(own); return own; } catch (e) { if (e.code !== 'ENOENT') return own; }
+  if (danglingAlong(own)) return own;
   var legacy = path.join(legacyStateDir(env), name);
   return fs.existsSync(legacy) ? legacy : own;
 }

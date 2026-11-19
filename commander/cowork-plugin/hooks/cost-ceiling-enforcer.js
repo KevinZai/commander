@@ -38,11 +38,12 @@ const CCC_DIR = stateDir();
 const CONFIG_FILE = readablePath('config.json');
 
 
-/** toolCalls and estimatedCost, when present, are what cost-tracker.js writes: a count and its unit cost. */
+/** A counter as cost-tracker.js writes it: a toolCalls count, and estimatedCost when present. */
 export function validCounter(c) {
   const count = (v) => Number.isInteger(v) && v >= 0;
   if (!c || typeof c !== 'object' || Array.isArray(c)) return false;
-  if ('toolCalls' in c && !count(c.toolCalls)) return false;
+  // An existing counter always has its count: a file without one was damaged, not started.
+  if (!count(c.toolCalls)) return false;
   if ('estimatedCost' in c && !(typeof c.estimatedCost === 'number' && Number.isFinite(c.estimatedCost) && c.estimatedCost >= 0)) return false;
   return true;
 }

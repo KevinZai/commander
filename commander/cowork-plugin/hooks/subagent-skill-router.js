@@ -224,7 +224,15 @@ function savedRouteMode() {
 // a decision. A mention later on that line, a later line (a quoted
 // ticket, a summary's history) or the description cannot silence or replace
 // the hint.
-const PRE_RUN_LINE = /^CCC pre-run(?: \(CC Commander [\w.+-]{1,32}\))?: (?:before you start, (?:load |check your skill list )|load \/ccc-|no CCC skill fits this task[;.] )/;
+// The whole line must be one of the generated forms, so "CCC pre-run: before you start, load the dishwasher" is not.
+const SK = String.raw`(?:\/|\$|commander:)ccc[\w-]+`;
+const SKS = `${SK}(?:, (?:then )?${SK})*`;
+const PRE_RUN_LINE = new RegExp(String.raw`^CCC pre-run(?: \(CC Commander [\w.+-]{1,32}\))?: (?:` + [
+  String.raw`no CCC skill fits this task(?:; work without one\.|\. Work without one; do not open the \/ccc menu\.)`,
+  `load ${SKS} where it fits this task\\. Do not load other CCC skills\\. .*`,
+  `before you start, load ${SKS} (?:with the Skill tool )?and follow it where it fits this task\\. .*`,
+  `before you start, check your skill list for one of ${SKS} that fits this task and load it\\. .*`,
+].join('|') + ')$');
 const DECIDED = /^\s*(?:[/$]ccc[\w-]*(?![\w/-])|\/?commander:ccc[\w-]*(?![\w/-]))/;
 
 function firstLine(text) {

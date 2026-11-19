@@ -166,6 +166,13 @@ function stripQuoted(text) {
   let prevBlank = true; // an indented code block starts after a blank line (or at the top)
   let span = 0; // backtick count of a code span still open from an earlier line of this paragraph
   // Blank code spans of any backtick length, including one that runs on from (or into) another line.
+  // Does a run of exactly n backticks close the span later in this paragraph? If not, the opening run is
+  // literal text (CommonMark), not the start of a code span.
+  const closesLater = (idx, n) => {
+    for (let k = idx + 1; k < lines.length && lines[k].trim(); k++) if (findRun(lines[k], 0, n) >= 0) return true;
+    return false;
+  };
+  let lineNo = -1;
   const inline = (line) => {
     let out = '';
     let i = 0;
@@ -183,12 +190,17 @@ function stripQuoted(text) {
       if (!r) return out + line.slice(i);
       const len = r[0].length;
       const close = findRun(line, r.index + len, len);
-      if (close < 0) { span = len; return out + line.slice(i, r.index) + blank(line.slice(r.index)); }
+      if (close < 0) {
+        if (!closesLater(lineNo, len)) { out += line.slice(i, r.index + len); i = r.index + len; continue; }
+        span = len;
+        return out + line.slice(i, r.index) + blank(line.slice(r.index));
+      }
       out += line.slice(i, r.index) + blank(line.slice(r.index, close + len));
       i = close + len;
     }
   };
-  const out = lines.map((line) => {
+  const out = lines.map((line, idx) => {
+    lineNo = idx;
     const wasBlank = prevBlank;
     prevBlank = !line.trim();
     if (fence) {

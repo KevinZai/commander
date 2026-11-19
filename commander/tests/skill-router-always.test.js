@@ -612,7 +612,7 @@ test('round 5: generated pre-run lines only, multiline code spans, damaged count
   const { coordinatorDecided } = await import('../cowork-plugin/hooks/subagent-skill-router.js');
   assert.equal(coordinatorDecided('CCC pre-run notes need proofreading'), false);
   assert.equal(coordinatorDecided('CCC pre-run: no CCC skill fits this task; work without one.'), true);
-  assert.equal(coordinatorDecided('CCC pre-run (CC Commander 8.1.7): load /ccc-testing where it fits this task.'), true);
+  assert.equal(coordinatorDecided('CCC pre-run (CC Commander 8.1.7): load /ccc-testing where it fits this task. Do not load other CCC skills. Use the skill.'), true);
   const { scoreTask } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
   const has = (t) => scoreTask(t, routes).some((c) => c.route.id === 'ccc-testing');
   assert.equal(has('Summarize this:\n``write unit tests\nfor the cart reducer`` please'), false);
@@ -627,4 +627,42 @@ test('round 5: generated pre-run lines only, multiline code spans, damaged count
   const big = mergeOutputs([{ hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: 'x'.repeat(300000) } }]);
   assert.equal(big.hookSpecificOutput.permissionDecision, 'deny');
   assert.ok(JSON.stringify(big).length < MAX_TEXT * 3, 'a deny stays small');
+});
+
+test('round 6: undeliverable answers exit 2 with a reason; killed handlers take their children; exact pre-run lines', async () => {
+  const { spawn } = await import('node:child_process');
+  const disp = join(HOOKS, 'orchestrator', 'pre-tool-use-dispatcher.js');
+  const r = await new Promise((resolve) => {
+    const c = spawn(process.execPath, [disp], { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, CCC_COST_CEILING: '0' } });
+    c.stdout.destroy();
+    let err = '';
+    c.stderr.on('data', (d) => { err += d; });
+    c.on('exit', (code) => resolve({ code, err }));
+    c.stdin.end(JSON.stringify({ tool_name: 'Read', tool_input: {} }));
+  });
+  assert.equal(r.code, 2);
+  assert.match(r.err, /blocked/);
+
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-kids-'));
+  try {
+    const marker = join(dir, 'grandchild-ran');
+    const h = join(dir, 'h.mjs');
+    writeFileSync(h, `import { spawnSync } from 'node:child_process'; export function run() { spawnSync(process.execPath, ['-e', 'setTimeout(() => require("fs").writeFileSync(${JSON.stringify(marker)}, "x"), 2500)']); return {}; }`);
+    const script = `import(${JSON.stringify(pathToFileURL(disp).href)}).then((m) => m.main([{ name: 'cost-tracker', file: ${JSON.stringify(pathToFileURL(h).href)}, role: 'budget', ms: 500 }]))`;
+    const out = spawnSync(process.execPath, ['-e', script], { input: JSON.stringify({ tool_name: 'Read', tool_input: {} }), encoding: 'utf8', env: { ...process.env, CCC_COST_CEILING: '0' } });
+    assert.equal(out.status, 0);
+    await new Promise((res) => setTimeout(res, 3000));
+    if (process.platform !== 'win32') assert.ok(!existsSync(marker), 'the killed handler\'s child was killed too');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+
+  const { coordinatorDecided } = await import('../cowork-plugin/hooks/subagent-skill-router.js');
+  assert.equal(coordinatorDecided('CCC pre-run: before you start, load the dishwasher.'), false);
+  const { pick } = await import('../cowork-plugin/lib/route-task.mjs');
+  for (const t of ['Write unit tests for the cart reducer', 'Summarize the meeting notes']) assert.equal(coordinatorDecided(pick(t, routes).prompt_block), true, t);
+  const { scoreTask } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
+  assert.ok(scoreTask('Use a ` here. Write unit tests for the cart reducer', routes).some((c) => c.route.id === 'ccc-testing'), 'a lone backtick is literal');
+  const { validCounter } = await import('../cowork-plugin/hooks/cost-ceiling-enforcer.js');
+  assert.equal(validCounter({ sessionId: 'x', estimatedCost: 2, ceilingWarnedAt: 'now' }), false, 'a counter without its count is damaged');
 });
