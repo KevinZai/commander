@@ -10,11 +10,21 @@ var fs = require('fs');
 var path = require('path');
 
 // Absolute real path of an existing directory, or throws with the reason.
+// The path is resolved as supplied by the OS (realpath(3)): `..` after a symlink
+// is the link target's parent. path.resolve and the JS fs.realpathSync both
+// collapse `..` lexically first, which on macOS turns /var/.. into / instead of
+// /private (Codex #302 delta3 NH2).
 function normalizeRoot(dir, base) {
   if (dir == null || String(dir).trim() === '') throw new Error('No project directory given.');
-  var abs = path.resolve(base || process.cwd(), String(dir));
+  var supplied = String(dir);
+  var abs = supplied;
+  if (!path.isAbsolute(supplied)) {
+    var from = base ? String(base) : process.cwd();
+    if (!path.isAbsolute(from)) from = process.cwd() + path.sep + from;
+    abs = from + path.sep + supplied;
+  }
   var real;
-  try { real = fs.realpathSync(abs); } catch (_e) {
+  try { real = fs.realpathSync.native(abs); } catch (_e) {
     throw new Error('Project directory does not exist: ' + abs);
   }
   if (!fs.statSync(real).isDirectory()) throw new Error('Project path is not a directory: ' + real);

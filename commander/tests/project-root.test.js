@@ -14,8 +14,47 @@ var path = require('path');
 
 var tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-project-root-'));
 process.env.CCC_CONFIG_DIR = path.join(tmp, 'config');
-delete process.env.LINEAR_API_KEY;
+process.env.HOME = tmp; // modules that still write ~/.claude/commander write the temp home
+process.env.USERPROFILE = tmp;
 delete process.env.CCC_TMUX_SESSION;
+
+// Codex #302 delta3 NH3: no credential may reach the real Linear API from this suite. Every
+// variable the integration reads is cleared, and any outbound request is recorded and refused,
+// so a request that slips through fails the last test instead of being swallowed by the engine.
+['CC_LINEAR_TOKEN', 'LINEAR_DEV_TOKEN_PERSONAL', 'LINEAR_API_KEY_PERSONAL', 'LINEAR_API_KEY',
+  'KC_LINEAR_PROJECT', 'KC_LINEAR_TEAM'].forEach(function(k) { delete process.env[k]; });
+var outbound = [];
+function refuse(label) {
+  return function() {
+    outbound.push(label);
+    throw new Error('project-root.test: outbound network refused (' + label + ')');
+  };
+}
+['http', 'https'].forEach(function(name) {
+  var mod = require(name);
+  mod.request = refuse(name + '.request');
+  mod.get = refuse(name + '.get');
+});
+require('net').connect = require('net').createConnection = refuse('net.connect');
+require('tls').connect = refuse('tls.connect');
+globalThis.fetch = function() { outbound.push('fetch'); return Promise.reject(new Error('outbound network refused (fetch)')); };
+// The Linear integration itself is replaced by a recorder before the engine loads it.
+var linearCalls = [];
+(function stubLinear() {
+  var Module = require('module');
+  var file = require.resolve('../integrations/linear');
+  var stub = new Proxy({}, {
+    get: function(_t, name) {
+      if (typeof name !== 'string' || name === 'then') return undefined;
+      return function() { linearCalls.push(name); return Promise.resolve(null); };
+    }
+  });
+  var m = new Module(file, module);
+  m.filename = file;
+  m.loaded = true;
+  m.exports = stub;
+  require.cache[file] = m;
+})();
 
 var projectRoot = require('../lib/project-root');
 var state = require('../state');
@@ -63,6 +102,19 @@ async function quietly(fn) {
 test('normalizeRoot returns the absolute real path and rejects a missing directory', function() {
   assert.strictEqual(projectRoot.normalizeRoot('project-a', tmp), dirA);
   assert.throws(function() { projectRoot.normalizeRoot(path.join(tmp, 'gone')); }, /does not exist/);
+});
+
+// Codex #302 delta3 NH2: `..` after a symlink is resolved physically (the link target's parent),
+// never collapsed lexically first (on macOS /var/.. is /private, not /).
+test('normalizeRoot resolves .. after a symlink physically, as supplied', { skip: process.platform === 'win32' }, function() {
+  var parent = fs.realpathSync(fs.mkdtempSync(path.join(tmp, 'physical-')));
+  fs.mkdirSync(path.join(parent, 'real', 'inner'), { recursive: true });
+  var link = path.join(tmp, 'link-to-inner');
+  fs.symlinkSync(path.join(parent, 'real', 'inner'), link);
+  var expected = path.join(parent, 'real');
+  assert.strictEqual(projectRoot.normalizeRoot(link + '/..'), expected);
+  assert.strictEqual(projectRoot.normalizeRoot('link-to-inner/..', tmp), expected);
+  assert.strictEqual(projectRoot.checkStoredRoot(link + '/..').dir, expected);
 });
 
 test('a relative stored root is refused, never re-resolved against the current directory', function() {
@@ -133,4 +185,9 @@ test('the YOLO loop and open-project store and use the absolute root', function(
   assert.match(yolo, /cwd: yoloRoot\.dir/, 'YOLO cycles run in the project root');
   var infra = fs.readFileSync(path.join(__dirname, '..', 'actions', 'infra.js'), 'utf8');
   assert.match(infra, /normalizeRoot\(project\.dir\)/, 'open_project stores the absolute root');
+});
+
+test('no test in this file made an outbound network request', function() {
+  assert.ok(linearCalls.indexOf('syncSession') !== -1, 'the engine used the stubbed Linear integration');
+  assert.deepStrictEqual(outbound, []);
 });
