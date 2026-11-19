@@ -68,6 +68,7 @@ function resolvePhysical(p, opts) {
   var real = function(x) { return xfs.realpathSync.native ? xfs.realpathSync.native(x) : xfs.realpathSync(x); };
   if (typeof p !== 'string' || !p) return { path: null, problem: 'empty' };
   var problem = UNSAFE.test(p) ? 'control' : null;
+  var blocked = null; // the first dangling link, for blockedDir()
   var rest, cur;
   if (P.isAbsolute(p)) {
     var root = rootOf(p, f);
@@ -99,13 +100,13 @@ function resolvePhysical(p, opts) {
       }
       // Only ENOENT means "missing from here"; any other error (ENOTDIR, EACCES, ELOOP) is not a path to act on.
       if (!err || err.code !== 'ENOENT') return { path: asWritten, problem: problem || 'unresolvable', blocked: next };
-      try { xfs.lstatSync(next); problem = problem || 'dangling'; } catch (_e) { /* truly missing */ }
+      try { xfs.lstatSync(next); if (!problem) { problem = 'dangling'; blocked = next; } } catch (_e) { /* truly missing */ }
     }
     missing++;
     cur = next;
   }
   if (UNSAFE.test(cur)) problem = problem || 'control';
-  return { path: cur, problem: problem };
+  return blocked ? { path: cur, problem: problem, blocked: blocked } : { path: cur, problem: problem };
 }
 
 /** A dir under the component the OS stops at: any path built under it fails as the original path does. */

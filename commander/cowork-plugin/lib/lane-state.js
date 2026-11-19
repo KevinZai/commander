@@ -79,6 +79,7 @@ function physicalDir(p) {
         continue;
       }
       if (!err || err.code !== 'ENOENT') return blocked(next);                 // ENOTDIR, EACCES, ELOOP
+      try { fs.lstatSync(next); return blocked(next); } catch (_e) { /* truly missing */ }   // a dangling link
     }
     missing++;
     cur = next;

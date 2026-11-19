@@ -48,7 +48,7 @@ function physicalConfigDir(raw) {
   var r = profilePath.resolvePhysical(raw);
   var blocked = profilePath.blockedDir(r);
   if (blocked) return { dir: blocked, problem: r.problem };
-  return { dir: r.path || path.resolve(raw), problem: null };
+  return { dir: r.path || path.resolve(raw), problem: r.problem || null };
 }
 
 function homeOf(env) {
@@ -123,7 +123,7 @@ function resolveLane(env) {
     source: source,
     known: known,
     aliased: aliased,
-    problem: phys.problem, // 'notdir' | 'unresolvable' when the config dir cannot be opened; else null
+    problem: phys.problem, // the resolver's problem ('notdir', 'unresolvable', 'dangling', 'control'); else null
   };
 }
 

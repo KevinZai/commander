@@ -517,19 +517,22 @@ test('with a ceiling set, an unreadable budget counter blocks the call', async (
   }
 });
 
-test('PreToolUse dispatcher: a handler that blocks synchronously cannot hold the process past its deadline', () => {
+test('PreToolUse dispatcher: a handler blocked in JavaScript or a native call cannot hold the process past its deadline', () => {
   const dir = mkdtempSync(join(tmpdir(), 'ccc-busy-'));
   try {
     const busy = join(dir, 'busy.mjs');
     writeFileSync(busy, "export function run() { const e = Date.now() + 9000; while (Date.now() < e) {} return { systemMessage: 'late' }; }");
+    const native = join(dir, 'native.mjs');
+    writeFileSync(native, "import { spawnSync } from 'node:child_process'; export function run() { spawnSync(process.execPath, ['-e', 'setTimeout(() => {}, 9000)']); return { systemMessage: 'late' }; }");
     const disp = pathToFileURL(join(HOOKS, 'orchestrator', 'pre-tool-use-dispatcher.js')).href;
-    const handlers = `[{ name: 'cost-tracker', file: ${JSON.stringify(pathToFileURL(busy).href)}, role: 'budget', ms: 400 }, { name: 'secret-leak-guard', file: '../secret-leak-guard.js', role: 'enforce', ms: 2500 }]`;
-    for (const [ceiling, denied] of [['0', false], ['5', true]]) {
+    for (const [file, ceiling, denied] of [[busy, '0', false], [busy, '5', true], [native, '0', false], [native, '5', true]]) {
+      const handlers = `[{ name: 'cost-tracker', file: ${JSON.stringify(pathToFileURL(file).href)}, role: 'budget', ms: 400 }, { name: 'secret-leak-guard', file: '../secret-leak-guard.js', role: 'enforce', ms: 2500 }]`;
       const t0 = Date.now();
       const r = spawnSync(process.execPath, ['-e', `import(${JSON.stringify(disp)}).then((m) => m.main(${handlers}))`],
         { input: JSON.stringify({ tool_name: 'Write', tool_input: { file_path: 'a', content: 'hello' } }), encoding: 'utf8', env: { ...process.env, CCC_COST_CEILING: ceiling }, timeout: 15000 });
       assert.ok(Date.now() - t0 < 3000, `exited after ${Date.now() - t0} ms`);
-      assert.equal(JSON.parse(r.stdout)?.hookSpecificOutput?.permissionDecision === 'deny', denied, `ceiling ${ceiling}`);
+      assert.equal(r.status, 0);
+      assert.equal(JSON.parse(r.stdout)?.hookSpecificOutput?.permissionDecision === 'deny', denied, `${file} ceiling ${ceiling}`);
     }
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -539,7 +542,7 @@ test('PreToolUse dispatcher: a handler that blocks synchronously cannot hold the
 test('the coordinator decision is the start of the prompt only; a matched queue decision is honoured', async () => {
   const { coordinatorDecided, recordAgentCall } = await import('../cowork-plugin/hooks/subagent-skill-router.js');
   assert.equal(coordinatorDecided('/ccc-testing for the cart reducer'), true);
-  assert.equal(coordinatorDecided('CCC pre-run: no CCC skill fits'), true);
+  assert.equal(coordinatorDecided('CCC pre-run: no CCC skill fits this task; work without one.'), true);
   assert.equal(coordinatorDecided('Summarize the /ccc-testing discussion'), false, 'a mention is not a decision');
   const dir = mkdtempSync(join(tmpdir(), 'ccc-decide-'));
   const prev = process.env.CCC_CONFIG_DIR;
@@ -603,4 +606,25 @@ test('the tool-call ceiling: a corrupt counter or unreadable config blocks; the 
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('round 5: generated pre-run lines only, multiline code spans, damaged counters, capped answers', async () => {
+  const { coordinatorDecided } = await import('../cowork-plugin/hooks/subagent-skill-router.js');
+  assert.equal(coordinatorDecided('CCC pre-run notes need proofreading'), false);
+  assert.equal(coordinatorDecided('CCC pre-run: no CCC skill fits this task; work without one.'), true);
+  assert.equal(coordinatorDecided('CCC pre-run (CC Commander 8.1.7): load /ccc-testing where it fits this task.'), true);
+  const { scoreTask } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
+  const has = (t) => scoreTask(t, routes).some((c) => c.route.id === 'ccc-testing');
+  assert.equal(has('Summarize this:\n``write unit tests\nfor the cart reducer`` please'), false);
+  assert.equal(has('Write unit tests for the `cart` reducer'), true);
+  const { validCounter } = await import('../cowork-plugin/hooks/cost-ceiling-enforcer.js');
+  assert.equal(validCounter({ toolCalls: 3, estimatedCost: 0.03 }), true);
+  assert.equal(validCounter({ toolCalls: 'many' }), false);
+  assert.equal(validCounter({ toolCalls: -1 }), false);
+  const { envCeiling } = await import('../cowork-plugin/hooks/orchestrator/budget-config.mjs');
+  assert.deepEqual(['5', 'off', '0', 'junk', ''].map(envCeiling), [5, 0, 0, undefined, undefined]);
+  const { mergeOutputs, MAX_TEXT } = await import('../cowork-plugin/hooks/orchestrator/pre-tool-use-dispatcher.js');
+  const big = mergeOutputs([{ hookSpecificOutput: { permissionDecision: 'deny', permissionDecisionReason: 'x'.repeat(300000) } }]);
+  assert.equal(big.hookSpecificOutput.permissionDecision, 'deny');
+  assert.ok(JSON.stringify(big).length < MAX_TEXT * 3, 'a deny stays small');
 });

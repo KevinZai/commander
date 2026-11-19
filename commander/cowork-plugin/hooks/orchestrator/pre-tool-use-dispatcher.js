@@ -15,9 +15,10 @@
  * if nobody spoke the output is silent.
  *
  * Failure policy (hooks.json sets onFailure "block" with an 8 s timeout, so this process must answer in
- * time and must not crash). The handlers run in a worker thread (pre-tool-use-worker.mjs); this thread
- * only keeps the clock, so a deadline holds even when a handler blocks synchronously. A handler that
- * misses its deadline has its worker terminated, and the next step gets a fresh worker. Each deadline
+ * time and must not crash). The handlers run in a child process (pre-tool-use-worker.mjs, IPC only); this
+ * process only keeps the clock, so a deadline holds even when a handler blocks in synchronous or native
+ * code. A handler that misses its deadline gets the child SIGKILLed (never waited for), and the next step
+ * gets a fresh child. Each deadline
  * covers the handler's import and its run:
  *   cost-tracker and cost-ceiling-enforcer (budget, 1.5 s and 2.5 s): an error or timeout denies the
  *     call when a tool-call ceiling is configured (and CCC_COST_OVERRIDE is not 1), and passes when
@@ -25,11 +26,13 @@
  *     counts as configured when it fails.
  *   secret-leak-guard (enforce, 2.5 s): an error or timeout denies a call it scans.
  * Every step is also cut to what is left of a 6.5 s total, and a watchdog answers with a deny at 7.2 s,
- * so the answer always lands inside the hook timeout. main() lets opted-in telemetry flush within that
- * window, then exits. Input that is not a JSON object is denied. The subagent router runs only for
+ * so the answer always lands inside the hook timeout; a message is capped at 4,000 characters. main()
+ * exits 0 only once the answer is fully written (2 otherwise), and the child flushes opted-in telemetry
+ * on its own after that. Input that is not a JSON object is denied. The subagent router runs only for
  * Agent/Task calls, after the decision, and never changes it.
  */
-import { Worker } from 'node:worker_threads';
+import { fork } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { isMainModule } from '../lib/code-mode.mjs';
 import { emitSilent, emitUser, emitDeny } from '../lib/emit.mjs';
 import { budgetConfigured } from './budget-config.mjs';
@@ -61,65 +64,77 @@ function budgetFailed(why) {
 
 class Timeout extends Error {}
 
-/** Runs tasks in one worker thread at a time; a task that misses its deadline terminates that worker. */
+/**
+ * Runs tasks in one child process at a time (IPC only; its stdio is ignored, so nothing it starts can hold
+ * this hook's stdout open). A task that misses its deadline gets the child SIGKILLed, which works even in a
+ * synchronous native call, and this process never waits for a killed child.
+ */
 export class Runner {
-  constructor() { this.worker = null; this.seq = 0; this.pending = new Map(); }
+  constructor() { this.child = null; this.seq = 0; this.pending = new Map(); }
 
   start() {
-    // No inherited execArgv (a test preload or --inspect): the worker sees this process's env as it is now.
-    const w = new Worker(new URL('./pre-tool-use-worker.mjs', import.meta.url), { execArgv: [] });
+    // No inherited execArgv (a test preload or --inspect); the child gets this process's env as it is now.
+    const c = fork(fileURLToPath(new URL('./pre-tool-use-worker.mjs', import.meta.url)), [],
+      { stdio: ['ignore', 'ignore', 'ignore', 'ipc'], execArgv: [], env: { ...process.env } });
     const failAll = (message) => {
-      if (this.worker === w) this.worker = null;
+      if (this.child === c) this.child = null;
       for (const [id, p] of this.pending) {
-        if (p.w !== w) continue;
+        if (p.c !== c) continue;
         this.pending.delete(id);
         p.reject(new Error(message));
       }
     };
-    w.on('message', ({ id, ok, value, message }) => {
-      const p = this.pending.get(id);
-      if (!p) return;
-      this.pending.delete(id);
-      if (ok) p.resolve(value); else p.reject(new Error(message));
+    c.on('message', (msg) => {
+      const p = msg && this.pending.get(msg.id);
+      if (!p || p.c !== c) return;
+      this.pending.delete(msg.id);
+      if (msg.ok) p.resolve(msg.value); else p.reject(new Error(msg.message));
     });
-    w.on('error', (err) => failAll(err?.message || 'worker error'));
-    w.on('exit', () => failAll('worker exited'));
-    this.worker = w;
-    return w;
+    c.on('error', (err) => failAll(err?.message || 'worker error'));
+    c.on('exit', () => failAll('worker exited'));
+    this.child = c;
+    return c;
   }
 
   call(task, ms) {
-    const w = this.worker || this.start();
+    const c = this.child || this.start();
     const id = ++this.seq;
     let timer;
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject, w });
+      this.pending.set(id, { resolve, reject, c });
       timer = setTimeout(() => {
         this.pending.delete(id);
         this.kill();
         reject(new Timeout(`no answer in ${ms} ms`));
       }, Math.max(0, ms));
-      w.postMessage({ id, ...task });
+      try { c.send({ id, ...task }); } catch (err) { this.pending.delete(id); reject(err); }
     }).finally(() => clearTimeout(timer));
   }
 
-  kill() {
-    const w = this.worker;
-    this.worker = null;
-    if (w) w.terminate().catch(() => {});
+  static drop(c) {
+    try { c.kill('SIGKILL'); } catch {}
+    try { c.disconnect(); } catch {}
+    c.unref();
   }
 
-  /** Let the worker flush telemetry and exit on its own, for at most ms; then terminate it. */
-  close(ms = 0) {
-    const w = this.worker;
-    this.worker = null;
-    if (!w) return Promise.resolve();
-    if (ms <= 0) return w.terminate().then(() => {}, () => {});
-    return new Promise((resolve) => {
-      const timer = setTimeout(() => { w.terminate().finally(resolve); }, ms);
-      w.once('exit', () => { clearTimeout(timer); resolve(); });
-      w.postMessage({ kind: 'flush' });
-    });
+  kill() {
+    const c = this.child;
+    this.child = null;
+    if (c) Runner.drop(c);
+  }
+
+  /**
+   * Done with the child. With flush, it sends any queued opted-in telemetry and exits on its own (it keeps
+   * running after this process exits, bounded by telemetry's send timeout); without, it is killed.
+   */
+  close(flush = false) {
+    const c = this.child;
+    this.child = null;
+    if (!c) return;
+    if (!flush) return Runner.drop(c);
+    try { c.send({ kind: 'flush' }); } catch {}
+    try { c.disconnect(); } catch {}
+    c.unref();
   }
 }
 
@@ -133,11 +148,17 @@ export const HANDLERS = Object.freeze([
 const ROUTER = { file: '../subagent-skill-router.js' };
 const href = (file) => new URL(file, import.meta.url).href;
 
+export const MAX_TEXT = 4000; // characters per message, so the answer stays far below a pipe buffer
+const clip = (t) => (typeof t === 'string' && t.length > MAX_TEXT ? t.slice(0, MAX_TEXT - 1) + '…' : t);
+
 export function mergeOutputs(outputs) {
   const deny = outputs.find((o) => o?.hookSpecificOutput?.permissionDecision === 'deny');
-  if (deny) return deny;
+  if (deny) {
+    const reason = clip(deny.hookSpecificOutput.permissionDecisionReason || deny.systemMessage || 'blocked by a CCC hook');
+    return emitDeny(reason);
+  }
   const messages = outputs.map((o) => o?.systemMessage).filter((m) => typeof m === 'string' && m.trim());
-  return messages.length ? emitUser(messages.join(' · ')) : emitSilent();
+  return messages.length ? emitUser(clip(messages.join(' · '))) : emitSilent();
 }
 
 async function decide(input, handlers, runner, t0) {
@@ -175,7 +196,7 @@ export async function dispatch(input, handlers = HANDLERS) {
   try {
     return await decide(input, handlers, runner, Date.now());
   } finally {
-    await runner.close(0);
+    runner.close(false);
   }
 }
 
@@ -186,30 +207,41 @@ async function readInput() {
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { return null; }
 }
 
-/** Read stdin, answer inside the hook timeout, let telemetry flush in what is left, and exit. */
+/**
+ * Read stdin, answer inside the hook timeout, and exit. The exit code is 0 only once the whole answer has
+ * been handed to stdout; an answer that could not be delivered by the hard deadline exits 2 (a hook failure,
+ * which onFailure "block" turns into a refused call), never a truncated success.
+ */
 export async function main(handlers = HANDLERS) {
   const t0 = Date.now();
   const runner = new Runner();
   let answered = false;
+  let delivered = false;
+  let gotInput = false;
   const answer = (out) => {
     if (answered) return false;
     answered = true;
-    process.stdout.write(JSON.stringify(out) + '\n');
+    process.stdout.write(JSON.stringify(out) + '\n', (err) => {
+      delivered = !err;
+      process.exit(err ? 2 : 0);
+    });
     return true;
   };
-  const exit = () => process.stdout.write('', () => process.exit(0));
-  setTimeout(() => { answer(guardFailed('', `no decision in ${WATCHDOG_MS} ms`)); runner.kill(); exit(); }, WATCHDOG_MS).unref();
-  setTimeout(() => process.exit(0), EXIT_MS).unref();
+  setTimeout(() => {
+    runner.kill();
+    answer(gotInput ? guardFailed('', `no decision in ${WATCHDOG_MS} ms`) : emitDeny(`CCC: the tool call's hook input did not arrive within ${WATCHDOG_MS} ms, so it is blocked.`));
+  }, WATCHDOG_MS).unref();
+  setTimeout(() => process.exit(delivered ? 0 : 2), EXIT_MS).unref();
   let out;
   try {
     const input = await readInput();
+    gotInput = true;
     out = await decide(input, handlers, runner, t0);
   } catch (err) {
     out = guardFailed('', err?.message || 'dispatcher error');
   }
-  if (!answer(out)) return;
-  await runner.close(Math.max(0, EXIT_MS - 300 - (Date.now() - t0)));
-  exit();
+  runner.close(true);
+  answer(out);
 }
 
 if (isMainModule(import.meta.url)) main();

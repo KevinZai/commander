@@ -148,8 +148,14 @@ const WINDOW_STEP = 450;
 // or window is read, and the result is cut at TASK_CHARS.
 // A heading, list item or thematic break: it ends a blockquote's lazy continuation.
 const BLOCK_START = /^ {0,3}(?:#{1,6}(?:\s|$)|[-*+]\s|\d{1,9}[.)]\s|(?:[-*_]\s*){3,}$)/;
-// An inline code span: a run of N backticks closed by a run of exactly N.
-const INLINE_CODE = /(?<!`)(`+)(?!`)(?:.*?[^`])?\1(?!`)/g;
+// Index of the next run of exactly n backticks at or after from, or -1. A code span of N backticks closes
+// only on a run of exactly N.
+function findRun(line, from, n) {
+  const re = /`+/g;
+  re.lastIndex = from;
+  for (let r = re.exec(line); r; r = re.exec(line)) if (r[0].length === n) return r.index;
+  return -1;
+}
 
 function stripQuoted(text) {
   const blank = (m) => m.replace(/[^\n]/g, ' ');
@@ -158,6 +164,30 @@ function stripQuoted(text) {
   let quote = false; // inside a blockquote paragraph (lazy continuation lines count)
   let code = false; // inside an indented code block
   let prevBlank = true; // an indented code block starts after a blank line (or at the top)
+  let span = 0; // backtick count of a code span still open from an earlier line of this paragraph
+  // Blank code spans of any backtick length, including one that runs on from (or into) another line.
+  const inline = (line) => {
+    let out = '';
+    let i = 0;
+    if (span) {
+      const close = findRun(line, 0, span);
+      if (close < 0) return blank(line);
+      out += blank(line.slice(0, close + span));
+      i = close + span;
+      span = 0;
+    }
+    for (;;) {
+      const m = /`+/g;
+      m.lastIndex = i;
+      const r = m.exec(line);
+      if (!r) return out + line.slice(i);
+      const len = r[0].length;
+      const close = findRun(line, r.index + len, len);
+      if (close < 0) { span = len; return out + line.slice(i, r.index) + blank(line.slice(r.index)); }
+      out += line.slice(i, r.index) + blank(line.slice(r.index, close + len));
+      i = close + len;
+    }
+  };
   const out = lines.map((line) => {
     const wasBlank = prevBlank;
     prevBlank = !line.trim();
@@ -166,7 +196,7 @@ function stripQuoted(text) {
       if (close && close[1][0] === fence.ch && close[1].length >= fence.len) fence = null;
       return '';
     }
-    if (!line.trim()) { quote = false; return line; }
+    if (!line.trim()) { quote = false; span = 0; return line; }
     // Four spaces or a tab after a blank line (or continuing such a block) is an indented code block.
     if (/^(?: {4}|\t)/.test(line) && (code || (wasBlank && !quote))) { code = true; return ''; }
     code = false;
@@ -176,7 +206,8 @@ function stripQuoted(text) {
     // A lazy quote line is paragraph text; a heading, list item or rule starts a new block.
     if (quote && !BLOCK_START.test(line)) return '';
     quote = false;
-    return line.replace(INLINE_CODE, blank).replace(/https?:\/\/\S+/g, blank);
+    if (span && BLOCK_START.test(line)) span = 0;
+    return inline(line).replace(/https?:\/\/\S+/g, blank);
   });
   return out.join('\n').slice(0, TASK_CHARS);
 }

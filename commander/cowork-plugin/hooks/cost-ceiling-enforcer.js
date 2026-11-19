@@ -31,18 +31,20 @@ import { join } from 'node:path';
 import { readablePath, stateDir } from '../lib/lane-state.js';
 import { setting, settingSource } from '../lib/plugin-options.js';
 import { isMainModule } from './lib/code-mode.mjs';
+import { envCeiling } from './orchestrator/budget-config.mjs';
 import { readStdinJson } from './lib/session-key.mjs';
 
 const CCC_DIR = stateDir();
 const CONFIG_FILE = readablePath('config.json');
 
-/** Ceiling from CCC_COST_CEILING: a positive number, 0 for off, or undefined when unset/invalid. */
-function envCeiling(value) {
-  if (value === undefined || value.trim() === '') return undefined;
-  const v = value.trim().toLowerCase();
-  if (v === 'off') return 0;
-  const n = Number(v);
-  return Number.isFinite(n) && n >= 0 ? n : undefined;
+
+/** toolCalls and estimatedCost, when present, are what cost-tracker.js writes: a count and its unit cost. */
+export function validCounter(c) {
+  const count = (v) => Number.isInteger(v) && v >= 0;
+  if (!c || typeof c !== 'object' || Array.isArray(c)) return false;
+  if ('toolCalls' in c && !count(c.toolCalls)) return false;
+  if ('estimatedCost' in c && !(typeof c.estimatedCost === 'number' && Number.isFinite(c.estimatedCost) && c.estimatedCost >= 0)) return false;
+  return true;
 }
 
 export async function run(input = {}) {
@@ -84,6 +86,8 @@ export async function run(input = {}) {
       // No cost file yet: the budget is 0. Any other failure means the count is unknown.
       if (err?.code !== 'ENOENT') throw err;
     }
+    // A counter the tracker did not write (a damaged field) is unknown, not zero.
+    if (costData && !validCounter(costData)) throw new Error('tool-call counter is damaged');
     const currentCost = costData?.estimatedCost || 0;
 
     if (currentCost >= ceiling) {

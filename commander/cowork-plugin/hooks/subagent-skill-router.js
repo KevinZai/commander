@@ -84,7 +84,8 @@ function mkdirOne(p) {
 
 /** Read a queue entry only when it is a regular file, never through a symlink. */
 function readEntry(file) {
-  const fd = openSync(file, FS.O_RDONLY | (FS.O_NOFOLLOW || 0));
+  // Nonblocking, so a FIFO planted under an entry's name cannot stall the hook before fstat rejects it.
+  const fd = openSync(file, FS.O_RDONLY | (FS.O_NOFOLLOW || 0) | (FS.O_NONBLOCK || 0));
   try {
     if (!fstatSync(fd).isFile()) throw new Error('not a file');
     return JSON.parse(readFileSync(fd, 'utf8'));
@@ -135,7 +136,9 @@ export function recordAgentCall(input = {}, env = process.env) {
     if (!dir) return emitSilent();
     const name = `${String(Date.now()).padStart(15, '0')}-${process.pid}-${seq++}-${slug(input.tool_use_id) || 'call'}.json`;
     const tmp = join(dir, `.${name}.tmp`);
-    writeFileSync(tmp, JSON.stringify({ type: String(ti.subagent_type || DEFAULT_AGENT_TYPE), hashes, named, routes }), { mode: 0o600 });
+    // Exclusive create: an existing file or link under the temp name is an error, never written through.
+    writeFileSync(tmp, JSON.stringify({ type: String(ti.subagent_type || DEFAULT_AGENT_TYPE), hashes, named, routes }), { mode: 0o600, flag: 'wx' });
+    if (!ownQueue(input.session_id)) { try { unlinkSync(tmp); } catch {} return emitSilent(); }
     renameSync(tmp, join(dir, name));
   } catch {
     // routing state is best-effort
@@ -194,7 +197,10 @@ export function claimTask(input = {}, own = '') {
     try { entry = readEntry(file); } catch { continue; }
     if ((entry.type || DEFAULT_AGENT_TYPE) !== type) continue;
     if (own && !sameTask(entry, own)) continue;
-    // The rename is the claim: only one concurrent SubagentStart wins it.
+    // The rename is the claim: only one concurrent SubagentStart wins it. The queue dir is checked again
+    // right before; Node has no dirfd-relative rename, so a swap in between remains possible but needs
+    // write access to this user's state dir, and an entry holds only route ids and hashes.
+    if (!ownQueue(input.session_id)) return claimed;
     try { renameSync(file, `${file}.claimed`); } catch { continue; }
     try { unlinkSync(`${file}.claimed`); } catch {}
     claimed = { named: entry.named === true, routes: Array.isArray(entry.routes) ? entry.routes : [] };
@@ -212,11 +218,14 @@ function savedRouteMode() {
 }
 
 // The coordinator's decision comes first in the prompt field: a first line
-// that starts with "CCC pre-run" or with a CCC skill name (slash, dollar or
-// commander: form). A mention later on that line, a later line (a quoted
+// that is one of the pre-run lines Commander generates (route-task.mjs,
+// ccc next, ccc-fleet-run), or that starts with a CCC skill name (slash,
+// dollar or commander: form). Prose that merely begins "CCC pre-run" is not
+// a decision. A mention later on that line, a later line (a quoted
 // ticket, a summary's history) or the description cannot silence or replace
 // the hint.
-const DECIDED = /^\s*(?:CCC pre-run\b|[/$]ccc[\w-]*(?![\w/-])|\/?commander:ccc[\w-]*(?![\w/-]))/;
+const PRE_RUN_LINE = /^CCC pre-run(?: \(CC Commander [\w.+-]{1,32}\))?: (?:before you start, (?:load |check your skill list )|load \/ccc-|no CCC skill fits this task[;.] )/;
+const DECIDED = /^\s*(?:[/$]ccc[\w-]*(?![\w/-])|\/?commander:ccc[\w-]*(?![\w/-]))/;
 
 function firstLine(text) {
   return String(text || '').replace(/^\s+/, '').split('\n')[0] || '';
@@ -224,7 +233,8 @@ function firstLine(text) {
 
 /** Did the coordinator already decide this worker's skill? Only the start of the prompt's first line counts. */
 export function coordinatorDecided(text) {
-  return DECIDED.test(firstLine(text));
+  const line = firstLine(text);
+  return PRE_RUN_LINE.test(line) || DECIDED.test(line);
 }
 
 /** Rebuild scored candidates from a queued entry's route ids. */

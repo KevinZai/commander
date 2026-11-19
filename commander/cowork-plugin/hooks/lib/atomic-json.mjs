@@ -6,8 +6,9 @@
  * (Codex audit #26). updateJson() takes an exclusive lock file (`<file>.lock`, created with O_EXCL), reads,
  * applies `mutate`, writes a temp file and renames it over the target, then releases the lock.
  *
- * Lock policy: wait up to `waitMs` (default 400 ms, polled every few ms). A lock is broken when the process that
- * wrote it (its pid) is gone, or when it is older than `staleMs` (default 5 s). When the lock still can't be had
+ * Lock policy: wait up to `waitMs` (default 400 ms, polled every few ms). A lock holds "<pid>:<token>"; it is broken when
+ * that process is gone, or when it is older than `staleMs` (default 30 s, well past any hook's timeout, so a
+ * live writer's lock is never taken). Release removes the lock only while it still holds this writer's token. When the lock still can't be had
  * the update proceeds unlocked (hooks must not stall the tool call, and the temp-file rename still guarantees no
  * reader ever sees a torn file), unless `requireLock` is set, which throws instead. The result says which
  * happened (`locked: true|false`). With `strict`, only a missing file starts from `fallback()`; a file that is
@@ -21,12 +22,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function acquire(lockFile, { waitMs, staleMs }) {
   const deadline = Date.now() + waitMs;
+  const token = `${process.pid}:${randomBytes(8).toString('hex')}`;
   for (;;) {
     try {
       const fh = await open(lockFile, 'wx');
-      await fh.writeFile(String(process.pid));
-      await fh.close();
-      return true;
+      try { await fh.writeFile(token); } finally { await fh.close(); }
+      return token;
     } catch (err) {
       if (err && err.code !== 'EEXIST') return false;
     }
@@ -47,7 +48,7 @@ async function acquire(lockFile, { waitMs, staleMs }) {
 /** The lock's writer (a pid other than ours) no longer runs. */
 async function ownerGone(lockFile) {
   let pid;
-  try { pid = Number(String(await readFile(lockFile, 'utf8')).trim()); } catch { return false; }
+  try { pid = Number(String(await readFile(lockFile, 'utf8')).trim().split(':')[0]); } catch { return false; }
   if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid) return false;
   try { process.kill(pid, 0); return false; } catch (err) { return err?.code === 'ESRCH'; }
 }
@@ -70,10 +71,16 @@ export async function writeJsonAtomic(file, value) {
  * missing or unreadable) and returns the next value, or `undefined` to leave the file untouched.
  * Returns { value, written, locked }.
  */
-export async function updateJson(file, mutate, { fallback = () => ({}), waitMs = 400, staleMs = 5000, strict = false, requireLock = false } = {}) {
+/** Remove the lock only while it is still ours (another writer may have broken and retaken it). */
+async function release(lockFile, token) {
+  try { if (String(await readFile(lockFile, 'utf8')) === token) await unlink(lockFile); } catch {}
+}
+
+export async function updateJson(file, mutate, { fallback = () => ({}), waitMs = 400, staleMs = 30000, strict = false, requireLock = false } = {}) {
   await mkdir(dirname(file), { recursive: true });
   const lockFile = `${file}.lock`;
-  const locked = await acquire(lockFile, { waitMs, staleMs });
+  const token = await acquire(lockFile, { waitMs, staleMs });
+  const locked = token !== false;
   if (requireLock && !locked) throw new Error(`could not lock ${file}`);
   try {
     let current;
@@ -92,6 +99,6 @@ export async function updateJson(file, mutate, { fallback = () => ({}), waitMs =
     await writeJsonAtomic(file, next);
     return { value: next, written: true, locked };
   } finally {
-    if (locked) await unlink(lockFile).catch(() => {});
+    if (locked) await release(lockFile, token);
   }
 }

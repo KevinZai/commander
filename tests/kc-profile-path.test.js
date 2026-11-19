@@ -259,6 +259,12 @@ test('a profile path through a non-directory is refused by the installer and the
     assert.throws(() => hold.set({ env, reason: 'x' }), /cannot be resolved safely/);
     assert.throws(() => hold.clear({ env }), /cannot be resolved safely/);
     assert.ok(!existsSync(join(home, 'prof', 'commander')), 'nothing written under prof/');
+    // A dangling link in the path is refused the same way, not normalized into a sibling profile.
+    symlinkSync(join(home, 'nowhere'), join(home, 'dang'));
+    const denv = { HOME: home, CLAUDE_CONFIG_DIR: `${home}/dang/../prof` };
+    assert.strictEqual(lane.resolveLane(denv).problem, 'dangling');
+    for (const p of [lane.statePath('fleet-hold.json', denv), laneState.stateDir(denv)]) assert.ok(p.startsWith(join(home, 'dang') + '/'), p);
+    assert.throws(() => hold.set({ env: denv, reason: 'x' }), /cannot be resolved safely/);
   });
 });
 

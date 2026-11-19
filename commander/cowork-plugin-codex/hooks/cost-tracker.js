@@ -21,6 +21,7 @@ import { join } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
 import { updateJson } from './lib/atomic-json.mjs';
 import { isMainModule } from './lib/code-mode.mjs';
+import { validCounter } from './cost-ceiling-enforcer.js';
 
 const SESSIONS_DIR = join(stateDir(), 'sessions');
 
@@ -35,7 +36,9 @@ export async function run(input = {}) {
     const SESSION_KEY = sessionKey(input);
     const COST_FILE = join(SESSIONS_DIR, `active-cost-${SESSION_KEY}.json`);
     const { value: costData } = await updateJson(COST_FILE, (current) => {
-      const toolCalls = (Number.isFinite(current.toolCalls) ? current.toolCalls : 0) + 1;
+      // A damaged counter is an error, never a reset: a ceiling must not read an over-budget session as new.
+      if (!validCounter(current)) throw new Error('tool-call counter is damaged');
+      const toolCalls = (current.toolCalls || 0) + 1;
       return { ...current, toolCalls, estimatedCost: toolCalls * UNIT_PER_CALL };
     }, {
       // Only a missing counter starts at zero; a corrupt one or a lock that cannot be had is an error, so a

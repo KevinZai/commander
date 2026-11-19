@@ -1,19 +1,30 @@
 /**
- * budget-config.mjs — is a tool-call ceiling configured? Read without the enforcer module, for when that
- * module failed or stalled. Used by the PreToolUse dispatcher's worker (pre-tool-use-worker.mjs).
+ * budget-config.mjs — is a tool-call ceiling configured? The one parser of the ceiling setting, shared by
+ * cost-ceiling-enforcer.js and by the PreToolUse dispatcher when that handler failed or stalled, so both read
+ * the same values the same way: CCC_COST_CEILING (then the cost_ceiling plugin option) as a positive number,
+ * 0 or "off" for off; an unset or invalid value falls through to "costCeiling" in the lane config.json.
  */
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 
-const positive = (v) => v !== undefined && String(v).trim() !== '' && Number(v) > 0;
+const require = createRequire(import.meta.url);
+
+/** Ceiling from the env or plugin option: a number >= 0 (0 is off), or undefined when unset or invalid. */
+export function envCeiling(value) {
+  if (value === undefined || value === null || String(value).trim() === '') return undefined;
+  const v = String(value).trim().toLowerCase();
+  if (v === 'off') return 0;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? n : undefined;
+}
 
 export async function budgetConfigured(env = process.env) {
   if (env.CCC_COST_OVERRIDE === '1') return false;
-  const fromEnv = env.CCC_COST_CEILING !== undefined && String(env.CCC_COST_CEILING).trim() !== ''
-    ? env.CCC_COST_CEILING : env.CLAUDE_PLUGIN_OPTION_COST_CEILING;
-  if (fromEnv !== undefined && String(fromEnv).trim() !== '') return positive(fromEnv);
   try {
-    const { readablePath } = await import(new URL('../../lib/lane-state.js', import.meta.url).href);
-    const config = JSON.parse(readFileSync(readablePath('config.json'), 'utf8'));
+    const fromEnv = envCeiling(require('../../lib/plugin-options.js').setting('cost_ceiling', env));
+    if (fromEnv !== undefined) return fromEnv > 0;
+    const { readablePath } = require('../../lib/lane-state.js');
+    const config = JSON.parse(readFileSync(readablePath('config.json', env), 'utf8'));
     return typeof config.costCeiling === 'number' && config.costCeiling > 0;
   } catch (err) {
     // No config file: no ceiling. Anything else (unreadable config, broken module): assume one.

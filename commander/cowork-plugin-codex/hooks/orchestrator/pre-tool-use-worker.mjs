@@ -1,14 +1,13 @@
 /**
- * pre-tool-use-worker.mjs — runs the PreToolUse dispatcher's handlers off the main thread.
+ * pre-tool-use-worker.mjs — runs the PreToolUse dispatcher's handlers in a child process.
  *
- * The dispatcher (pre-tool-use-dispatcher.js) keeps its event loop free and enforces each deadline with a
- * timer there; when a handler misses its deadline, even inside synchronous work, the dispatcher terminates
- * this worker and starts a fresh one for what is left. Messages in: { id, kind: 'run' | 'budgetConfigured'
- * | 'record', href?, input? } or { kind: 'flush' }. Messages out: { id, ok, value } or { id, ok: false,
- * message }. 'flush' sends any queued opted-in telemetry and lets the worker exit when that settles.
+ * The dispatcher (pre-tool-use-dispatcher.js) forks this file with IPC only (no stdio) and keeps each
+ * deadline with a timer of its own; when a handler misses its deadline, even inside synchronous or native
+ * code, the dispatcher SIGKILLs this process and forks a fresh one for what is left. Messages in:
+ * { id, kind: 'run' | 'budgetConfigured' | 'record', href?, input? } or { kind: 'flush' }. Messages out:
+ * { id, ok, value } or { id, ok: false, message }. 'flush' sends any queued opted-in telemetry; the process
+ * then exits once that settles (bounded by telemetry's send timeout).
  */
-import { parentPort } from 'node:worker_threads';
-
 async function load(href, name) {
   const mod = await import(href);
   if (typeof mod[name] !== 'function') throw new Error(`${href.split('/').pop()} has no ${name}()`);
@@ -22,19 +21,22 @@ async function perform(msg) {
   throw new Error(`unknown task ${msg.kind}`);
 }
 
-parentPort.on('message', async (msg) => {
+const reply = (m) => { try { if (process.connected) process.send(m); } catch {} };
+
+process.on('message', async (msg) => {
   if (msg?.kind === 'flush') {
     try {
       const { flushBatch } = await import(new URL('../../lib/telemetry.mjs', import.meta.url).href);
       flushBatch();
     } catch {}
-    parentPort.close(); // a pending telemetry send keeps the worker alive until it settles (bounded in telemetry.mjs)
     return;
   }
   try {
     const value = await perform(msg);
-    parentPort.postMessage({ id: msg.id, ok: true, value: value === undefined ? null : JSON.parse(JSON.stringify(value)) });
+    reply({ id: msg.id, ok: true, value: value === undefined ? null : JSON.parse(JSON.stringify(value)) });
   } catch (err) {
-    parentPort.postMessage({ id: msg.id, ok: false, message: String(err?.message || err || 'error') });
+    reply({ id: msg.id, ok: false, message: String(err?.message || err || 'error') });
   }
 });
+// Once the dispatcher disconnects, nothing but a pending telemetry send keeps this process alive.
+process.on('disconnect', () => {});
