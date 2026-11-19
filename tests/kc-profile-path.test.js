@@ -243,13 +243,22 @@ test('a profile path through a non-directory is refused by the installer and the
     assert.strictEqual(readFileSync(join(home, 'prof', 'commands', 'mine.md'), 'utf8'), 'mine', '--clean never reached prof/');
     assert.ok(!existsSync(join(home, 'prof', 'commander')) && !existsSync(join(home, 'prof', 'skills')));
 
-    // The lane readers keep the path as written, so a read fails as the OS fails it (ENOTDIR) instead of
-    // landing in prof/.
+    // The lane readers put every state path under the component the OS stops at (file.txt), so reads and
+    // writes fail as the OS fails them (ENOTDIR) instead of path.join normalizing them into prof/.
     const cfg = `${home}/file.txt/../prof`;
     const lane = require('../commander/lib/lane.js');
     const laneState = require('../commander/cowork-plugin/lib/lane-state.js');
-    assert.strictEqual(lane.resolveLane({ HOME: home, CLAUDE_CONFIG_DIR: cfg }).configDir, cfg);
-    assert.strictEqual(laneState.configDir({ HOME: home, CLAUDE_CONFIG_DIR: cfg }), cfg);
+    const hold = require('../commander/lib/hold.js');
+    const env = { HOME: home, CLAUDE_CONFIG_DIR: cfg };
+    const ln = lane.resolveLane(env);
+    assert.strictEqual(ln.problem, 'notdir');
+    for (const p of [ln.stateDir, lane.statePath('fleet-hold.json', env), laneState.stateDir(env), laneState.readablePath('config.json', env)]) {
+      assert.ok(p.startsWith(join(home, 'file.txt') + '/'), p);
+      assert.throws(() => readFileSync(p), /ENOTDIR/);
+    }
+    assert.throws(() => hold.set({ env, reason: 'x' }), /cannot be resolved safely/);
+    assert.throws(() => hold.clear({ env }), /cannot be resolved safely/);
+    assert.ok(!existsSync(join(home, 'prof', 'commander')), 'nothing written under prof/');
   });
 });
 
