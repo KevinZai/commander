@@ -285,6 +285,24 @@ describe("stripe webhook subscriptions", () => {
     assert.equal(store.user("u9").tier, "pro");
   });
 
+  it("records an unlinked pro subscription as unmatched (200) once it is older than the retry bound", async () => {
+    const fourDaysAgo = Math.floor(Date.now() / 1000) - 4 * 24 * 60 * 60;
+    const res = await deliver(eventPayload("customer.subscription.created",
+      subscription("sub_lost", "cus_lost", "active"), { id: "evt_unmatched_old", created: fourDaysAgo }));
+    assert.equal(res.status, 200);
+    assert.equal(store.events.get("evt_unmatched_old")?.outcome, "unmatched");
+    assert.ok(store.events.get("evt_unmatched_old")?.processedAt);
+    assert.equal(store.writes.length, 0);
+  });
+
+  it("still defers an unlinked pro subscription inside the retry bound", async () => {
+    const oneDayAgo = Math.floor(Date.now() / 1000) - 24 * 60 * 60;
+    const res = await deliver(eventPayload("customer.subscription.created",
+      subscription("sub_lost", "cus_lost", "active"), { id: "evt_unmatched_recent", created: oneDayAgo }));
+    assert.equal(res.status, 500);
+    assert.equal(store.events.get("evt_unmatched_recent")?.processedAt, null);
+  });
+
   it("duplicate delivery of a processed event is a no-op 200", async () => {
     store.addUser({ user_id: "u1", stripe_customer_id: "cus_1" });
     const payload = eventPayload("customer.subscription.created", subscription("sub_1", "cus_1", "active"), { id: "evt_dup" });
@@ -308,6 +326,34 @@ describe("stripe webhook subscriptions", () => {
     assert.equal(store.user("u1").tier, "free");
     assert.equal(store.user("u1").subscription_status, "canceled");
     assert.equal(store.events.get("evt_stale")?.outcome, "stale");
+  });
+
+  it("same-second tie: incomplete does not replace active for the same subscription", async () => {
+    store.addUser({ user_id: "u1", stripe_customer_id: "cus_1" });
+    const t = BASE_TIME + 500;
+    assert.equal((await deliver(eventPayload("customer.subscription.updated", subscription("sub_1", "cus_1", "active"), { created: t }))).status, 200);
+    const late = await deliver(eventPayload("customer.subscription.created", subscription("sub_1", "cus_1", "incomplete"), { id: "evt_tie_incomplete", created: t }));
+    assert.equal(late.status, 200);
+    assert.equal(store.user("u1").subscription_status, "active");
+    assert.equal(store.user("u1").tier, "pro");
+    assert.equal(store.events.get("evt_tie_incomplete")?.outcome, "stale");
+  });
+
+  it("same-second tie: active replaces incomplete, and a deletion still ends the subscription", async () => {
+    store.addUser({ user_id: "u1", stripe_customer_id: "cus_1" });
+    const t = BASE_TIME + 600;
+    await deliver(eventPayload("customer.subscription.created", subscription("sub_1", "cus_1", "incomplete"), { created: t }));
+    assert.equal(store.user("u1").tier, "free");
+    await deliver(eventPayload("customer.subscription.updated", subscription("sub_1", "cus_1", "active"), { created: t }));
+    assert.equal(store.user("u1").tier, "pro");
+    await deliver(eventPayload("customer.subscription.deleted", subscription("sub_1", "cus_1", "canceled"), { created: t }));
+    assert.equal(store.user("u1").subscription_status, "canceled");
+    assert.equal(store.user("u1").tier, "free");
+    // An ended subscription id cannot become active again in the same second.
+    const res = await deliver(eventPayload("customer.subscription.updated", subscription("sub_1", "cus_1", "active"), { id: "evt_tie_after_cancel", created: t }));
+    assert.equal(res.status, 200);
+    assert.equal(store.user("u1").tier, "free");
+    assert.equal(store.events.get("evt_tie_after_cancel")?.outcome, "stale");
   });
 
   it("an older subscription ending does not cancel the current active one", async () => {

@@ -103,16 +103,20 @@ Reconciliation behavior (`src/routes/stripe-webhook.ts`):
   `stripe_subscription_id`, then `stripe_customer_id`. Never by email.
 - Subscription events carry the subscription status into
   `users.subscription_status`; an event older than
-  `users.subscription_event_created` is ignored (outcome `stale`). A pro
-  subscription event for a customer that is not linked yet answers 500
-  (deferred) so Stripe redelivers it after checkout links the customer.
+  `users.subscription_event_created` is ignored (outcome `stale`). Stripe's
+  `created` has 1-second resolution, so on a tie for the same subscription a
+  weaker status is also `stale` (ended beats active beats any other status).
+  A pro subscription event for a customer that is not linked yet answers 500
+  (deferred) so Stripe redelivers it after checkout links the customer; once
+  the event is more than 3 days old it is acknowledged as `unmatched`.
 - `tier` = `founders` when `lifetime_tier` is set, else `pro` while the
   subscription status is `active`, `trialing` or `past_due`, else `free`.
 - Founders is granted only for a payment-mode checkout with
   `payment_status = 'paid'` (delayed methods land via
   `checkout.session.async_payment_succeeded`); subscription events never
   remove it.
-- A checkout that matches no user is acknowledged with outcome `unmatched`.
+- A checkout that matches no user, or an expired unlinked subscription event,
+  is acknowledged with outcome `unmatched`.
   Reconcile with:
   `select event_id, type, event_created from stripe_events where outcome = 'unmatched';`
 

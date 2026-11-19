@@ -13,6 +13,12 @@
 //      by email.
 //   3. Subscription events older than users.subscription_event_created are
 //      ignored, so out-of-order delivery cannot resurrect or cancel a plan.
+//      event.created has 1-second resolution: on a tie for the same
+//      subscription id, a status never replaces a stronger one (ended >
+//      active > other), so a same-second `incomplete` cannot undo `active`.
+//   3a. A pro subscription event with no linked user is retried (500) until
+//      it is older than UNLINKED_RETRY_BOUND_MS, then recorded as
+//      'unmatched' (200) for manual reconciliation.
 //   4. tier = 'founders' when lifetime_tier is set, else 'pro' while the
 //      subscription is active, else 'free'. Founders is granted only for a
 //      payment-mode checkout whose payment_status is 'paid'.
@@ -96,6 +102,18 @@ const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing", "past_due"])
 export function isActiveSubscription(status: string | null | undefined): boolean {
   return Boolean(status && ACTIVE_SUBSCRIPTION_STATUSES.has(status));
 }
+
+/** Statuses after which a subscription id never becomes active again. */
+const ENDED_SUBSCRIPTION_STATUSES = new Set(["canceled", "incomplete_expired"]);
+
+/** Tie-break strength for two events created in the same second. */
+function statusRank(status: string | null | undefined): number {
+  if (status && ENDED_SUBSCRIPTION_STATUSES.has(status)) return 2;
+  return isActiveSubscription(status) ? 1 : 0;
+}
+
+/** Stripe stops automatic retries after about three days. */
+const UNLINKED_RETRY_BOUND_MS = 3 * 24 * 60 * 60 * 1000;
 
 export function computeTier(lifetimeTier: string | null | undefined, subscriptionStatus: string | null | undefined): AccountTier {
   if (lifetimeTier === "founders") return "founders";
@@ -288,10 +306,27 @@ async function handleSubscriptionEvent(
   });
   if (!user) {
     // Usually checkout.session.completed has not linked the customer yet.
+    // Past the retry bound it never will; keep the event id for manual
+    // reconciliation instead of failing every redelivery.
+    if (Date.now() - Date.parse(eventCreatedAt) > UNLINKED_RETRY_BOUND_MS) {
+      logger.error({ eventId: event.id, subscriptionId: sub.id, customerId }, "Stripe subscription not linked to any user");
+      return "unmatched";
+    }
     throw new RetryLaterError("subscription customer not linked yet");
   }
 
   const status = event.type === "customer.subscription.deleted" ? "canceled" : sub.status;
+
+  if (
+    user.stripe_subscription_id === sub.id &&
+    user.subscription_event_created &&
+    Date.parse(user.subscription_event_created) === Date.parse(eventCreatedAt) &&
+    statusRank(status) < statusRank(user.subscription_status)
+  ) {
+    // Same second as the stored event: the ordering guard cannot tell which
+    // came first, so the weaker status loses.
+    return "stale";
+  }
 
   if (
     user.stripe_subscription_id &&
