@@ -430,9 +430,9 @@ Three scopes: `PropertiesService.getScriptProperties()` (shared), `.getUserPrope
 
 ### Auto-Archive Completed Rows
 
-Move rows with "Complete" status to an Archive sheet. Processes bottom-up to avoid shifting row indices.
+Copy rows with "Complete" status to an Archive sheet.
 
-CCC safety: example rewritten. Upstream copied values only (`appendRow`, losing formulas and formatting) and deleted each source row at once with no confirmation. This version previews the rows, asks YES/NO, copies whole rows with `copyTo` (values, formulas, formats; relative references shift to the new row), and deletes only after every copy is done. Run it on a copy of the sheet first.
+CCC safety: example rewritten as copy-only. Upstream copied values only (`appendRow`, losing formulas and formatting) and deleted each source row at once with no confirmation; deleting after a confirmation dialog is not safe either, because rows can move while the dialog is open. This version copies whole rows with `copyTo` (values, formulas, formats; relative references shift to the new row) and deletes nothing. Removing the archived rows from Active is left to the user, by hand, after they check the Archive sheet. Running it twice copies the same rows twice. Run it on a copy of the sheet first.
 
 ```javascript
 function archiveCompleted() {
@@ -443,31 +443,16 @@ function archiveCompleted() {
   const statusCol = 4; // column E (0-indexed)
   const lastCol = source.getLastColumn();
 
-  const rows = []; // 1-indexed sheet rows to archive
+  let copied = 0;
   for (let i = 1; i < data.length; i++) {
-    if (data[i][statusCol] === 'Complete') rows.push(i + 1);
-  }
-  if (rows.length === 0) return;
-
-  const ui = SpreadsheetApp.getUi();
-  const preview = rows.slice(0, 20)
-    .map(r => 'Row ' + r + ': ' + data[r - 1].slice(0, 3).join(' | ')).join('\n');
-  const answer = ui.alert('Archive ' + rows.length + ' completed row(s)?',
-    preview + (rows.length > 20 ? '\n...' : '') +
-    '\n\nEach row is copied to Archive, then deleted from Active.',
-    ui.ButtonSet.YES_NO);
-  if (answer !== ui.Button.YES) return;
-
-  // Copy whole rows (values, formulas, formats) before deleting anything
-  for (const r of rows) {
+    if (data[i][statusCol] !== 'Complete') continue;
+    // Copy the whole row (values, formulas, formats); nothing is deleted
     const target = archive.getRange(archive.getLastRow() + 1, 1, 1, lastCol);
-    source.getRange(r, 1, 1, lastCol).copyTo(target);
+    source.getRange(i + 1, 1, 1, lastCol).copyTo(target);
+    copied++;
   }
   SpreadsheetApp.flush();
-
-  // Delete bottom-up so the remaining row numbers stay valid
-  for (let k = rows.length - 1; k >= 0; k--) source.deleteRow(rows[k]);
-  SpreadsheetApp.flush();
+  ss.toast(copied + ' completed row(s) copied to Archive. Remove them from Active by hand once checked.', 'Archive', 8);
 }
 ```
 

@@ -2691,14 +2691,7 @@ skills:
     source: ecosystem
     domain: general
     tier: free
-    description: "Route to one Jezweb sub-skill: Google Apps Script automation for Sheets and Workspace (menus, triggers, dialogs, sidebars, email, PDF export), a complete favicon package from a logo or initials, a consistent custom SVG icon set for a site or app, or an ElevenLabs conversational voice agent..."
-  - id: elevenlabs-agents
-    name: elevenlabs-agents
-    path: skills/jezweb-pack/elevenlabs-agents/SKILL.md
-    source: ecosystem
-    domain: general
-    tier: free
-    description: Build conversational AI voice agents on the ElevenLabs platform. Configure agent + tools + knowledge base, integrate SDK (React / React Native / Swift / JS / server-side), test, deploy. Use whenever the user mentions ElevenLabs, building a voice agent, an AI phone system, an AI receptionist...
+    description: "Route to one Jezweb sub-skill: Google Apps Script automation for Sheets and Workspace (menus, triggers, dialogs, sidebars, email, PDF export), a complete favicon package from a logo or initials, or a consistent custom SVG icon set for a site or app. Use when the task names one of these and no..."
   - id: favicon-gen
     name: favicon-gen
     path: skills/jezweb-pack/favicon-gen/SKILL.md

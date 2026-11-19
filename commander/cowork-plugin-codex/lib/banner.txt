@@ -6,5 +6,5 @@
    ╚═════╝  ╚═════╝  ╚═════╝
 
    CC COMMANDER · v{{VERSION}}
-   Guided AI PM · 581 skills · 23 agents · 2 bundled + 19 opt-in MCPs
+   Guided AI PM · 580 skills · 23 agents · 2 bundled + 19 opt-in MCPs
    ⚡ Free in beta · commanderplugin.com

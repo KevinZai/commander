@@ -50,7 +50,7 @@ All 15 bumps are fast-forwards of the old pin.
 | `ccc-testing/plankton-code-quality` | alexfazio/plankton | MIT | — | 2026-03-08 | Up to date |
 | `spawn-manager` (mentions) | smtg-ai/claude-squad | AGPL-3.0 | reference only | — | Link only; no code copied |
 | `ccc-recall` (optional) | thedotmack/claude-mem | Apache-2.0 (AGPL-3.0 before 2026) | reference only | — | Not bundled; bundling needs Kevin's decision |
-| `jezweb-pack` (`google-apps-script`, `favicon-gen`, `icon-set-generator`, `elevenlabs-agents`) | jezweb/claude-skills | MIT | `1260fa74` | `1260fa74` (2026-11-19) | Added: four sub-skills behind a router, with "CCC safety:" lines; elevenlabs-agents omits seven upstream files. Skips and edits in `skills/jezweb-pack/DECISIONS.md` |
+| `jezweb-pack` (`google-apps-script`, `favicon-gen`, `icon-set-generator`) | jezweb/claude-skills | MIT | `1260fa74` | `1260fa74` (2026-11-19) | Added: three sub-skills behind a router, with "CCC safety:" lines; elevenlabs-agents skipped. Skips and edits in `skills/jezweb-pack/DECISIONS.md` |
 | `mintlify` | mintlify.com | well-known | `skills-lock.json` hash | — | Not checked in this pass |
 
 ## Follow-ups
