@@ -479,9 +479,26 @@ function launcherHook(payload, launcherEnv, home) {
   return JSON.parse(result.stdout.trim());
 }
 
+function capturedDispatchEnv() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-spawn-'));
+  const bin = path.join(dir, 'bin');
+  fs.mkdirSync(bin);
+  const out = path.join(dir, 'env.json');
+  const fake = path.join(bin, 'claude');
+  fs.writeFileSync(fake, '#!' + process.execPath + '\nrequire("fs").writeFileSync(process.env.CCC_TEST_ENV_OUT, JSON.stringify(process.env));\nprocess.stdout.write(JSON.stringify({ result: "ok" }));\n', { mode: 0o755 });
+  const script = 'require(' + JSON.stringify(path.join(__dirname, '..', 'dispatcher.js')) + ').dispatch("noop", { stream: false, cwd: ' + JSON.stringify(dir) + ' })';
+  const env = { PATH: bin + path.delimiter + process.env.PATH, HOME: dir, USERPROFILE: dir, CCC_TELEMETRY: '0', CCC_TEST_ENV_OUT: out, CLAUDE_CODE_ENTRYPOINT: 'sdk-cli' };
+  const r = spawnSync(process.execPath, ['-e', script], { env: env, encoding: 'utf8', timeout: 15000 });
+  assert.strictEqual(r.status, 0, r.stderr);
+  const child = JSON.parse(fs.readFileSync(out, 'utf8'));
+  delete child.CCC_TEST_ENV_OUT; delete child.PATH; delete child.HOME; delete child.USERPROFILE;
+  return child;
+}
+
 const LAUNCHERS = {
-  // commander/dispatcher.js: the env of every `claude -p` it starts.
-  'dispatcher claude -p': () => require('../dispatcher.js').childEnv({ CLAUDE_CODE_ENTRYPOINT: 'sdk-cli' }),
+  // commander/dispatcher.js: the env a real dispatch hands its `claude` child,
+  // captured at the spawn by a stand-in `claude` on PATH.
+  'dispatcher claude -p': capturedDispatchEnv,
   'CI runner': () => ({ CI: 'true' }),
   // A fleet lane once its settings env sets CCC_HEADLESS=1 (see the fleet prompt).
   'fleet lane': () => ({ CLAUDE_CODE_ENTRYPOINT: 'cli', CCC_HEADLESS: '1' }),

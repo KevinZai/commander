@@ -35,11 +35,10 @@ var PICK_MAX = 2;
 var PLUGIN_SRC = path.join(__dirname, '..', 'cowork-plugin');
 // Fallbacks when the registry has no match for the text: a tag wins over
 // the kind. Only worker skills; a kind or tag without one maps to nothing.
-var KIND_SKILL = { research: 'ccc-research' };
+var KIND_SKILL = {};
 var TAG_SKILL = {
-  design: 'ccc-design', debug: 'ccc-systematic-debugging', bug: 'ccc-systematic-debugging',
-  security: 'ccc-security', test: 'ccc-testing', qa: 'ccc-testing', data: 'ccc-data', devops: 'ccc-devops',
-  seo: 'ccc-seo', marketing: 'ccc-marketing', mobile: 'ccc-mobile', saas: 'ccc-saas', research: 'ccc-research',
+  debug: 'ccc-systematic-debugging', bug: 'ccc-systematic-debugging', security: 'ccc-security',
+  test: 'ccc-testing', qa: 'ccc-testing', data: 'ccc-data', devops: 'ccc-devops', seo: 'ccc-seo', marketing: 'ccc-marketing',
 };
 
 function fail(code, message) {
@@ -148,20 +147,19 @@ async function next(opts) {
     route_source: routeSource,
     candidates: skills.slice(0, 3).map(function(c) { return { skill: '/' + c.route.id, score: c.score }; }),
     skills: picks.map(function(id) { return '/' + id; }),
-    prompt_block: promptBlock(picks, plugin.version),
+    prompt_block: promptBlock(picks, plugin.version, scorer.WORKER_RULES),
   };
   var hold = readHold(env, opts.now ? Date.parse(opts.now) : Date.now());
   if (hold) { out.action = hold.action; out.when = hold.when; out.reason = hold.reason; }
   return out;
 }
 
-/** The worker's pre-run paragraph for this pick. */
-function promptBlock(picks, version) {
+/** The worker's pre-run paragraph for this pick; rules is route-scorer's WORKER_RULES. */
+function promptBlock(picks, version, rules) {
   var head = 'CCC pre-run (CC Commander ' + version + '): ';
   if (!picks.length) return head + 'no CCC skill fits this task. Work without one; do not open the /ccc menu.';
   var list = picks.map(function(id) { return '/' + id; }).join(', then ');
-  return head + 'load ' + list + ' where it fits this task. Do not load other CCC skills. Stay in this run: do not start ' +
-    'other agents or workflows, take the recommended option where the skill would ask a question, and never run deploy, push, publish or tracker steps.';
+  return head + 'load ' + list + ' where it fits this task. Do not load other CCC skills. ' + (rules || '');
 }
 
 var JOB_FLAGS = ['--kind', '--tags', '--title', '--description'];

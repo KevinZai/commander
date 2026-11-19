@@ -14,18 +14,19 @@
  * Merge: the first deny wins and is returned as-is. Otherwise visible messages are joined with " · ";
  * if nobody spoke the output is silent.
  *
- * Failure policy (hooks.json sets onFailure "block", so this process must not crash or stall on
- * advisory work): every handler is loaded with a dynamic import inside a try, so one broken module
- * cannot stop the others. cost-tracker and cost-ceiling-enforcer are advisory: an error, or taking longer
- * than ADVISORY_MS, counts as a pass. secret-leak-guard is enforcement: if it cannot load or throws on a
- * call it scans, that call is denied. The subagent router is loaded only for Agent/Task calls and never
- * affects the decision.
+ * Failure policy (hooks.json sets onFailure "block" with an 8 s timeout, so this process must answer in
+ * time and must not crash). Each handler runs under one deadline that covers its import and its run:
+ *   cost-tracker (advisory, 1.5 s): an error or timeout is a silent pass.
+ *   cost-ceiling-enforcer (budget, 2.5 s): an error or timeout denies the call when a tool-call
+ *     ceiling is configured (and CCC_COST_OVERRIDE is not 1), and passes when none is.
+ *   secret-leak-guard (enforce, 2.5 s): an error or timeout denies a call it scans.
+ * The three deadlines add up to 6.5 s. Input that is not a JSON object is denied. The subagent router
+ * is loaded only for Agent/Task calls, after the decision, and never changes it.
  */
-import { readStdinJson } from '../lib/session-key.mjs';
+import { readFileSync } from 'node:fs';
 import { isMainModule } from '../lib/code-mode.mjs';
 import { emitSilent, emitUser, emitDeny } from '../lib/emit.mjs';
 
-const ADVISORY_MS = 2500;
 const AGENT_TOOLS = new Set(['Agent', 'Task']);
 // Mirrors secret-leak-guard's SCANNED_TOOLS, used only when that module cannot be loaded.
 const GUARDED = new Set(['Write', 'Edit', 'MultiEdit', 'Bash', 'PowerShell', 'WebSearch', 'apply_patch', 'REPL']);
@@ -40,11 +41,37 @@ function guardFailed(tool, why) {
     'Reinstall or update the Commander plugin.');
 }
 
-function withDeadline(promise, ms) {
+function budgetFailed(why) {
+  return emitDeny(`CCC COST CEILING: could not check the tool-call budget (${why}), so this call is blocked. ` +
+    'Set CCC_COST_OVERRIDE=1 to continue past the ceiling.');
+}
+
+const positive = (v) => v !== undefined && String(v).trim() !== '' && Number(v) > 0;
+
+/** Is a tool-call ceiling configured? Read without the enforcer module, for when it failed. */
+export async function budgetConfigured(env = process.env) {
+  if (env.CCC_COST_OVERRIDE === '1') return false;
+  const fromEnv = env.CCC_COST_CEILING !== undefined && String(env.CCC_COST_CEILING).trim() !== ''
+    ? env.CCC_COST_CEILING : env.CLAUDE_PLUGIN_OPTION_COST_CEILING;
+  if (fromEnv !== undefined && String(fromEnv).trim() !== '') return positive(fromEnv);
+  try {
+    const { readablePath } = await import(new URL('../../lib/lane-state.js', import.meta.url).href);
+    const config = JSON.parse(readFileSync(readablePath('config.json'), 'utf8'));
+    return typeof config.costCeiling === 'number' && config.costCeiling > 0;
+  } catch (err) {
+    // No config file: no ceiling. Anything else (unreadable config, broken module): assume one.
+    return err?.code !== 'ENOENT';
+  }
+}
+
+class Timeout extends Error {}
+
+/** Run fn() but give up after ms, whatever it is doing (import included). */
+function withDeadline(fn, ms) {
   let timer;
   return Promise.race([
-    promise,
-    new Promise((resolve) => { timer = setTimeout(() => resolve(emitSilent()), ms); }),
+    Promise.resolve().then(fn),
+    new Promise((_, reject) => { timer = setTimeout(() => reject(new Timeout(`no answer in ${ms} ms`)), ms); }),
   ]).finally(() => clearTimeout(timer));
 }
 
@@ -57,9 +84,9 @@ async function load(rel, name) {
 // { file } entries, the same shape as the SessionStart orchestrator, so ccc doctor
 // counts these handlers as run by this dispatcher.
 export const HANDLERS = Object.freeze([
-  { name: 'cost-tracker', file: '../cost-tracker.js', role: 'advisory' },
-  { name: 'cost-ceiling-enforcer', file: '../cost-ceiling-enforcer.js', role: 'advisory' },
-  { name: 'secret-leak-guard', file: '../secret-leak-guard.js', role: 'enforce' },
+  { name: 'cost-tracker', file: '../cost-tracker.js', role: 'advisory', ms: 1500 },
+  { name: 'cost-ceiling-enforcer', file: '../cost-ceiling-enforcer.js', role: 'budget', ms: 2500 },
+  { name: 'secret-leak-guard', file: '../secret-leak-guard.js', role: 'enforce', ms: 2500 },
 ]);
 const ROUTER = { file: '../subagent-skill-router.js' };
 
@@ -70,30 +97,43 @@ export function mergeOutputs(outputs) {
   return messages.length ? emitUser(messages.join(' · ')) : emitSilent();
 }
 
+async function onFailure(role, tool, name, err) {
+  const why = `${name}: ${err?.message || 'error'}`;
+  if (role === 'enforce') return guardCovers(tool) ? guardFailed(tool, why) : emitSilent();
+  if (role === 'budget') return (await budgetConfigured()) ? budgetFailed(why) : emitSilent();
+  return emitSilent();
+}
+
 export async function dispatch(input, handlers = HANDLERS) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return guardFailed('', 'hook input is not a JSON object');
   const tool = toolOf(input);
   const outputs = [];
-  for (const { name, file, role } of handlers) {
+  for (const { name, file, role, ms } of handlers) {
     try {
-      const handler = await load(file, 'run');
-      const out = handler(input);
-      outputs.push(role === 'advisory' ? await withDeadline(Promise.resolve(out), ADVISORY_MS) : await out);
+      outputs.push(await withDeadline(async () => (await load(file, 'run'))(input), ms || 2500));
     } catch (err) {
       if (process.env.CCC_ORCH_VERBOSE === '1') process.stderr.write(`pre-tool-use-dispatcher: ${name} failed: ${err?.message}\n`);
-      outputs.push(role === 'enforce' && guardCovers(tool) ? guardFailed(tool, `${name}: ${err?.message || 'error'}`) : emitSilent());
+      outputs.push(await onFailure(role, tool, name, err));
     }
   }
   const merged = mergeOutputs(outputs);
   // Queue an Agent/Task call's task for the subagent router only once no handler here denied it.
   if (AGENT_TOOLS.has(tool) && merged?.hookSpecificOutput?.permissionDecision !== 'deny') {
-    try { (await load(ROUTER.file, 'recordAgentCall'))(input); } catch {}
+    try { await withDeadline(async () => (await load(ROUTER.file, 'recordAgentCall'))(input), 1000); } catch {}
   }
   return merged;
 }
 
+/** Strict stdin JSON: anything unparseable becomes null (and is denied), never {}. */
+async function readInput() {
+  const chunks = [];
+  for await (const chunk of process.stdin) chunks.push(chunk);
+  try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { return null; }
+}
+
 if (isMainModule(import.meta.url)) {
-  readStdinJson()
-    .then((input) => dispatch(input || {}))
+  readInput()
+    .then((input) => dispatch(input))
     .catch((err) => guardFailed('', err?.message || 'dispatcher error'))
     .then((out) => process.stdout.write(JSON.stringify(out) + '\n'));
 }

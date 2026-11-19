@@ -674,7 +674,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
-      "worker": true,
+      "worker": false,
       "next": [
         "ccc-review",
         "ccc-testing"
@@ -1343,7 +1343,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
-      "worker": true,
+      "worker": false,
       "next": [
         "ccc-testing",
         "ccc-review"
@@ -1729,7 +1729,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
-      "worker": true,
+      "worker": false,
       "next": [
         "ccc-plan",
         "ccc-brainstorm"
@@ -1866,7 +1866,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
-      "worker": true,
+      "worker": false,
       "next": [
         "ccc-build",
         "ccc-security"

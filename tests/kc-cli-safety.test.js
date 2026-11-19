@@ -307,6 +307,7 @@ test('--skills tier refuses an include of an unknown or prototype tier, and an i
     const pkg = join(home, 'pkg');
     mkdirSync(join(pkg, 'bin'), { recursive: true });
     copyFileSync(KC, join(pkg, 'bin', 'kc.js'));
+    symlinkSync(join(REPO_ROOT, 'commander'), join(pkg, 'commander'));   // the shared profile resolver
     mkdirSync(join(pkg, 'skills', 'alpha'), { recursive: true });
     writeFileSync(join(pkg, 'skills', '_tiers.json'), JSON.stringify({ tiers: {
       proto: { skills: [], includes: ['constructor'] },
@@ -368,6 +369,7 @@ function makeUpdateUpstream(root) {
   git(up, 'commit', '-qam', 'two'); git(up, 'tag', 'v1.2.0');
   writeFileSync(join(up, 'commander', 'engine.js'), '// 3 (unreleased)\n');
   git(up, 'commit', '-qam', 'three');
+  git(up, 'branch', 'release-candidate');              // a mutable branch, never a valid pin
   const url = 'file://' + up;
   const clone = (dir) => {
     const r = spawnSync('git', ['clone', '-q', url, dir], { encoding: 'utf8' });
@@ -410,5 +412,33 @@ test('--update on a detached checkout ignores local-only tags and applies instal
     assert.strictEqual(r.status, 0, r.stdout + r.stderr);
     assert.strictEqual(head(), up.rev('v1.2.0'), 'the newest tag on origin, not the local v9.9.9');
     assert.match(r.stdout, /STUB INSTALL --force/);
+  });
+});
+
+// Codex review, round 2, finding 4: a CCC_REF that is not a commit must be a tag on origin. A branch name is
+// refused before anything is fetched or checked out; lightweight and annotated tags are pinned exactly.
+test('--update refuses a branch as CCC_REF and pins lightweight and annotated tags exactly', () => {
+  withHome((home) => {
+    const up = makeUpdateUpstream(home);
+    const dir = join(home, 'ccc');
+    up.clone(dir);
+    const update = (extra = {}) => spawnSync(process.execPath, [join(dir, 'bin', 'kc.js'), '--update'],
+      { env: env(home, { CCC_REPO_URL: up.url, ...extra }), encoding: 'utf8', timeout: 60_000 });
+    const head = () => up.git(dir, 'rev-parse', 'HEAD');
+
+    let r = update({ CCC_REF: 'release-candidate' });
+    assert.strictEqual(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stderr, /is not a release tag on/);
+    assert.doesNotMatch(r.stdout, /STUB INSTALL/);
+    assert.strictEqual(head(), up.rev('v1.0.0'), 'HEAD unchanged');
+
+    r = update({ CCC_REF: 'v1.2.0' });                  // lightweight tag
+    assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+    assert.strictEqual(head(), up.rev('v1.2.0'));
+    assert.match(r.stdout, /STUB INSTALL --force/);
+
+    r = update({ CCC_REF: 'v1.0.0' });                  // annotated tag, peeled
+    assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+    assert.strictEqual(head(), up.rev('v1.0.0'));
   });
 });

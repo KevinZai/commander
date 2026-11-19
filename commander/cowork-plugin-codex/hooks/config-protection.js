@@ -96,7 +96,13 @@ async function main() {
     }
 
     // Every file the call writes: one for a Claude edit, one per file op (and rename target) for a Codex patch.
-    const basename = editTargets(input)
+    const targets = editTargets(input);
+    if (!targets.length || targets.some((t) => typeof t.path !== 'string' || !t.path.trim())) {
+      // An edit with no identifiable target cannot be checked: block it (fail closed).
+      process.stdout.write(JSON.stringify(emitDeny('CCC CONFIG GUARD: could not tell which file this edit writes, so it is blocked.')) + '\n');
+      return;
+    }
+    const basename = targets
       .map((target) => path.basename(target.path))
       .find((name) => PROTECTED_FILES.has(name));
     if (basename) {

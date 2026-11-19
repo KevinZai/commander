@@ -221,7 +221,8 @@ test('ccc-fleet-run gives every slice and stage a CCC pre-run skill step', async
   const none = await runStubbed(src, { mode: 'fanout', tasks: ['x'] });
   const p = none.calls.find(c => /^slice-/.test(c.label)).prompt;
   assert.match(p, /^CCC pre-run: before you start, check your skill list for one of commander:ccc-/);
-  assert.doesNotMatch(p, /unless/);
+  assert.doesNotMatch(p, /unless your task says/);
+  assert.match(p, /do not proceed and report the decision/);
 });
 
 test('the workflow worker allowlist matches the registry', () => {

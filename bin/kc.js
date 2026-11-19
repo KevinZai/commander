@@ -20,68 +20,19 @@ function _fatalHandler(err) {
 process.on('uncaughtException', _fatalHandler);
 process.on('unhandledRejection', function(reason) { _fatalHandler(reason instanceof Error ? reason : new Error(String(reason))); });
 
-// The one profile-path resolver, shared by `ccc --skills` and install.sh/uninstall.sh (through `__profile-dir`
-// below), so all three act on the same directory. It resolves one component at a time against the disk, like
-// `cd -P`: a symlink followed by .. climbs from the link's target, not lexically. Only win32 treats a backslash
-// as a separator; on POSIX `team\blue` is one directory name, not team/blue. Only the suffix after the root is
-// split, so a drive prefix is never joined onto itself. Returns null for a name that cannot be represented
-// safely: a control character (a newline would be stripped by shell command substitution) in the input or in
-// the resolved result, or a component that is a dangling or looping symlink.
-function physicalProfilePath(p) {
-  var win = process.platform === 'win32';
-  var P = win ? path.win32 : path.posix;
-  var UNSAFE = /[\u0000-\u001f\u007f]/;
-  if (typeof p !== 'string' || !p || UNSAFE.test(p)) return null;
-  var root, rest, cur;
-  if (P.isAbsolute(p)) {
-    root = P.parse(p).root;
-    if (win && !/^([A-Za-z]:)?[\\/]/.test(root) && !/^[\\/]{2}/.test(root)) return null;
-    rest = p.slice(root.length);
-    try { cur = fs.realpathSync.native(root); } catch (_e) { cur = root; }
-  } else {
-    if (win && /^[A-Za-z]:/.test(p)) return null;               // drive-relative (C:foo) is ambiguous
-    rest = p;
-    cur = fs.realpathSync.native(process.cwd());
-  }
-  var parts = rest.split(win ? /[\\/]+/ : /\/+/).filter(Boolean), missing = 0;
-  for (var i = 0; i < parts.length; i++) {
-    var c = parts[i];
-    if (c === '.') continue;
-    // After a missing component, .. climbs back through the missing ones; once none are left, the path is
-    // physical again and later components are resolved against the disk.
-    if (c === '..') { cur = P.dirname(cur); if (missing) missing--; continue; }
-    var next = P.join(cur, c);
-    if (!missing) {
-      try { cur = fs.realpathSync.native(next); continue; } catch (_e) { /* missing from here, or a dangling link */ }
-      // A dangling or looping symlink names a directory that mkdir -p would create elsewhere; refuse it.
-      try { fs.lstatSync(next); return null; } catch (_e) { /* truly missing */ }
-    }
-    missing++;
-    cur = next;
-  }
-  return UNSAFE.test(cur) ? null : cur;
-}
+// The one profile-path resolver (commander/lib/profile-path.js), shared by `ccc --skills`, install.sh and
+// uninstall.sh (through `__profile-dir` below) and the lane resolver, so all of them act on the same physical
+// directory. Loaded on demand so commands that do not touch a profile do not depend on it.
+function profilePath() { return require(path.join(__dirname, '..', 'commander', 'lib', 'profile-path')); }
+function physicalProfilePath(p) { return profilePath().physicalProfilePath(p); }
 
 // Internal: `kc.js __profile-dir <dir> <home>` prints the physical profile dir for install.sh and uninstall.sh,
-// or refuses (exit 1) when it is a root, the home directory or one of its parents, or cannot be represented.
+// or refuses (exit 1, reason on stdout) when it is not absolute, is a root (including a UNC share root), the home
+// directory or one of its parents, or cannot be represented safely. The scripts trust only this exit status.
 if (args[0] === '__profile-dir') {
-  var pdReal = physicalProfilePath(args[1] || '');
-  if (!pdReal) {
-    process.stdout.write('the config dir ' + JSON.stringify(args[1] || '') + ' cannot be resolved safely: it is empty, holds or resolves to a control character such as a newline, or passes through a dangling symlink');
-    process.exit(1);
-  }
-  var pdHomeReal = physicalProfilePath(args[2] || '');
-  if (!pdHomeReal) { process.stdout.write('the home directory cannot be resolved'); process.exit(1); }
-  var pdP = process.platform === 'win32' ? path.win32 : path.posix;
-  var pdNorm = function(s) { return process.platform === 'darwin' || process.platform === 'win32' ? s.toLowerCase() : s; };
-  var pdDir = pdNorm(pdReal), pdHome = pdNorm(pdHomeReal);
-  var pdSep = pdDir.slice(-1) === pdP.sep ? pdDir : pdDir + pdP.sep;
-  if (pdDir === pdNorm(pdP.parse(pdReal).root) || pdDir === pdHome || (pdHome + pdP.sep).indexOf(pdSep) === 0) {
-    process.stdout.write('CLAUDE_DIR must not be /, the home directory or one of its parents: ' + args[1] + ' resolves to ' + pdReal);
-    process.exit(1);
-  }
-  process.stdout.write(pdReal);
-  process.exit(0);
+  var pdResult = profilePath().checkProfileDir(args[1] || '', args[2] || '');
+  process.stdout.write(pdResult.ok ? pdResult.path : pdResult.message);
+  process.exit(pdResult.ok ? 0 : 1);
 }
 
 // Subcommands parse their own arguments. When argv[0] names one, the global flag scans below see an empty list,
@@ -238,16 +189,24 @@ if (flags.includes('--update')) {
         refUpd = bestUpd ? bestUpd.t : '';
       }
       if (!refUpd) failUpd('No release tag found on ' + originUpd + ' to update to (set CCC_REF=<tag or commit>).');
-      runUpd('git', ['-C', repoDir, 'fetch', '--quiet', originUpd, refUpd]);
-      var fetchedUpd = outUpd('git', ['-C', repoDir, 'rev-parse', '--verify', 'FETCH_HEAD^{commit}']);
+      var fetchedUpd;
       if (/^[0-9a-fA-F]{7,40}$/.test(refUpd)) {
+        runUpd('git', ['-C', repoDir, 'fetch', '--quiet', originUpd, refUpd]);
+        fetchedUpd = outUpd('git', ['-C', repoDir, 'rev-parse', '--verify', 'FETCH_HEAD^{commit}']);
         if (fetchedUpd.indexOf(refUpd.toLowerCase()) !== 0) failUpd('Fetched ' + fetchedUpd + ', not the requested commit ' + refUpd);
       } else {
-        // The ref must resolve, on origin, to the commit that was fetched (annotated tags are peeled).
-        var remoteRefsUpd = outUpd('git', ['-C', repoDir, 'ls-remote', originUpd, 'refs/tags/' + refUpd, 'refs/tags/' + refUpd + '^{}', 'refs/heads/' + refUpd]).split('\n');
-        var peeledUpd = remoteRefsUpd.filter(function(l) { return /\^\{\}$/.test(l); })[0] || remoteRefsUpd.filter(Boolean)[0] || '';
-        var remoteCommitUpd = peeledUpd.split('\t')[0];
-        if (!remoteCommitUpd || remoteCommitUpd !== fetchedUpd) failUpd('Fetched ' + fetchedUpd + ', but ' + refUpd + ' on ' + originUpd + ' is ' + (remoteCommitUpd || 'unknown'));
+        // A pin that is not a commit must be a tag on origin: only refs/tags/<ref> exactly (ls-remote patterns
+        // also match longer refs ending in the same text, and a branch is mutable). Annotated tags are peeled,
+        // and that exact tag ref is what is fetched.
+        var tagRefUpd = 'refs/tags/' + refUpd;
+        var remoteRefsUpd = outUpd('git', ['-C', repoDir, 'ls-remote', '--tags', originUpd, tagRefUpd, tagRefUpd + '^{}']).split('\n')
+          .map(function(l) { return l.split('\t'); });
+        var pickUpd = function(name) { var hit = remoteRefsUpd.filter(function(r) { return r[1] === name; })[0]; return hit ? hit[0] : ''; };
+        var remoteCommitUpd = pickUpd(tagRefUpd + '^{}') || pickUpd(tagRefUpd);
+        if (!remoteCommitUpd) failUpd(refUpd + ' is not a release tag on ' + originUpd + ' (CCC_REF takes a tag or a commit, not a branch).');
+        runUpd('git', ['-C', repoDir, 'fetch', '--quiet', originUpd, tagRefUpd]);
+        fetchedUpd = outUpd('git', ['-C', repoDir, 'rev-parse', '--verify', 'FETCH_HEAD^{commit}']);
+        if (remoteCommitUpd !== fetchedUpd) failUpd('Fetched ' + fetchedUpd + ', but ' + tagRefUpd + ' on ' + originUpd + ' is ' + remoteCommitUpd);
       }
       console.log('  Checking out ' + refUpd + '...');
       runUpd('git', ['-C', repoDir, 'checkout', '--quiet', '--detach', fetchedUpd]);

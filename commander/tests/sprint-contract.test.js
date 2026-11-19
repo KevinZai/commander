@@ -256,3 +256,25 @@ test('an escaped backtick in prose does not swallow the check', async () => {
   assert.strictEqual(r.check, 'npm test');
   assert.strictEqual(r.text, 'Prose ends in an escaped \\` character');
 });
+
+// Codex review: backslashes pair off before a backtick. Only an odd run escapes it; after an even run the
+// backtick opens a code span, so a check marker quoted inside that span is not the delimiter. The exact
+// command survives render, parse and validation for both parities.
+test('backslash parity before a backtick decides whether a code span opens', async () => {
+  const lib = await libP;
+  const cases = [
+    { text: 'Docs show \\\\`example · check: manual` literally', parity: 'even (2)' },
+    { text: 'Docs show \\\\\\\\`example · check: manual` literally', parity: 'even (4)' },
+    { text: 'Prose ends in an escaped \\` character', parity: 'odd (1)' },
+    { text: 'Prose ends in an escaped \\\\\\` character', parity: 'odd (3)' },
+  ];
+  for (const { text, parity } of cases) {
+    const md = lib.renderContract({ title: 'Backslash parity', created: '2026-11-19T00:00:00Z', criteria: [{ text, check: 'npm test' }] });
+    const parsed = lib.parseContract(md);
+    assert.strictEqual(parsed.criteria[0].check, 'npm test', parity);
+    assert.strictEqual(parsed.criteria[0].text, text, parity);
+    const v = lib.validateContract(parsed);
+    assert.ok(v.ok, `${parity}: ${v.errors.join('; ')}`);
+    assert.strictEqual(lib.splitCriterion(`${text} · check: \`npm test\``).check, 'npm test', parity);
+  }
+});

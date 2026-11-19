@@ -34,8 +34,16 @@ function maskCodeSpans(s) {
   let out = '';
   let i = 0;
   while (i < s.length) {
-    // A backslash-escaped backtick outside a code span is a literal and opens nothing (CommonMark).
-    if (s[i] === '\\' && s[i + 1] === '`') { out += s.slice(i, i + 2); i += 2; continue; }
+    // A backslash-escaped backtick outside a code span is a literal and opens nothing (CommonMark). Backslashes
+    // pair off first: only an odd run escapes the backtick after it; after an even run (\\`) the backtick opens.
+    if (s[i] === '\\') {
+      let j = i;
+      while (s[j] === '\\') j++;
+      if ((j - i) % 2 === 1 && s[j] === '`') j++;
+      out += s.slice(i, j);
+      i = j;
+      continue;
+    }
     if (s[i] !== '`') { out += s[i++]; continue; }
     let j = i;
     while (s[j] === '`') j++;

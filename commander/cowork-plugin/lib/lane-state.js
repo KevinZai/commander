@@ -27,12 +27,50 @@ function homeOf(env) {
   return env.HOME || env.USERPROFILE || os.homedir();
 }
 
-/** The lane's Claude config dir. */
+// Extended-length UNC: \\?\UNC\server\share is the root, not \\?\UNC\.
+var EXT_UNC = /^([\\/]{2}[?.][\\/]UNC[\\/][^\\/]+[\\/][^\\/]+)(?:[\\/]|$)/i;
+
+/**
+ * A config dir resolved physically, one component at a time against the disk (like `cd -P` and the OS), so
+ * /var/../x is /private/x on macOS and a symlink followed by .. climbs from the link's target. Only win32
+ * splits on a backslash. A copy of resolvePhysical() in commander/lib/profile-path.js, the resolver install.sh
+ * uses; commander/tests/lane-state.test.js keeps the two in step. Falls back to the lexical path only when the
+ * input cannot be resolved at all (a drive-relative win32 path).
+ */
+function physicalDir(p) {
+  var win = process.platform === 'win32';
+  var P = win ? path.win32 : path.posix;
+  var real = function(x) { return fs.realpathSync.native(x); };
+  var rest, cur;
+  if (P.isAbsolute(p)) {
+    var m = win ? EXT_UNC.exec(p) : null;
+    var root = m ? p.slice(0, m[0].length) : P.parse(p).root;
+    rest = p.slice(root.length);
+    try { cur = real(root); } catch (_e) { cur = root; }
+  } else {
+    if (win && /^[A-Za-z]:/.test(p)) return path.resolve(p);
+    rest = p;
+    try { cur = real(process.cwd()); } catch (_e) { cur = P.resolve(process.cwd()); }
+  }
+  var parts = rest.split(win ? /[\\/]+/ : /\/+/).filter(Boolean), missing = 0;
+  for (var i = 0; i < parts.length; i++) {
+    var c = parts[i];
+    if (c === '.') continue;
+    if (c === '..') { cur = P.dirname(cur); if (missing) missing--; continue; }
+    var next = P.join(cur, c);
+    if (!missing) { try { cur = real(next); continue; } catch (_e) { /* missing from here */ } }
+    missing++;
+    cur = next;
+  }
+  return cur;
+}
+
+/** The lane's Claude config dir (physical; see physicalDir). */
 function configDir(env) {
   env = envOf(env);
-  if (env.CCC_CONFIG_DIR) return path.resolve(env.CCC_CONFIG_DIR);
-  if (env.CLAUDE_CONFIG_DIR) return path.resolve(env.CLAUDE_CONFIG_DIR);
-  return path.join(homeOf(env), '.claude');
+  if (env.CCC_CONFIG_DIR) return physicalDir(env.CCC_CONFIG_DIR);
+  if (env.CLAUDE_CONFIG_DIR) return physicalDir(env.CLAUDE_CONFIG_DIR);
+  return physicalDir(path.join(homeOf(env), '.claude'));
 }
 
 /** Writable Commander state dir for this lane: <config dir>/commander. */

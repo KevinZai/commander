@@ -131,7 +131,8 @@ export async function run(input = {}) {
           detected.push({ id: pattern.id, label: pattern.label, severity: pattern.severity });
         }
       } catch {
-        // Invalid regex in config — skip this pattern
+        // An invalid detection pattern means this scan is incomplete: fail closed.
+        return scanFailed(toolName, `invalid pattern ${pattern && pattern.id ? pattern.id : '(unnamed)'}`);
       }
     }
 

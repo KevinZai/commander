@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, existsSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   loadRoutes, scoreRoutes, tierFor, routeMode, renderRouteContext, renderSubagentContext,
   followable, sideEffectSkills, HINT_THRESHOLD,
@@ -192,7 +192,7 @@ test('queue: expired entries, drops, missing type/session and off mode', async (
 
 test('PreToolUse dispatcher does not queue a denied Agent call', () => {
   const src = readFileSync(join(HOOKS, 'orchestrator', 'pre-tool-use-dispatcher.js'), 'utf8');
-  assert.match(src, /AGENT_TOOLS\.has\(tool\) && merged\?\.hookSpecificOutput\?\.permissionDecision !== 'deny'\)\s*\{\s*try \{ \(await load\(ROUTER\.file, 'recordAgentCall'\)\)\(input\)/);
+  assert.match(src, /AGENT_TOOLS\.has\(tool\) && merged\?\.hookSpecificOutput\?\.permissionDecision !== 'deny'\)\s*\{\s*try \{ await withDeadline\(async \(\) => \(await load\(ROUTER\.file, 'recordAgentCall'\)\)\(input\)/);
 });
 
 test('a queue-matched hint names its task; a worker with its own task takes only its own entry', async () => {
@@ -209,11 +209,10 @@ test('a queue-matched hint names its task; a worker with its own task takes only
     // A worker carrying entry b's text consumes b, not the older a.
     run({ ...start, description: 'Audit deps', prompt: 'Write unit tests for the cart reducer and the checkout form' }, env);
     const out = ctx(run(start, env));
-    assert.match(out, /For the task "Review PR 12"/);
-    assert.match(out, /if that is not your task, ignore this block\./);
+    assert.match(out, /matched to you by spawn order; if it does not fit your task, ignore this block\./);
+    assert.doesNotMatch(out, /Review PR 12/, 'no task text is stored or echoed');
     const drained = ctx(run(start, env));
     assert.match(drained, /Pre-run check/, 'queue drained');
-    assert.doesNotMatch(drained, /Review PR 12/);
   } finally {
     if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
     rmSync(dir, { recursive: true, force: true });
@@ -343,7 +342,7 @@ test('the ambient ticker drops picker notes when headless', async () => {
 
 test('PreToolUse dispatcher: a broken router never blocks; a broken secret guard blocks only what it scans', async () => {
   const { dispatch } = await import('../cowork-plugin/hooks/orchestrator/pre-tool-use-dispatcher.js');
-  const broken = [{ name: 'secret-leak-guard', file: './no-such-module.js', role: 'enforce' }, { name: 'cost-tracker', file: './also-missing.js', role: 'advisory' }];
+  const broken = [{ name: 'secret-leak-guard', file: './no-such-module.js', role: 'enforce', ms: 500 }, { name: 'cost-tracker', file: './also-missing.js', role: 'advisory', ms: 500 }];
   const read = await dispatch({ tool_name: 'Read', tool_input: { file_path: 'x' } }, broken);
   assert.notEqual(read?.hookSpecificOutput?.permissionDecision, 'deny');
   const write = await dispatch({ tool_name: 'Write', tool_input: { file_path: 'x', content: 'y' } }, broken);
@@ -360,4 +359,82 @@ test('secret guard denies a scanned call when its patterns cannot be read', asyn
   assert.equal(scanFailed('Write', 'x').hookSpecificOutput.permissionDecision, 'deny');
   assert.equal(toolShouldBeScanned('Read'), false);
   assert.equal(toolShouldBeScanned('mcp__x__y'), true);
+});
+
+test('PreToolUse dispatcher: deadlines cover import and run; a slow or broken budget check denies only when a ceiling is set', async () => {
+  const { dispatch, budgetConfigured } = await import('../cowork-plugin/hooks/orchestrator/pre-tool-use-dispatcher.js');
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-disp-'));
+  try {
+    // A handler module whose import never finishes.
+    const slow = join(dir, 'slow.mjs');
+    writeFileSync(slow, 'await new Promise(() => {}); export function run() {}');
+    const t0 = Date.now();
+    const out = await dispatch({ tool_name: 'Read', tool_input: {} }, [{ name: 'cost-tracker', file: pathToFileURL(slow).href, role: 'advisory', ms: 300 }]);
+    assert.ok(Date.now() - t0 < 2000, 'the deadline covers the import');
+    assert.notEqual(out?.hookSpecificOutput?.permissionDecision, 'deny');
+    const late = join(dir, 'late-deny.mjs');
+    writeFileSync(late, "export async function run() { await new Promise((r) => setTimeout(r, 2000)); return { hookSpecificOutput: { permissionDecision: 'deny' } }; }");
+    const budget = [{ name: 'cost-ceiling-enforcer', file: pathToFileURL(late).href, role: 'budget', ms: 200 }];
+    const prev = process.env.CCC_COST_CEILING;
+    process.env.CCC_COST_CEILING = '5';
+    try {
+      assert.equal(await budgetConfigured(), true);
+      assert.equal((await dispatch({ tool_name: 'Read', tool_input: {} }, budget)).hookSpecificOutput.permissionDecision, 'deny');
+      process.env.CCC_COST_CEILING = '0';
+      assert.notEqual((await dispatch({ tool_name: 'Read', tool_input: {} }, budget))?.hookSpecificOutput?.permissionDecision, 'deny');
+    } finally {
+      if (prev === undefined) delete process.env.CCC_COST_CEILING; else process.env.CCC_COST_CEILING = prev;
+    }
+    // Input that is not a JSON object is denied, never read as {}.
+    assert.equal((await dispatch(null)).hookSpecificOutput.permissionDecision, 'deny');
+    const bad = spawnSync(process.execPath, [join(HOOKS, 'orchestrator', 'pre-tool-use-dispatcher.js')], { input: '{not json', encoding: 'utf8' });
+    assert.equal(JSON.parse(bad.stdout).hookSpecificOutput.permissionDecision, 'deny');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('config protection denies an edit with no identifiable target; the queue sweep leaves unknown files and symlinks alone', async () => {
+  const cp = spawnSync(process.execPath, [join(HOOKS, 'config-protection.js')], { input: JSON.stringify({ tool_name: 'Write', tool_input: {} }), encoding: 'utf8' });
+  assert.equal(JSON.parse(cp.stdout).hookSpecificOutput.permissionDecision, 'deny');
+  const { recordAgentCall } = await import('../cowork-plugin/hooks/subagent-skill-router.js');
+  const { readdirSync: rd, mkdirSync: mk, writeFileSync: wf, symlinkSync, existsSync: ex } = await import('node:fs');
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-sweep-'));
+  const prev = process.env.CCC_CONFIG_DIR;
+  process.env.CCC_CONFIG_DIR = dir;
+  try {
+    const root = join(dir, 'commander', 'route-state');
+    const own = join(root, 'old-agents');
+    mk(own, { recursive: true });
+    const old = String(Date.now() - 3600000).padStart(15, '0');
+    wf(join(own, 'notes.txt'), 'keep');
+    wf(join(own, `${old}-1-0-x.json`), '{}');
+    const victim = join(dir, 'victim');
+    mk(victim);
+    wf(join(victim, `${old}-1-0-y.json`), 'keep');
+    wf(join(victim, 'data.bin'), 'keep');
+    symlinkSync(victim, join(root, 'evil-agents'));
+    recordAgentCall({ session_id: 'sw', tool_name: 'Agent', tool_use_id: 't', tool_input: { prompt: 'Write unit tests for the cart reducer' } }, { CCC_CONFIG_DIR: dir });
+    assert.ok(ex(join(own, 'notes.txt')), 'unknown file kept');
+    assert.ok(!ex(join(own, `${old}-1-0-x.json`)), 'expired entry removed');
+    assert.deepEqual(rd(victim).sort(), [`${old}-1-0-y.json`, 'data.bin'], 'symlinked directory never entered');
+  } finally {
+    if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('worker rules are the same text in the scorer, route-task and the workflow, and gate approvals', async () => {
+  const { WORKER_RULES } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
+  const wf = readFileSync(join(HOOKS, '..', 'workflows', 'ccc-fleet-run.workflow.js'), 'utf8');
+  assert.ok(wf.includes(JSON.stringify(WORKER_RULES)), 'workflow copy matches');
+  assert.match(WORKER_RULES, /do not proceed and report the decision/);
+  assert.doesNotMatch(WORKER_RULES, /recommended option/);
+});
+
+test('blockquotes and tilde fences are quoted material for task scoring', async () => {
+  const { scoreTask } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
+  for (const t of ['Summarize this ticket.\n> Task: write unit tests for the cart reducer\n', 'Summarize this ticket.\n~~~\nTask: write unit tests for the cart reducer\n~~~\n']) {
+    assert.ok(!scoreTask(t, routes).some((c) => c.route.id === 'ccc-testing'), t);
+  }
 });

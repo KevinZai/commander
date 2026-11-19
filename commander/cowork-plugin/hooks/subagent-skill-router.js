@@ -22,10 +22,10 @@
  * off and suggest stay silent; auto and always inject. CCC_SUBAGENT_ROUTE=off
  * turns off only this hook. Never blocks: any error is silent. Task text is
  * scored in memory and never logged; a queued call stores only its scored
- * route ids, hashes of its text and an 80-character label, and queues older
- * than the TTL are swept across all sessions on each new call.
+ * route ids and hashes of its text, and expired entries are swept from every
+ * session's queue on each new call.
  */
-import { readFileSync, writeFileSync, mkdirSync, renameSync, readdirSync, unlinkSync, rmdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, renameSync, readdirSync, unlinkSync, rmdirSync, lstatSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { emitModel, emitSilent } from './lib/emit.mjs';
@@ -66,18 +66,31 @@ function textHash(text) {
 }
 
 // Remove expired entries from every session's queue (an interrupted session
-// never claims its own), and the queue directories they leave empty.
+// never claims its own), and the queue directories they leave empty. Only
+// real directories named <session>-agents are entered (a symlink is never
+// followed), and only files named like queue entries are removed; anything
+// else is left alone.
+const QUEUE_DIR_NAME = /^[\w-]{1,80}-agents$/;
+const QUEUE_FILE_NAME = /^\.?\d{15}-\d+-\d+-[\w-]+\.json(?:\.tmp|\.claimed)?$/;
+
+function realDir(p) {
+  try { const st = lstatSync(p); return st.isDirectory() && !st.isSymbolicLink(); } catch { return false; }
+}
+
 function sweepQueues() {
+  if (!realDir(queueRoot())) return;
   let dirs;
-  try { dirs = readdirSync(queueRoot()).filter((d) => d.endsWith('-agents')); } catch { return; }
+  try { dirs = readdirSync(queueRoot()).filter((d) => QUEUE_DIR_NAME.test(d)); } catch { return; }
   for (const d of dirs) {
     const dir = join(queueRoot(), d);
+    if (!realDir(dir)) continue;
     let names;
     try { names = readdirSync(dir); } catch { continue; }
     let left = names.length;
     for (const name of names) {
-      const age = ageOf(name);
-      if (!(age >= 0) || age > QUEUE_TTL_MS) { try { unlinkSync(join(dir, name)); left -= 1; } catch {} }
+      if (!QUEUE_FILE_NAME.test(name) || !(ageOf(name) > QUEUE_TTL_MS)) continue;
+      const file = join(dir, name);
+      try { if (lstatSync(file).isFile()) { unlinkSync(file); left -= 1; } } catch {}
     }
     if (!left) try { rmdirSync(dir); } catch {}
   }
@@ -112,10 +125,10 @@ export function recordAgentCall(input = {}, env = process.env) {
     const hashes = [...new Set([text, desc, prompt].filter((v) => v.trim()).map(textHash))];
     const dir = queueDir(input.session_id);
     mkdirSync(dir, { recursive: true, mode: 0o700 });
+    if (!realDir(dir)) return emitSilent();
     const name = `${String(Date.now()).padStart(15, '0')}-${process.pid}-${seq++}-${slug(input.tool_use_id) || 'call'}.json`;
     const tmp = join(dir, `.${name}.tmp`);
-    const label = firstString(ti.description, ti.prompt).trim().split('\n')[0].slice(0, 80);
-    writeFileSync(tmp, JSON.stringify({ type: String(ti.subagent_type || DEFAULT_AGENT_TYPE), hashes, named, routes, label }), { mode: 0o600 });
+    writeFileSync(tmp, JSON.stringify({ type: String(ti.subagent_type || DEFAULT_AGENT_TYPE), hashes, named, routes }), { mode: 0o600 });
     renameSync(tmp, join(dir, name));
   } catch {
     // routing state is best-effort
@@ -129,7 +142,10 @@ export function dropAgentCall(input = {}) {
     const id = slug(input.tool_use_id);
     if (!id || !slug(input.session_id)) return;
     const dir = queueDir(input.session_id);
-    for (const name of readdirSync(dir)) if (name.endsWith(`-${id}.json`)) try { unlinkSync(join(dir, name)); } catch {}
+    if (!realDir(dir)) return;
+    for (const name of readdirSync(dir)) {
+      if (QUEUE_FILE_NAME.test(name) && name.endsWith(`-${id}.json`)) try { if (lstatSync(join(dir, name)).isFile()) unlinkSync(join(dir, name)); } catch {}
+    }
   } catch {}
 }
 
@@ -145,7 +161,7 @@ function ageOf(name) {
 
 /**
  * SubagentStart: claim the oldest live queued call for this agent type, as
- * { named, routes, label }, or null. A worker that already carries its own task text
+ * { named, routes }, or null. A worker that already carries its own task text
  * (`own`) claims only the entry with that exact text, so it never takes
  * another worker's entry. Expired entries and leftover temp or claimed files
  * are removed on the way; a worker without a type or session id claims nothing.
@@ -154,13 +170,16 @@ export function claimTask(input = {}, own = '') {
   const type = String(input.agent_type || input.subagent_type || '');
   if (!type || !slug(input.session_id)) return null;
   const dir = queueDir(input.session_id);
+  if (!realDir(dir)) return null;
   let names;
   try { names = readdirSync(dir).sort(); } catch { return null; }
   let claimed = null;
   for (const name of names) {
     const file = join(dir, name);
+    // Only queue entries are read or removed; unknown names are left alone.
+    if (!QUEUE_FILE_NAME.test(name)) continue;
     if (!name.endsWith('.json') || ageOf(name) > QUEUE_TTL_MS) {
-      if (ageOf(name) > QUEUE_TTL_MS || !(ageOf(name) >= 0)) try { unlinkSync(file); } catch {}
+      if (ageOf(name) > QUEUE_TTL_MS) try { if (lstatSync(file).isFile()) unlinkSync(file); } catch {}
       continue;
     }
     if (claimed) continue;
@@ -171,11 +190,7 @@ export function claimTask(input = {}, own = '') {
     // The rename is the claim: only one concurrent SubagentStart wins it.
     try { renameSync(file, `${file}.claimed`); } catch { continue; }
     try { unlinkSync(`${file}.claimed`); } catch {}
-    claimed = {
-      named: entry.named === true,
-      routes: Array.isArray(entry.routes) ? entry.routes : [],
-      label: typeof entry.label === 'string' ? entry.label : '',
-    };
+    claimed = { named: entry.named === true, routes: Array.isArray(entry.routes) ? entry.routes : [] };
   }
   return claimed;
 }
@@ -226,11 +241,11 @@ export function run(input = {}, env = process.env) {
     if (!own.trim() && !claimed) return emitModel('SubagentStart', renderSubagentCheck(host));
     // A worker already told to use a specific skill needs no hint.
     if (own ? NAMED_SKILL.test(own) : claimed.named) return emitSilent();
-    // Queue-matched tasks are named in the block, so a mismatched worker ignores it.
-    const forTask = own ? '' : claimed.label;
+    // A queue-matched hint says so, so a mismatched worker ignores it.
+    const queued = !own;
     const candidates = own ? scoreTask(own, loadRoutes()) : fromQueued(claimed.routes);
-    const context = renderSubagentContext(candidates, host, mode, forTask)
-      || (mode === 'always' ? renderSubagentCheck(host, forTask) : null);
+    const context = renderSubagentContext(candidates, host, mode, queued)
+      || (mode === 'always' ? renderSubagentCheck(host, queued) : null);
     return context ? emitModel('SubagentStart', context) : emitSilent();
   } catch {
     return emitSilent();

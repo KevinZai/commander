@@ -138,16 +138,19 @@ export function scoreRoutes(prompt, routes = loadRoutes(), opts = {}) {
 // description), every line that names the task, and 600-character windows
 // over the first TASK_CHARS characters.
 export const TASK_CHARS = 4000;
-const TASK_LINE = /^\s*(?:[#>*-]+\s*)?(?:\*\*)?(?:task|goal|objective|your (?:task|job|slice)|slice \d+|deliverable|what to do|todo|ticket|issue|bug|fix|implement|build)\b/i;
+const TASK_LINE = /^\s*(?:[#*-]+\s*)?(?:\*\*)?(?:task|goal|objective|your (?:task|job|slice)|slice \d+|deliverable|what to do|todo|ticket|issue|bug|fix|implement|build)\b/i;
 const WINDOW_STEP = 450;
 
-// Code fences, inline code, URLs and pasted blocks are quoted material, not
+// Code fences (``` and ~~~), blockquote lines, inline code, URLs and pasted
+// blocks are quoted material, not
 // the job: blanked out of the whole task (line breaks kept) before any line
 // or window is read, and the result is cut at TASK_CHARS.
 function stripQuoted(text) {
   const blank = (m) => m.replace(/[^\n]/g, ' ');
   return String(text || '')
     .replace(/```[\s\S]*?(```|$)/g, blank)
+    .replace(/~~~[\s\S]*?(~~~|$)/g, blank)
+    .replace(/^[ \t]*>.*$/gm, blank)
     .replace(/<pasted_content[\s\S]*?(<\/pasted_content[^>]*>|$)/g, blank)
     .replace(/`[^`\n]*`/g, blank)
     .replace(/https?:\/\/\S+/g, blank)
@@ -311,6 +314,10 @@ export function followable(route) {
   return route.kind === 'skill' && !!route.manual && FOLLOWABLE_HIDDEN_SKILLS.has(route.id) && !isSideEffect(route);
 }
 
+// What a worker given a CCC skill may and may not do with it. The same text
+// is in ccc-fleet-run.workflow.js and lib/route-task.mjs (a test keeps them equal).
+export const WORKER_RULES = "Use the skill's method inside this task only: do not start other agents or workflows (do that step yourself or skip it); where the skill asks how to do the task, pick the option that stays inside the task as written; where it asks for approval (code edits during an audit, installing packages, creating a project, deploy, push, publish, tracker or settings changes), do not proceed and report the decision in your result instead. An audit reports findings and changes nothing unless the task says to fix them.";
+
 /**
  * May a fleet or workflow worker load this skill on its own? Only skills
  * marked `worker` in route-hints.json: visible, no side effect, and a main
@@ -421,14 +428,22 @@ export function renderNextContext(fromRoute, nextRoutes, host) {
  * the router (a Workflow script's agent makes no Agent tool call): a short
  * pre-run check so it still evaluates CCC skills before starting.
  */
-export function renderSubagentCheck(host, forTask = '') {
-  const skills = host === 'codex' ? '$ccc-* skill' : 'commander:ccc-* skill';
-  const label = String(forTask || '').replace(/\s+/g, ' ').replace(/["<>]/g, '').trim().slice(0, 80);
-  const guard = label ? `For the task "${label}" only; if that is not your task, ignore this block. ` : '';
-  return `<ccc-skills for="subagent">\n${guard}Pre-run check: before starting, look in your skill list for a ${skills} that fits your task and load it; never load deploy, push, publish, tracker or fleet skills from here. If none fits, just start.\n</ccc-skills>`;
+export function renderSubagentCheck(host, queued = false) {
+  let ids = [];
+  try { ids = loadRoutes().filter(workerEligible).map((r) => (host === 'codex' ? `$${r.id}` : `commander:${r.id}`)); } catch {}
+  const guard = queued ? QUEUED_GUARD : '';
+  const pick = ids.length
+    ? `if one of ${ids.join(', ')} fits your task, load it; load no other CCC skill from here. ${WORKER_RULES}`
+    : 'work without a CCC skill.';
+  return `<ccc-skills for="subagent">\n${guard}Pre-run check: if your prompt already has a "CCC pre-run" line, follow that and ignore this block. Otherwise ${pick} If none fits, just start.\n</ccc-skills>`;
 }
 
-export function renderSubagentContext(candidates, host, mode = 'auto', forTask = '') {
+// A queued task is matched to a worker by agent type and spawn order, not
+// by its text (no task text is stored), so the worker is told to check fit.
+const QUEUED_GUARD = 'This hint was matched to you by spawn order; if it does not fit your task, ignore this block. ';
+const SUBAGENT_CONTEXT_CHARS = 1100;
+
+export function renderSubagentContext(candidates, host, mode = 'auto', queued = false) {
   const floor = mode === 'always' ? HINT_THRESHOLD : MEDIUM_THRESHOLD;
   const usable = candidates
     .filter((c) => c.score >= floor && workerEligible(c.route))
@@ -440,9 +455,8 @@ export function renderSubagentContext(candidates, host, mode = 'auto', forTask =
   const lead = directive
     ? `Before starting, ${skillCall(top.route, host)} and follow it for this task: ${top.route.label}.`
     : 'If one of these fits your task, load it before you start.';
-  const label = String(forTask || '').replace(/\s+/g, ' ').replace(/["<>]/g, '').trim().slice(0, 80);
   // The guard comes first so the length cap can never cut it off.
-  const guard = label ? `For the task "${label}" only; if that is not your task, ignore this block. ` : '';
-  const text = `<ccc-skills for="subagent">\n${guard}${lead} Matching CCC skills: ${opts}.\n</ccc-skills>`;
-  return text.length <= MAX_CONTEXT_CHARS ? text : `${text.slice(0, MAX_CONTEXT_CHARS - 15)}…</ccc-skills>`;
+  const guard = queued ? QUEUED_GUARD : '';
+  const text = `<ccc-skills for="subagent">\n${guard}${lead} Matching CCC skills: ${opts}. ${WORKER_RULES}\n</ccc-skills>`;
+  return text.length <= SUBAGENT_CONTEXT_CHARS ? text : `${text.slice(0, SUBAGENT_CONTEXT_CHARS - 15)}…</ccc-skills>`;
 }

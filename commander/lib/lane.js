@@ -26,11 +26,18 @@
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
+var profilePath = require('./profile-path');
 
 var MAX_LANE = 16; // same cap as the status line's lane hint
 // Config dirs whose lane name differs from the dir suffix. Mirrored by the
 // default case in lib/statusline.sh ccc_lane_alias().
 var DEFAULT_ALIASES = Object.freeze({ guestnetworks: 'ai5' });
+
+/** The physical config dir; falls back to the lexical path when it cannot be resolved (empty or drive-relative). */
+function physicalConfigDir(raw) {
+  var r = profilePath.resolvePhysical(raw);
+  return r.path || path.resolve(raw);
+}
 
 function homeOf(env) {
   return env.HOME || os.homedir();
@@ -70,11 +77,14 @@ function laneAliases(env) {
 function resolveLane(env) {
   env = env || process.env;
   var source = 'default';
-  var configDir = path.join(homeOf(env), '.claude');
-  if (env.CCC_CONFIG_DIR) { source = 'CCC_CONFIG_DIR'; configDir = path.resolve(env.CCC_CONFIG_DIR); }
-  else if (env.CLAUDE_CONFIG_DIR) { source = 'CLAUDE_CONFIG_DIR'; configDir = path.resolve(env.CLAUDE_CONFIG_DIR); }
-
-  var base = path.basename(configDir);
+  var raw = path.join(homeOf(env), '.claude');
+  if (env.CCC_CONFIG_DIR) { source = 'CCC_CONFIG_DIR'; raw = env.CCC_CONFIG_DIR; }
+  else if (env.CLAUDE_CONFIG_DIR) { source = 'CLAUDE_CONFIG_DIR'; raw = env.CLAUDE_CONFIG_DIR; }
+  // configDir is physical, resolved by the installer's resolver (lib/profile-path.js), so check-in, hold and
+  // `ccc next` read the directory install.sh wrote: /var/../x is /private/x on macOS, as the OS opens it. The
+  // lane name comes from the path as written, so ~/.claude-ai1 linked to a dotfiles dir is still lane ai1.
+  var configDir = physicalConfigDir(raw);
+  var base = path.basename(path.resolve(raw));
   var lane = 'custom';
   var account = null;
   var known = true;

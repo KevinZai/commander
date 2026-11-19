@@ -17,13 +17,12 @@
  * offline; the task text is never written anywhere.
  */
 import { readFileSync } from 'node:fs';
-import { loadRoutes, scoreTask, workerEligible, detectHost } from '../hooks/lib/route-scorer.mjs';
+import { loadRoutes, scoreTask, workerEligible, detectHost, WORKER_RULES } from '../hooks/lib/route-scorer.mjs';
 import { isMainModule } from '../hooks/lib/code-mode.mjs';
 
 export const PICK_FLOOR = 0.25;
 export const PICK_MAX = 2;
 const MAX_INPUT = 65536;
-const IN_THREAD = 'Stay in this thread: do not start other agents or workflows, take the recommended option where the skill would ask a question, and never run deploy, push, publish or tracker steps.';
 
 /** The pre-run pick for one task. */
 export function pick(task, routes = loadRoutes(), host = detectHost()) {
@@ -31,7 +30,7 @@ export function pick(task, routes = loadRoutes(), host = detectHost()) {
   const scored = scoreTask(String(task || '').slice(0, MAX_INPUT), routes).filter((c) => c.route.kind === 'skill');
   const skills = scored.filter((c) => c.score >= PICK_FLOOR && workerEligible(c.route)).slice(0, PICK_MAX).map((c) => `/${c.route.id}`);
   const promptBlock = skills.length
-    ? `CCC pre-run: before you start, load ${skills.map(name).join(', then ')} and follow it where it fits this task. ${IN_THREAD}`
+    ? `CCC pre-run: before you start, load ${skills.map(name).join(', then ')} and follow it where it fits this task. ${WORKER_RULES}`
     : 'CCC pre-run: no CCC skill fits this task; work without one.';
   return {
     skills,

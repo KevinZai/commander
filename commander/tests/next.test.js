@@ -51,16 +51,16 @@ test('registry match: a security audit job routes to /ccc-security with stable k
 });
 
 test('a registry match whose skill is not installed falls back to the tag/kind map', async function() {
-  var l = laneWith(['ccc-research']);
-  var r = await nextLib.next({ job: { kind: 'research', tags: [], title: 'audit the auth flow for OWASP issues' }, env: l.env });
-  assert.strictEqual(r.skill, '/ccc-research');
+  var l = laneWith(['ccc-testing']);
+  var r = await nextLib.next({ job: { kind: 'code', tags: ['test'], title: 'audit the auth flow for OWASP issues' }, env: l.env });
+  assert.strictEqual(r.skill, '/ccc-testing');
   assert.strictEqual(r.tier, 'low');
-  assert.match(r.reason, /kind research -> \/ccc-research$/);
+  assert.match(r.reason, /tag test -> \/ccc-testing$/);
 });
 
 test('fallbacks: tag beats kind; nothing matching gives no skill, never the /ccc hub', async function() {
-  var l = laneWith(['ccc-research', 'ccc-testing', 'ccc-build', 'ccc-plan']);
-  assert.strictEqual((await nextLib.next({ job: { kind: 'research', tags: ['Test'] }, env: l.env })).skill, '/ccc-testing');
+  var l = laneWith(['ccc-security', 'ccc-testing', 'ccc-build', 'ccc-plan']);
+  assert.strictEqual((await nextLib.next({ job: { kind: 'code', tags: ['Test', 'security'] }, env: l.env })).skill, '/ccc-testing');
   // Kinds and tags whose old fallback is not a worker skill give nothing.
   assert.strictEqual((await nextLib.next({ job: { kind: 'code', tags: ['planning'] }, env: l.env })).skill, null);
   var none = await nextLib.next({ job: { kind: 'mystery' }, env: l.env });
@@ -129,11 +129,11 @@ function runCli(l, input, extra) {
 }
 
 test('CLI: stdin job -> one JSON line, exit 0; bad JSON exit 2; no plugin exit 3', function() {
-  var l = laneWith(['ccc-research']);
-  var r = runCli(l, '{"kind":"research"}');
+  var l = laneWith(['ccc-testing']);
+  var r = runCli(l, '{"kind":"code","tags":["test"]}');
   assert.strictEqual(r.status, 0, r.stderr);
   assert.strictEqual(r.stdout.trim().split('\n').length, 1);
-  assert.strictEqual(JSON.parse(r.stdout).skill, '/ccc-research');
+  assert.strictEqual(JSON.parse(r.stdout).skill, '/ccc-testing');
   assert.strictEqual(runCli(l, '{oops').status, 2);
   var none = tmp('ccc next cli none ');
   var r3 = runCli({ env: { HOME: none, CLAUDE_CONFIG_DIR: path.join(none, '.claude-ai2') } }, '{}');
@@ -142,7 +142,7 @@ test('CLI: stdin job -> one JSON line, exit 0; bad JSON exit 2; no plugin exit 3
 });
 
 test('a project-scoped install is used when ccc next runs inside that project', function() {
-  var l = laneWith(['ccc-research']);
+  var l = laneWith(['ccc-testing']);
   var recFile = path.join(l.dir, 'plugins', 'installed_plugins.json');
   var rec = JSON.parse(fs.readFileSync(recFile, 'utf8'));
   var project = fs.realpathSync(tmp('ccc next proj '));
@@ -151,9 +151,9 @@ test('a project-scoped install is used when ccc next runs inside that project', 
   writeJson(recFile, rec);
   var env = Object.assign({}, process.env, l.env);
   delete env.CCC_CONFIG_DIR;
-  var r = childProcess.spawnSync(process.execPath, [KC, 'next', '--json'], { input: '{"kind":"research"}', env: env, cwd: project, encoding: 'utf8' });
+  var r = childProcess.spawnSync(process.execPath, [KC, 'next', '--json'], { input: '{"tags":["test"]}', env: env, cwd: project, encoding: 'utf8' });
   assert.strictEqual(r.status, 0, r.stderr);
-  assert.strictEqual(JSON.parse(r.stdout).skill, '/ccc-research');
+  assert.strictEqual(JSON.parse(r.stdout).skill, '/ccc-testing');
 });
 
 test('a corrupt fleet-hold.json fails closed as a hold', async function() {
@@ -190,7 +190,7 @@ test('Fleet never receives a side-effect, delegating or hidden skill in any fiel
     { title: 'Summarize the changelog' },
     { title: 'run the fleet on these four slices in parallel' },
     { kind: 'code', tags: ['deploy', 'audit', 'plan'] },
-    { kind: 'review' }, { kind: 'docs' }, { kind: 'other' },
+    { kind: 'review' }, { kind: 'docs' }, { kind: 'other' }, { kind: 'research' }, { kind: 'code', tags: ['design', 'mobile', 'saas'] },
   ];
   for (var i = 0; i < jobs.length; i++) {
     var r = await nextLib.next({ job: jobs[i], env: l.env });

@@ -41,14 +41,15 @@ while [[ "$CLAUDE_DIR" == */ && "$CLAUDE_DIR" != "/" ]]; do CLAUDE_DIR="${CLAUDE
 # capitalization that lands on /, the home directory or one of its ancestors is refused. A path that does not
 # exist yet is resolved through its nearest existing ancestor.
 if command -v node &>/dev/null; then
-  # bin/kc.js holds the one profile-path resolver, shared with `ccc --skills`, so the guard, every rm/mkdir here
+  # `kc.js __profile-dir` (commander/lib/profile-path.js) is the one profile resolver, shared with `ccc --skills`
+  # and the lane resolver behind check-in, hold and `ccc next`, so the guard, every rm/mkdir here
   # and the CLI act on the same physical directory (cd -P semantics; a backslash is a file-name character on
   # POSIX). It refuses a root, the home directory or one of its parents, and any path whose resolved form holds a
-  # control character, before $(...) could strip a trailing newline from it.
+  # control character, before $(...) could strip a trailing newline from it. Absoluteness is checked there too, by
+  # the platform's own rules, so a native UNC profile (\\server\share\team) passes and a share root does not.
   if ! guard_out="$(node "$SCRIPT_DIR/bin/kc.js" __profile-dir "$CLAUDE_DIR" "$HOME" 2>/dev/null)"; then
     echo "ERROR: ${guard_out:-could not resolve the config dir $CLAUDE_DIR}"; exit 1
   fi
-  case "$guard_out" in /*|[A-Za-z]:[\\/]*) ;; *) echo "ERROR: the config dir did not resolve to an absolute path ($guard_out)"; exit 1 ;; esac
   CLAUDE_DIR="$guard_out"
 fi
 # The install plan is tab-separated, so a path containing a tab or newline cannot be represented in it.

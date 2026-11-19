@@ -13,9 +13,9 @@ const assert = require('node:assert');
 const { test } = require('node:test');
 const { spawnSync } = require('node:child_process');
 const {
-  mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readFileSync, symlinkSync, lstatSync, realpathSync,
+  mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readFileSync, symlinkSync, lstatSync, realpathSync, chmodSync,
 } = require('node:fs');
-const { join } = require('node:path');
+const { join, delimiter } = require('node:path');
 const { tmpdir } = require('node:os');
 
 const REPO_ROOT = join(__dirname, '..');
@@ -23,6 +23,7 @@ const KC = join(REPO_ROOT, 'bin', 'kc.js');
 const INSTALL_SH = join(REPO_ROOT, 'install.sh');
 const UNINSTALL_SH = join(REPO_ROOT, 'uninstall.sh');
 const posixOnly = { skip: process.platform === 'win32' };
+const profilePath = require('../commander/lib/profile-path');
 
 function env(home, extra = {}) {
   const e = { ...process.env, HOME: home, CCC_BIN_DIR: join(home, 'bin'), CC_NO_COLOR: '1', CC_NO_ANIMATION: '1', CI: '1' };
@@ -134,5 +135,89 @@ test('install.sh and --skills put a symlink/.. profile in the same physical dire
     const rows = JSON.parse(readFileSync(join(physical, 'commander', 'install-manifest.json'), 'utf8')).entries
       .filter((e) => e.path === 'skills/ccc-seo');
     assert.strictEqual(rows.length, 1, 'the CLI updated the installer manifest, so both saw the same profile');
+  });
+});
+
+// Codex review, round 2, finding 1: native Windows UNC profiles. The Node resolver decides absoluteness by the
+// platform's rules; a non-root UNC profile is accepted and a share root is still refused. (win32 path rules with
+// a stub filesystem on which nothing exists, so this runs on any host.)
+test('checkProfileDir accepts a non-root UNC profile and refuses share and drive roots (win32 rules)', () => {
+  const enoent = () => { const e = new Error('ENOENT'); e.code = 'ENOENT'; throw e; };
+  const opts = { platform: 'win32', fs: { realpathSync: enoent, lstatSync: enoent }, cwd: 'C:\\work' };
+  const home = 'C:\\Users\\me';
+  for (const dir of ['\\\\server\\share\\team', '\\\\server\\share\\team\\', 'C:\\Profiles\\team', '\\\\?\\UNC\\server\\share\\team', '\\\\?\\C:\\Profiles\\team']) {
+    const r = profilePath.checkProfileDir(dir, home, opts);
+    assert.ok(r.ok, `${dir}: ${r.message}`);
+    assert.strictEqual(r.path.replace(/\\$/, ''), dir.replace(/\\$/, ''), dir);
+  }
+  for (const dir of ['\\\\server\\share', '\\\\server\\share\\', '\\\\server', 'C:\\', 'C:', '\\\\?\\UNC\\server\\share', '\\\\?\\UNC\\server', '\\\\?\\C:\\',
+    'C:\\Users', 'c:\\users\\ME', 'C:\\Users\\me\\x\\..']) {
+    const r = profilePath.checkProfileDir(dir, home, opts);
+    assert.ok(!r.ok, `${dir} must be refused`);
+  }
+  assert.strictEqual(profilePath.resolvePhysical('\\\\server\\share\\a\\..\\b', opts).path, '\\\\server\\share\\b', 'UNC prefix is not split or doubled');
+});
+
+test('install.sh and uninstall.sh accept whatever absolute path the Node resolver returns, including UNC', posixOnly, () => {
+  withHome((home) => {
+    const fakeBin = join(home, 'fake-bin');
+    mkdirSync(fakeBin);
+    const stub = (out, code) => {
+      writeFileSync(join(fakeBin, 'node'), `#!/bin/bash\nprintf '%s' '${out}'\nexit ${code}\n`);
+      chmodSync(join(fakeBin, 'node'), 0o755);
+    };
+    const extra = { PATH: fakeBin + delimiter + process.env.PATH, CLAUDE_CONFIG_DIR: join(home, 'cfg') };
+    stub('\\\\server\\share\\team', 0);
+    let r = sh(UNINSTALL_SH, home, ['--help'], extra);
+    ok(r, 'uninstall.sh with a UNC profile');
+    assert.ok(r.stdout.includes('\\\\server\\share\\team/commander/install-manifest.json'), r.stdout);
+    ok(sh(INSTALL_SH, home, ['--help'], extra), 'install.sh with a UNC profile');
+    stub('CLAUDE_DIR must not be /, the home directory or one of its parents: x resolves to \\\\server\\share', 1);
+    for (const script of [INSTALL_SH, UNINSTALL_SH]) {
+      r = sh(script, home, ['--help'], extra);
+      assert.notStrictEqual(r.status, 0, 'a refusal from the resolver stops the script');
+      assert.match(r.stdout, /must not be \//);
+    }
+  });
+});
+
+// Codex review, round 2, finding 2: install, check-in, hold and `ccc next` resolve one profile to one directory.
+// A symlink followed by .. (the Linux analogue of /var/.. on macOS) is resolved physically everywhere.
+test('install, check-in, hold and next agree on a symlink/.. profile', posixOnly, () => {
+  withHome((home) => {
+    mkdirSync(join(home, 'sub'));
+    mkdirSync(join(home, 'x', 'y'), { recursive: true });
+    symlinkSync(join(home, 'x', 'y'), join(home, 'sub', 'link'));
+    const cfg = `${home}/sub/link/../.claude-ai4`;     // raw: join() would collapse the .. lexically
+    const physical = join(home, 'x', '.claude-ai4');
+    const lexical = join(home, 'sub', '.claude-ai4');
+    ok(install(home, cfg), 'install');
+    assert.ok(existsSync(join(physical, 'commander', 'install-manifest.json')));
+
+    // The plugin record Claude Code would write into the installed profile.
+    const pluginDir = join(physical, 'plugins', 'cache', 'commander-hub', 'commander', '8.1.2');
+    mkdirSync(join(pluginDir, '.claude-plugin'), { recursive: true });
+    writeFileSync(join(pluginDir, '.claude-plugin', 'plugin.json'), JSON.stringify({ version: '8.1.2' }));
+    mkdirSync(join(pluginDir, 'skills', 'ccc'), { recursive: true });
+    writeFileSync(join(pluginDir, 'skills', 'ccc', 'SKILL.md'), 'x');
+    writeFileSync(join(physical, 'plugins', 'installed_plugins.json'), JSON.stringify({ version: 2, plugins: {
+      'commander@commander-hub': [{ scope: 'user', version: '8.1.2', installPath: pluginDir }] } }));
+
+    const extra = { CLAUDE_CONFIG_DIR: cfg };
+    const ci = kc(home, ['checkin', '--json', '--no-cli'], extra);
+    const lane = JSON.parse(ci.stdout).lane;
+    assert.strictEqual(lane.config_dir, physical, 'check-in reads the installed profile');
+    assert.strictEqual(lane.name, 'ai4');
+
+    ok(kc(home, ['hold', 'set', '--reason', 'parity', '--json'], extra), 'hold set');
+    assert.ok(existsSync(join(physical, 'commander', 'fleet-hold.json')), 'hold written to the installed profile');
+
+    const nx = kc(home, ['next', '--kind', 'code', '--title', 'anything', '--json'], extra);
+    ok(nx, 'next finds the plugin installed in that profile');
+    assert.strictEqual(JSON.parse(nx.stdout).action, 'hold', 'next reads the hold written there');
+    assert.ok(!existsSync(lexical), 'nothing used the lexical sub/.claude-ai4');
+
+    const laneState = require('../commander/cowork-plugin/lib/lane-state.js');
+    assert.strictEqual(laneState.configDir({ HOME: home, CLAUDE_CONFIG_DIR: cfg }), physical, 'plugin hooks agree');
   });
 });
