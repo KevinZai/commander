@@ -9,6 +9,11 @@
 var fs = require('fs');
 var path = require('path');
 
+// On win32 `C:repo` is relative to drive C's own current directory, not to `base`; joining
+// the two gave C:\work\C:repo. A drive-relative path or base is refused with a clear
+// error instead (Codex #302 delta4).
+var DRIVE_RELATIVE = /^[A-Za-z]:(?![\\/])/;
+
 // Absolute real path of an existing directory, or throws with the reason.
 // The path is resolved as supplied by the OS (realpath(3)): `..` after a symlink
 // is the link target's parent. path.resolve and the JS fs.realpathSync both
@@ -16,12 +21,21 @@ var path = require('path');
 // /private (Codex #302 delta3 NH2).
 function normalizeRoot(dir, base) {
   if (dir == null || String(dir).trim() === '') throw new Error('No project directory given.');
+  var win = process.platform === 'win32';
+  var P = win ? path.win32 : path;
   var supplied = String(dir);
+  if (win && DRIVE_RELATIVE.test(supplied)) {
+    throw new Error('Project directory is drive-relative (' + supplied + '); give a full path that starts with '
+      + supplied.slice(0, 2) + '\\.');
+  }
   var abs = supplied;
-  if (!path.isAbsolute(supplied)) {
+  if (!P.isAbsolute(supplied)) {
     var from = base ? String(base) : process.cwd();
-    if (!path.isAbsolute(from)) from = process.cwd() + path.sep + from;
-    abs = from + path.sep + supplied;
+    if (win && DRIVE_RELATIVE.test(from)) {
+      throw new Error('Base directory is drive-relative (' + from + '); give a full path.');
+    }
+    if (!P.isAbsolute(from)) from = process.cwd() + P.sep + from;
+    abs = from + P.sep + supplied;
   }
   var real;
   try { real = fs.realpathSync.native(abs); } catch (_e) {

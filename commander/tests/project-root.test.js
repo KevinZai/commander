@@ -117,6 +117,21 @@ test('normalizeRoot resolves .. after a symlink physically, as supplied', { skip
   assert.strictEqual(projectRoot.checkStoredRoot(link + '/..').dir, expected);
 });
 
+// Codex #302 delta4 M-windows: on win32 `C:repo` is relative to drive C's current directory, not to the
+// base; joining it to C:\\work gave C:\\work\\C:repo. A drive-relative path or base is refused with a clear
+// error. process.platform is stubbed to win32 so the path.win32 branch runs on any host.
+test('a Windows drive-relative project path or base is refused, never joined to the base', function(t) {
+  var real = Object.getOwnPropertyDescriptor(process, 'platform');
+  Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
+  t.after(function() { Object.defineProperty(process, 'platform', real); });
+  assert.throws(function() { projectRoot.normalizeRoot('C:repo', 'C:\\work'); }, /drive-relative/);
+  assert.throws(function() { projectRoot.normalizeRoot('d:', 'C:\\work'); }, /drive-relative/);
+  assert.throws(function() { projectRoot.normalizeRoot('repo', 'C:work'); }, /drive-relative/);
+  // A fully qualified path is not drive-relative; here it simply does not exist.
+  assert.throws(function() { projectRoot.normalizeRoot('C:\\no-such-ccc-dir'); }, /does not exist: C:\\no-such-ccc-dir$/);
+  assert.throws(function() { projectRoot.normalizeRoot('repo', 'C:\\work'); }, /does not exist: C:\\work\\repo$/);
+});
+
 test('a relative stored root is refused, never re-resolved against the current directory', function() {
   var r = projectRoot.activeRoot({ activeProject: { dir: 'project-a', name: 'a' } });
   assert.strictEqual(r.dir, null);
