@@ -30,11 +30,12 @@ The filesystem is the only source. Skill names come from `${CLAUDE_PLUGIN_ROOT}/
 
 ### 1. Read the inventory
 
-Run in one Bash call. `R` falls back to the repository path when the plugin root is unset:
+Run in one Bash call. `R` falls back to the repository path when the plugin root is unset; the manifest is `.claude-plugin/plugin.json`, or `.codex-plugin/plugin.json` in the Codex build:
 
 ```bash
 R="${CLAUDE_PLUGIN_ROOT:-commander/cowork-plugin}"
-node -e 'console.log("version\t" + require(process.argv[1] + "/.claude-plugin/plugin.json").version)' "$R"
+M="$R/.claude-plugin/plugin.json"; [ -f "$M" ] || M="$R/.codex-plugin/plugin.json"
+node -e 'console.log("version\t" + require(require("path").resolve(process.argv[1])).version)' "$M"
 for d in "$R"/skills/*/; do
   f="${d}SKILL.md"; [ -f "$f" ] || continue
   desc=$(sed -n 's/^description: *//p' "$f" | head -1 | sed 's/^"//; s/"$//' | cut -c1-90)
