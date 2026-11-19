@@ -303,11 +303,11 @@ Should be recognizable at both scales.
 
 ### SVGO (Command Line Optimizer)
 
-CCC safety: ask before a global install and pin the version (`svgo@4.1.0`, current on npm on 2026-11-19), or run it without a global install: `npx svgo@4.1.0 favicon.svg`.
+CCC safety: install line pinned (upstream: `npm install -g svgo`). Both routes download and run code from npm: the global install below, or `npx svgo@4.1.0 favicon.svg` without one. Ask the user before either; `svgo@4.1.0` was current on npm on 2026-11-19.
 
 ```bash
 # Install SVGO
-npm install -g svgo
+npm install -g svgo@4.1.0
 
 # Optimize SVG
 svgo favicon.svg

@@ -10,14 +10,14 @@ Build a production-ready conversational AI voice agent. Produces a configured ag
 
 ## Packages
 
-CCC safety: ask before installing anything, and pin exact versions (on npm on 2026-11-19: `@elevenlabs/react` 1.23.1, `@elevenlabs/client` 1.37.1, `@elevenlabs/react-native` 1.2.42, `@elevenlabs/elevenlabs-js` 2.79.0). `@elevenlabs/agents-cli` is deprecated on npm and installs an `agents` command; the `elevenlabs` command used below comes from `@elevenlabs/cli` (1.12.2 on 2026-11-19). Install it only with the user's go-ahead, preferably as a project dev dependency (`npm install --save-dev --save-exact @elevenlabs/cli@1.12.2`, run with `npx --no-install elevenlabs`).
+CCC safety: install lines rewritten. Upstream installed every package unpinned and the CLI globally from `@elevenlabs/agents-cli`, which npm marks deprecated and which installs an `agents` command, not the `elevenlabs` command used below. These are the versions current on npm on 2026-11-19, installed exactly; the CLI is a project dev dependency run with `npx --no-install elevenlabs`. Ask the user before installing any of them.
 
 ```bash
-npm install @elevenlabs/react           # React SDK
-npm install @elevenlabs/client          # JavaScript SDK (browser + server)
-npm install @elevenlabs/react-native    # React Native SDK
-npm install @elevenlabs/elevenlabs-js   # Full API (server only)
-npm install -g @elevenlabs/agents-cli   # CLI ("Agents as Code")
+npm install --save-exact @elevenlabs/react@1.23.1          # React SDK
+npm install --save-exact @elevenlabs/client@1.37.1         # JavaScript SDK (browser + server)
+npm install --save-exact @elevenlabs/react-native@1.2.42   # React Native SDK
+npm install --save-exact @elevenlabs/elevenlabs-js@2.79.0  # Full API (server only)
+npm install --save-dev --save-exact @elevenlabs/cli@1.12.2 # CLI ("Agents as Code")
 ```
 
 **DEPRECATED:** `@11labs/react`, `@11labs/client` -- uninstall if present.
@@ -31,11 +31,16 @@ npm install -g @elevenlabs/agents-cli   # CLI ("Agents as Code")
 **Dashboard:** https://elevenlabs.io/app/conversational-ai -> Create Agent
 
 **CLI (Agents as Code):**
+
+CCC safety: commands rewritten for the pinned `@elevenlabs/cli` 1.12.2 (checked against its npm README). Upstream used `push --env dev`; 1.12.2 has no `--env` flag. `agents add` creates the agent and uploads it to the workspace at once, and `push` with no `--agent` force-overwrites every registered agent. Before `agents add` or any push, tell the user which workspace (the account behind `ELEVENLABS_API_KEY`) and which agent will change, and wait for their go-ahead; preview each push with the same flags plus `--dry-run`. The CLI also loads a `.env` file from the working directory: keep the key in the environment and never pass `--xi-api-key` on the command line.
+
 ```bash
 elevenlabs agents init
+# Creates the agent AND uploads it to the workspace (remote write)
 elevenlabs agents add "Support Bot" --template customer-service
-# Edit agent_configs/support-bot.json
-elevenlabs agents push --env dev
+# Edit agent_configs/support-bot.json; the agent id is in agents.json
+elevenlabs agents push --agent <agent_id> --dry-run   # prints the requests, sends nothing
+elevenlabs agents push --agent <agent_id>             # same target, after the user approves
 ```
 
 Templates: `default`, `minimal`, `voice-only`, `text-only`, `customer-service`, `assistant`.
@@ -209,26 +214,40 @@ CCC safety: upload only documents the user chose and is allowed to share with El
 Upload documents for the agent to reference:
 - PDFs, text files, web URLs
 - Configure via dashboard: Agent -> Knowledge Base -> Upload
-- Or via API: `POST /v1/convai/knowledge-base/upload` (multipart/form-data)
+- Or via API: `POST /v1/convai/knowledge-base/file` (multipart/form-data)
+
+CCC safety: upstream gave `/v1/convai/knowledge-base/upload`; the path above is the one `@elevenlabs/elevenlabs-js` 2.79.0 calls for a file upload. Name each file and the target workspace to the user before uploading.
 - Agent automatically searches knowledge base during conversation
 
 ### Step 5: Integrate SDK
 
 **React** -- a minimal hook setup:
 
-```typescript
-import { useConversation } from '@elevenlabs/react';
+CCC safety: example rewritten for `@elevenlabs/react` 1.23.1 (checked against its type definitions). Upstream called `startConversation`/`stopConversation`, which the hook does not return, and passed the auth route itself as `signedUrl` together with `agentId`, which the SDK treats as mutually exclusive. This version fetches a signed URL from the authenticated server route under Critical Patterns and starts the session with it.
 
-const { startConversation, stopConversation, status } = useConversation({
-  agentId: 'your-agent-id',
-  signedUrl: '/api/elevenlabs/auth',
-  clientTools,
-  dynamicVariables: {
-    user_name: 'John',
-    account_type: 'premium',
-  },
-  onEvent: (event) => { /* transcript, agent_response, tool_call */ },
-});
+```typescript
+import { ConversationProvider, useConversation } from '@elevenlabs/react';
+
+// Render inside the provider: <ConversationProvider><VoiceAgent /></ConversationProvider>
+function VoiceAgent() {
+  const { startSession, endSession, status } = useConversation({
+    clientTools,
+    dynamicVariables: {
+      user_name: 'John',
+      account_type: 'premium',
+    },
+    onMessage: (message) => { /* transcript and agent responses */ },
+  });
+
+  async function start() {
+    // Your session cookie authenticates this call; the API key stays on the server
+    const res = await fetch('/api/elevenlabs/signed-url', { credentials: 'include' });
+    if (!res.ok) throw new Error('Not allowed to start a conversation');
+    const { signedUrl } = await res.json();
+    startSession({ signedUrl });
+  }
+  // render buttons that call start() and endSession(), and show status
+}
 ```
 
 System prompt references dynamic variables as `{{user_name}}`.
@@ -239,11 +258,13 @@ System prompt references dynamic variables as `{{user_name}}`.
 
 **CLI testing:**
 
-```bash
-# Run all tests for an agent
-elevenlabs agents test "Support Agent"
+CCC safety: commands rewritten for `@elevenlabs/cli` 1.12.2: `agents test` takes the agent id, not its name, and `tests add` uploads the new test to the workspace at once. A test run makes the agent's LLM calls on the account (whether runs are billed was not verified). Name the agent and workspace and get the user's go-ahead before adding or running tests.
 
-# Add a test scenario
+```bash
+# Run the tests attached to one agent (polls to completion)
+elevenlabs agents test <agent_id>
+
+# Create a test from a template; this uploads it (remote write)
 elevenlabs tests add "Refund Request" --template basic-llm
 ```
 
@@ -280,65 +301,47 @@ elevenlabs tests add "Refund Request" --template basic-llm
 
 **API simulation:**
 
-```typescript
-const simulation = await client.agents.simulate({
-  agent_id: 'agent_123',
-  scenario: 'Customer requests refund',
-  user_messages: [
-    "I want a refund for order #12345",
-    "It arrived broken",
-    "Yes, process the refund"
-  ],
-  success_criteria: [
-    "Agent shows empathy",
-    "Agent verifies order",
-    "Agent provides timeline"
-  ]
-});
-console.log('Passed:', simulation.passed);
-```
+CCC safety: upstream's `client.agents.simulate(...)` example is removed. That method does not exist in `@elevenlabs/elevenlabs-js` 2.79.0, whose `simulateConversation` is marked deprecated with removal on 31 Oct 2026, in favour of attached tests. Use `elevenlabs agents test <agent_id>` above, with the same approval.
 
 **CI/CD integration:**
 
-CCC safety: upstream example, unpinned (`actions/checkout@v3`, a global CLI install with no version); do not use it as written. Pin the action by commit SHA and the CLI to an exact version (`@elevenlabs/cli@1.12.2` on 2026-11-19), and add a workflow to a repository only with the user's go-ahead.
+CCC safety: example rewritten. Upstream ran on every push and pull request, uploading tests and running them against the workspace each time, with an unpinned action and CLI. This version runs only when someone starts it by hand (`workflow_dispatch`) for a named agent, pins the action to the commit Commander's own `ci.yml` uses and the CLI to 1.12.2, and passes the agent id through the environment rather than into the shell line. Add a workflow to a repository only with the user's go-ahead.
 
 ```yaml
 name: Test Agent
-on: [push, pull_request]
+on:
+  workflow_dispatch:
+    inputs:
+      agent_id:
+        description: Agent id to test (from agents.json)
+        required: true
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: npm install -g @elevenlabs/cli
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - run: npm install --global @elevenlabs/cli@1.12.2
       - run: elevenlabs tests push
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
-      - run: elevenlabs agents test "Support Agent"
+      - run: elevenlabs agents test "$AGENT_ID"
         env:
+          AGENT_ID: ${{ inputs.agent_id }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
 ```
 
 ### Step 7: Deploy
 
-CCC safety: run `elevenlabs agents push --env prod` only after the dry run's output has been shown to the user and the user says go. The same applies to every prod push on this page.
+CCC safety: rewritten for `@elevenlabs/cli` 1.12.2, which has no `--env` flag; a push targets `--agent <agent_id>` and optionally `--branch <name|id>`, and without `--agent` it force-overwrites every registered agent. Run the dry run, show its output to the user, and push with exactly the same target only after the user says go. Upstream's dev/staging/prod environment workflow is removed: 1.12.2 has agent branches instead, and which branch serves live traffic is set on the ElevenLabs side (not verified here), so confirm it with the user before a push.
 
 ```bash
-# Dry run first (always)
-elevenlabs agents push --env prod --dry-run
+# Dry run first (always): prints the requests, sends nothing
+elevenlabs agents push --agent <agent_id> --branch <branch> --dry-run
 
-# Deploy to production
-elevenlabs agents push --env prod
-```
-
-CCC safety: push to `--env prod` only after showing the `--dry-run` output and getting the user's go-ahead.
-
-Multi-environment workflow:
-```bash
-elevenlabs agents push --env dev       # Development
-elevenlabs agents push --env staging   # Staging
-elevenlabs agents test "Agent Name"    # Test in staging
-elevenlabs agents push --env prod      # Production
+# Deploy the same agent and branch, only after the user approves the dry run
+elevenlabs agents push --agent <agent_id> --branch <branch>
 ```
 
 ---
@@ -349,18 +352,23 @@ elevenlabs agents push --env prod      # Production
 
 Never expose API keys in client code. Use a server endpoint:
 
+CCC safety: example rewritten. Upstream handed a signed URL to any caller and sent a `POST` with a body to an endpoint that `@elevenlabs/elevenlabs-js` 2.79.0 calls as `GET` with an `agent_id` query parameter. This version requires a signed-in user, checks that user may use the agent, chooses the agent on the server, checks the upstream response, and returns only the signed URL (field `signed_url` on the wire), which the browser passes to `startSession({ signedUrl })`.
+
 ```typescript
-app.get('/api/elevenlabs/auth', async (req, res) => {
-  const response = await fetch(
-    'https://api.elevenlabs.io/v1/convai/conversation/get-signed-url',
-    {
-      headers: { 'xi-api-key': process.env.ELEVENLABS_API_KEY },
-      body: JSON.stringify({ agent_id: 'your-agent-id' }),
-      method: 'POST'
-    }
-  );
-  const { signed_url } = await response.json();
-  res.json({ signed_url });
+// requireUser: your app's session middleware; it sets req.user or answers 401
+app.get('/api/elevenlabs/signed-url', requireUser, async (req, res) => {
+  const agentId = process.env.ELEVENLABS_AGENT_ID; // chosen by the server, never by the caller
+  if (!canUseAgent(req.user, agentId)) return res.sendStatus(403);
+
+  const url = new URL('https://api.elevenlabs.io/v1/convai/conversation/get-signed-url');
+  url.searchParams.set('agent_id', agentId);
+  const upstream = await fetch(url, {
+    headers: { 'xi-api-key': process.env.ELEVENLABS_API_KEY },
+  });
+  if (!upstream.ok) return res.sendStatus(502); // do not forward the upstream body
+  const { signed_url } = await upstream.json();
+  if (typeof signed_url !== 'string') return res.sendStatus(502);
+  res.set('Cache-Control', 'no-store').json({ signedUrl: signed_url });
 });
 ```
 
@@ -383,10 +391,29 @@ Dashboard: Agent -> Versions -> Create Branch. Compare metrics, promote winner.
 ```
 
 Verify with HMAC SHA-256:
+
+CCC safety: example rewritten. Upstream hashed `JSON.stringify(request.body)` (a re-serialised body, not the bytes received), checked no timestamp and left rejection as a comment. This version reads the raw body and uses the SDK's `webhooks.constructEvent` (`@elevenlabs/elevenlabs-js` 2.79.0), which parses the `t=...,v0=...` header, rejects timestamps older than 30 minutes and checks the HMAC of `timestamp.rawBody`; anything that fails gets 401 before processing. The header name comes from upstream and could not be checked against the ElevenLabs docs from this session. The helper compares hashes with `!==`, not in constant time.
+
 ```typescript
-const hmac = crypto.createHmac('sha256', process.env.WEBHOOK_SECRET)
-  .update(JSON.stringify(request.body)).digest('hex');
-if (signature !== hmac) { /* reject */ }
+import express from 'express';
+import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
+
+const elevenlabs = new ElevenLabsClient(); // reads ELEVENLABS_API_KEY from the server environment
+
+app.post('/webhooks/elevenlabs', express.raw({ type: 'application/json' }), async (req, res) => {
+  let event;
+  try {
+    event = await elevenlabs.webhooks.constructEvent(
+      req.body.toString('utf8'),               // raw body, exactly as received
+      req.get('elevenlabs-signature') ?? '',
+      process.env.WEBHOOK_SECRET,
+    );
+  } catch {
+    return res.sendStatus(401); // bad, missing or stale signature: stop here
+  }
+  res.sendStatus(200);
+  // process `event` here, after verification
+});
 ```
 
 ---
@@ -406,25 +433,23 @@ Key savings:
 
 ## CLI Quick Reference
 
-CCC safety: `push --env prod` and `pull` change the live agent or overwrite local config. Run them only after a dry run is shown and the user says go.
+CCC safety: rewritten for `@elevenlabs/cli` 1.12.2 (its npm README). Upstream's `auth login`, `--env`, `agents widget "Name"` and `tools add-webhook` are not in that README's command list (the binary itself was not run); authentication is the `ELEVENLABS_API_KEY` environment variable. Lines marked "remote write" change the workspace, and `pull` can overwrite local config: name the target and get the user's go-ahead first, after a `--dry-run` where the command has one.
 
 ```bash
-elevenlabs auth login                              # Authenticate
-elevenlabs agents init                             # Init project
-elevenlabs agents add "Name" --template default    # Add agent
-elevenlabs agents push --env dev                   # Deploy to dev
-elevenlabs agents push --env prod --dry-run        # Preview prod deploy
-elevenlabs agents push --env prod                  # Deploy to prod
-elevenlabs agents pull                             # Pull from platform
-elevenlabs agents test "Name"                      # Run tests
-elevenlabs agents list                             # List agents
-elevenlabs agents status                           # Check sync status
-elevenlabs agents widget "Name"                    # Generate widget
-elevenlabs tools add-webhook "Name" --config-path tool.json  # Add tool
-elevenlabs tests add "Name" --template basic-llm   # Add test
+elevenlabs agents init                                       # Init project (local)
+elevenlabs agents add "Name" --template default              # Add agent (remote write)
+elevenlabs agents push --agent <agent_id> --dry-run          # Preview a push
+elevenlabs agents push --agent <agent_id> [--branch <branch>]  # Push (remote write)
+elevenlabs agents pull --agent <agent_id> --dry-run          # Preview a pull (local overwrite)
+elevenlabs agents test <agent_id>                            # Run attached tests
+elevenlabs agents list                                       # Agents in the workspace (API)
+elevenlabs agents status                                     # Local agents and sync status
+elevenlabs agents widget embed <agent_id>                    # Print widget snippet
+elevenlabs tools add "Name" --type webhook --config-path tool.json  # Add tool (remote write)
+elevenlabs tests add "Name" --template basic-llm             # Add test (remote write)
 ```
 
-Environment: `ELEVENLABS_API_KEY` for CI/CD.
+Environment: `ELEVENLABS_API_KEY` for the CLI and CI/CD.
 
 ---
 
@@ -454,4 +479,4 @@ For specialised use cases, see:
 - Path: `plugins/integrations/skills/elevenlabs-agents/`
 - Pinned commit: `1260fa7439b36b18dbf16648ccc7fb44783f6c23`
 - License: MIT, Copyright (c) 2025 Jeremy Dawes (Jezweb); full text in `LICENSE.txt` beside this file (also at `skills/jezweb-pack/licenses/jezweb_claude-skills-LICENSE.txt`)
-- Local changes: lines starting "CCC safety:", the Next step and Source sections, and the Step 5, Optional References and Asset Files edits for the seven upstream files this pack omits (listed in the pack's `DECISIONS.md`)
+- Local changes: lines starting "CCC safety:", the Next step and Source sections, the Step 5, Optional References and Asset Files edits for the seven upstream files this pack omits, and the examples rewritten or removed for safety and for the pinned CLI and SDKs (Steps 1 and 4 to 7, Signed URLs, Post-Call Webhook, CLI Quick Reference, and in `references/api-reference.md`); all listed in the pack's `DECISIONS.md`

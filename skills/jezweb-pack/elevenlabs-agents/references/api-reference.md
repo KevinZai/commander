@@ -1,6 +1,6 @@
 # ElevenLabs Agents API Reference
 
-CCC safety: `POST`, `PATCH` and `DELETE` calls here change or remove live agents and knowledge-base documents. Show the request and get the user's go-ahead first; never send an API key in a URL or log it.
+CCC safety: `POST`, `PATCH` and `DELETE` calls here change or remove live agents and knowledge-base documents. Show the user a redacted preview of the request (method, path, target id, body, and `xi-api-key: [redacted]`) and get their go-ahead first; never put an API key in a URL, on a command line or in a log.
 
 ## Base URL
 
@@ -12,8 +12,13 @@ https://api.elevenlabs.io/v1/convai
 
 All requests require an API key in the header:
 
-```bash
-curl -H "xi-api-key: YOUR_API_KEY" https://api.elevenlabs.io/v1/convai/agents
+CCC safety: example rewritten. Upstream put the key on the `curl` command line, where it lands in shell history and the process list. Call the API from server code that reads the key from the environment (or use `@elevenlabs/elevenlabs-js`, which reads `ELEVENLABS_API_KEY` itself), and show only redacted previews.
+
+```typescript
+// Server-side only; the key comes from the environment and is never printed
+const res = await fetch('https://api.elevenlabs.io/v1/convai/agents', {
+  headers: { 'xi-api-key': process.env.ELEVENLABS_API_KEY },
+});
 ```
 
 ---
@@ -110,6 +115,8 @@ curl -H "xi-api-key: YOUR_API_KEY" https://api.elevenlabs.io/v1/convai/agents
 
 **Endpoint**: `DELETE /agents/:agent_id`
 
+CCC safety: deletion is permanent. Name the agent (id and name) and its workspace to the user and delete only after they confirm that exact agent.
+
 **Response**:
 ```json
 {
@@ -175,7 +182,9 @@ curl -H "xi-api-key: YOUR_API_KEY" https://api.elevenlabs.io/v1/convai/agents
 
 ### Upload Document
 
-**Endpoint**: `POST /knowledge-base/upload`
+**Endpoint**: `POST /knowledge-base/file`
+
+CCC safety: upstream gave `POST /knowledge-base/upload`; `/knowledge-base/file` is the path `@elevenlabs/elevenlabs-js` 2.79.0 calls for a file upload (the response shape below is upstream's and was not checked). Name each file and the target workspace, and upload only after the user confirms; the content leaves the machine and the agent can quote it to anyone who talks to it.
 
 **Request Body** (multipart/form-data):
 ```
@@ -195,6 +204,8 @@ name: "Support Documentation"
 ### Compute RAG Index
 
 **Endpoint**: `POST /knowledge-base/:document_id/rag-index`
+
+CCC safety: indexing processes the document on ElevenLabs (cost not verified). Name the document id and embedding model and run it only after the user confirms.
 
 **Request Body**:
 ```json
@@ -233,6 +244,8 @@ name: "Support Documentation"
 
 **Endpoint**: `POST /tools/webhook`
 
+CCC safety: `@elevenlabs/elevenlabs-js` 2.79.0 creates tools with `POST /tools` (a `tool_config` body); upstream's `/tools/webhook` path and the flat body below were not verified against it, so check the current API reference first. A webhook tool lets the agent call that URL during conversations: confirm the URL, method and headers with the user before creating it.
+
 **Request Body**:
 ```json
 {
@@ -269,47 +282,7 @@ name: "Support Documentation"
 
 ## Testing
 
-### Simulate Conversation
-
-**Endpoint**: `POST /agents/:agent_id/simulate`
-
-**Request Body**:
-```json
-{
-  "scenario": "Customer requests refund",
-  "user_messages": [
-    "I want a refund for order #12345",
-    "I ordered it last week"
-  ],
-  "success_criteria": [
-    "Agent acknowledges request",
-    "Agent provides timeline"
-  ]
-}
-```
-
-**Response**:
-```json
-{
-  "simulation_id": "sim_123",
-  "passed": true,
-  "transcript": "...",
-  "evaluation": {
-    "criteria_met": 2,
-    "criteria_total": 2,
-    "details": [
-      {
-        "criterion": "Agent acknowledges request",
-        "passed": true
-      },
-      {
-        "criterion": "Agent provides timeline",
-        "passed": true
-      }
-    ]
-  }
-}
-```
+CCC safety: upstream's "Simulate Conversation" section (`POST /agents/:agent_id/simulate`) is removed. `@elevenlabs/elevenlabs-js` 2.79.0 calls `POST /agents/:agent_id/simulate-conversation` and marks it deprecated, with removal on 31 Oct 2026, in favour of agent tests (`elevenlabs agents test <agent_id>` with `@elevenlabs/cli` 1.12.2). Running tests calls the agent's LLM on the account; name the agent and get the user's go-ahead first.
 
 ---
 
@@ -383,20 +356,29 @@ X-Per-Page: 50
 ```
 
 **Verification** (HMAC SHA-256):
+
+CCC safety: example rewritten, as in the SKILL.md Post-Call Webhook section. Upstream hashed re-serialised JSON, checked no timestamp and never rejected. This version verifies the raw body with the SDK's `webhooks.constructEvent` (`@elevenlabs/elevenlabs-js` 2.79.0: `t=...,v0=...` header, 30-minute timestamp window, HMAC of `timestamp.rawBody`) and returns 401 before processing. The header name is upstream's and was not checked against the ElevenLabs docs; the helper compares hashes with `!==`, not in constant time.
+
 ```typescript
-import crypto from 'crypto';
+import express from 'express';
+import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 
-const signature = request.headers['elevenlabs-signature'];
-const payload = JSON.stringify(request.body);
+const elevenlabs = new ElevenLabsClient(); // reads ELEVENLABS_API_KEY from the server environment
 
-const hmac = crypto
-  .createHmac('sha256', process.env.WEBHOOK_SECRET)
-  .update(payload)
-  .digest('hex');
-
-if (signature !== hmac) {
-  // Invalid signature
-}
+app.post('/webhooks/elevenlabs', express.raw({ type: 'application/json' }), async (req, res) => {
+  let event;
+  try {
+    event = await elevenlabs.webhooks.constructEvent(
+      req.body.toString('utf8'),               // raw body, exactly as received
+      req.get('elevenlabs-signature') ?? '',
+      process.env.WEBHOOK_SECRET,
+    );
+  } catch {
+    return res.sendStatus(401); // bad, missing or stale signature: stop here
+  }
+  res.sendStatus(200);
+  // process `event` here, after verification
+});
 ```
 
 ---

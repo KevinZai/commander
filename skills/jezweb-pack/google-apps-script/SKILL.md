@@ -32,7 +32,7 @@ Follow the structure template below. Every script needs a header comment, config
 
 ### Step 3: Provide Installation Instructions
 
-CCC safety: deleting existing code in the editor discards it. Check the editor is empty or that the user has a copy before replacing anything.
+CCC safety: step 3 erases whatever is in the editor. If the editor holds any code, stop, tell the user what would be lost, and delete it only after the user approves (with a copy kept); otherwise add the script as a new file in the project instead.
 
 All scripts install the same way:
 1. Open the Google Sheet
@@ -432,6 +432,8 @@ Three scopes: `PropertiesService.getScriptProperties()` (shared), `.getUserPrope
 
 Move rows with "Complete" status to an Archive sheet. Processes bottom-up to avoid shifting row indices.
 
+CCC safety: example rewritten. Upstream copied values only (`appendRow`, losing formulas and formatting) and deleted each source row at once with no confirmation. This version previews the rows, asks YES/NO, copies whole rows with `copyTo` (values, formulas, formats; relative references shift to the new row), and deletes only after every copy is done. Run it on a copy of the sheet first.
+
 ```javascript
 function archiveCompleted() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -439,13 +441,32 @@ function archiveCompleted() {
   const archive = ss.getSheetByName('Archive');
   const data = source.getDataRange().getValues();
   const statusCol = 4; // column E (0-indexed)
+  const lastCol = source.getLastColumn();
 
-  for (let i = data.length - 1; i >= 1; i--) {
-    if (data[i][statusCol] === 'Complete') {
-      archive.appendRow(data[i]);
-      source.deleteRow(i + 1); // +1 for 1-indexed rows
-    }
+  const rows = []; // 1-indexed sheet rows to archive
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][statusCol] === 'Complete') rows.push(i + 1);
   }
+  if (rows.length === 0) return;
+
+  const ui = SpreadsheetApp.getUi();
+  const preview = rows.slice(0, 20)
+    .map(r => 'Row ' + r + ': ' + data[r - 1].slice(0, 3).join(' | ')).join('\n');
+  const answer = ui.alert('Archive ' + rows.length + ' completed row(s)?',
+    preview + (rows.length > 20 ? '\n...' : '') +
+    '\n\nEach row is copied to Archive, then deleted from Active.',
+    ui.ButtonSet.YES_NO);
+  if (answer !== ui.Button.YES) return;
+
+  // Copy whole rows (values, formulas, formats) before deleting anything
+  for (const r of rows) {
+    const target = archive.getRange(archive.getLastRow() + 1, 1, 1, lastCol);
+    source.getRange(r, 1, 1, lastCol).copyTo(target);
+  }
+  SpreadsheetApp.flush();
+
+  // Delete bottom-up so the remaining row numbers stay valid
+  for (let k = rows.length - 1; k >= 0; k--) source.deleteRow(rows[k]);
   SpreadsheetApp.flush();
 }
 ```
@@ -567,4 +588,4 @@ function fetchExternalData() {
 - Path: `plugins/integrations/skills/google-apps-script/`
 - Pinned commit: `1260fa7439b36b18dbf16648ccc7fb44783f6c23`
 - License: MIT, Copyright (c) 2025 Jeremy Dawes (Jezweb); full text in `LICENSE.txt` beside this file (also at `skills/jezweb-pack/licenses/jezweb_claude-skills-LICENSE.txt`)
-- Local changes: lines starting "CCC safety:" and the Next step and Source sections
+- Local changes: lines starting "CCC safety:", the rewritten Auto-Archive recipe, and the Next step and Source sections (listed in the pack's `DECISIONS.md`)

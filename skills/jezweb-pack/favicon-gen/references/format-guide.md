@@ -338,6 +338,8 @@ All files should be in site root:
 - Static sites: Root directory
 - WordPress: Theme root or upload to `/wp-content/uploads/`
 
+CCC safety: uploading to a WordPress site changes a live site. Confirm the site and the destination (theme root or `/wp-content/uploads/`) with the user before uploading anything, and never overwrite an existing favicon without their go-ahead.
+
 ---
 
 ## Browser/Platform Support Matrix
@@ -394,6 +396,7 @@ All files should be in site root:
 ### Validation Tools
 
 CCC safety: the online checkers below fetch or receive the site and its icons. Use them only with the user's say-so; the local checks need no upload.
+
 - **Favicon test**: https://realfavicongenerator.net/favicon_checker
 - **Manifest validator**: Chrome DevTools → Application → Manifest (the validator service is gone)
 - **ICO inspection**: `identify favicon.ico` (ImageMagick)

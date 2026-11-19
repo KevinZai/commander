@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Added
-- **Jezweb pack.** `skills/jezweb-pack/` adds four MIT skills from jezweb/claude-skills (pinned `1260fa74`) behind one router: Google Apps Script automation for Sheets, a favicon package generator, custom SVG icon sets and ElevenLabs voice agents. `skills/ccc-design` routes favicon and icon-set requests to it. "CCC safety:" lines cover installs, uploads to online converters, live email and triggers, and prod agent pushes; elevenlabs-agents omits seven upstream files. Opt-in, not in any default tier. `/ccc-suggest` names Skill_Seekers (MIT, mention only) as an authoring tool, and `docs/addons/skill-hub-scan-2026-11-19.md` records the verdict on each of the nine hubs scanned. Ecosystem skills 576 to 581.
+- **Jezweb pack.** `skills/jezweb-pack/` adds four MIT skills from jezweb/claude-skills (pinned `1260fa74`) behind one router: Google Apps Script automation for Sheets, a favicon package generator, custom SVG icon sets and ElevenLabs voice agents. `skills/ccc-design` routes favicon and icon-set requests to it. "CCC safety:" lines cover installs, uploads to online converters, live email and triggers, and remote agent writes. Unsafe or outdated examples are rewritten for the pinned `@elevenlabs/cli` 1.12.2 and SDKs (authenticated signed-URL route, raw-body webhook verification, manual CI, confirmed row archiving) or removed; elevenlabs-agents omits seven upstream files. Opt-in, not in any default tier. `/ccc-suggest` names Skill_Seekers (MIT, mention only) as an authoring tool, and `docs/addons/skill-hub-scan-2026-11-19.md` records the verdict on each of the nine hubs scanned. Ecosystem skills 576 to 581.
 
 ## [8.1.7] - 2026-11-19
 
