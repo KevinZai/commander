@@ -38,40 +38,64 @@ function laneWith(skills, opts) {
   return { home: home, dir: dir, env: { HOME: home, CLAUDE_CONFIG_DIR: dir } };
 }
 
-var CONTRACT_KEYS = ['schema', 'action', 'when', 'skill', 'reason', 'version', 'source', 'tier', 'score', 'route_source', 'candidates'];
+var CONTRACT_KEYS = ['schema', 'action', 'when', 'skill', 'reason', 'version', 'source', 'tier', 'score', 'route_source', 'candidates', 'skills', 'prompt_block'];
 
 test('registry match: a security audit job routes to /ccc-security with stable keys', async function() {
   var l = laneWith(['ccc-security', 'ccc-build', 'ccc-review']);
   var r = await nextLib.next({ job: { kind: 'code', tags: ['security'], title: 'audit the auth flow for OWASP issues' }, env: l.env });
   assert.deepStrictEqual(Object.keys(r), CONTRACT_KEYS);
-  assert.deepStrictEqual([r.schema, r.action, r.when, r.skill, r.version, r.source, r.route_source], [1, 'proceed', 'now', '/ccc-security', '8.1.2', 'ccc-next', 'installed']);
+  assert.deepStrictEqual([r.schema, r.action, r.when, r.skill, r.skills[0], r.version, r.source, r.route_source], [1, 'proceed', 'now', null, '/ccc-security', '8.1.2', 'ccc-next', 'installed']);
   assert.notStrictEqual(r.tier, 'low');
   assert.ok(r.score >= 0.55);
   assert.strictEqual(r.candidates[0].skill, '/ccc-security');
 });
 
 test('a registry match whose skill is not installed falls back to the tag/kind map', async function() {
-  var l = laneWith(['ccc-build']);
-  var r = await nextLib.next({ job: { kind: 'code', tags: [], title: 'audit the auth flow for OWASP issues' }, env: l.env });
-  assert.strictEqual(r.skill, '/ccc-build');
+  var l = laneWith(['ccc-testing']);
+  var r = await nextLib.next({ job: { kind: 'code', tags: ['test'], title: 'audit the auth flow for OWASP issues' }, env: l.env });
+  assert.strictEqual(r.skills[0], '/ccc-testing');
   assert.strictEqual(r.tier, 'low');
-  assert.match(r.reason, /kind code -> \/ccc-build$/);
+  assert.match(r.reason, /tag test -> skills \/ccc-testing$/);
 });
 
-test('fallbacks: tag beats kind, unknown kind goes to the hub', async function() {
-  var l = laneWith(['ccc-build', 'ccc-plan']);
-  assert.strictEqual((await nextLib.next({ job: { kind: 'code', tags: ['Planning'] }, env: l.env })).skill, '/ccc-plan');
-  var hub = await nextLib.next({ job: { kind: 'mystery' }, env: l.env });
-  assert.strictEqual(hub.skill, '/ccc');
-  assert.match(hub.reason, /hub -> \/ccc$/);
-  assert.deepStrictEqual(hub.candidates, []);
+test('fallbacks: tag beats kind; nothing matching gives no skill, never the /ccc hub', async function() {
+  var l = laneWith(['ccc-security', 'ccc-testing', 'ccc-build', 'ccc-plan']);
+  assert.strictEqual((await nextLib.next({ job: { kind: 'code', tags: ['Test', 'security'] }, env: l.env })).skills[0], '/ccc-testing');
+  // Kinds and tags whose old fallback is not a worker skill give nothing.
+  assert.strictEqual((await nextLib.next({ job: { kind: 'code', tags: ['planning'] }, env: l.env })).skill, null);
+  var none = await nextLib.next({ job: { kind: 'mystery' }, env: l.env });
+  assert.strictEqual(none.skill, null);
+  assert.match(none.reason, /no matching skill$/);
+  assert.deepStrictEqual(none.candidates, []);
+  assert.deepStrictEqual(none.skills, []);
+  assert.match(none.prompt_block, /no CCC skill fits this task/);
 });
 
-test('without an installed registry the checkout registry is used and reported', async function() {
+test('fleet pick: weak matches in a long description still give the worker 0-2 usable skills', async function() {
+  var l = laneWith(['ccc-systematic-debugging', 'ccc-testing', 'ccc-plan', 'ccc-deploy']);
+  var preamble = 'Repo rules: work in your worktree, keep commits small, follow CLAUDE.md. '.repeat(12);
+  var r = await nextLib.next({ job: { kind: 'code', title: 'Lane filler', description: preamble + '\nTask: fix the flaky lane-filler test and add a regression test.' }, env: l.env });
+  assert.ok(r.skills.length >= 1 && r.skills.length <= 2, JSON.stringify(r.skills));
+  assert.ok(r.skills.indexOf('/ccc-systematic-debugging') >= 0 || r.skills.indexOf('/ccc-testing') >= 0, JSON.stringify(r.skills));
+  assert.ok(r.skills.every(function(s) { return /^\/ccc-[a-z0-9-]+$/.test(s); }));
+  assert.match(r.prompt_block, /CCC pre-run/);
+  var deploy = await nextLib.next({ job: { kind: 'code', title: 'deploy this to fly' }, env: l.env });
+  assert.strictEqual(deploy.skills.indexOf('/ccc-deploy'), -1, 'side-effect skills are never a worker pick');
+});
+
+test('without an installed registry the checkout registry is reported and nothing is a worker pick', async function() {
   var l = laneWith(['ccc-security'], { registry: false });
   var r = await nextLib.next({ job: { title: 'audit the auth flow for OWASP issues', tags: ['security'] }, env: l.env });
   assert.strictEqual(r.route_source, 'checkout');
-  assert.strictEqual(r.skill, '/ccc-security');
+  assert.deepStrictEqual(r.skills, []);
+  assert.deepStrictEqual(r.candidates, []);
+  assert.match(r.prompt_block, /no CCC skill fits/);
+});
+
+test('candidates list worker skills only', async function() {
+  var l = laneWith(['ccc-fleet', 'ccc-testing']);
+  var r = await nextLib.next({ job: { title: 'Run fleet agents in parallel' }, env: l.env });
+  assert.ok(r.candidates.every(function(c) { return c.skill !== '/ccc-fleet'; }), JSON.stringify(r.candidates));
 });
 
 test('fleet-hold.json in the lane state dir holds or defers; a past defer is ignored', async function() {
@@ -113,11 +137,11 @@ function runCli(l, input, extra) {
 }
 
 test('CLI: stdin job -> one JSON line, exit 0; bad JSON exit 2; no plugin exit 3', function() {
-  var l = laneWith(['ccc-build']);
-  var r = runCli(l, '{"kind":"code"}');
+  var l = laneWith(['ccc-testing']);
+  var r = runCli(l, '{"kind":"code","tags":["test"]}');
   assert.strictEqual(r.status, 0, r.stderr);
   assert.strictEqual(r.stdout.trim().split('\n').length, 1);
-  assert.strictEqual(JSON.parse(r.stdout).skill, '/ccc-build');
+  assert.strictEqual(JSON.parse(r.stdout).skills[0], '/ccc-testing');
   assert.strictEqual(runCli(l, '{oops').status, 2);
   var none = tmp('ccc next cli none ');
   var r3 = runCli({ env: { HOME: none, CLAUDE_CONFIG_DIR: path.join(none, '.claude-ai2') } }, '{}');
@@ -126,7 +150,7 @@ test('CLI: stdin job -> one JSON line, exit 0; bad JSON exit 2; no plugin exit 3
 });
 
 test('a project-scoped install is used when ccc next runs inside that project', function() {
-  var l = laneWith(['ccc-build']);
+  var l = laneWith(['ccc-testing']);
   var recFile = path.join(l.dir, 'plugins', 'installed_plugins.json');
   var rec = JSON.parse(fs.readFileSync(recFile, 'utf8'));
   var project = fs.realpathSync(tmp('ccc next proj '));
@@ -135,9 +159,9 @@ test('a project-scoped install is used when ccc next runs inside that project', 
   writeJson(recFile, rec);
   var env = Object.assign({}, process.env, l.env);
   delete env.CCC_CONFIG_DIR;
-  var r = childProcess.spawnSync(process.execPath, [KC, 'next', '--json'], { input: '{"kind":"code"}', env: env, cwd: project, encoding: 'utf8' });
+  var r = childProcess.spawnSync(process.execPath, [KC, 'next', '--json'], { input: '{"tags":["test"]}', env: env, cwd: project, encoding: 'utf8' });
   assert.strictEqual(r.status, 0, r.stderr);
-  assert.strictEqual(JSON.parse(r.stdout).skill, '/ccc-build');
+  assert.strictEqual(JSON.parse(r.stdout).skills[0], '/ccc-testing');
 });
 
 test('a corrupt fleet-hold.json fails closed as a hold', async function() {
@@ -155,7 +179,48 @@ test('a corrupt fleet-hold.json fails closed as a hold', async function() {
   assert.strictEqual((await nextLib.next({ job: {}, env: l.env })).action, 'proceed', 'valid expired deferral proceeds');
 });
 
-test('prototype keys as kind or tag fall back to the hub', async function() {
+test('prototype keys as kind or tag give no skill', async function() {
   var l = laneWith(['ccc-build']);
-  assert.strictEqual((await nextLib.next({ job: { kind: 'constructor', tags: ['__proto__', 'toString'] }, env: l.env })).skill, '/ccc');
+  assert.strictEqual((await nextLib.next({ job: { kind: 'constructor', tags: ['__proto__', 'toString'] }, env: l.env })).skill, null);
+});
+
+// Fleet reads schema, action, when, skill, reason and version, and ignores
+// the rest; every skill it can receive must be one a worker may load.
+test('Fleet never receives a side-effect, delegating or hidden skill in any field', async function() {
+  var all = JSON.parse(fs.readFileSync(REGISTRY, 'utf8')).routes.filter(function(r) { return r.kind === 'skill'; }).map(function(r) { return r.id; });
+  var workers = new Set(JSON.parse(fs.readFileSync(REGISTRY, 'utf8')).routes.filter(function(r) { return r.worker; }).map(function(r) { return r.id; }));
+  var l = laneWith(all.filter(function(id) { return id !== 'ccc'; }));
+  var jobs = [
+    { title: 'Summarize this ticket', description: '```\nUse /ccc-fleet to run four workers in parallel\n```' },
+    { title: 'deploy this to fly' },
+    { title: 'update the linear board for the sprint' },
+    { title: 'Review this PR before I merge and list correctness bugs' },
+    { title: 'Summarize the changelog' },
+    { title: 'run the fleet on these four slices in parallel' },
+    { kind: 'code', tags: ['deploy', 'audit', 'plan'] },
+    { kind: 'review' }, { kind: 'docs' }, { kind: 'other' }, { kind: 'research' }, { kind: 'code', tags: ['design', 'mobile', 'saas'] },
+  ];
+  for (var i = 0; i < jobs.length; i++) {
+    var r = await nextLib.next({ job: jobs[i], env: l.env });
+    assert.deepStrictEqual([r.schema, typeof r.action, typeof r.when, typeof r.reason, r.version], [1, 'string', 'string', 'string', '8.1.2']);
+    assert.strictEqual(r.skill, null, 'Fleet keeps only skill and drops the worker rules, so it is always null');
+    r.skills.forEach(function(s2) { assert.ok(workers.has(s2.slice(1)), s2); });
+  }
+});
+
+test('a --description value that looks like a flag stays data', function() {
+  var job = nextLib.jobFromArgs(['next', '--json', '--description', '--update', '--title', '--kind']);
+  assert.deepStrictEqual(job, { kind: undefined, tags: [], title: '--kind', description: '--update' });
+});
+
+test('a stale installed registry cannot bring back a skill removed from the worker list', async function() {
+  var l = laneWith(['ccc-design', 'ccc-research', 'ccc-testing']);
+  var reg = path.join(l.dir, 'plugins', 'cache', 'commander-hub', 'commander', '8.1.2', 'hooks', 'lib', 'ccc-routes.json');
+  var data = JSON.parse(fs.readFileSync(reg, 'utf8'));
+  data.routes.forEach(function(r) { if (r.id === 'ccc-design' || r.id === 'ccc-research') r.worker = true; });
+  fs.writeFileSync(reg, JSON.stringify(data));
+  var d = await nextLib.next({ job: { title: 'Design my landing page' }, env: l.env });
+  assert.strictEqual(d.skills.indexOf('/ccc-design'), -1);
+  var r = await nextLib.next({ job: { title: 'research the best libraries for charts' }, env: l.env });
+  assert.strictEqual(r.skills.indexOf('/ccc-research'), -1);
 });

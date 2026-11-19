@@ -6,7 +6,15 @@
  *
  * Drop-in for fleet#328's bin/ccc-next stopgap (docs/FLEET-CHECKIN.md):
  *   {schema, action: proceed|defer|hold, when: now|<ISO>, skill, reason,
- *    version, source: 'ccc-next', tier, score, route_source, candidates[]}
+ *    version, source: 'ccc-next', tier, score, route_source, candidates[],
+ *    skills[], prompt_block}
+ * `skill` is always null: Fleet's dispatch gate keeps only that field and
+ * drops `prompt_block`, and a skill invoked by name without the worker rules
+ * may delegate or act beyond the task. The worker's pre-run reads `skills`
+ * (0-2 worker skills, best first) and `prompt_block` (the pick plus the
+ * worker rules) itself. A worker skill is one marked "worker" in both this
+ * lane's installed registry and the bundled one, so a stale install cannot
+ * bring back a skill that was removed from the list.
  * Exit 2 bad input, 3 no usable commander plugin on this lane.
  * Read-only: it never dispatches, writes or calls the network.
  */
@@ -20,13 +28,18 @@ var release = require('./release-info');
 
 var SCHEMA = 1;
 var MAX_INPUT = 65536;
+// Fleet tasks are terse and rarely phrased like a chat request, so the
+// worker pick takes weaker matches than the chat router's menu threshold,
+// down to one supporting keyword, and at most two skills.
+var PICK_FLOOR = 0.25;
+var PICK_MAX = 2;
 var PLUGIN_SRC = path.join(__dirname, '..', 'cowork-plugin');
-// Same fallback maps as fleet#328's stopgap, used when the registry has no
-// confident match: a tag wins over the kind; the hub is the last resort.
-var KIND_SKILL = { code: 'ccc-build', research: 'ccc-research', review: 'ccc-review', docs: 'ccc-doc-sync', other: 'ccc-suggest' };
+// Fallbacks when the registry has no match for the text: a tag wins over
+// the kind. Only worker skills; a kind or tag without one maps to nothing.
+var KIND_SKILL = {};
 var TAG_SKILL = {
-  design: 'ccc-design', plan: 'ccc-plan', planning: 'ccc-plan', debug: 'ccc-systematic-debugging', bug: 'ccc-systematic-debugging',
-  deploy: 'ccc-deploy-check', security: 'ccc-security', test: 'ccc-testing', qa: 'ccc-qa', audit: 'ccc-xray',
+  debug: 'ccc-systematic-debugging', bug: 'ccc-systematic-debugging', security: 'ccc-security',
+  test: 'ccc-testing', qa: 'ccc-testing', data: 'ccc-data', devops: 'ccc-devops', seo: 'ccc-seo', marketing: 'ccc-marketing',
 };
 
 function fail(code, message) {
@@ -98,56 +111,89 @@ async function next(opts) {
   var routeSource = 'installed';
   if (!fs.existsSync(registry)) { registry = path.join(PLUGIN_SRC, 'hooks', 'lib', 'ccc-routes.json'); routeSource = 'checkout'; }
   var scorer = await import(url.pathToFileURL(path.join(PLUGIN_SRC, 'hooks', 'lib', 'route-scorer.mjs')).href);
+  var routes = scorer.loadRoutes(registry);
+  var byId = new Map(routes.map(function(r) { return [r.id, r]; }));
+  var bundled = new Set(scorer.loadRoutes(path.join(PLUGIN_SRC, 'hooks', 'lib', 'ccc-routes.json')).filter(scorer.workerEligible).map(function(r) { return r.id; }));
+  // A worker skill in both registries that this lane's plugin actually ships. Without an installed registry
+  // there is no evidence of what the lane's plugin allows, so nothing is a worker pick.
+  var eligible = function(id) { return routeSource === 'installed' && bundled.has(id) && byId.has(id) && scorer.workerEligible(byId.get(id)) && has(id); };
   var candidates = [];
   var text = [job.text, job.tags.join(' ')].filter(Boolean).join('. ');
-  if (text) candidates = scorer.scoreRoutes(text, scorer.loadRoutes(registry));
+  // scoreTask reads the whole description in pieces, not just its first 600 chars.
+  if (text) candidates = scorer.scoreTask(text, routes);
   var skills = candidates.filter(function(c) { return c.route.kind === 'skill' && has(c.route.id); });
-  var tier = skills.length ? scorer.tierFor(skills, 'auto') : 'low';
-
-  var skill;
-  var reason;
-  if (tier !== 'low') {
-    skill = skills[0].route.id;
-    reason = 'registry ' + tier + ' match ' + skills[0].score;
-  } else {
-    var own = function(map, key) { return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : null; };
-    var fromTag = job.tags.map(function(t) { return own(TAG_SKILL, t); }).filter(function(s) { return s && has(s); })[0];
-    var fromKind = own(KIND_SKILL, job.kind) && has(own(KIND_SKILL, job.kind)) ? own(KIND_SKILL, job.kind) : null;
-    skill = fromTag || fromKind || 'ccc';
-    reason = fromTag ? 'tag' : fromKind ? 'kind ' + job.kind : 'hub';
-  }
+  // Pick: registry matches above the floor, then tag and kind fallbacks; worker skills only.
+  var picks = [];
+  var why = [];
+  var add = function(id, reason) {
+    if (id && eligible(id) && picks.indexOf(id) < 0) { picks.push(id); why.push(reason); }
+  };
+  var own = function(map, key) { return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : null; };
+  skills.forEach(function(c) { if (c.score >= PICK_FLOOR) add(c.route.id, 'registry ' + scorer.tierFor([c], 'auto') + ' match ' + c.score); });
+  job.tags.forEach(function(t) { add(own(TAG_SKILL, t), 'tag ' + t); });
+  add(own(KIND_SKILL, job.kind), 'kind ' + job.kind);
+  picks = picks.slice(0, PICK_MAX);
+  var first = picks[0] || null;
+  var reason = first ? why[0] + ' -> skills ' + picks.map(function(id) { return '/' + id; }).join(', ') : 'no matching skill';
+  var top = first ? skills.filter(function(c) { return c.route.id === first; })[0] : null;
 
   var out = {
     schema: SCHEMA,
     action: 'proceed',
     when: 'now',
-    skill: '/' + skill,
-    reason: 'CCC ' + plugin.version + ': ' + reason + ' -> /' + skill,
+    skill: null,
+    reason: 'CCC ' + plugin.version + ': ' + reason,
     version: plugin.version,
     source: 'ccc-next',
-    tier: tier,
-    score: tier !== 'low' ? skills[0].score : null,
+    tier: top ? scorer.tierFor([top], 'auto') : 'low',
+    score: top ? top.score : null,
     route_source: routeSource,
-    candidates: skills.slice(0, 3).map(function(c) { return { skill: '/' + c.route.id, score: c.score }; }),
+    // Worker skills only, so a consumer that reads candidates cannot pick a skill the worker filter rejected.
+    candidates: skills.filter(function(c) { return eligible(c.route.id); }).slice(0, 3).map(function(c) { return { skill: '/' + c.route.id, score: c.score }; }),
+    skills: picks.map(function(id) { return '/' + id; }),
+    prompt_block: promptBlock(picks, plugin.version, scorer.WORKER_RULES),
   };
   var hold = readHold(env, opts.now ? Date.parse(opts.now) : Date.now());
   if (hold) { out.action = hold.action; out.when = hold.when; out.reason = hold.reason; }
   return out;
 }
 
-/** Job from CLI flags (--kind K --tags a,b --title T), or null when none given. */
+/** The worker's pre-run paragraph for this pick; rules is route-scorer's WORKER_RULES. */
+function promptBlock(picks, version, rules) {
+  var head = 'CCC pre-run (CC Commander ' + version + '): ';
+  if (!picks.length) return head + 'no CCC skill fits this task. Work without one; do not open the /ccc menu.';
+  var list = picks.map(function(id) { return '/' + id; }).join(', then ');
+  return head + 'load ' + list + ' where it fits this task. Do not load other CCC skills. ' + (rules || '');
+}
+
+var JOB_FLAGS = ['--kind', '--tags', '--title', '--description'];
+
+/**
+ * Job from CLI flags (--kind K --tags a,b --title T --description D), or
+ * null when none given. Parsed left to right: a flag's value is the next
+ * argument whatever it looks like, so a description reading "--update" stays
+ * data. Prefer JSON on stdin for task text.
+ */
 function jobFromArgs(args) {
-  var val = function(flag) { var i = args.indexOf(flag); return i >= 0 && args[i + 1] && args[i + 1].indexOf('--') !== 0 ? args[i + 1] : null; };
+  var vals = {};
+  for (var i = 0; i < args.length; i++) {
+    if (JOB_FLAGS.indexOf(args[i]) >= 0 && i + 1 < args.length) { vals[args[i]] = args[i + 1]; i++; }
+  }
+  var val = function(flag) { return Object.prototype.hasOwnProperty.call(vals, flag) ? vals[flag] : null; };
   var kind = val('--kind');
   var tags = val('--tags');
   var title = val('--title');
-  if (kind === null && tags === null && title === null) return null;
-  return { kind: kind || undefined, tags: tags ? tags.split(',') : [], title: title || undefined };
+  var description = val('--description');
+  if (kind === null && tags === null && title === null && description === null) return null;
+  var job = { kind: kind || undefined, tags: tags ? tags.split(',') : [], title: title || undefined };
+  if (description) job.description = description;
+  return job;
 }
 
 module.exports = {
   SCHEMA: SCHEMA,
   next: next,
+  promptBlock: promptBlock,
   normalizeJob: normalizeJob,
   parseJobJson: parseJobJson,
   readHold: readHold,

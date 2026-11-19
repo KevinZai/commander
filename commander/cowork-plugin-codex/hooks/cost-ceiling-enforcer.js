@@ -19,7 +19,8 @@
  *   After that   → denies each tool call (PreToolUse permissionDecision deny,
  *                  with the reason shown to Claude and the user), UNLESS
  *                  CCC_COST_OVERRIDE=1. The turn continues; Claude can stop.
- * State is keyed by the stdin session_id (shared with cost-tracker.js).
+ * State is keyed by the stdin session_id (shared with cost-tracker.js). With a ceiling set, a budget
+ * that cannot be read or checked blocks the call (fail closed).
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitDeny, emitUser } from './lib/emit.mjs';
@@ -30,24 +31,28 @@ import { join } from 'node:path';
 import { readablePath, stateDir } from '../lib/lane-state.js';
 import { setting, settingSource } from '../lib/plugin-options.js';
 import { isMainModule } from './lib/code-mode.mjs';
+import { envCeiling } from './orchestrator/budget-config.mjs';
 import { readStdinJson } from './lib/session-key.mjs';
 
 const CCC_DIR = stateDir();
 const CONFIG_FILE = readablePath('config.json');
 
-/** Ceiling from CCC_COST_CEILING: a positive number, 0 for off, or undefined when unset/invalid. */
-function envCeiling(value) {
-  if (value === undefined || value.trim() === '') return undefined;
-  const v = value.trim().toLowerCase();
-  if (v === 'off') return 0;
-  const n = Number(v);
-  return Number.isFinite(n) && n >= 0 ? n : undefined;
+
+/** A counter as cost-tracker.js writes it: a toolCalls count, and estimatedCost when present. */
+export function validCounter(c) {
+  const count = (v) => Number.isInteger(v) && v >= 0;
+  if (!c || typeof c !== 'object' || Array.isArray(c)) return false;
+  // An existing counter always has its count: a file without one was damaged, not started.
+  if (!count(c.toolCalls)) return false;
+  if ('estimatedCost' in c && !(typeof c.estimatedCost === 'number' && Number.isFinite(c.estimatedCost) && c.estimatedCost >= 0)) return false;
+  return true;
 }
 
 export async function run(input = {}) {
   track('hook_fired', { hook: 'PreToolUse', handler: 'cost-ceiling-enforcer' });
 
   const COST_FILE = join(CCC_DIR, 'sessions', `active-cost-${sessionKey(input)}.json`);
+  let ceiling;
 
   try {
     // Explicit override — always allow, stay silent
@@ -56,7 +61,7 @@ export async function run(input = {}) {
     }
 
     // Explicit ceiling only: env first, then the lane config. Unset == off.
-    let ceiling = envCeiling(setting('cost_ceiling'));
+    ceiling = envCeiling(setting('cost_ceiling'));
     const from = settingSource('cost_ceiling');
     const source = ceiling === undefined ? `"costCeiling" in ${CONFIG_FILE}` : from === 'userConfig' ? 'the cost_ceiling plugin option' : 'CCC_COST_CEILING';
     if (ceiling === undefined) {
@@ -65,8 +70,9 @@ export async function run(input = {}) {
         if (typeof config.costCeiling === 'number' && config.costCeiling > 0) {
           ceiling = config.costCeiling;
         }
-      } catch {
-        // No config file — no ceiling
+      } catch (err) {
+        // No config file: no ceiling. Unreadable or malformed: the ceiling is unknown, so block (below).
+        if (err?.code !== 'ENOENT') { ceiling = Infinity; throw err; }
       }
     }
     if (!ceiling) {
@@ -77,9 +83,12 @@ export async function run(input = {}) {
     let costData = null;
     try {
       costData = JSON.parse(await readFile(COST_FILE, 'utf8'));
-    } catch {
-      // No cost file yet — budget is 0, allow through
+    } catch (err) {
+      // No cost file yet: the budget is 0. Any other failure means the count is unknown.
+      if (err?.code !== 'ENOENT') throw err;
     }
+    // A counter the tracker did not write (a damaged field) is unknown, not zero.
+    if (costData && !validCounter(costData)) throw new Error('tool-call counter is damaged');
     const currentCost = costData?.estimatedCost || 0;
 
     if (currentCost >= ceiling) {
@@ -91,12 +100,15 @@ export async function run(input = {}) {
       // cross together, exactly one claims the warning and the other is denied.
       let claimedWarning = false;
       if (costData && !costData.ceilingWarnedAt) {
+        // The warning counts only once its marker is written under the lock; any failure denies instead.
         try {
-          await updateJson(COST_FILE, (current) => {
+          let wanted = false;
+          const r = await updateJson(COST_FILE, (current) => {
             if (current.ceilingWarnedAt) return undefined;
-            claimedWarning = true;
+            wanted = true;
             return { ...current, ceilingWarnedAt: new Date().toISOString() };
-          });
+          }, { strict: true, requireLock: true });
+          claimedWarning = wanted && r.written && r.locked;
         } catch {}
       }
       if (claimedWarning) {
@@ -116,8 +128,12 @@ export async function run(input = {}) {
     }
 
     return { continue: true };
-  } catch {
-    // Fail open — never block on error
+  } catch (err) {
+    // With a ceiling set, a budget that cannot be checked blocks the call; without one, nothing to enforce.
+    if (ceiling) {
+      return emitDeny(`CCC tool-call budget ceiling: could not check the budget (${err?.code || err?.message || 'error'}), ` +
+        'so this call was blocked. Set CCC_COST_OVERRIDE=1 to continue.');
+    }
     return { continue: true };
   }
 }

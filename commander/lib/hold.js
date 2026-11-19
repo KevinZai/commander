@@ -25,6 +25,12 @@ var SCHEMA = 1;
 var FILE = 'fleet-hold.json';
 var MAX_REASON = 160; // readHold truncates to this; refuse rather than lose text
 
+/** A config dir the OS cannot open is refused before any state path is built. */
+function refuseUnresolved(env) {
+  var ln = lane.resolveLane(env);
+  if (ln.problem) throw fail(1, ln.source + ' cannot be resolved safely (' + ln.problem + '); no hold was written');
+}
+
 function fail(code, message) {
   var err = new Error(message);
   err.exitCode = code;
@@ -117,6 +123,7 @@ function set(opts) {
   var r = nextLib.interpretHold(record, now);
   var want = record.hold ? 'hold' : 'defer';
   if (!r || r.action !== want || r.invalid) throw fail(2, 'refusing to write a hold that ccc next would not read as ' + want);
+  refuseUnresolved(env);
   writeAtomic(lane.statePath(FILE, env), record);
   return show({ env: env, now: now });
 }
@@ -127,6 +134,7 @@ function clear(opts) {
   var env = opts.env || process.env;
   var now = opts.now !== undefined ? opts.now : Date.now();
   var record = { hold: false, set_at: new Date(now).toISOString() };
+  refuseUnresolved(env);
   writeAtomic(lane.statePath(FILE, env), record);
   return show({ env: env, now: now });
 }

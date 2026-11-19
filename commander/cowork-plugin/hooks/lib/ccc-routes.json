@@ -18,6 +18,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -37,6 +39,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -56,6 +60,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-claudemd"
       ],
@@ -87,6 +93,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-review",
         "ccc-plan"
@@ -121,6 +129,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -150,6 +160,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-plan",
         "ccc-build"
@@ -172,6 +184,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -192,6 +206,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -220,6 +236,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-testing",
         "ccc-review",
@@ -259,6 +277,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-update"
       ],
@@ -281,6 +301,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -314,6 +336,8 @@
       ],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-systematic-debugging",
         "ccc-testing"
@@ -340,6 +364,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -361,6 +387,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -384,6 +412,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -403,6 +433,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -435,6 +467,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-seo",
         "ccc-marketing"
@@ -467,6 +501,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-file-pr"
       ],
@@ -492,12 +528,15 @@
       ],
       "patterns": [
         "\\b(optimi[sz]e|speed up|tune)\\s+(this\\s+|my\\s+|the\\s+)?(sql|query|queries)\\b",
-        "\\b(build|create|set up)\\s+(an?\\s+|the\\s+)?(etl|elt|data)\\s+pipeline\\b"
+        "\\b(build|create|set up)\\s+(an?\\s+|the\\s+)?(etl|elt|data)\\s+pipeline\\b",
+        "\\b(optimi[sz]e|speed up|tune|fix)\\s+(the\\s+|this\\s+|a\\s+|our\\s+)?(slow\\s+)?([\\w-]+\\s+){0,2}(sql\\s+|postgres\\s+|mysql\\s+|database\\s+|db\\s+)?quer(y|ies)\\b"
       ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": true,
       "next": [],
       "descTriggers": []
     },
@@ -521,6 +560,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -549,6 +590,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-broadcast",
         "ccc-changelog"
@@ -582,6 +625,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-ship",
         "ccc-deploy",
@@ -600,7 +645,9 @@
         "restyle",
         "figma to code",
         "redesign the ui",
-        "landing page design"
+        "landing page design",
+        "look better",
+        "make it pretty"
       ],
       "triggers": [
         "design system",
@@ -613,7 +660,10 @@
       ],
       "patterns": [
         "\\b(design|restyle|polish|redesign|animate)\\s+(the\\s+|my\\s+|a\\s+|this\\s+)?([\\w-]+\\s+){0,2}(ui|landing page|homepage|page|component|screen)\\b",
-        "\\b(three\\.?js|webgl|react three fiber|r3f)\\b.{0,40}\\b(scene|shader|viewer|model|animation|post-processing|material)s?\\b|\\b(scene|shader|viewer|model)s?\\b.{0,40}\\b(three\\.?js|webgl|react three fiber|r3f)\\b"
+        "\\b(three\\.?js|webgl|react three fiber|r3f)\\b.{0,40}\\b(scene|shader|viewer|model|animation|post-processing|material)s?\\b|\\b(scene|shader|viewer|model)s?\\b.{0,40}\\b(three\\.?js|webgl|react three fiber|r3f)\\b",
+        "\\b(make|get)\\s+(the\\s+|this\\s+|my\\s+|our\\s+)?([\\w-]+\\s+){0,2}(page|ui|site|app|screen|dashboard|component|form)\\s+look\\s+(better|nicer|good|modern|clean|polished)\\b",
+        "\\b(add|build|implement)\\s+(a\\s+)?(dark mode|light mode|theme)\\s*(toggle|switch|support)?\\b",
+        "\\b(looks?|is)\\s+(ugly|dated|old-fashioned|clunky|bland|off)\\b.{0,30}\\b(polish|fix|clean|improve|redesign|restyle)\\b|\\b(polish|restyle|redesign)\\s+(it|this|that)\\b"
       ],
       "negatives": [
         "\\bsystem design\\b",
@@ -623,6 +673,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-review",
         "ccc-testing"
@@ -639,7 +691,9 @@
         "ci/cd pipeline",
         "zero-downtime deploy",
         "helm chart",
-        "terraform"
+        "terraform",
+        "github actions workflow",
+        "docker image"
       ],
       "triggers": [
         "dockerfile",
@@ -649,7 +703,10 @@
         "docker"
       ],
       "patterns": [
-        "\\b(set up|setup|write|harden)\\s+(a\\s+|the\\s+|our\\s+)?(ci/cd|ci pipeline|dockerfile|terraform|k8s|kubernetes)\\b"
+        "\\b(set up|setup|write|harden)\\s+(a\\s+|the\\s+|our\\s+)?(ci/cd|ci pipeline|dockerfile|terraform|k8s|kubernetes)\\b",
+        "\\b(set up|setup|add|create|write)\\s+(a\\s+|the\\s+)?(github actions?|gh actions|ci)\\s+(workflow\\s+)?(to|for|that)\\b",
+        "\\b(shrink|slim|optimi[sz]e|reduce)\\s+(the\\s+|our\\s+|this\\s+)?(docker\\s+)?(image|container)\\b",
+        "\\b(dockeri[sz]e|containeri[sz]e)\\b"
       ],
       "negatives": [
         "\\b(ci|pipeline|build)\\s+(is\\s+)?(red|failing|failed|broken)\\b"
@@ -660,6 +717,8 @@
       ],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-deploy-check",
         "ccc-security"
@@ -683,6 +742,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -706,6 +767,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-update",
         "ccc-tuneup"
@@ -728,6 +791,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-ship"
       ],
@@ -749,6 +814,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -771,6 +838,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": [
         "orchestrated work"
@@ -802,6 +871,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-babysit-pr"
       ],
@@ -834,6 +905,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-fleet-viz",
         "ccc-review"
@@ -856,6 +929,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -881,6 +956,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": [
         "full send"
@@ -908,6 +985,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": [
         "full stop"
@@ -934,6 +1013,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -956,6 +1037,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-deploy-check"
       ],
@@ -976,6 +1059,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -997,6 +1082,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1017,6 +1104,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1036,6 +1125,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1060,6 +1151,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-plan",
         "ccc-build"
@@ -1087,6 +1180,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-linear"
       ],
@@ -1113,6 +1208,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1133,6 +1230,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-review"
       ],
@@ -1160,6 +1259,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-content",
         "ccc-seo"
@@ -1185,6 +1286,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1207,6 +1310,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1237,6 +1342,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-testing",
         "ccc-review"
@@ -1264,6 +1371,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-babysit-pr"
       ],
@@ -1284,6 +1393,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1305,6 +1416,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-review"
       ],
@@ -1333,6 +1446,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1353,6 +1468,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-plan"
       ],
@@ -1375,6 +1492,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-review"
       ],
@@ -1400,7 +1519,9 @@
       "patterns": [
         "\\b(plan|scope)\\s+(out\\s+)?(this|the|a|my|our)\\s+([\\w-]+\\s+){0,2}(feature|refactor|migration|work|change|project|epic|ticket|issue)\\b",
         "\\bmake (a|an) (implementation\\s+)?plan for\\b",
-        "\\bi (want|need)\\s+(a|an)\\s+(implementation\\s+)?plan\\s+for\\b"
+        "\\bi (want|need)\\s+(a|an)\\s+(implementation\\s+)?plan\\s+for\\b",
+        "\\bimplement\\s+(the\\s+)?(feature|ticket|issue|story|epic)\\b",
+        "\\b(migrate|rewrite|port|move)\\s+(the\\s+|this\\s+|our\\s+|my\\s+)?([\\w./-]+\\s+){0,3}from\\s+[\\w./-]+\\s+(to|onto)\\s+[\\w./-]+"
       ],
       "negatives": [
         "\\bmeal plan\\b",
@@ -1410,6 +1531,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-build",
         "ccc-testing",
@@ -1433,6 +1556,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-review"
       ],
@@ -1461,6 +1586,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1486,6 +1613,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1515,6 +1644,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-review",
         "ccc-deploy-check"
@@ -1542,6 +1673,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1561,6 +1694,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1593,6 +1728,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-plan",
         "ccc-brainstorm"
@@ -1617,6 +1754,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1642,7 +1781,9 @@
         "\\breview\\s+(my|this|the|our)\\s+(code|changes|diff|pr|pull request|branch|commit|commits)\\b",
         "\\b(do|run|perform|i need|i want)\\s+(a|an|the)\\s+(code|pr|pull request)\\s+review\\b(?!\\s+(bot|feedback|comment|process|guide))",
         "\\bgive\\s+(my|this|the|our)\\s+(code|changes|diff|pr|branch)\\s+a\\s+(code\\s+)?review\\b",
-        "\\breview\\s+(the\\s+)?(last|latest|recent|previous)\\s+(\\d+\\s+)?(commit|commits|change|changes)\\b"
+        "\\breview\\s+(the\\s+|my\\s+|our\\s+)?(last|latest|recent|previous)\\s+(\\d+\\s+)?(commit|commits|change|changes)\\b",
+        "\\breview\\s+(what|everything)\\s+(i|we)('ve| have)?\\s+(just\\s+)?(changed|did|done|wrote|written|built|pushed)\\b",
+        "\\b(look over|go over|check|sanity[- ]check)\\s+(my|the|these|this|our)\\s+(changes|diff|code changes|pr|pull request|commits?)\\b"
       ],
       "negatives": [
         "\\bpreview\\b",
@@ -1653,6 +1794,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-qa",
         "ccc-deploy-check",
@@ -1686,6 +1829,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-systematic-debugging"
       ],
@@ -1701,19 +1846,27 @@
         "stripe billing",
         "multi-tenancy",
         "multi-tenant",
-        "subscription billing"
+        "subscription billing",
+        "stripe checkout",
+        "rate limiting",
+        "rate limit"
       ],
       "triggers": [
         "saas",
-        "feature flags"
+        "feature flags",
+        "stripe",
+        "webhook"
       ],
       "patterns": [
-        "\\b(add|implement|set up)\\s+(stripe billing|subscription billing|multi-tenancy)\\b"
+        "\\b(add|implement|set up)\\s+(stripe billing|subscription billing|multi-tenancy)\\b",
+        "\\b(add|implement|set up|integrate|wire up)\\s+(a\\s+|the\\s+)?(stripe|checkout|payments?|subscriptions?|rate limit(ing)?|api keys?|webhooks?|oauth|sso|login|signup|sign-up)\\b"
       ],
       "negatives": [],
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-build",
         "ccc-security"
@@ -1736,6 +1889,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1755,6 +1910,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1770,7 +1927,8 @@
         "scan for secrets",
         "vulnerable packages",
         "dependency cves",
-        "prompt injection defense"
+        "prompt injection defense",
+        "leaked secrets"
       ],
       "triggers": [
         "vulnerabilities",
@@ -1779,7 +1937,9 @@
       ],
       "patterns": [
         "\\b(audit|scan|check)\\s+(of\\s+)?(the\\s+|my\\s+|our\\s+|this\\s+)?([\\w-]+\\s+){0,2}(for\\s+)?(security|vulnerabilit(y|ies)|cves?|secrets)\\b",
-        "\\bis (this|it|my app) secure\\b"
+        "\\bis (this|it|my app) secure\\b",
+        "\\bis\\s+(this|the|my|our)\\s+(code|app|api|endpoint|site|repo|function|change|pr)\\s+(secure|safe)\\b",
+        "\\b(add|implement)\\s+(input\\s+)?(validation|sanitization|sanitisation)\\b"
       ],
       "negatives": [
         "\\bsecurity headers?\\b",
@@ -1788,6 +1948,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-harden",
         "ccc-review"
@@ -1820,6 +1982,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-content"
       ],
@@ -1846,6 +2010,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": [
         "auto mode",
@@ -1876,6 +2042,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-changelog",
         "ccc-broadcast",
@@ -1914,6 +2082,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1936,6 +2106,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-file-pr"
       ],
@@ -1961,6 +2133,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1990,6 +2164,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-tasks",
         "ccc-linear"
@@ -2012,6 +2188,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2036,6 +2214,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2048,26 +2228,51 @@
       "strong": [
         "root cause",
         "debug this",
-        "track down the bug"
+        "track down the bug",
+        "memory leak",
+        "debug it",
+        "stack trace",
+        "segfault"
       ],
       "triggers": [
         "flaky",
         "keeps failing",
-        "crash"
+        "crash",
+        "bug",
+        "broken",
+        "error",
+        "exception",
+        "crashes",
+        "timing out",
+        "hangs",
+        "500"
       ],
       "patterns": [
         "\\b(debug|investigate|diagnose|track down|figure out)\\s+(this|the|a|why)\\b.{0,60}\\b(bug|error|crash|failure|failing|exception|regression|broken)\\b",
         "^\\s*why (is|does|did)\\s+.{0,40}\\b(fail|failing|crash|crashes|crashing|throw|throws|break|breaks|broken)\\b",
-        "\\b(find|investigate|diagnose)\\s+(the\\s+)?root cause\\s+of\\b"
+        "\\b(find|investigate|diagnose)\\s+(the\\s+)?root cause\\s+of\\b",
+        "\\b(crash|crashes|crashing|hangs?|hanging|freezes?|freezing|times? out|timing out)\\s+(on|when|after|at|during|while|every|in)\\b",
+        "\\b(find out|figure out|work out|tell me)\\s+why\\b.{0,60}\\b(fail\\w*|crash\\w*|break\\w*|broken|errors?|erroring|throw\\w*|hang\\w*|slow\\w*|timing out|times out|leak\\w*|grow\\w*|spik\\w*|returns?|wrong)\\b",
+        "\\b(fix|debug|investigate)\\s+(the\\s+|these\\s+|our\\s+)?(failing|flaky|broken|red)\\s+(unit\\s+|e2e\\s+|integration\\s+)?tests?\\b",
+        "\\b(build|tests?|app|page|api|server|endpoint|login|worker|job|script|query|deploy)\\s+(is|are|keeps?|has been)\\s+(still\\s+)?(broken|failing|crashing|timing out|hanging|erroring|flaky)\\b",
+        "\\b(have|has|got|getting|hitting|seeing|there'?s|fix|find|track down|debug|chase)\\s+(an?\\s+|the\\s+|this\\s+|a few\\s+)?(memory leak|race condition|deadlock|segfault|null pointer|off-by-one)",
+        "\\bdebug\\s+(it|this|that)\\b",
+        "\\b(returns?|returning|throws?|throwing|getting|gives?|giving|hitting)\\s+(an?\\s+)?(http\\s+)?(500|502|503|504|exception|stack ?trace|segfault)\\b"
       ],
       "negatives": [
         "\\b(ci|pipeline)\\s+(is\\s+)?(red|failing|failed)\\b",
         "\\bcommander\\b",
-        "\\badd a retry\\b"
+        "\\badd a retry\\b",
+        "^\\s*(what|how|when|who|where)\\s+(is|are|was|were|does|do)\\b",
+        "\\bbecause (of|the|a|it)\\b",
+        "^\\s*(explain|describe|define)\\s+(what|how|the concept)\\b",
+        "\\bwhat (a|an)\\s+[\\w-]+(\\s+[\\w-]+)?\\s+is\\b"
       ],
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-testing",
         "ccc-review"
@@ -2098,6 +2303,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-babysit-pr"
       ],
@@ -2126,6 +2333,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2148,7 +2357,9 @@
       ],
       "patterns": [
         "\\b(write|add|create|generate)\\s+(some\\s+|more\\s+)?(unit\\s+|integration\\s+|e2e\\s+|playwright\\s+)?tests?\\s+(for|to cover)\\b",
-        "\\b(set up|create|design)\\s+(a|the|our)\\s+test strategy\\b"
+        "\\b(set up|create|design)\\s+(a|the|our)\\s+test strategy\\b",
+        "\\b(add|write|need|improve|increase|raise)\\s+(more\\s+|better\\s+)?(test coverage|unit tests|integration tests|regression tests?|e2e tests)\\b",
+        "\\badd\\s+(a\\s+)?regression test\\b"
       ],
       "negatives": [
         "\\btest (email|message|post|account)\\b",
@@ -2158,6 +2369,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-qa",
         "ccc-review"
@@ -2182,6 +2395,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2203,6 +2418,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2222,6 +2439,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2242,6 +2461,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-changelog",
         "ccc-doctor"
@@ -2266,6 +2487,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2289,6 +2512,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2326,6 +2551,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-makeover",
         "ccc-review"
@@ -2350,6 +2577,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": [
         "fewer approvals",
@@ -2378,6 +2607,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2401,6 +2632,8 @@
       ],
       "requirePath": true,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2420,6 +2653,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2439,6 +2674,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2460,6 +2697,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2479,6 +2718,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2502,6 +2743,8 @@
       ],
       "requirePath": true,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2525,6 +2768,8 @@
       ],
       "requirePath": true,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2548,6 +2793,8 @@
       ],
       "requirePath": true,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2574,6 +2821,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2595,6 +2844,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2618,6 +2869,8 @@
       ],
       "requirePath": true,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2637,6 +2890,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2656,6 +2911,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2675,6 +2932,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2698,6 +2957,8 @@
       ],
       "requirePath": true,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2719,6 +2980,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2739,6 +3002,8 @@
       "paths": [],
       "requirePath": false,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2762,6 +3027,8 @@
       ],
       "requirePath": true,
       "priority": 0,
+      "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     }

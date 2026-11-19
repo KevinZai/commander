@@ -1,17 +1,19 @@
 {
-  "_comment": "Routing overlay merged with skill/agent frontmatter by scripts/build-routes.js into commander/cowork-plugin/hooks/lib/ccc-routes.json. strong = distinctive whole-word phrases (+0.6, enough for a menu alone); triggers = supporting phrases (+0.35 multi-word, +0.25 single word, never enough alone); patterns = request-shaped intent regex (+0.6, case-insensitive; topic mentions belong in strong/triggers); negatives = regex that removes the route; paths = file names/extensions mentioned in the prompt (+0.2); requirePath = score only when a path matches; next = the 'what next' graph read by the Stop handler; priority = integer tiebreak when two routes score the same (higher first, default 0); exclude = never route. A route with no signal at all fails the build. A menu needs 0.55; auto-run needs an intent pattern hit plus 0.8 with a 0.25 lead. Edit this file, run `npm run build:routes`, then `npm run eval:routes`.",
+  "_comment": "Routing overlay merged with skill/agent frontmatter by scripts/build-routes.js into commander/cowork-plugin/hooks/lib/ccc-routes.json. strong = distinctive whole-word phrases (+0.6, enough for a menu alone); triggers = supporting phrases (+0.35 multi-word, +0.25 single word, never enough alone); patterns = request-shaped intent regex (+0.6, case-insensitive; topic mentions belong in strong/triggers); negatives = regex that removes the route; paths = file names/extensions mentioned in the prompt (+0.2); requirePath = score only when a path matches; next = the 'what next' graph read by the Stop handler; priority = integer tiebreak when two routes score the same (higher first, default 0); exclude = never route. A route with no signal at all fails the build. A menu needs 0.55; auto-run needs an intent pattern hit plus 0.8 with a 0.25 lead. Edit this file, run `npm run build:routes`, then `npm run eval:routes`. sideEffect (required for every skill) = true when the skill acts outside the conversation (deploy, push, publish, tracker, fleet or memory writes, settings, long loops); such a skill is offered as a menu and never auto-run. worker = true when a fleet or workflow worker may load the skill on its own (`ccc next` skill and skills, route-task.mjs, ccc-fleet-run args.skills, the SubagentStart hint): visible, no side effect, and its main path is work one agent does inside the task (no scaffolding, project creation or agent fan-out as the main path); every other skill is never handed to a worker. Workers get WORKER_RULES (route-scorer.mjs) with the pick.",
   "skills": {
     "ccc": {
       "strong": [
         "commander menu",
         "open commander"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-adhd": {
       "strong": [
         "adhd mode",
         "answer first mode"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-adopt": {
       "strong": [
@@ -20,7 +22,8 @@
       ],
       "next": [
         "ccc-claudemd"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-agent-writing": {
       "strong": [
@@ -42,7 +45,8 @@
       "next": [
         "ccc-review",
         "ccc-plan"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-brainstorm": {
       "strong": [
@@ -65,20 +69,23 @@
       "next": [
         "ccc-plan",
         "ccc-build"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-broadcast": {
       "strong": [
         "announce the deploy",
         "tell the team it shipped"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-browse": {
       "strong": [
         "skill catalog",
         "browse commander skills",
         "what can commander do"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-build": {
       "strong": [
@@ -101,7 +108,8 @@
         "ccc-testing",
         "ccc-review",
         "ccc-deploy-check"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-changelog": {
       "strong": [
@@ -129,14 +137,16 @@
       ],
       "next": [
         "ccc-update"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-cheatsheet": {
       "strong": [
         "commander cheatsheet",
         "commander cheat sheet",
         "command map"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-ci": {
       "strong": [
@@ -163,7 +173,8 @@
       "next": [
         "ccc-systematic-debugging",
         "ccc-testing"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-claudemd": {
       "strong": [
@@ -174,10 +185,12 @@
       ],
       "patterns": [
         "\\b(audit|clean up|cleanup|optimi[sz]e|trim)\\s+(my\\s+|the\\s+|our\\s+)?claude\\.md\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-code-review": {
-      "exclude": true
+      "exclude": true,
+      "sideEffect": false
     },
     "ccc-codex": {
       "strong": [
@@ -185,7 +198,8 @@
         "set up codex",
         "codex doctor",
         "codex config"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-connect": {
       "strong": [
@@ -196,13 +210,15 @@
       "patterns": [
         "\\b(connect|wire up|hook up)\\s+(my\\s+|the\\s+)?(linear|supabase|vercel|sentry|notion|slack|stripe)\\s+(to|with|into)\\s+(commander|claude|codex|this session)\\b",
         "\\b(add|set up|install|connect)\\s+(a\\s+|the\\s+)?(code[- ]?map|codebase[- ]memory|codebase graph)\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-console": {
       "strong": [
         "commander console",
         "open the console"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-content": {
       "strong": [
@@ -227,7 +243,8 @@
       "next": [
         "ccc-seo",
         "ccc-marketing"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-data": {
       "strong": [
@@ -239,13 +256,16 @@
       ],
       "patterns": [
         "\\b(optimi[sz]e|speed up|tune)\\s+(this\\s+|my\\s+|the\\s+)?(sql|query|queries)\\b",
-        "\\b(build|create|set up)\\s+(an?\\s+|the\\s+)?(etl|elt|data)\\s+pipeline\\b"
+        "\\b(build|create|set up)\\s+(an?\\s+|the\\s+)?(etl|elt|data)\\s+pipeline\\b",
+        "\\b(optimi[sz]e|speed up|tune|fix)\\s+(the\\s+|this\\s+|a\\s+|our\\s+)?(slow\\s+)?([\\w-]+\\s+){0,2}(sql\\s+|postgres\\s+|mysql\\s+|database\\s+|db\\s+)?quer(y|ies)\\b"
       ],
       "triggers": [
         "sql",
         "bigquery",
         "warehouse"
-      ]
+      ],
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-debate": {
       "strong": [
@@ -256,7 +276,8 @@
       ],
       "patterns": [
         "\\b(debate|stress[- ]test)\\s+(this|the|my|our)\\s+(design|plan|approach|proposal)\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-deploy-check": {
       "strong": [
@@ -276,7 +297,8 @@
         "ccc-ship",
         "ccc-deploy",
         "ccc-qa"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-deploy": {
       "strong": [
@@ -297,7 +319,8 @@
       "next": [
         "ccc-broadcast",
         "ccc-changelog"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-design": {
       "strong": [
@@ -305,7 +328,9 @@
         "restyle",
         "figma to code",
         "redesign the ui",
-        "landing page design"
+        "landing page design",
+        "look better",
+        "make it pretty"
       ],
       "triggers": [
         "design system",
@@ -318,7 +343,10 @@
       ],
       "patterns": [
         "\\b(design|restyle|polish|redesign|animate)\\s+(the\\s+|my\\s+|a\\s+|this\\s+)?([\\w-]+\\s+){0,2}(ui|landing page|homepage|page|component|screen)\\b",
-        "\\b(three\\.?js|webgl|react three fiber|r3f)\\b.{0,40}\\b(scene|shader|viewer|model|animation|post-processing|material)s?\\b|\\b(scene|shader|viewer|model)s?\\b.{0,40}\\b(three\\.?js|webgl|react three fiber|r3f)\\b"
+        "\\b(three\\.?js|webgl|react three fiber|r3f)\\b.{0,40}\\b(scene|shader|viewer|model|animation|post-processing|material)s?\\b|\\b(scene|shader|viewer|model)s?\\b.{0,40}\\b(three\\.?js|webgl|react three fiber|r3f)\\b",
+        "\\b(make|get)\\s+(the\\s+|this\\s+|my\\s+|our\\s+)?([\\w-]+\\s+){0,2}(page|ui|site|app|screen|dashboard|component|form)\\s+look\\s+(better|nicer|good|modern|clean|polished)\\b",
+        "\\b(add|build|implement)\\s+(a\\s+)?(dark mode|light mode|theme)\\s*(toggle|switch|support)?\\b",
+        "\\b(looks?|is)\\s+(ugly|dated|old-fashioned|clunky|bland|off)\\b.{0,30}\\b(polish|fix|clean|improve|redesign|restyle)\\b|\\b(polish|restyle|redesign)\\s+(it|this|that)\\b"
       ],
       "negatives": [
         "\\bsystem design\\b",
@@ -328,14 +356,17 @@
       "next": [
         "ccc-review",
         "ccc-testing"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-devops": {
       "strong": [
         "ci/cd pipeline",
         "zero-downtime deploy",
         "helm chart",
-        "terraform"
+        "terraform",
+        "github actions workflow",
+        "docker image"
       ],
       "triggers": [
         "dockerfile",
@@ -345,7 +376,10 @@
         "docker"
       ],
       "patterns": [
-        "\\b(set up|setup|write|harden)\\s+(a\\s+|the\\s+|our\\s+)?(ci/cd|ci pipeline|dockerfile|terraform|k8s|kubernetes)\\b"
+        "\\b(set up|setup|write|harden)\\s+(a\\s+|the\\s+|our\\s+)?(ci/cd|ci pipeline|dockerfile|terraform|k8s|kubernetes)\\b",
+        "\\b(set up|setup|add|create|write)\\s+(a\\s+|the\\s+)?(github actions?|gh actions|ci)\\s+(workflow\\s+)?(to|for|that)\\b",
+        "\\b(shrink|slim|optimi[sz]e|reduce)\\s+(the\\s+|our\\s+|this\\s+)?(docker\\s+)?(image|container)\\b",
+        "\\b(dockeri[sz]e|containeri[sz]e)\\b"
       ],
       "paths": [
         "Dockerfile",
@@ -357,14 +391,17 @@
       "next": [
         "ccc-deploy-check",
         "ccc-security"
-      ]
+      ],
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-doc-sync": {
       "strong": [
         "doc sync",
         "doc-count check",
         "sync the doc counts"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-doctor": {
       "strong": [
@@ -379,10 +416,12 @@
       "next": [
         "ccc-update",
         "ccc-tuneup"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-domains": {
-      "exclude": true
+      "exclude": true,
+      "sideEffect": true
     },
     "ccc-e2e": {
       "strong": [
@@ -391,13 +430,15 @@
       ],
       "next": [
         "ccc-ship"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-ecc": {
       "strong": [
         "everything claude code",
         "ecc component"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-fable": {
       "strong": [
@@ -406,13 +447,15 @@
         "fable off",
         "fable status",
         "fable audit"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-fleet-viz": {
       "strong": [
         "fleet progress",
         "fleet tree"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-fleet": {
       "strong": [
@@ -436,7 +479,8 @@
       "next": [
         "ccc-fleet-viz",
         "ccc-review"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-handoff": {
       "strong": [
@@ -449,7 +493,8 @@
       "triggers": [
         "handoff",
         "new chat"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-harden": {
       "strong": [
@@ -462,12 +507,14 @@
       ],
       "next": [
         "ccc-deploy-check"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-hermes": {
       "strong": [
         "hermes gateway"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-infra": {
       "strong": [
@@ -475,20 +522,23 @@
         "why is the mcp down",
         "infra status",
         "service status"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-knowledge": {
       "strong": [
         "commander knowledge base",
         "what have we learned",
         "past lessons"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-learn": {
       "strong": [
         "skill domains",
         "which skills exist"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-linear-board": {
       "strong": [
@@ -504,7 +554,8 @@
       ],
       "next": [
         "ccc-linear"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-linear": {
       "strong": [
@@ -521,7 +572,8 @@
       "next": [
         "ccc-plan",
         "ccc-build"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-loop": {
       "strong": [
@@ -534,7 +586,8 @@
       ],
       "negatives": [
         "\\bcron\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-makeover": {
       "strong": [
@@ -544,7 +597,8 @@
       ],
       "next": [
         "ccc-review"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-marketing": {
       "strong": [
@@ -561,7 +615,9 @@
       "next": [
         "ccc-content",
         "ccc-seo"
-      ]
+      ],
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-memory": {
       "strong": [
@@ -571,7 +627,8 @@
       "patterns": [
         "^\\s*remember (this|that)\\s*[:,-]",
         "\\b(record|save)\\s+(that|this)\\s+(decision|gotcha|for next time)\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-mission-control": {
       "strong": [
@@ -581,7 +638,8 @@
       ],
       "patterns": [
         "\\b(open|show|launch)\\s+(the\\s+)?mission control\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-mobile": {
       "strong": [
@@ -605,12 +663,14 @@
       "next": [
         "ccc-testing",
         "ccc-review"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-more": {
       "strong": [
         "more commander tools"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-night-mode": {
       "strong": [
@@ -621,7 +681,8 @@
       ],
       "next": [
         "ccc-review"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-nightwatch": {
       "strong": [
@@ -629,7 +690,8 @@
         "approve from phone",
         "remote yolo",
         "safety leash"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-onboard": {
       "strong": [
@@ -639,7 +701,8 @@
       ],
       "next": [
         "ccc-plan"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-orchestrate": {
       "strong": [
@@ -649,7 +712,8 @@
       ],
       "next": [
         "ccc-review"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-plan-exec": {
       "strong": [
@@ -658,7 +722,8 @@
       ],
       "next": [
         "ccc-review"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-plan": {
       "strong": [
@@ -675,7 +740,9 @@
       "patterns": [
         "\\b(plan|scope)\\s+(out\\s+)?(this|the|a|my|our)\\s+([\\w-]+\\s+){0,2}(feature|refactor|migration|work|change|project|epic|ticket|issue)\\b",
         "\\bmake (a|an) (implementation\\s+)?plan for\\b",
-        "\\bi (want|need)\\s+(a|an)\\s+(implementation\\s+)?plan\\s+for\\b"
+        "\\bi (want|need)\\s+(a|an)\\s+(implementation\\s+)?plan\\s+for\\b",
+        "\\bimplement\\s+(the\\s+)?(feature|ticket|issue|story|epic)\\b",
+        "\\b(migrate|rewrite|port|move)\\s+(the\\s+|this\\s+|our\\s+|my\\s+)?([\\w./-]+\\s+){0,3}from\\s+[\\w./-]+\\s+(to|onto)\\s+[\\w./-]+"
       ],
       "negatives": [
         "\\bmeal plan\\b",
@@ -686,7 +753,8 @@
         "ccc-build",
         "ccc-testing",
         "ccc-orchestrate"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-prompt-fix": {
       "strong": [
@@ -700,7 +768,8 @@
       ],
       "negatives": [
         "\\b(command|shell|bash|zsh) prompt\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-qa": {
       "strong": [
@@ -722,7 +791,8 @@
       "next": [
         "ccc-review",
         "ccc-deploy-check"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-recall": {
       "strong": [
@@ -734,13 +804,15 @@
       ],
       "patterns": [
         "\\b(have|did)\\s+(we|i)\\s+(already\\s+)?(solve|fix|hit|see)\\s+(this|that)\\b.{0,30}\\b(before|last time|already)\\b"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-relay": {
       "strong": [
         "finn loop",
         "auto-chained loops"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-research": {
       "strong": [
@@ -766,7 +838,8 @@
       "next": [
         "ccc-plan",
         "ccc-brainstorm"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-resume-session": {
       "strong": [
@@ -774,7 +847,8 @@
         "where i left off",
         "where we left off",
         "load my last session"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-review": {
       "strong": [
@@ -793,7 +867,9 @@
         "\\breview\\s+(my|this|the|our)\\s+(code|changes|diff|pr|pull request|branch|commit|commits)\\b",
         "\\b(do|run|perform|i need|i want)\\s+(a|an|the)\\s+(code|pr|pull request)\\s+review\\b(?!\\s+(bot|feedback|comment|process|guide))",
         "\\bgive\\s+(my|this|the|our)\\s+(code|changes|diff|pr|branch)\\s+a\\s+(code\\s+)?review\\b",
-        "\\breview\\s+(the\\s+)?(last|latest|recent|previous)\\s+(\\d+\\s+)?(commit|commits|change|changes)\\b"
+        "\\breview\\s+(the\\s+|my\\s+|our\\s+)?(last|latest|recent|previous)\\s+(\\d+\\s+)?(commit|commits|change|changes)\\b",
+        "\\breview\\s+(what|everything)\\s+(i|we)('ve| have)?\\s+(just\\s+)?(changed|did|done|wrote|written|built|pushed)\\b",
+        "\\b(look over|go over|check|sanity[- ]check)\\s+(my|the|these|this|our)\\s+(changes|diff|code changes|pr|pull request|commits?)\\b"
       ],
       "negatives": [
         "\\bpreview\\b",
@@ -805,7 +881,8 @@
         "ccc-qa",
         "ccc-deploy-check",
         "ccc-ship"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-rollback": {
       "strong": [
@@ -827,38 +904,48 @@
       ],
       "next": [
         "ccc-systematic-debugging"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-saas": {
       "strong": [
         "stripe billing",
         "multi-tenancy",
         "multi-tenant",
-        "subscription billing"
+        "subscription billing",
+        "stripe checkout",
+        "rate limiting",
+        "rate limit"
       ],
       "patterns": [
-        "\\b(add|implement|set up)\\s+(stripe billing|subscription billing|multi-tenancy)\\b"
+        "\\b(add|implement|set up)\\s+(stripe billing|subscription billing|multi-tenancy)\\b",
+        "\\b(add|implement|set up|integrate|wire up)\\s+(a\\s+|the\\s+)?(stripe|checkout|payments?|subscriptions?|rate limit(ing)?|api keys?|webhooks?|oauth|sso|login|signup|sign-up)\\b"
       ],
       "triggers": [
         "saas",
-        "feature flags"
+        "feature flags",
+        "stripe",
+        "webhook"
       ],
       "next": [
         "ccc-build",
         "ccc-security"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-safety": {
       "strong": [
         "what did the guardrails catch",
         "safety deck"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-save-session": {
       "strong": [
         "save this session",
         "save the session"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-security": {
       "strong": [
@@ -867,7 +954,8 @@
         "scan for secrets",
         "vulnerable packages",
         "dependency cves",
-        "prompt injection defense"
+        "prompt injection defense",
+        "leaked secrets"
       ],
       "triggers": [
         "vulnerabilities",
@@ -876,7 +964,9 @@
       ],
       "patterns": [
         "\\b(audit|scan|check)\\s+(of\\s+)?(the\\s+|my\\s+|our\\s+|this\\s+)?([\\w-]+\\s+){0,2}(for\\s+)?(security|vulnerabilit(y|ies)|cves?|secrets)\\b",
-        "\\bis (this|it|my app) secure\\b"
+        "\\bis (this|it|my app) secure\\b",
+        "\\bis\\s+(this|the|my|our)\\s+(code|app|api|endpoint|site|repo|function|change|pr)\\s+(secure|safe)\\b",
+        "\\b(add|implement)\\s+(input\\s+)?(validation|sanitization|sanitisation)\\b"
       ],
       "negatives": [
         "\\bsecurity headers?\\b",
@@ -885,7 +975,9 @@
       "next": [
         "ccc-harden",
         "ccc-review"
-      ]
+      ],
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-seo": {
       "strong": [
@@ -907,10 +999,13 @@
       ],
       "next": [
         "ccc-content"
-      ]
+      ],
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-session": {
-      "exclude": true
+      "exclude": true,
+      "sideEffect": true
     },
     "ccc-settings": {
       "strong": [
@@ -923,7 +1018,8 @@
       "patterns": [
         "\\b(turn|switch|shut)\\s+(off|on)\\s+(the\\s+)?(ccc\\s+|commander\\s+)?(auto[- ]?routing|skill routing)\\b",
         "\\b(disable|enable|stop)\\s+(the\\s+)?(ccc\\s+|commander\\s+)?(auto[- ]?routing|skill routing)\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-ship": {
       "strong": [
@@ -943,7 +1039,8 @@
         "ccc-changelog",
         "ccc-broadcast",
         "ccc-standup"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-smb-ops": {
       "strong": [
@@ -961,14 +1058,16 @@
         "payroll",
         "invoices",
         "cash flow"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-spawn": {
       "strong": [
         "spin this off",
         "run this in the background",
         "background agent"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-standup": {
       "strong": [
@@ -991,13 +1090,15 @@
       "next": [
         "ccc-tasks",
         "ccc-linear"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-start": {
       "strong": [
         "get started with commander",
         "just installed commander"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-suggest": {
       "strong": [
@@ -1009,33 +1110,59 @@
       "patterns": [
         "\\bwhat should (i|we) do next\\b",
         "\\bwhich tool should (i|we) use\\b"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-systematic-debugging": {
       "strong": [
         "root cause",
         "debug this",
-        "track down the bug"
+        "track down the bug",
+        "memory leak",
+        "debug it",
+        "stack trace",
+        "segfault"
       ],
       "triggers": [
         "flaky",
         "keeps failing",
-        "crash"
+        "crash",
+        "bug",
+        "broken",
+        "error",
+        "exception",
+        "crashes",
+        "timing out",
+        "hangs",
+        "500"
       ],
       "patterns": [
         "\\b(debug|investigate|diagnose|track down|figure out)\\s+(this|the|a|why)\\b.{0,60}\\b(bug|error|crash|failure|failing|exception|regression|broken)\\b",
         "^\\s*why (is|does|did)\\s+.{0,40}\\b(fail|failing|crash|crashes|crashing|throw|throws|break|breaks|broken)\\b",
-        "\\b(find|investigate|diagnose)\\s+(the\\s+)?root cause\\s+of\\b"
+        "\\b(find|investigate|diagnose)\\s+(the\\s+)?root cause\\s+of\\b",
+        "\\b(crash|crashes|crashing|hangs?|hanging|freezes?|freezing|times? out|timing out)\\s+(on|when|after|at|during|while|every|in)\\b",
+        "\\b(find out|figure out|work out|tell me)\\s+why\\b.{0,60}\\b(fail\\w*|crash\\w*|break\\w*|broken|errors?|erroring|throw\\w*|hang\\w*|slow\\w*|timing out|times out|leak\\w*|grow\\w*|spik\\w*|returns?|wrong)\\b",
+        "\\b(fix|debug|investigate)\\s+(the\\s+|these\\s+|our\\s+)?(failing|flaky|broken|red)\\s+(unit\\s+|e2e\\s+|integration\\s+)?tests?\\b",
+        "\\b(build|tests?|app|page|api|server|endpoint|login|worker|job|script|query|deploy)\\s+(is|are|keeps?|has been)\\s+(still\\s+)?(broken|failing|crashing|timing out|hanging|erroring|flaky)\\b",
+        "\\b(have|has|got|getting|hitting|seeing|there'?s|fix|find|track down|debug|chase)\\s+(an?\\s+|the\\s+|this\\s+|a few\\s+)?(memory leak|race condition|deadlock|segfault|null pointer|off-by-one)",
+        "\\bdebug\\s+(it|this|that)\\b",
+        "\\b(returns?|returning|throws?|throwing|getting|gives?|giving|hitting)\\s+(an?\\s+)?(http\\s+)?(500|502|503|504|exception|stack ?trace|segfault)\\b"
       ],
       "negatives": [
         "\\b(ci|pipeline)\\s+(is\\s+)?(red|failing|failed)\\b",
         "\\bcommander\\b",
-        "\\badd a retry\\b"
+        "\\badd a retry\\b",
+        "^\\s*(what|how|when|who|where)\\s+(is|are|was|were|does|do)\\b",
+        "\\bbecause (of|the|a|it)\\b",
+        "^\\s*(explain|describe|define)\\s+(what|how|the concept)\\b",
+        "\\bwhat (a|an)\\s+[\\w-]+(\\s+[\\w-]+)?\\s+is\\b"
       ],
       "next": [
         "ccc-testing",
         "ccc-review"
-      ]
+      ],
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-tasks": {
       "strong": [
@@ -1050,7 +1177,8 @@
       "patterns": [
         "\\badd\\s+.{1,40}\\s+to\\s+(my|the)\\s+(todo|to-do|task)\\s+list\\b",
         "\\b(show|open|list)\\s+(my|the)\\s+(todo|to-do|task)\\s+list\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-testing": {
       "strong": [
@@ -1066,7 +1194,9 @@
       ],
       "patterns": [
         "\\b(write|add|create|generate)\\s+(some\\s+|more\\s+)?(unit\\s+|integration\\s+|e2e\\s+|playwright\\s+)?tests?\\s+(for|to cover)\\b",
-        "\\b(set up|create|design)\\s+(a|the|our)\\s+test strategy\\b"
+        "\\b(set up|create|design)\\s+(a|the|our)\\s+test strategy\\b",
+        "\\b(add|write|need|improve|increase|raise)\\s+(more\\s+|better\\s+)?(test coverage|unit tests|integration tests|regression tests?|e2e tests)\\b",
+        "\\badd\\s+(a\\s+)?regression test\\b"
       ],
       "negatives": [
         "\\btest (email|message|post|account)\\b",
@@ -1076,7 +1206,9 @@
       "next": [
         "ccc-qa",
         "ccc-review"
-      ]
+      ],
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-triage": {
       "strong": [
@@ -1084,7 +1216,8 @@
         "triage the backlog",
         "triage prs",
         "label the backlog"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-tuneup": {
       "strong": [
@@ -1092,13 +1225,15 @@
         "commander tuneup",
         "setup feels slow",
         "setup feels cluttered"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-ultracode": {
       "strong": [
         "ultracode",
         "depth over speed"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-update": {
       "strong": [
@@ -1109,7 +1244,8 @@
       "next": [
         "ccc-changelog",
         "ccc-doctor"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-upgrade": {
       "strong": [
@@ -1117,7 +1253,8 @@
         "upgrade vendors",
         "refresh submodules",
         "vendor drift"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-usage": {
       "strong": [
@@ -1128,7 +1265,8 @@
       ],
       "patterns": [
         "\\bhow much (did|have) (i|we) (spend|spent)\\s+on\\s+(agent|claude|codex)\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-xray": {
       "strong": [
@@ -1159,7 +1297,8 @@
       "next": [
         "ccc-makeover",
         "ccc-review"
-      ]
+      ],
+      "sideEffect": false
     },
     "ccc-yolo-setup": {
       "strong": [
@@ -1167,7 +1306,8 @@
         "too many permission prompts",
         "fewer approvals",
         "skip permissions"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-full-send": {
       "strong": [
@@ -1181,7 +1321,8 @@
       "negatives": [
         "\\bwhat (does|is)\\b.{0,20}\\bfull[- ]send\\b",
         "\\bfull[- ]send(er|ing)\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-full-stop": {
       "strong": [
@@ -1195,7 +1336,8 @@
       "negatives": [
         "\\S.*[.!?]\\s+full[- ]stop\\s*[.!]?\\s*$",
         "\\b(period|punctuation|comma|semicolon)\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-council": {
       "strong": [
@@ -1216,7 +1358,8 @@
       ],
       "next": [
         "ccc-file-pr"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-sol-loop": {
       "strong": [
@@ -1229,7 +1372,8 @@
       ],
       "next": [
         "ccc-file-pr"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-file-pr": {
       "strong": [
@@ -1250,7 +1394,8 @@
       ],
       "next": [
         "ccc-babysit-pr"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-takeover": {
       "strong": [
@@ -1269,7 +1414,8 @@
       ],
       "next": [
         "ccc-babysit-pr"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-babysit-pr": {
       "strong": [
@@ -1284,7 +1430,8 @@
       ],
       "negatives": [
         "\\bbabysit(ting)?\\s+(my|the|our)\\s+(kid|kids|child|children|baby|dog|cat)\\b"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-modernize": {
       "strong": [
@@ -1299,7 +1446,8 @@
       ],
       "next": [
         "ccc-babysit-pr"
-      ]
+      ],
+      "sideEffect": true
     },
     "ccc-pr-comments": {
       "strong": [
@@ -1311,7 +1459,8 @@
       "patterns": [
         "\\b(reply|respond)\\s+to\\s+(the\\s+|this\\s+|those\\s+|these\\s+)?(pr|review|bot)\\s+comments?\\b",
         "\\b(leave|post|write)\\s+(a\\s+)?(comment|reply)\\s+on\\s+(the|this|my)\\s+(pr|pull request)\\b"
-      ]
+      ],
+      "sideEffect": true
     }
   },
   "agents": {

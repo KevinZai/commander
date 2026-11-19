@@ -18,3 +18,7 @@ delete process.env.PLUGIN_DATA;
 for (const key of Object.keys(process.env)) {
   if (key.startsWith('CLAUDE_PLUGIN_OPTION_')) delete process.env[key];
 }
+// Routing is headless under CI or CCC_HEADLESS=1, which turns menus into hints; pin interactive so results do not depend on where the suite runs. Tests that
+// need headless set CCC_HEADLESS=1 (or pass an explicit env) themselves.
+delete process.env.CLAUDE_CODE_ENTRYPOINT;
+process.env.CCC_HEADLESS = '0';

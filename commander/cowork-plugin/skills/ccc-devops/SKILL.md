@@ -21,6 +21,8 @@ The specialist list, routing matrix and multi-step campaigns live in [references
 
 Codex: ask the pickers as plain-text questions; run step 4 with `codex exec --json` using the specialist playbook as the instructions.
 
+**Worker mode.** When your prompt starts with a "CCC pre-run" line, or you run as a fleet or workflow worker, stay in this one thread: do not start agents, workflows or `codex exec`. Do any step this skill would delegate yourself, or skip it and say so. At an approval step (edits during an audit, installs, deploy, push, publish, tracker or settings changes), do not proceed; report the decision in your result.
+
 ## When to use / when not to
 
 - Use to design or change a pipeline, deploy strategy, container image, cloud architecture, IaC module, monitoring stack, network layout or incident runbook.

@@ -21,6 +21,7 @@ import { join } from 'node:path';
 import { stateDir } from '../lib/lane-state.js';
 import { updateJson } from './lib/atomic-json.mjs';
 import { isMainModule } from './lib/code-mode.mjs';
+import { validCounter } from './cost-ceiling-enforcer.js';
 
 const SESSIONS_DIR = join(stateDir(), 'sessions');
 
@@ -35,9 +36,16 @@ export async function run(input = {}) {
     const SESSION_KEY = sessionKey(input);
     const COST_FILE = join(SESSIONS_DIR, `active-cost-${SESSION_KEY}.json`);
     const { value: costData } = await updateJson(COST_FILE, (current) => {
-      const toolCalls = (Number.isFinite(current.toolCalls) ? current.toolCalls : 0) + 1;
+      // A damaged counter is an error, never a reset: a ceiling must not read an over-budget session as new.
+      if (!validCounter(current)) throw new Error('tool-call counter is damaged');
+      const toolCalls = (current.toolCalls || 0) + 1;
       return { ...current, toolCalls, estimatedCost: toolCalls * UNIT_PER_CALL };
-    }, { fallback: () => ({ toolCalls: 0, estimatedCost: 0, sessionId: SESSION_KEY, startedAt: new Date().toISOString() }) });
+    }, {
+      // Only a missing counter starts at zero; a corrupt one or a lock that cannot be had is an error, so a
+      // configured ceiling never reads a reset or unlocked count.
+      fallback: () => ({ toolCalls: 0, estimatedCost: 0, sessionId: SESSION_KEY, startedAt: new Date().toISOString() }),
+      strict: true, requireLock: true, waitMs: 1000,
+    });
 
     if (costData.toolCalls > ALERT_CALLS) {
       out = emitUser(
@@ -50,8 +58,12 @@ export async function run(input = {}) {
     } else {
       out = emitSilent();
     }
-  } catch {
-    out = { continue: true, suppressOutput: true };
+  } catch (err) {
+    // The count was not recorded. Thrown so the PreToolUse dispatcher can block the call when a
+    // tool-call ceiling is configured (the ceiling would otherwise read a stale count); without
+    // one, the dispatcher passes it.
+    track('hook_fired', { hook: 'PreToolUse', handler: 'cost-tracker' });
+    throw err;
   }
 
   track('hook_fired', { hook: 'PreToolUse', handler: 'cost-tracker' });

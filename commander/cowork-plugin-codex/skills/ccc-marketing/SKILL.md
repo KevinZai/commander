@@ -22,6 +22,8 @@ The user's selected model is preserved unless they choose otherwise. Marketing s
 
 Codex: ask pickers as plain-text questions with the same options, and read a sub-skill's `SKILL.md` directly instead of using the Skill tool.
 
+**Worker mode.** When your prompt starts with a "CCC pre-run" line, or you run as a fleet or workflow worker, stay in this one thread: do not start agents, workflows or `codex exec`. Do any step this skill would delegate yourself, or skip it and say so. At an approval step (edits during an audit, installs, deploy, push, publish, tracker or settings changes), do not proceed; report the decision in your result.
+
 ## When to use / when not to
 
 - Use for marketing strategy and execution: brand context, content plans, landing-page and funnel conversion, email sequences, paid ads, cold email, A/B tests, referral programs, competitor pages, pricing, and launches.

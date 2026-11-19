@@ -15,7 +15,7 @@ export const ARCHIVE_DIR = 'tasks/contracts';
 export const MARKER = 'ccc-sprint-contract v1';
 export const MAX_CRITERIA = 20;
 
-const CHECK_SPLIT = /\s+(?:·|—|-{1,2})\s+check(-json)?:\s*(.*?)\s*$/i;
+const CHECK_DELIM = /\s+(?:·|—|-{1,2})\s+check(-json)?:/gi;
 const CHECK_JSON_ERROR = 'check-json is not one code span holding a non-empty JSON string';
 const ITEM = /^\s*[-*]\s+(?:\[( |x|X)\]\s+)?(.*\S)\s*$/;
 const ID_PREFIX = /^(AC\d+)\s*(?:—|-|:|·)\s*/;
@@ -24,11 +24,65 @@ function slugify(text) {
   return String(text || 'work').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'work';
 }
 
+/**
+ * The text with every inline code span's content replaced by "x" (same
+ * length), so a delimiter quoted inside backticks is not read as one. A run of
+ * n backticks closes at the next run of exactly n; an unclosed run, or a
+ * backslash-escaped backtick outside a span, is literal.
+ */
+function maskCodeSpans(s) {
+  let out = '';
+  let i = 0;
+  while (i < s.length) {
+    // A backslash-escaped backtick outside a code span is a literal and opens nothing (CommonMark). Backslashes
+    // pair off first: only an odd run escapes the backtick after it; after an even run (\\`) the backtick opens.
+    if (s[i] === '\\') {
+      let j = i;
+      while (s[j] === '\\') j++;
+      if ((j - i) % 2 === 1 && s[j] === '`') j++;
+      out += s.slice(i, j);
+      i = j;
+      continue;
+    }
+    if (s[i] !== '`') { out += s[i++]; continue; }
+    let j = i;
+    while (s[j] === '`') j++;
+    const run = j - i;
+    let close = -1;
+    for (let k = j; k < s.length;) {
+      if (s[k] !== '`') { k++; continue; }
+      let e = k;
+      while (s[e] === '`') e++;
+      if (e - k === run) { close = k; break; }
+      k = e;
+    }
+    if (close < 0) { out += s.slice(i, j); i = j; continue; }
+    out += s.slice(i, j) + 'x'.repeat(close - j) + s.slice(close, close + run);
+    i = close + run;
+  }
+  return out;
+}
+
+/**
+ * The first ` · check:` / ` · check-json:` delimiter outside code spans, as
+ * [whole, json?, rest] with .index, or null (CC-2188: a criterion that quotes
+ * the marker syntax in backticks keeps its real check).
+ */
+function matchCheck(text) {
+  const masked = maskCodeSpans(text);
+  CHECK_DELIM.lastIndex = 0;
+  const d = CHECK_DELIM.exec(masked);
+  if (!d) return null;
+  const m = [text.slice(d.index), d[1], text.slice(d.index + d[0].length).trim()];
+  m.index = d.index;
+  return m;
+}
+
 /** Split one bullet into { text, check }; a lone backticked command counts as the check. */
 export function splitCriterion(raw) {
   let text = String(raw).trim();
   let check = null;
-  const m = text.match(CHECK_SPLIT);
+  const m = matchCheck(text);
   if (m) {
     text = text.slice(0, m.index).trim();
     if (m[1]) {

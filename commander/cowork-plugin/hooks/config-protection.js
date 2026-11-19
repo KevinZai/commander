@@ -9,7 +9,8 @@
  * settings.local.json / hooks) so mid-session permission or hook drift is
  * visible instead of silent.
  * Adapted from ECC vendor (CommonJS → ESM).
- * Never crashes the session — fail open on any error.
+ * Never crashes the session. An edit it cannot read or check is blocked
+ * (fail closed); other errors pass.
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitUser, emitSilent, emitDeny } from './lib/emit.mjs';
@@ -65,7 +66,8 @@ async function main() {
     const raw = Buffer.concat(chunks).toString('utf8').trim();
     if (raw) input = JSON.parse(raw);
   } catch {
-    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
+    // Unreadable input on an edit: the guard cannot tell what is written, so block (fail closed).
+    process.stdout.write(JSON.stringify(emitDeny('CCC CONFIG GUARD: could not read this edit call, so it is blocked.')) + '\n');
     return;
   }
 
@@ -94,7 +96,13 @@ async function main() {
     }
 
     // Every file the call writes: one for a Claude edit, one per file op (and rename target) for a Codex patch.
-    const basename = editTargets(input)
+    const targets = editTargets(input);
+    if (!targets.length || targets.some((t) => typeof t.path !== 'string' || !t.path.trim())) {
+      // An edit with no identifiable target cannot be checked: block it (fail closed).
+      process.stdout.write(JSON.stringify(emitDeny('CCC CONFIG GUARD: could not tell which file this edit writes, so it is blocked.')) + '\n');
+      return;
+    }
+    const basename = targets
       .map((target) => path.basename(target.path))
       .find((name) => PROTECTED_FILES.has(name));
     if (basename) {
@@ -108,7 +116,9 @@ async function main() {
 
     process.stdout.write(JSON.stringify({ continue: true }) + '\n');
   } catch {
-    process.stdout.write(JSON.stringify({ continue: true }) + '\n');
+    // An edit the guard failed to check is blocked; anything else passes.
+    const edit = isFileEditTool(input.tool_name || input.toolName || '');
+    process.stdout.write(JSON.stringify(edit ? emitDeny('CCC CONFIG GUARD: could not check this edit, so it is blocked.') : { continue: true }) + '\n');
   }
 }
 

@@ -101,7 +101,8 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/orchestrator/pre-tool-use-dispatcher.js\"",
-            "timeout": 8
+            "timeout": 8,
+            "onFailure": "block"
           }
         ]
       },
@@ -111,7 +112,8 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/config-protection.js\"",
-            "timeout": 3
+            "timeout": 3,
+            "onFailure": "block"
           }
         ]
       },

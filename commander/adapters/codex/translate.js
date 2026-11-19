@@ -230,12 +230,17 @@ function translateMatcherGroups(groups, event, log) {
 // The Claude manifest description counts Claude-only surfaces (hook events,
 // the HUD mod, plugin workflows, evals). The Codex manifest describes what the
 // mirror actually ships and keeps only the skill count from the Claude text.
+// gpt-6.2-astra -> GPT-6.2 Astra: the description names the models the registry routes to.
+function modelLabel(id) {
+  return String(id).replace(/^gpt-/i, 'GPT-').replace(/-([a-z])([a-z]*)$/, (_m, a, rest) => ` ${a.toUpperCase()}${rest}`);
+}
+
 function codexDescription(claudeManifest) {
   const m = String(claudeManifest.description || '').match(/(\d+) plugin skills/);
   const skills = m ? `${m[1]} plugin skills` : 'click-first plugin skills';
   const a = String(claudeManifest.description || '').match(/(\d+) specialist sub-?agents/);
   const agents = a ? `${a[1]} specialist subagents` : 'specialist subagents';
-  return (`Guided AI PM for Codex, running on the Commander Method: 12 enforceable gates (plan before build, verifier separate from worker, prove before alarm). ${skills} (click-first $ccc-* workflows incl. $ccc-codex for the Codex CLI), ${agents} generated as TOML, the Codex-supported hook subset, 2 bundled MCP servers + 19 opt-in. Built for GPT-6 Astra and GPT-6.1 Sol. Telemetry is off unless you opt in. MIT-licensed.`)
+  return (`Guided AI PM for Codex, running on the Commander Method: 12 enforceable gates (plan before build, verifier separate from worker, prove before alarm). ${skills} (click-first $ccc-* workflows incl. $ccc-codex for the Codex CLI), ${agents} generated as TOML, the Codex-supported hook subset, 2 bundled MCP servers + 19 opt-in. Built for ${modelLabel(models.CODEX_ROUTING.deep)} and ${modelLabel(models.CODEX_ROUTING.default)}. Telemetry is off unless you opt in. MIT-licensed.`)
     .replace(/\n/g, ' ').replace(/"/g, '\\"');
 }
 

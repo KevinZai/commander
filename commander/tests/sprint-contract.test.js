@@ -236,3 +236,45 @@ test('CLI: breaking a verified criterion makes status not current and record ref
   assert.strictEqual(rec.code, 1);
   assert.match(rec.json.errors.join(' '), /AC1: check-json/);
 });
+
+// CC-2188: a criterion that quotes the marker syntax inside a code span keeps its real check.
+test('a check marker quoted inside a code span does not drop the real check (round trip)', async () => {
+  const lib = await libP;
+  assert.strictEqual(lib.splitCriterion('The preview displays `mode · check:manual` · check: `npm test`').check, 'npm test');
+  assert.strictEqual(lib.splitCriterion('Shows ``a · check: `b` `` · check: `npm test`').check, 'npm test');
+  const dir = tmpRepo();
+  const made = run(dir, ['new', '--title', 'Quoted marker', '--criterion', 'The preview displays `mode · check:manual` :: npm test']);
+  assert.strictEqual(made.code, 0, JSON.stringify(made.json));
+  const parsed = lib.parseContract(fs.readFileSync(path.join(dir, 'tasks', 'sprint-contract.md'), 'utf8'));
+  assert.strictEqual(parsed.criteria[0].check, 'npm test');
+  assert.match(parsed.criteria[0].text, /`mode · check:manual`/);
+});
+
+test('an escaped backtick in prose does not swallow the check', async () => {
+  const lib = await libP;
+  const r = lib.splitCriterion('Prose ends in an escaped \\` character · check: `npm test`');
+  assert.strictEqual(r.check, 'npm test');
+  assert.strictEqual(r.text, 'Prose ends in an escaped \\` character');
+});
+
+// Codex review: backslashes pair off before a backtick. Only an odd run escapes it; after an even run the
+// backtick opens a code span, so a check marker quoted inside that span is not the delimiter. The exact
+// command survives render, parse and validation for both parities.
+test('backslash parity before a backtick decides whether a code span opens', async () => {
+  const lib = await libP;
+  const cases = [
+    { text: 'Docs show \\\\`example · check: manual` literally', parity: 'even (2)' },
+    { text: 'Docs show \\\\\\\\`example · check: manual` literally', parity: 'even (4)' },
+    { text: 'Prose ends in an escaped \\` character', parity: 'odd (1)' },
+    { text: 'Prose ends in an escaped \\\\\\` character', parity: 'odd (3)' },
+  ];
+  for (const { text, parity } of cases) {
+    const md = lib.renderContract({ title: 'Backslash parity', created: '2026-11-19T00:00:00Z', criteria: [{ text, check: 'npm test' }] });
+    const parsed = lib.parseContract(md);
+    assert.strictEqual(parsed.criteria[0].check, 'npm test', parity);
+    assert.strictEqual(parsed.criteria[0].text, text, parity);
+    const v = lib.validateContract(parsed);
+    assert.ok(v.ok, `${parity}: ${v.errors.join('; ')}`);
+    assert.strictEqual(lib.splitCriterion(`${text} · check: \`npm test\``).check, 'npm test', parity);
+  }
+});

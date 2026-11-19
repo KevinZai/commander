@@ -17,7 +17,7 @@
 const assert = require('node:assert');
 const { test, after, before } = require('node:test');
 const { spawnSync } = require('node:child_process');
-const {
+const { realpathSync,
   mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readdirSync, readFileSync, lstatSync,
   readlinkSync, symlinkSync, copyFileSync, chmodSync,
 } = require('node:fs');
@@ -257,14 +257,16 @@ test('install.sh --force merges into an existing ~/.claude without deleting user
     const paths = new Set(m.entries.map((e) => e.path));
     assert.ok(paths.has('hooks/hooks.commander.json'));
     assert.ok(!paths.has('hooks/hooks.json') && !paths.has('commands/mine.md') && !paths.has('skills/my-skill/SKILL.md'));
-    assert.strictEqual(m.entries.find((e) => e.path === 'commands/ccc-ao.md').backup, join(home, backups[0], 'commands', 'ccc-ao.md'));
+    // The installer records physical paths (a symlinked temp dir, like macOS /var, resolves to its target).
+    assert.strictEqual(m.entries.find((e) => e.path === 'commands/ccc-ao.md').backup, join(realpathSync(home), backups[0], 'commands', 'ccc-ao.md'));
   });
 });
 
 // Audit #22: an alternate profile gets its own files, and hook commands point at its hooks dir.
 test('install.sh honors CLAUDE_CONFIG_DIR and renders hook paths for it', () => {
   withHome('ccc-install-cfgdir-', (home) => {
-    const cfg = join(home, 'claude-work');
+    // Physical, as the installer records it (macOS /var is a symlink to /private/var).
+    const cfg = join(realpathSync(home), 'claude-work');
     const res = install(home, [], { CLAUDE_CONFIG_DIR: cfg });
     ok(res, 'install');
     assert.ok(!existsSync(join(home, '.claude')), 'the default ~/.claude must not be created');

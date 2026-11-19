@@ -14,7 +14,9 @@ const { build } = require(path.join(ROOT, 'scripts', 'build-routes.js'));
 const SCORER = path.join(ROOT, 'commander', 'cowork-plugin', 'hooks', 'lib', 'route-scorer.mjs');
 const PLUGIN = path.join(ROOT, 'commander', 'cowork-plugin');
 
-function fixture({ skills = {}, agents = {}, hints = {} }) {
+// Every skill must declare sideEffect; fixtures default it to false unless
+// `declare: false` leaves it out on purpose.
+function fixture({ skills = {}, agents = {}, hints = {}, declare = true }) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-routes-'));
   const skillsDir = path.join(dir, 'skills');
   const agentsDir = path.join(dir, 'agents');
@@ -28,7 +30,9 @@ function fixture({ skills = {}, agents = {}, hints = {} }) {
     fs.writeFileSync(path.join(agentsDir, `${name}.md`), `---\nname: ${name}\ndescription: "${description}"\n---\n`);
   }
   const hintsFile = path.join(dir, 'route-hints.json');
-  fs.writeFileSync(hintsFile, JSON.stringify({ skills: hints.skills || {}, agents: hints.agents || {} }));
+  const skillHints = { ...(hints.skills || {}) };
+  if (declare) for (const name of Object.keys(skills)) skillHints[name] = { sideEffect: false, ...(skillHints[name] || {}) };
+  fs.writeFileSync(hintsFile, JSON.stringify({ skills: skillHints, agents: hints.agents || {} }));
   return { skillsDir, agentsDir, hintsFile };
 }
 
@@ -94,4 +98,20 @@ test('scorer: equal scores sort by priority, then skill before agent', async () 
   fs.writeFileSync(file, JSON.stringify({ routes }));
   const order = s.scoreRoutes('please tidy the widgets', s.loadRoutes(file)).map((c) => c.route.id);
   assert.deepStrictEqual(order, ['agent:high', 'ccc-low', 'agent:low']);
+});
+
+test('a skill without a sideEffect declaration fails the build; the flag reaches the registry', () => {
+  assert.throws(
+    () => build(fixture({ skills: { 'ccc-x': 'X.' }, hints: { skills: { 'ccc-x': { strong: ['x job'] } } }, declare: false })),
+    /ccc-x: route-hints.json must set "sideEffect"/,
+  );
+  const out = build(fixture({ skills: { 'ccc-x': 'X.' }, hints: { skills: { 'ccc-x': { strong: ['x job'], sideEffect: true } } } }));
+  assert.strictEqual(out.routes.find((r) => r.id === 'ccc-x').sideEffect, true);
+});
+
+test('worker is a boolean, needs a visible skill with no side effect, and reaches the registry', () => {
+  const ok = build(fixture({ skills: { 'ccc-x': 'X.' }, hints: { skills: { 'ccc-x': { strong: ['x job'], sideEffect: false, worker: true } } } }));
+  assert.strictEqual(ok.routes.find((r) => r.id === 'ccc-x').worker, true);
+  assert.throws(() => build(fixture({ skills: { 'ccc-x': 'X.' }, hints: { skills: { 'ccc-x': { strong: ['x job'], sideEffect: true, worker: true } } } })), /worker skill must be visible/);
+  assert.throws(() => build(fixture({ skills: { 'ccc-x': 'X.' }, hints: { skills: { 'ccc-x': { strong: ['x job'], sideEffect: false, worker: 'yes' } } } })), /worker must be true or false/);
 });

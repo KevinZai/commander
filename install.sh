@@ -41,33 +41,14 @@ while [[ "$CLAUDE_DIR" == */ && "$CLAUDE_DIR" != "/" ]]; do CLAUDE_DIR="${CLAUDE
 # capitalization that lands on /, the home directory or one of its ancestors is refused. A path that does not
 # exist yet is resolved through its nearest existing ancestor.
 if command -v node &>/dev/null; then
-  # Resolved one component at a time against the disk, so /var/.. is /private on macOS, not /. The scripts then
-  # act on this resolved path only, so the guard and every rm/mkdir see the same directory (Codex #298).
-  if ! guard_out="$(node -e '
-    var fs = require("fs"), path = require("path");
-    function physical(p) {
-      var cur = path.isAbsolute(p) ? path.parse(p).root : fs.realpathSync(process.cwd());
-      var parts = p.split(/[\\/]+/).filter(Boolean), missing = 0;
-      for (var i = 0; i < parts.length; i++) {
-        var c = parts[i];
-        if (c === ".") continue;
-        // After a missing component, .. climbs back through the missing ones; once none are left, the path is
-        // physical again and later components are resolved against the disk.
-        if (c === "..") { cur = path.dirname(cur); if (missing) missing--; continue; }
-        var next = path.join(cur, c);
-        if (!missing) { try { cur = fs.realpathSync(next); continue; } catch (_e) { /* missing from here */ } }
-        missing++;
-        cur = next;
-      }
-      return cur;
-    }
-    var norm = process.platform === "darwin" || process.platform === "win32" ? function(s) { return s.toLowerCase(); } : function(s) { return s; };
-    var real = physical(process.argv[1]), dir = norm(real), home = norm(physical(process.argv[2]));
-    if (dir === path.parse(dir).root || dir === home || (home + path.sep).indexOf(dir + path.sep) === 0) {
-      process.stdout.write(process.argv[1] + " resolves to " + real); process.exit(1);
-    }
-    process.stdout.write(real);' "$CLAUDE_DIR" "$HOME" 2>/dev/null)"; then
-    echo "ERROR: CLAUDE_DIR must not be /, the home directory or one of its parents: $guard_out"; exit 1
+  # `kc.js __profile-dir` (commander/lib/profile-path.js) is the one profile resolver, shared with `ccc --skills`
+  # and the lane resolver behind check-in, hold and `ccc next`, so the guard, every rm/mkdir here
+  # and the CLI act on the same physical directory (cd -P semantics; a backslash is a file-name character on
+  # POSIX). It refuses a root, the home directory or one of its parents, and any path whose resolved form holds a
+  # control character, before $(...) could strip a trailing newline from it. Absoluteness is checked there too, by
+  # the platform's own rules, so a native UNC profile (\\server\share\team) passes and a share root does not.
+  if ! guard_out="$(node "$SCRIPT_DIR/bin/kc.js" __profile-dir "$CLAUDE_DIR" "$HOME" 2>/dev/null)"; then
+    echo "ERROR: ${guard_out:-could not resolve the config dir $CLAUDE_DIR}"; exit 1
   fi
   CLAUDE_DIR="$guard_out"
 fi
@@ -159,7 +140,7 @@ if $VERIFY_ONLY; then
 
   # Check settings.json
   if [ -f "$CLAUDE_DIR/settings.json" ]; then
-    if python3 -c "import json; json.load(open('$CLAUDE_DIR/settings.json'))" 2>/dev/null; then
+    if python3 -c "import json, sys; json.load(open(sys.argv[1]))" "$CLAUDE_DIR/settings.json" 2>/dev/null; then
       cc_status_line "✓" "settings.json valid JSON"
     else
       cc_status_line "✗" "settings.json invalid JSON"

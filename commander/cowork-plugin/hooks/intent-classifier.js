@@ -19,7 +19,8 @@
  * deferred), never while stop_hook_active, never after the user picked
  * "Stop suggesting next steps" this session.
  * decision:block costs an extra model turn for each offered menu, including
- * chained skill runs and headless sessions. CCC_ROUTE_NEXT=off opts out.
+ * chained skill runs. Headless sessions (CI, CCC_HEADLESS=1) get no Stop
+ * menu. CCC_ROUTE_NEXT=off opts out everywhere.
  *
  * Fleet control-plane prompts (launch a lane, batch status, lane sweep, what's
  * running on the fleet) get a <ccc-fleet-route> block instead: the Fleet skill,
@@ -34,6 +35,11 @@
  *      CCC_ROUTE_NEXT_COOLDOWN_MIN minutes between Stop menus in a session
  *        (default 10; 0 offers after every skill run)
  *      CCC_ROUTE_MENU=list forces a numbered list instead of a native picker
+ *      CCC_HEADLESS=1|0 forces headless (no pickers, no Stop menu) or
+ *        interactive; default: headless only under CI
+ *
+ * always mode: when no route matches a work request, a one-line
+ * <ccc-route tier="check"> asks the model to check its skill list first.
  *
  * Telemetry is content-free: route id, score, tier, accepted. Prompts are
  * never logged or stored.
@@ -48,7 +54,10 @@ import {
   tierFor,
   detectHost,
   renderRouteContext,
+  renderCheckContext,
   renderNextContext,
+  isHeadless,
+  looksLikeWork,
   MUTE_NEXT_LABEL,
 } from './lib/route-scorer.mjs';
 import { fleetRouteEnabled, matchFleetIntent, fleetTools, checkinLine, renderFleetContext } from './lib/fleet-intent.mjs';
@@ -204,8 +213,13 @@ function handlePrompt(data) {
     } else {
       const candidates = scoreRoutes(rawPrompt, loadRoutes());
       const tier = tierFor(candidates, mode);
-      context = renderRouteContext(candidates, tier, host, mode);
-      if (context) {
+      context = renderRouteContext(candidates, tier, host, mode, { headless: isHeadless() });
+      if (!context && mode === 'always' && looksLikeWork(rawPrompt)) {
+        // Keyword routing found nothing usable: ask the model to check its
+        // own skill list before starting (Kevin's "skills on every turn").
+        context = renderCheckContext(host);
+        logRouteEvent({ event: 'offered', route: 'check', score: 0, tier: 'check', host, session_id: data.session_id || null });
+      } else if (context) {
         const top = candidates[0];
         const state = loadState(data.session_id);
         saveState(data.session_id, { ...state, offered: candidates.slice(0, 3).map((c) => c.route.id), offeredTier: tier });
@@ -354,7 +368,9 @@ function handleStop(data) {
   if (turn.muted) next.muteNext = true;
 
   let output = emitSilent();
-  const enabled = routeMode(process.env, savedRouteMode()) !== 'off' && String(process.env.CCC_ROUTE_NEXT || '').toLowerCase() !== 'off';
+  // Headless runs (CI, CCC_HEADLESS=1 fleet lanes) have nobody to answer the menu,
+  // and each offer costs an extra model turn.
+  const enabled = routeMode(process.env, savedRouteMode()) !== 'off' && String(process.env.CCC_ROUTE_NEXT || '').toLowerCase() !== 'off' && !isHeadless();
   if (enabled && !data.stop_hook_active && !next.muteNext && ran.length) {
     const last = ran[ran.length - 1];
     const alreadyAsking = /\?\s*$/.test(turn.lastAssistantText);

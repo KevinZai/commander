@@ -47,7 +47,7 @@ Evidence: the mirror was built to a scratch directory with `node scripts/build-d
 | `name` lowercase, hyphens, 64 chars or less | done | `cc-commander` in the mirror. |
 | Distinctive name, not reserved, not "official" | todo | Portal checks "Name is taken", brand match, look-alikes. The name is permanent once published. |
 | `displayName`, `author.name` in one writing system | done | "CC Commander", "Kevin Zicherman". |
-| `description`, `author`, `version` set | done | All present; `version` (8.1.6 today) must rise each release; the release gate enforces tag = `package.json` = top CHANGELOG entry. |
+| `description`, `author`, `version` set | done | All present; `version` (8.1.7 today) must rise each release; the release gate enforces tag = `package.json` = top CHANGELOG entry. |
 | `homepage` parses as a URL, `repository` set | done | `https://commanderplugin.com`; the mirror rewrites `repository` to `https://github.com/KevinZai/cc-commander-plugin`. |
 | Component keys spelled per the reference | done | `claude plugin validate --strict` passes. |
 | `hooks/hooks.json` not also listed in `plugin.json` | done | The manifest `hooks` entry points to the mod's own hooks file; no warning. |

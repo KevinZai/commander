@@ -211,3 +211,37 @@ test('knowledge: a non-default lane still reads legacy lessons; writes stay in t
   assert.equal(fs.existsSync(path.join(legacyK, saved2.id + '.json')), false, 'legacy dir not written');
   assert.deepEqual(fs.readdirSync(legacyK).sort(), ['kl-1.json', 'kl-2.json'], 'legacy lessons untouched');
 });
+
+// Codex review, round 2: the plugin's lane-state copy, commander/lib/lane.js and the installer's resolver
+// (commander/lib/profile-path.js) resolve a profile physically and identically, including symlink/.. paths.
+test('lane-state, lane.js and the installer resolver agree on symlink/.. profiles', (t) => {
+  if (process.platform === 'win32') return t.skip('POSIX symlink layout');
+  const home = fs.realpathSync(tmpHome(t));
+  const profilePath = require('../lib/profile-path.js');
+  fs.mkdirSync(path.join(home, 'sub'));
+  fs.mkdirSync(path.join(home, 'x', 'y'), { recursive: true });
+  fs.symlinkSync(path.join(home, 'x', 'y'), path.join(home, 'sub', 'link'));
+  fs.mkdirSync(path.join(home, 'dotfiles', 'claude-ai1'), { recursive: true });
+  fs.symlinkSync(path.join(home, 'dotfiles', 'claude-ai1'), path.join(home, '.claude-ai1'));
+  const cases = [
+    [`${home}/sub/link/../.claude-ai4`, path.join(home, 'x', '.claude-ai4')],
+    [`${home}/sub/link/../missing/../.claude-ai2`, path.join(home, 'x', '.claude-ai2')],
+    [`${home}/sub/link`, path.join(home, 'x', 'y')],
+    [path.join(home, '.claude-ai1'), path.join(home, 'dotfiles', 'claude-ai1')],
+    [`${home}/team\\blue`, `${home}/team\\blue`],
+  ];
+  for (const [raw, physical] of cases) {
+    // A `..` path resolves physically, exactly like the installer; any other path keeps its spelling
+    // (same directory on disk, so `~` shortening and callers' paths still match).
+    const dotdot = /(^|\/)\.\.(\/|$)/.test(raw);
+    for (const key of ['CLAUDE_CONFIG_DIR', 'CCC_CONFIG_DIR']) {
+      const env = { HOME: home, [key]: raw };
+      const expected = dotdot ? physical : path.resolve(raw);
+      assert.strictEqual(laneState.configDir(env), expected, `${key}=${raw}`);
+      assert.strictEqual(lane.resolveLane(env).configDir, expected, `${key}=${raw}`);
+      assert.strictEqual(profilePath.resolvePhysical(raw).path, physical, raw);
+      if (fs.existsSync(physical)) assert.strictEqual(fs.realpathSync(expected), fs.realpathSync(physical), 'same directory');
+    }
+  }
+  assert.strictEqual(lane.resolveLane({ HOME: home, CLAUDE_CONFIG_DIR: path.join(home, '.claude-ai1') }).lane, 'ai1', 'lane name from the path as written');
+});

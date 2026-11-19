@@ -44,6 +44,7 @@ import os from 'node:os';
 import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { isCodeModePoll, POLL_PASS } from './lib/code-mode.mjs';
+import { isHeadless } from './lib/headless.mjs';
 import { projectSlug as slugFor, readResults } from './lib/test-results.mjs';
 
 const STATE_DIR = stateDir();
@@ -900,7 +901,7 @@ async function main(payload = {}) {
 
   if (!shouldRun(lastState)) {
     appendWaveNote();
-    if (modelNotes.length) return emitModel('UserPromptSubmit', modelNotes.join('\n'));
+    if (modelNotes.length) return emitNotes(modelNotes);
     return emitSilent();
   }
 
@@ -975,8 +976,16 @@ async function main(payload = {}) {
   }
 
   appendWaveNote();
-  if (modelNotes.length) return emitModel('UserPromptSubmit', modelNotes.join('\n'));
-  return emitSilent();
+  return emitNotes(modelNotes);
+}
+
+/**
+ * The turn's model notes. Headless (fleet lane, `claude -p`, CI): nobody can
+ * answer a picker, so notes that ask for AskUserQuestion are dropped.
+ */
+export function emitNotes(notes, env = process.env) {
+  const kept = isHeadless(env) ? notes.filter((n) => !/AskUserQuestion/.test(n)) : notes;
+  return kept.length ? emitModel('UserPromptSubmit', kept.join('\n')) : emitSilent();
 }
 
 // ESM equivalent of `require.main === module` — only run when executed directly.

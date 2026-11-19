@@ -23,6 +23,8 @@ Data sub-skills (`data-pipeline`, `sql-optimization`, `data-visualization`, `mac
 
 Codex: ask pickers as plain-text questions; write dashboards to a local HTML file instead of publishing.
 
+**Worker mode.** When your prompt starts with a "CCC pre-run" line, or you run as a fleet or workflow worker, stay in this one thread: do not start agents, workflows or `codex exec`. Do any step this skill would delegate yourself, or skip it and say so. At an approval step (edits during an audit, installs, deploy, push, publish, tracker or settings changes), do not proceed; report the decision in your result.
+
 ## When to use / when not to
 
 - Use for pipelines, warehouse and query work, dashboards, ML models, data validation, analytics instrumentation, recurring reports and embeddings.

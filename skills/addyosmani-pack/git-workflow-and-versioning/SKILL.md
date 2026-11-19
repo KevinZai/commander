@@ -223,13 +223,14 @@ Before every commit:
   # The package whose tests and lint run below: the nearest package.json at or above
   # the current directory, without leaving the repository. Start from the physical
   # directory and compare by file identity (-ef), so neither a symlinked spelling nor
-  # a case difference can walk past the repo root.
-  pkg_dir=$(pwd -P)
-  [ -n "$pkg_dir" ]
-  while [ ! -f "$pkg_dir/package.json" ]; do
-    ! [ "$pkg_dir" -ef "$repo_root" ] && ! [ "$pkg_dir" -ef / ] || { echo "stop: no package.json between here and $repo_root"; exit 1; }
-    pkg_dir=$(dirname "$pkg_dir")
+  # a case difference can walk past the repo root. Walk with cd -P and read $PWD, not
+  # $(pwd -P) or $(dirname ...), which drop trailing newlines from a directory name.
+  cd -P -- .
+  while [ ! -f package.json ]; do
+    ! [ . -ef "$repo_root" ] && ! [ . -ef / ] || { echo "stop: no package.json between here and $repo_root"; exit 1; }
+    cd -P -- ..
   done
+  pkg_dir=$PWD
   cd "$repo_root"
 
   # 1. Secrets first, before anything prints the patch. A git error stops here
