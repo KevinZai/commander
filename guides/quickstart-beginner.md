@@ -14,7 +14,7 @@ Think of it as a senior developer pair programming with you, except it never get
 
 CC Commander is a configuration toolkit that makes Claude Code dramatically more effective. It adds:
 
-- **84 plugin skills** — click-first `/ccc-*` workflows, plus a 467-skill ecosystem catalog across 11 domains
+- **93 plugin skills** — click-first `/ccc-*` workflows, plus a 580-skill ecosystem catalog across 11 domains
 - **22 specialist agents** — architect, reviewer, debugger, designer and more
 - **70+ commands** — slash commands for common workflows (`/plan`, `/verify`, `/tdd`)
 - **9 workflow modes** — switch Claude's behavior to match your task (design, SaaS, marketing, etc.)
@@ -29,7 +29,7 @@ Without CC Commander, Claude Code is a general-purpose assistant. With CC Comman
 
 ### Prerequisites
 
-- **Node.js 18+** — check with `node --version`
+- **Node.js 20.19+ or 22.12+** — check with `node --version`
 - **Claude Code** — install from [anthropic.com/claude/code](https://claude.ai/code) or `npm install -g @anthropic-ai/claude-code`
 - **Git** — check with `git --version`
 
