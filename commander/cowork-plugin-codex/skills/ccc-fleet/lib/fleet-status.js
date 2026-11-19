@@ -9,7 +9,7 @@ const laneState = require('../../../lib/lane-state.js');
 // Fleet state lives in an owner-only per-run directory under the lane state dir:
 //   <config dir>/commander/fleet/            0700, owned by this user
 //   <config dir>/commander/fleet/current     0600, the id of the active run
-//   <config dir>/commander/fleet/runs/<id>/  0700, one per run: worker-progress.jsonl, <worker>-complete.json
+//   <config dir>/commander/fleet/runs/<id>/  0700, one per run: worker-progress.jsonl, <markerStem>-complete.json
 // It used to be one shared ccc-fleet dir under os.tmpdir(), which any local user could read or plant markers in.
 // The writers below, /ccc-fleet-viz and the fleet-watch monitor all resolve the run through currentRunDir().
 const CODEX_FLEET_DIR = path.join(os.tmpdir(), 'codex-fleet');
@@ -153,14 +153,13 @@ function ensureRunDir(options = {}) {
   return currentRunDir(options) || startFleetRun({ env: options.env }).runDir;
 }
 
-// The filename stem for a worker's marker. A plain id is used as is; an id that needs encoding gets its unsafe
-// characters replaced plus a short hash of the logical id, so `a b` and `a_b` never share a marker. The marker
-// payload always carries the logical id (Codex #302 delta3 NM1): readers merge progress and completion by it.
+// The filename stem for a worker's marker: sha256 of the exact worker id, hex, truncated to 32 characters
+// (128 bits). Every id is hashed, plain ones included, so no id can produce another id's filename (`a b` vs
+// `a_b-c8687a08`, `W1` vs `w1` on a case-insensitive volume) and the name stays short for any id length. The
+// marker payload carries the exact id (Codex #302 delta4): readers key workers by it, never by the filename.
 function markerStem(workerId) {
   const id = assertString(workerId, 'worker_id');
-  const safe = id.replace(/[^a-zA-Z0-9._-]/g, '_');
-  if (safe === id) return id;
-  return `${safe}-${crypto.createHash('sha256').update(id).digest('hex').slice(0, 8)}`;
+  return crypto.createHash('sha256').update(id, 'utf8').digest('hex').slice(0, 32);
 }
 
 function normalizeProgressEvent(event) {
@@ -201,7 +200,7 @@ function writeCompletionMarker(workerId, completion, options = {}) {
   else root = ensureRunDir(options);
   const stem = markerStem(workerId);
   const markerPath = path.join(root, `${stem}-complete.json`);
-  const tmpPath = path.join(root, `${stem}-complete.${process.pid}.tmp`);
+  const tmpPath = path.join(root, `${stem}-complete.${process.pid}.${crypto.randomBytes(3).toString('hex')}.tmp`);
   const payload = {
     worker_id: workerId,
     exit_code: Number.isInteger(completion.exit_code) ? completion.exit_code : null,
@@ -286,6 +285,7 @@ module.exports = {
   ensureRunDir,
   fleetBaseDir,
   isPrivateDir,
+  markerStem,
   startFleetRun,
   pruneFleetTmp,
   runDirFor,

@@ -66,7 +66,7 @@ test('writers default to the current run and write owner-only files', (t) => {
     assert.equal(mode(progress), 0o600);
     assert.equal(mode(markerPath), 0o600);
   }
-  assert.deepEqual(fs.readdirSync(runDir).sort(), ['w1-complete.json', 'worker-progress.jsonl']);
+  assert.deepEqual(fs.readdirSync(runDir).sort(), [`${fleet.markerStem('w1')}-complete.json`, 'worker-progress.jsonl']);
 });
 
 test('a writer with no run yet starts one', (t) => {
@@ -191,7 +191,7 @@ test('a worker started with run A writes to run A even after run B becomes curre
   samePath(path.dirname(markerPath), a.runDir);
   fleet.emitFleetWorkerProgress({ worker_id: 'w1', status: 'complete' }, { env, runId: a.runId, stream: quiet });
   assert.ok(fs.existsSync(path.join(a.runDir, fleet.PROGRESS_FILE)));
-  assert.ok(!fs.existsSync(path.join(b.runDir, 'w1-complete.json')));
+  assert.ok(!fs.existsSync(path.join(b.runDir, `${fleet.markerStem('w1')}-complete.json`)));
   // The run id also travels in the worker's environment.
   const viaEnv = fleet.writeCompletionMarker('w2', { exit_code: 0 }, { env: { ...env, CCC_FLEET_RUN_ID: a.runId } });
   samePath(path.dirname(viaEnv.markerPath), a.runDir);
@@ -202,7 +202,7 @@ test('an unknown or invalid run id fails instead of falling back to the current 
   const b = fleet.startFleetRun({ env });
   assert.throws(() => fleet.writeCompletionMarker('w1', { exit_code: 0 }, { env, runId: 'no-such-run' }), /run/);
   assert.throws(() => fleet.writeCompletionMarker('w1', { exit_code: 0 }, { env, runId: '../escape' }), /runId/);
-  assert.ok(!fs.existsSync(path.join(b.runDir, 'w1-complete.json')));
+  assert.ok(!fs.existsSync(path.join(b.runDir, `${fleet.markerStem('w1')}-complete.json`)));
 });
 
 // Codex #302 delta3 NM1: a worker id that needs encoding keeps its logical id in the completion payload, so
@@ -214,7 +214,7 @@ test('a worker id with a space settles: logical id in the payload, encoded only 
   const { markerPath, payload } = fleet.writeCompletionMarker('documentation worker', { exit_code: 0 }, { env });
   assert.equal(payload.worker_id, 'documentation worker');
   assert.equal(JSON.parse(fs.readFileSync(markerPath, 'utf8')).worker_id, 'documentation worker');
-  assert.match(path.basename(markerPath), /^documentation_worker-[0-9a-f]{8}-complete\.json$/);
+  assert.match(path.basename(markerPath), /^[0-9a-f]{32}-complete\.json$/);
   const { collectFleetState } = await import(pathToFileURL(RENDERER).href);
   const state = collectFleetState({ stateDir: runDir });
   assert.deepEqual(state.workers.map((w) => [w.id, w.status]), [['documentation worker', 'done']]);
@@ -223,13 +223,53 @@ test('a worker id with a space settles: logical id in the payload, encoded only 
   assert.ok(lines.some((l) => l.includes('"event":"settled"') && l.includes('"done":1')), lines.join('\n'));
 });
 
-test('two worker ids that encode alike get separate completion markers', (t) => {
+// Codex #302 delta4 fleet IDs: the exact worker id string is the logical key everywhere; only the filename is
+// derived from it, as sha256(id) hex truncated to 32 characters. No id can collide with another id's filename
+// (`a b` vs `a_b-c8687a08`, `W1` vs `w1` on a case-insensitive volume), and the filename length is bounded.
+test('completion marker filenames are collision-free and keep the exact id in the payload', (t) => {
   const { env } = lane(t);
-  const a = fleet.writeCompletionMarker('a b', { exit_code: 0 }, { env });
-  const b = fleet.writeCompletionMarker('a_b', { exit_code: 1 }, { env });
-  assert.notEqual(a.markerPath, b.markerPath);
-  assert.equal(path.basename(b.markerPath), 'a_b-complete.json', 'a safe id keeps its plain filename');
-  assert.equal(JSON.parse(fs.readFileSync(a.markerPath, 'utf8')).worker_id, 'a b');
+  const ids = ['a b', 'a_b', 'a_b-c8687a08', 'build', ' build ', 'W1', 'w1'];
+  const markers = ids.map((id, i) => fleet.writeCompletionMarker(id, { exit_code: i }, { env }));
+  const names = markers.map((m) => path.basename(m.markerPath).toLowerCase());
+  assert.equal(new Set(names).size, ids.length, `distinct even case-folded: ${names.join(', ')}`);
+  for (const [i, m] of markers.entries()) {
+    assert.match(path.basename(m.markerPath), /^[0-9a-f]{32}-complete\.json$/);
+    assert.equal(JSON.parse(fs.readFileSync(m.markerPath, 'utf8')).worker_id, ids[i], 'payload keeps the exact id');
+  }
+});
+
+test('a very long worker id still gets a filename under 255 bytes, temp file included', (t) => {
+  const { env } = lane(t);
+  const { runDir } = fleet.startFleetRun({ env });
+  const id = `w-${'\u00e9'.repeat(400)}-${'x'.repeat(300)}`;
+  const { markerPath, payload } = fleet.writeCompletionMarker(id, { exit_code: 0 }, { env });
+  assert.equal(payload.worker_id, id);
+  assert.ok(Buffer.byteLength(path.basename(markerPath)) < 100, path.basename(markerPath));
+  assert.deepEqual(fs.readdirSync(runDir), [path.basename(markerPath)], 'no temp file left behind');
+});
+
+test('ids that differ only by surrounding whitespace stay separate workers in the renderer', async (t) => {
+  const { env } = lane(t);
+  const { runDir } = fleet.startFleetRun({ env });
+  fleet.emitFleetWorkerProgress({ worker_id: 'build', status: 'running' }, { env, stream: quiet });
+  fleet.emitFleetWorkerProgress({ worker_id: ' build ', status: 'running' }, { env, stream: quiet });
+  fleet.writeCompletionMarker(' build ', { exit_code: 0 }, { env });
+  const { collectFleetState } = await import(pathToFileURL(RENDERER).href);
+  const state = collectFleetState({ stateDir: runDir });
+  const byId = Object.fromEntries(state.workers.map((w) => [JSON.stringify(w.id), w.status]));
+  assert.deepEqual(byId, { '"build"': 'running', '" build "': 'done' });
+});
+
+test('a worker id with regex metacharacters renders without throwing', async (t) => {
+  const { env } = lane(t);
+  const { runDir } = fleet.startFleetRun({ env });
+  for (const id of ['a(b', 'x[y', 'w*+?', 'c\\']) fleet.writeCompletionMarker(id, { exit_code: 0 }, { env });
+  const { collectFleetState, renderASCII, renderMermaid } = await import(pathToFileURL(RENDERER).href);
+  const state = collectFleetState({ stateDir: runDir });
+  assert.equal(state.workers.length, 4);
+  const ascii = renderASCII(state);
+  assert.match(ascii, /a\(b/);
+  assert.doesNotThrow(() => renderMermaid(state));
 });
 
 // Codex #302 delta3 NM2: appending to a run's progress file does not change the directory's mtime, so cleanup

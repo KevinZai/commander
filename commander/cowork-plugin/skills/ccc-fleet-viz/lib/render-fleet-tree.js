@@ -47,6 +47,15 @@ function pickFields(payload, fields) {
   return picked;
 }
 
+// A worker id is used exactly as written (Codex #302 delta4): `build` and ` build ` are two workers. Only an
+// empty string or a non-string is skipped.
+function firstId(...values) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.length > 0) return value;
+  }
+  return null;
+}
+
 function firstString(...values) {
   for (const value of values) {
     const s = stringOrNull(value);
@@ -124,7 +133,7 @@ function titleFromId(id, ordinal) {
 }
 
 function normalizeWorker(payload, fallbackId, markerKind, sourceFile) {
-  const id = firstString(payload.worker_id, payload.workerId, payload.id, fallbackId);
+  const id = firstId(payload.worker_id, payload.workerId, payload.id, fallbackId);
   if (!id) return null;
 
   const status = normalizeStatus(payload.status || payload.state || payload.phase, payload, markerKind);
@@ -364,13 +373,21 @@ function iconForStatus(status) {
   }[status] || '⏳';
 }
 
+// Whether `text` starts with `prefix` (case-insensitive) followed by a non-word character or the end. A plain
+// string comparison: a worker id is never compiled into a RegExp (Codex #302 delta4).
+function startsWithWord(text, prefix) {
+  if (!prefix || text.length < prefix.length) return false;
+  if (text.slice(0, prefix.length).toLowerCase() !== prefix.toLowerCase()) return false;
+  return text.length === prefix.length || !/\w/.test(text[prefix.length]);
+}
+
 function displayLabel(worker) {
   const explicit = firstString(worker.label);
   if (explicit) return explicit;
 
   const prefix = worker.ordinal !== null ? `W${worker.ordinal}` : worker.id;
   const title = firstString(worker.title) || titleFromId(worker.id, worker.ordinal);
-  if (new RegExp(`^${prefix}\\b`, 'i').test(title)) return title;
+  if (startsWithWord(title, prefix)) return title;
   if (title === prefix) return prefix;
   return `${prefix} ${title}`;
 }

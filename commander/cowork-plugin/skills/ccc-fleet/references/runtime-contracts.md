@@ -36,7 +36,7 @@ Schema (the helper validates and throws on a bad field):
 
 ## Atomic completion marker
 
-When a worker exits, successful or not, write `<id>-complete.json` in the run directory through the helper (it writes a temp file and renames it, so readers never see a partial marker):
+When a worker exits, successful or not, write its completion marker (`<hash>-complete.json`) in the run directory through the helper (it writes a temp file and renames it, so readers never see a partial marker):
 
 ```bash
 node -e 'console.log(JSON.stringify(require(process.argv[1]).writeCompletionMarker(process.argv[2], JSON.parse(process.argv[3]))))' \
@@ -44,7 +44,7 @@ node -e 'console.log(JSON.stringify(require(process.argv[1]).writeCompletionMark
   '{"exit_code":0,"files_written":["src/foo.js"],"commit_hash":"abc1234","branch_pushed":false}'
 ```
 
-An id with characters outside `A-Za-z0-9._-` is encoded only in the filename (unsafe characters become `_`, plus a short hash); the payload's `worker_id` keeps the id as given, so progress and completion merge into one worker.
+The filename is the first 32 hex characters of the SHA-256 of the worker id, for every id, so two ids never share a marker (including ids that differ only in case or surrounding spaces) and a long id cannot exceed the filename limit. The payload's `worker_id` keeps the id exactly as given, and readers key workers by it, so progress and completion merge into one worker.
 
 Fields: `worker_id`, `exit_code` (integer, required; a failed worker uses its real non-zero code), `files_written`, `commit_hash` (string or null), `branch_pushed` (boolean or null), `completed_at` (set by the helper). The marker is the hand-off contract for synthesis.
 
