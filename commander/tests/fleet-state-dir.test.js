@@ -21,7 +21,16 @@ function lane(t) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-fleet-dir-'));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const env = { HOME: home, CCC_CONFIG_DIR: path.join(home, 'lane') };
-  return { home, env, base: path.join(fs.realpathSync(home), 'lane', 'commander', 'fleet') };
+  return { home, env, base: path.join(home, 'lane', 'commander', 'fleet') };
+}
+
+// macOS tmpdirs sit under /var -> /private/var: compare physical paths on both sides. The parent is
+// resolved and the leaf kept, so a symlink leaf or an already-removed entry still compares by name.
+function real(p) {
+  return path.join(fs.realpathSync(path.dirname(p)), path.basename(p));
+}
+function samePath(actual, expected, msg) {
+  assert.equal(real(actual), real(expected), msg);
 }
 
 function mode(p) {
@@ -32,9 +41,9 @@ test('startFleetRun creates an owner-only run dir under the lane state dir and p
   const { env, base } = lane(t);
   const { runId, runDir } = fleet.startFleetRun({ env });
   assert.match(runId, /^[A-Za-z0-9._-]+$/);
-  assert.equal(runDir, path.join(base, 'runs', runId));
-  assert.equal(fleet.fleetBaseDir({ env }), base);
-  assert.equal(fleet.currentRunDir({ env }), runDir);
+  samePath(runDir, path.join(base, 'runs', runId));
+  samePath(fleet.fleetBaseDir({ env }), base);
+  samePath(fleet.currentRunDir({ env }), runDir);
   if (POSIX) {
     assert.equal(mode(base), 0o700, 'base dir');
     assert.equal(mode(path.join(base, 'runs')), 0o700, 'runs dir');
@@ -42,7 +51,7 @@ test('startFleetRun creates an owner-only run dir under the lane state dir and p
   }
   const second = fleet.startFleetRun({ env });
   assert.notEqual(second.runDir, runDir, 'every run gets its own directory');
-  assert.equal(fleet.currentRunDir({ env }), second.runDir);
+  samePath(fleet.currentRunDir({ env }), second.runDir);
 });
 
 test('writers default to the current run and write owner-only files', (t) => {
@@ -50,7 +59,7 @@ test('writers default to the current run and write owner-only files', (t) => {
   const { runDir } = fleet.startFleetRun({ env });
   fleet.emitFleetWorkerProgress({ worker_id: 'w1', status: 'running' }, { env, stream: quiet });
   const { markerPath } = fleet.writeCompletionMarker('w1', { exit_code: 0 }, { env });
-  assert.equal(path.dirname(markerPath), runDir);
+  samePath(path.dirname(markerPath), runDir);
   const progress = path.join(runDir, 'worker-progress.jsonl');
   assert.ok(fs.existsSync(progress));
   if (POSIX) {
@@ -65,8 +74,8 @@ test('a writer with no run yet starts one', (t) => {
   assert.equal(fleet.currentRunDir({ env }), null);
   const { markerPath } = fleet.writeCompletionMarker('w9', { exit_code: 1 }, { env });
   const runDir = fleet.currentRunDir({ env });
-  assert.ok(runDir && runDir.startsWith(path.join(base, 'runs') + path.sep));
-  assert.equal(path.dirname(markerPath), runDir);
+  assert.ok(runDir && real(runDir).startsWith(real(path.join(base, 'runs')) + path.sep));
+  samePath(path.dirname(markerPath), runDir);
 });
 
 test('a run dir that is group/world accessible is refused; writers move to a fresh run', { skip: !POSIX }, (t) => {
@@ -101,8 +110,8 @@ test('pruneFleetTmp removes run dirs older than a day, never the current run', (
   fs.utimesSync(old.runDir, dayAgo, dayAgo);
   fs.utimesSync(current.runDir, dayAgo, dayAgo);
   const { root, removed } = fleet.pruneFleetTmp({ env });
-  assert.equal(root, path.join(base, 'runs'));
-  assert.deepEqual(removed, [old.runDir]);
+  samePath(root, path.join(base, 'runs'));
+  assert.deepEqual(removed.map(real), [real(old.runDir)]);
   assert.ok(fs.existsSync(recent.runDir));
   assert.ok(fs.existsSync(current.runDir));
 });
@@ -117,7 +126,7 @@ test('the renderer reads the current run by default and nothing when there is no
   const { runDir } = fleet.startFleetRun({ env });
   fleet.writeCompletionMarker('w1', { exit_code: 0 }, { env });
   const state = collectFleetState({ env });
-  assert.equal(state.stateDir, runDir);
+  samePath(state.stateDir, runDir);
   assert.equal(state.summary.total, 1);
   assert.equal(state.workers[0].status, 'done');
 });
@@ -167,7 +176,7 @@ test('pruneFleetTmp removes an old symlinked entry as a link, never its target',
   const dayAgo = (Date.now() - 2 * 24 * 60 * 60 * 1000) / 1000;
   fs.lutimesSync(link, dayAgo, dayAgo);
   const { removed } = fleet.pruneFleetTmp({ env });
-  assert.deepEqual(removed, [link]);
+  assert.deepEqual(removed.map(real), [real(link)]);
   assert.ok(!fs.existsSync(link));
   assert.ok(fs.existsSync(path.join(outside, 'data.txt')), 'target content survives');
 });
@@ -177,15 +186,15 @@ test('a worker started with run A writes to run A even after run B becomes curre
   const { env } = lane(t);
   const a = fleet.startFleetRun({ env });
   const b = fleet.startFleetRun({ env });
-  assert.equal(fleet.currentRunDir({ env }), b.runDir);
+  samePath(fleet.currentRunDir({ env }), b.runDir);
   const { markerPath } = fleet.writeCompletionMarker('w1', { exit_code: 0 }, { env, runId: a.runId });
-  assert.equal(path.dirname(markerPath), a.runDir);
+  samePath(path.dirname(markerPath), a.runDir);
   fleet.emitFleetWorkerProgress({ worker_id: 'w1', status: 'complete' }, { env, runId: a.runId, stream: quiet });
   assert.ok(fs.existsSync(path.join(a.runDir, fleet.PROGRESS_FILE)));
   assert.ok(!fs.existsSync(path.join(b.runDir, 'w1-complete.json')));
   // The run id also travels in the worker's environment.
   const viaEnv = fleet.writeCompletionMarker('w2', { exit_code: 0 }, { env: { ...env, CCC_FLEET_RUN_ID: a.runId } });
-  assert.equal(path.dirname(viaEnv.markerPath), a.runDir);
+  samePath(path.dirname(viaEnv.markerPath), a.runDir);
 });
 
 test('an unknown or invalid run id fails instead of falling back to the current run', (t) => {

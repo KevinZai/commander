@@ -285,7 +285,9 @@ describe('record stores: lane dir and locking', () => {
     try {
       const { isError, body } = await rpc('commander_notes_pin', { content: 'lane note' });
       assert.equal(isError, false);
-      assert.equal(body.store, path.join(fs.realpathSync(lane), 'commander', 'pinned-notes.json'));
+      // macOS tmpdirs sit under /var -> /private/var: compare physical paths on both sides.
+      const real = (p) => path.join(fs.realpathSync(path.dirname(p)), path.basename(p));
+      assert.equal(real(body.store), real(path.join(lane, 'commander', 'pinned-notes.json')));
     } finally {
       delete process.env.CCC_CONFIG_DIR;
     }
