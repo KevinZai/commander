@@ -231,3 +231,21 @@ test('two worker ids that encode alike get separate completion markers', (t) => 
   assert.equal(path.basename(b.markerPath), 'a_b-complete.json', 'a safe id keeps its plain filename');
   assert.equal(JSON.parse(fs.readFileSync(a.markerPath, 'utf8')).worker_id, 'a b');
 });
+
+// Codex #302 delta3 NM2: appending to a run's progress file does not change the directory's mtime, so cleanup
+// ages a run by the newest marker inside it; an overlapping run that is still writing is never pruned.
+test('pruneFleetTmp keeps an old-looking run whose markers are still being written', (t) => {
+  const { env } = lane(t);
+  const active = fleet.startFleetRun({ env });
+  const finished = fleet.startFleetRun({ env });
+  fleet.startFleetRun({ env }); // a later run is current
+  const dayAgo = (Date.now() - 2 * 24 * 60 * 60 * 1000) / 1000;
+  fleet.writeCompletionMarker('w1', { exit_code: 0 }, { env, runId: finished.runId });
+  for (const f of fs.readdirSync(finished.runDir)) fs.utimesSync(path.join(finished.runDir, f), dayAgo, dayAgo);
+  fs.utimesSync(finished.runDir, dayAgo, dayAgo);
+  fleet.emitFleetWorkerProgress({ worker_id: 'w1', status: 'running' }, { env, runId: active.runId, stream: quiet });
+  fs.utimesSync(active.runDir, dayAgo, dayAgo); // the append is recent; the directory mtime is old
+  const { removed } = fleet.pruneFleetTmp({ env });
+  assert.deepEqual(removed.map(real), [real(finished.runDir)]);
+  assert.ok(fs.existsSync(path.join(active.runDir, fleet.PROGRESS_FILE)), 'the still-active run survives');
+});

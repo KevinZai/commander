@@ -223,13 +223,27 @@ function writeCompletionMarker(workerId, completion, options = {}) {
   return { markerPath, payload };
 }
 
+// When an entry last changed. For a directory that is the newest mtime of the directory and its direct entries
+// (lstat, never following a link): appending to worker-progress.jsonl does not touch the directory's own mtime,
+// so a still-active overlapping run would otherwise look old (Codex #302 delta3 NM2).
+function lastActivityMs(entryPath, stats) {
+  if (!stats.isDirectory()) return stats.mtimeMs;
+  let newest = stats.mtimeMs;
+  for (const name of fs.readdirSync(entryPath)) {
+    try {
+      newest = Math.max(newest, fs.lstatSync(path.join(entryPath, name)).mtimeMs);
+    } catch (_) { /* removed while we looked: no newer activity to count */ }
+  }
+  return newest;
+}
+
 function pruneFleetTmp(options = {}) {
   // Default: the run directories under <base>/runs/, never the current run. options.root prunes the
   // entries of that one directory instead. (The old codex-fleet and ccc-fleet dirs under os.tmpdir() are legacy
   // locations nothing writes to any more.)
   // Cleanup never leaves the run store: the default store (fleet/ and fleet/runs/) must be private real directories,
   // an explicit root must be a real directory (lstat, not a symlink), and an entry that is a symlink is removed as a
-  // link without following it.
+  // link without following it. A run is aged by its newest marker, not the directory mtime.
   const base = fleetBaseDir(options);
   const root = options.root || path.join(base, 'runs');
   const olderThanMs = options.olderThanMs || ONE_DAY_MS;
@@ -254,7 +268,7 @@ function pruneFleetTmp(options = {}) {
     const entryPath = path.join(root, entry.name);
     if (keep && entryPath === keep) continue;
     const stats = fs.lstatSync(entryPath);
-    if (now - stats.mtimeMs <= olderThanMs) continue;
+    if (now - lastActivityMs(entryPath, stats) <= olderThanMs) continue;
 
     if (stats.isDirectory()) fs.rmSync(entryPath, { recursive: true, force: true });
     else fs.unlinkSync(entryPath);   // a file or a symlink: the link itself, never its target
