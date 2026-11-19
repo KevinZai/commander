@@ -95,6 +95,8 @@ Pick the CCC skills for each slice before dispatch, so every worker starts with 
 
 ### 6. Dispatch
 
+First start a fleet run (`startFleetRun` in [references/runtime-contracts.md](references/runtime-contracts.md)) so this run's markers get their own owner-only directory.
+
 Prefer the Workflow tool for Fan-out, Pipeline and Judge panel. It runs fan-out slices with `isolation: 'worktree'`, verifies each slice with a separate agent prompted to refute, and surfaces failed slices instead of dropping them.
 
 | Pattern | Workflow call |
