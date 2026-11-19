@@ -1127,7 +1127,10 @@ if should_install "claude-md" || should_install "settings"; then
       # A pre-existing guard the installer declined to manage, one under a symlinked hooks/, or a guard whose
       # component was not selected (--mode=config) is reported and left inactive (Codex #302).
       # The registered guards stay wrapped in `if [ -f … ]`, so they block (exit 2) and become no-ops after uninstall.
-      settings_out="$(node - "$SCRIPT_DIR/settings.json.template" "$CLAUDE_DIR" "$MANIFEST" "$SCRIPT_DIR" <<'SETTINGS'
+      # Output goes to a temp file, not $(...): bash 3.2 (stock macOS) mis-parses a quoted heredoc inside $(...)
+      # when its body has an odd number of apostrophes.
+      settings_tmp="$(mktemp "${TMPDIR:-/tmp}/ccc-settings.XXXXXX")" || { cc_status_line "✗" "settings.json could not be written" "$M_RED"; exit 1; }
+      if ! node - "$SCRIPT_DIR/settings.json.template" "$CLAUDE_DIR" "$MANIFEST" "$SCRIPT_DIR" > "$settings_tmp" <<'SETTINGS'
 'use strict';
 var fs = require('fs'), path = require('path'), nodeCrypto = require('crypto');
 var src = process.argv[2], root = path.resolve(process.argv[3]), manifestPath = process.argv[4], srcRoot = process.argv[5];
@@ -1196,7 +1199,8 @@ process.stdout.write('registered\t' + Array.from(new Set(registered)).join(', ')
 inactive.forEach(function(i) { process.stdout.write('inactive\t' + i + '\n'); });
 if (statusInactive) process.stdout.write('statusline-inactive\t' + statusInactive + '\n');
 SETTINGS
-)" || { cc_status_line "✗" "settings.json could not be written" "$M_RED"; exit 1; }
+      then rm -f "$settings_tmp"; cc_status_line "✗" "settings.json could not be written" "$M_RED"; exit 1; fi
+      settings_out="$(cat "$settings_tmp")"; rm -f "$settings_tmp"
       guards_registered="$(printf '%s\n' "$settings_out" | awk -F'\t' '$1=="registered"{print $2}')"
       if [ -n "$guards_registered" ]; then
         cc_status_line "✓" "settings.json created (new install; registered: $guards_registered)"
@@ -1220,7 +1224,9 @@ SETTINGS
     # Ensure only the canonical commander-hub (git-form) entry is present.
     if [ -f "$CLAUDE_DIR/settings.json" ] && command -v python3 &>/dev/null; then
       dedup_exit=0
-      dedup_out=$(python3 - "$CLAUDE_DIR/settings.json" "$BACKUP_DIR" <<'DEDUP'
+      dedup_tmp="$(mktemp "${TMPDIR:-/tmp}/ccc-dedup.XXXXXX")" || dedup_tmp=""
+      if [ -n "$dedup_tmp" ]; then
+      python3 - "$CLAUDE_DIR/settings.json" "$BACKUP_DIR" > "$dedup_tmp" <<'DEDUP' || dedup_exit=$?
 import json, os, shutil, sys, tempfile
 
 p = sys.argv[1]   # the lane's settings.json (CLAUDE_CONFIG_DIR aware), not a hard-coded ~/.claude
@@ -1277,7 +1283,8 @@ except Exception:
 
 print('deduped extraKnownMarketplaces: removed ' + ', '.join(removed))
 DEDUP
-      ) || dedup_exit=$?
+      dedup_out="$(cat "$dedup_tmp")"; rm -f "$dedup_tmp"
+      else dedup_exit=1; dedup_out=""; fi
       # Outcomes: 0 with output = changed, 0 without = nothing to do, 3 = unreadable (skipped), other = failed
       if [ $dedup_exit -eq 3 ]; then
         cc_status_line "!" "extraKnownMarketplaces dedup skipped: ${dedup_out}"
