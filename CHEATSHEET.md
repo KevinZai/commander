@@ -478,7 +478,7 @@ Stop: `Ctrl+C` or the stop button in Cowork Desktop. Avoid looping destructive s
 
 ### Proactive Hooks (14 Kit-Native)
 
-The standalone config (`hooks/hooks-standalone.json`) wires 14 kit-native hooks that fire automatically — no prompting required. Disable any hook with its env var.
+The standalone config (`hooks/hooks-standalone.json`) wires 14 kit-native hooks that fire automatically — no prompting required. To turn a hook off, remove its entry from the installed `hooks.json`. Only `auto-checkpoint` reads its "Disable with" variable today; the other variables in these tables are not read by any hook.
 
 **PreToolUse (3 hooks)**
 
@@ -495,7 +495,7 @@ The standalone config (`hooks/hooks-standalone.json`) wires 14 kit-native hooks 
 | `auto-notify` | Notifications on significant events (PR created, deploy) | `KZ_DISABLE_AUTO_NOTIFY=1` |
 | `preuse-logger` | Logs tool usage for cost analysis | `KZ_DISABLE_PREUSE_LOGGER=1` |
 | `context-guard` | Warns at ~70% context, auto-saves session | `KZ_DISABLE_CONTEXT_GUARD=1` |
-| `auto-checkpoint` | Git-stash checkpoint every 10 file edits | `KZ_DISABLE_AUTO_CHECKPOINT=1` |
+| `auto-checkpoint` | Opt-in with `CCC_AUTO_CHECKPOINT=1`: every 10 file edits, snapshots tracked changes to `refs/ccc-checkpoints/<session>/<n>` (worktree, index and stash list untouched; untracked files not captured) | `KZ_DISABLE_AUTO_CHECKPOINT=1` |
 | `cost-alert` | Cost proxy alerts at ~$0.50 (30 calls) and ~$2.00 (60 calls) | `KZ_DISABLE_COST_ALERT=1` |
 | `auto-lessons` | Captures errors and corrections to tasks/lessons.md | `KZ_DISABLE_AUTO_LESSONS=1` |
 | `rate-predictor` | Predicts remaining session duration from tool call rate | `KZ_DISABLE_RATE_PREDICTOR=1` |

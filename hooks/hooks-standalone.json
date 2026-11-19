@@ -74,7 +74,7 @@
             "command": "node \"$HOME/.claude/hooks/auto-checkpoint.js\""
           }
         ],
-        "description": "Auto git-stash checkpoint every 10 file edits"
+        "description": "Opt-in (CCC_AUTO_CHECKPOINT=1): every 10 file edits, snapshot tracked changes to refs/ccc-checkpoints/<session>/<n> without touching the worktree, index or stash list; KZ_DISABLE_AUTO_CHECKPOINT=1 turns it off"
       },
       {
         "matcher": "*",
