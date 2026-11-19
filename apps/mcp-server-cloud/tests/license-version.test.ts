@@ -70,16 +70,60 @@ describe("license key version (kv claim)", () => {
     assert.equal(selected.length, 0);
   });
 
-  it("answers 503 when the lookup fails (e.g. migration 006 not applied)", async (t) => {
+  it("answers 503 when the lookup fails", async (t) => {
     t.mock.method(db, "from", () => {
       const query = {
         select() { return query; },
         eq() { return query; },
-        async maybeSingle() { return { data: null, error: { code: "42703", message: "column users.license_key_version does not exist" } }; },
+        async maybeSingle() { return { data: null, error: { code: "08006", message: "connection failure" } }; },
       };
       return query;
     });
     const res = await resolveLicenseToken(sign({ sub: "u1", kv: 1 }));
+    assert.deepEqual(res, { ok: false, status: 503, error: "Auth backend unavailable" });
+  });
+});
+
+/** A users table from before migration 006: selecting license_key_version is 42703. */
+function mockPre006(t: TestContext, row: Record<string, unknown>, fallbackError: unknown = null): string[] {
+  const selected: string[] = [];
+  t.mock.method(db, "from", () => {
+    let cols = "";
+    const query = {
+      select(c: string) { cols = c; selected.push(c); return query; },
+      eq() { return query; },
+      async maybeSingle() {
+        if (cols.includes("license_key_version")) {
+          return { data: null, error: { code: "42703", message: "column users.license_key_version does not exist" } };
+        }
+        return fallbackError ? { data: null, error: fallbackError } : { data: row, error: null };
+      },
+    };
+    return query;
+  });
+  return selected;
+}
+
+describe("license key version before migration 006 is applied", () => {
+  it("falls back to the select without the column and treats the version as 1", async (t) => {
+    const selected = mockPre006(t, { user_id: "u1", tier: "pro", license_key: "lk" });
+    const res = await resolveLicenseToken(sign({ sub: "u1" }));
+    assert.equal(res.ok, true);
+    assert.equal(selected.length, 2);
+    assert.match(selected[0], /license_key_version/);
+    assert.doesNotMatch(selected[1], /license_key_version/);
+    assert.equal((await resolveLicenseToken(sign({ sub: "u1", kv: 1 }))).ok, true);
+  });
+
+  it("rejects a kv above 1 while the column is missing", async (t) => {
+    mockPre006(t, { user_id: "u1", tier: "pro", license_key: "lk" });
+    const res = await resolveLicenseToken(sign({ sub: "u1", kv: 2 }));
+    assert.deepEqual(res, { ok: false, status: 401, error: "Token revoked" });
+  });
+
+  it("answers 503 when the fallback select also fails", async (t) => {
+    mockPre006(t, { user_id: "u1" }, { code: "08006", message: "connection failure" });
+    const res = await resolveLicenseToken(sign({ sub: "u1" }));
     assert.deepEqual(res, { ok: false, status: 503, error: "Auth backend unavailable" });
   });
 });

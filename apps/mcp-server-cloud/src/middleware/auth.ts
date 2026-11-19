@@ -39,7 +39,43 @@ export type ResolveTokenResult =
  * (migration 006). No code in this repo mints license tokens; they are signed
  * out-of-band with JWT_SECRET. A minted token must carry the row's current
  * kv; a token whose kv (or missing kv, read as 1) differs is "Token revoked".
+ * Until 006 is applied every row reads as version 1.
  */
+type LicenseUser = {
+  user_id: string;
+  tier: unknown;
+  license_key: string | null;
+  license_key_version?: unknown;
+};
+
+/** Postgres "undefined_column": migration 006 has not been applied yet. */
+const UNDEFINED_COLUMN = "42703";
+
+/**
+ * Select the user with license_key_version. Before migration 006 the column
+ * does not exist; rather than failing every license token with 503, retry
+ * without it, and the missing version reads as 1 below.
+ */
+async function lookupLicenseUser(
+  userId: string
+): Promise<{ data: LicenseUser | null; error: { code?: string; message?: string } | null }> {
+  const withVersion = await db
+    .from("users")
+    .select("user_id, tier, license_key, license_key_version")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (withVersion.error?.code !== UNDEFINED_COLUMN) {
+    return { data: withVersion.data as LicenseUser | null, error: withVersion.error };
+  }
+  logger.warn("users.license_key_version missing (migration 006 not applied); treating every key as version 1");
+  const legacy = await db
+    .from("users")
+    .select("user_id, tier, license_key")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return { data: legacy.data as LicenseUser | null, error: legacy.error };
+}
+
 export async function resolveLicenseToken(token: string): Promise<ResolveTokenResult> {
   // Verify JWT
   let payload: jwt.JwtPayload;
@@ -66,11 +102,7 @@ export async function resolveLicenseToken(token: string): Promise<ResolveTokenRe
   }
 
   // Lookup user in DB
-  const { data: user, error } = await db
-    .from("users")
-    .select("user_id, tier, license_key, license_key_version")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { data: user, error } = await lookupLicenseUser(userId);
 
   if (error) {
     logger.error({ err: error, userId }, "User lookup failed");

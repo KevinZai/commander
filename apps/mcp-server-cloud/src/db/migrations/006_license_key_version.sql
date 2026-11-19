@@ -1,6 +1,7 @@
 -- Migration 006 — license key versioning (Track M7a).
--- Apply in the Supabase SQL Editor AFTER 005, and BEFORE deploying the server
--- release that reads it (the license lookup selects this column).
+-- Apply in the Supabase SQL Editor AFTER 005. The server reads the column
+-- when present; before it exists every key counts as version 1 (the lookup
+-- retries without the column on 42703), so revocation works only after 006.
 -- Idempotent — safe to re-run. Down: migrations/down/006_license_key_version.down.sql.
 --
 -- A license JWT carries `kv` = users.license_key_version. Revoking a key is
