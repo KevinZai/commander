@@ -33,17 +33,29 @@ if tmux has-session -t "=$SESSION_NAME" 2>/dev/null; then
   exec tmux attach-session -t "=$SESSION_NAME"
 fi
 
-# Create session — single window, menu starts in first pane
-tmux new-session -d -s "$SESSION_NAME" -x "$(tput cols)" -y "$(tput lines)"
+# Create session — single window, menu starts in first pane. Keys go to the
+# pane id new-session printed; when creation fails (or prints no pane id) we
+# stop, so the launch line is never typed into some other session or pane.
+MENU_PANE="$(tmux new-session -d -s "$SESSION_NAME" -x "$(tput cols)" -y "$(tput lines)" -P -F '#{pane_id}')" || {
+  echo "  Could not create the tmux session '$SESSION_NAME'." >&2
+  exit 1
+}
+case "$MENU_PANE" in
+  %[0-9]*) ;;
+  *)
+    echo "  tmux did not report a pane for session '$SESSION_NAME'; nothing was sent." >&2
+    exit 1
+    ;;
+esac
 
 # Set env vars for the menu pane. The checkout path is shell-quoted (it may
 # contain spaces) and typed literally, with Enter sent separately.
 CCC_BIN_Q="$(printf '%q' "$CCC_BIN")"
-tmux send-keys -t "$SESSION_NAME" -l "export CCC_TMUX_SESSION=$SESSION_NAME CCC_SIMPLE=1 CCC_PANE_MODE=1 && node $CCC_BIN_Q"
-tmux send-keys -t "$SESSION_NAME" Enter
+tmux send-keys -t "$MENU_PANE" -l -- "export CCC_TMUX_SESSION=$SESSION_NAME CCC_SIMPLE=1 CCC_PANE_MODE=1 && node $CCC_BIN_Q"
+tmux send-keys -t "$MENU_PANE" Enter
 
 # Mark menu pane for easy targeting
-tmux select-pane -t "$SESSION_NAME" -T "menu"
+tmux select-pane -t "$MENU_PANE" -T "menu"
 
 # Style — dark theme matching CCC branding
 tmux set-option -t "$SESSION_NAME" status-style "bg=#0d1117,fg=#666666"

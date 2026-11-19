@@ -9,7 +9,8 @@ const path = require('node:path');
 
 const SCRIPT = path.join(__dirname, '..', 'bin', 'ccc-split.sh');
 
-function setup(dirName, hasSession) {
+function setup(dirName, hasSession, newSession) {
+  newSession = newSession || { status: 0, out: '%3' };
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-split-'));
   const binDir = path.join(root, 'fakebin');
   const checkout = path.join(root, dirName, 'bin');
@@ -23,6 +24,7 @@ function setup(dirName, hasSession) {
     `printf '%s\\0' "$@" >> ${JSON.stringify(log)}`,
     `printf '\\n' >> ${JSON.stringify(log)}`,
     `if [ "$1" = "has-session" ]; then exit ${hasSession ? 0 : 1}; fi`,
+    `if [ "$1" = "new-session" ]; then printf '%s\\n' ${JSON.stringify(newSession.out)}; exit ${newSession.status}; fi`,
     'exit 0',
     '',
   ].join('\n'), { mode: 0o755 });
@@ -65,11 +67,11 @@ test('quotes a checkout path with spaces', () => {
     assert.ok(calls.some((c) => c[0] === 'new-session'));
     const keys = calls.filter((c) => c[0] === 'send-keys');
     assert.equal(keys.length, 2, JSON.stringify(keys));
-    assert.equal(keys[0][3], '-l', 'launch line is sent literally');
-    const line = keys[0][4];
+    assert.deepEqual(keys[0].slice(0, 5), ['send-keys', '-t', '%3', '-l', '--'], 'launch line is sent literally to the new pane id');
+    const line = keys[0][5];
     const kc = path.join(path.dirname(ctx.script), 'kc.js');
     assert.ok(line.endsWith('node ' + kc.replace(/ /g, '\\ ')), line);
-    assert.deepEqual(keys[1], ['send-keys', '-t', 'ccc', 'Enter']);
+    assert.deepEqual(keys[1], ['send-keys', '-t', '%3', 'Enter']);
     // The typed line must word-split back to the real path in a shell.
     const echo = spawnSync('bash', ['-c', line.replace(/^.*&& node /, 'printf %s ')], { encoding: 'utf8' });
     assert.equal(echo.stdout, kc);
@@ -77,3 +79,18 @@ test('quotes a checkout path with spaces', () => {
     fs.rmSync(ctx.root, { recursive: true, force: true });
   }
 });
+
+for (const [label, newSession] of [['fails', { status: 1, out: '' }], ['prints no pane id', { status: 0, out: '' }]]) {
+  test(`stops without typing when new-session ${label}`, () => {
+    const ctx = setup('checkout', false, newSession);
+    try {
+      const { r, calls } = run(ctx);
+      assert.equal(r.status, 1, r.stdout + r.stderr);
+      assert.ok(calls.some((c) => c[0] === 'new-session'));
+      assert.ok(!calls.some((c) => c[0] === 'send-keys'), 'no keys after a failed new-session: ' + JSON.stringify(calls));
+      assert.ok(!calls.some((c) => c[0] === 'attach-session'));
+    } finally {
+      fs.rmSync(ctx.root, { recursive: true, force: true });
+    }
+  });
+}

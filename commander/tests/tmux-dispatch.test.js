@@ -5,7 +5,8 @@ var assert = require('node:assert');
 
 var tmuxDispatch = require('../lib/tmux-dispatch');
 
-// Fake tmux: records every call and answers display-message / split-window queries.
+// Fake tmux: records every call and answers display-message / split-window /
+// capture-pane queries (the screen defaults to Claude Code's prompt UI).
 // `commands` is the sequence #{pane_current_command} returns on successive polls.
 function fakeTmux(commands, opts) {
   opts = opts || {};
@@ -16,6 +17,9 @@ function fakeTmux(commands, opts) {
     if (cmd !== 'tmux') return 'OK';
     if (args[0] === 'display-message' && args.indexOf('#{window_panes}') !== -1) return String(opts.panes || 1) + '\n';
     if (args[0] === 'split-window') return (opts.paneId || '%7') + '\n';
+    if (args[0] === 'capture-pane') {
+      return opts.screen !== undefined ? opts.screen : 'Welcome to Claude Code\n> \n? for shortcuts\n';
+    }
     if (args[0] === 'display-message' && args.indexOf('#{pane_current_command}') !== -1) {
       var c = commands[Math.min(polls, commands.length - 1)];
       polls++;
@@ -58,7 +62,7 @@ test('one non-shell poll is not enough; two consecutive are', function() {
   var polls = fake.calls.filter(function(c) { return c[1] === 'display-message' && c.indexOf('#{pane_current_command}') !== -1; });
   assert.strictEqual(polls.length, 5);
   var last = sendKeys(fake.calls).slice(-2);
-  assert.deepStrictEqual(last[0].slice(-2), ['-l', 'do the thing']);
+  assert.deepStrictEqual(last[0].slice(-3), ['-l', '--', 'do the thing']);
   assert.deepStrictEqual(last[1].slice(-1), ['Enter']);
 });
 
@@ -117,4 +121,48 @@ test('isShell recognises login shells', function() {
   assert.ok(tmuxDispatch.isShell(''));
   assert.ok(!tmuxDispatch.isShell('claude'));
   assert.ok(!tmuxDispatch.isShell('node'));
+});
+
+test('readiness is an allowlist: unlisted shells and REPLs never receive the task', function() {
+  ['ash', 'busybox', 'pwsh', 'elvish', 'xonsh', 'python3', 'vim', 'less'].forEach(function(cmd) {
+    var fake = fakeTmux([cmd]);
+    var id = run(fake, 'rm -rf build', null, { maxPolls: 6 });
+    assert.strictEqual(id, null, cmd + ' must not count as ready');
+    var typed = sendKeys(fake.calls).map(function(c) { return c.join(' '); }).join('\n');
+    assert.ok(typed.indexOf('rm -rf build') === -1, cmd + ' received the task text');
+  });
+});
+
+test('isClaudeProcess accepts claude, node, the binary basename and native version names', function() {
+  assert.ok(tmuxDispatch.isClaudeProcess('claude'));
+  assert.ok(tmuxDispatch.isClaudeProcess('node'));
+  assert.ok(tmuxDispatch.isClaudeProcess('2.1.30'));
+  assert.ok(tmuxDispatch.isClaudeProcess('claude-dev', '/opt/bin/claude-dev'));
+  assert.ok(!tmuxDispatch.isClaudeProcess('bash', '/bin/bash'), 'a shell never counts even when it matches the binary name');
+  assert.ok(!tmuxDispatch.isClaudeProcess('pwsh'));
+  assert.ok(!tmuxDispatch.isClaudeProcess(''));
+});
+
+test('a task starting with "-" is sent after "--" so tmux treats it as text', function() {
+  var fake = fakeTmux(['claude', 'claude']);
+  var id = run(fake, '-t evil --flag', null);
+  assert.ok(id);
+  var taskKeys = sendKeys(fake.calls).filter(function(c) { return c[c.length - 1] === '-t evil --flag'; });
+  assert.strictEqual(taskKeys.length, 1);
+  assert.deepStrictEqual(taskKeys[0].slice(-3), ['-l', '--', '-t evil --flag']);
+});
+
+test('Codex counterexample: sleep or elvish in the pane never count as ready', function() {
+  ['sleep', 'elvish'].forEach(function(cmd) {
+    var fake = fakeTmux([cmd, cmd, cmd, cmd]);
+    assert.strictEqual(run(fake, 'deploy prod', null, { maxPolls: 4 }), null, cmd);
+    assert.strictEqual(sendKeys(fake.calls).filter(function(c) { return c[c.length - 1] === 'deploy prod' || c[c.length - 1] === 'Enter'; }).length, 1, cmd + ': only the launch Enter is sent');
+  });
+});
+
+test('a node REPL without the Claude Code screen is not ready', function() {
+  var fake = fakeTmux(['node', 'node', 'node'], { screen: 'Welcome to Node.js v22.0.0.\n> ' });
+  assert.strictEqual(run(fake, 'process.exit()', null, { maxPolls: 3 }), null);
+  var typed = sendKeys(fake.calls).map(function(c) { return c.join(' '); }).join('\n');
+  assert.ok(typed.indexOf('process.exit()') === -1, typed);
 });

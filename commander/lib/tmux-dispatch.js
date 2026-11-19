@@ -10,6 +10,14 @@
 
 var SHELLS = ['sh', 'bash', 'zsh', 'fish', 'dash', 'ksh', 'mksh', 'tcsh', 'csh', 'nu', 'login'];
 
+// Readiness is an allowlist: the task is typed only when the pane's
+// foreground command is Claude Code itself. A denylist of shells let task
+// text reach any unlisted shell or REPL (ash, busybox, pwsh, xonsh, python3).
+var CLAUDE_COMMANDS = ['claude', 'node'];
+// The native installer runs the binary from versions/<semver>, so tmux
+// reports the version string as the command name.
+var NATIVE_VERSION_RE = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
+
 function shellQuote(value) {
   return "'" + String(value).replace(/'/g, "'\\''") + "'";
 }
@@ -19,6 +27,35 @@ function isShell(command) {
   if (!c) return true;
   c = c.split('/').pop();
   return SHELLS.indexOf(c) !== -1;
+}
+
+function commandName(command) {
+  return String(command || '').trim().replace(/^-/, '').split('/').pop();
+}
+
+// True only when the foreground command is Claude Code: claude, node, the
+// basename of the resolved claude binary, or a native-installer version name.
+function isClaudeProcess(command, claudeBin) {
+  var c = commandName(command);
+  if (!c || isShell(c)) return false;
+  if (CLAUDE_COMMANDS.indexOf(c) !== -1) return true;
+  if (NATIVE_VERSION_RE.test(c)) return true;
+  var bin = commandName(claudeBin);
+  return !!bin && bin === c;
+}
+
+// Claude Code's own screen text: the welcome banner, the prompt footer
+// ("? for shortcuts", permission-mode line) or the busy hint. A node REPL,
+// a pager or a shell prompt never prints these, so together with the
+// foreground command they are a positive "Claude is ready" signal.
+var CLAUDE_UI = /\?\s*for shortcuts|Claude Code|shift\+tab to cycle|esc to interrupt|\u23f5\u23f5|bypass permissions on|accept edits on|plan mode on|auto mode on/i;
+
+function paneShowsClaude(exec, paneId) {
+  try {
+    return CLAUDE_UI.test(String(exec('tmux', ['capture-pane', '-p', '-t', paneId])));
+  } catch (_e) {
+    return false;
+  }
 }
 
 function defaultExec(cmd, args, options) {
@@ -49,9 +86,11 @@ function checkAuth(exec, claudeBin, write) {
   return true;
 }
 
-// Ready once the pane's foreground command is not a shell on two consecutive
-// polls (the shell has handed the terminal to Claude Code and it stayed up).
-function waitForClaude(exec, sleep, paneId, maxPolls, pollMs) {
+// Ready only on a positive signal, two polls in a row: the pane's foreground
+// command is Claude Code (allowlist, never "not a shell") AND the pane shows
+// Claude Code's prompt UI. Anything else (a shell, sleep, a REPL, a pager)
+// resets the streak, so the task is never typed into another program.
+function waitForClaude(exec, sleep, paneId, maxPolls, pollMs, claudeBin) {
   var streak = 0;
   for (var attempt = 0; attempt < maxPolls; attempt++) {
     sleep(pollMs);
@@ -59,7 +98,8 @@ function waitForClaude(exec, sleep, paneId, maxPolls, pollMs) {
     try {
       current = String(exec('tmux', ['display-message', '-p', '-t', paneId, '#{pane_current_command}'])).trim();
     } catch (_e) { current = ''; }
-    streak = isShell(current) ? 0 : streak + 1;
+    var ready = isClaudeProcess(current, claudeBin) && paneShowsClaude(exec, paneId);
+    streak = ready ? streak + 1 : 0;
     if (streak >= 2) return true;
   }
   return false;
@@ -111,12 +151,13 @@ function dispatch(task, resumeSessionId, options) {
     exec('tmux', ['send-keys', '-t', paneId, 'Enter']);
 
     if (!resumeSessionId) {
-      if (!waitForClaude(exec, sleep, paneId, maxPolls, pollMs)) {
+      if (!waitForClaude(exec, sleep, paneId, maxPolls, pollMs, claudeBin)) {
         write('\n  Claude Code did not start in pane ' + paneId + '; the task was not sent.\n');
         return null;
       }
       var safeTask = String(task || '').replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 4000);
-      exec('tmux', ['send-keys', '-t', paneId, '-l', safeTask]);
+      // "--" ends tmux option parsing so a task starting with "-" is literal text.
+      exec('tmux', ['send-keys', '-t', paneId, '-l', '--', safeTask]);
       exec('tmux', ['send-keys', '-t', paneId, 'Enter']);
     }
 
@@ -137,5 +178,7 @@ module.exports = {
   dispatch: dispatch,
   shellQuote: shellQuote,
   isShell: isShell,
+  isClaudeProcess: isClaudeProcess,
+  paneShowsClaude: paneShowsClaude,
   waitForClaude: waitForClaude
 };
