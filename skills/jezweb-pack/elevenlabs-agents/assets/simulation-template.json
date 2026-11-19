@@ -1,0 +1,10 @@
+{
+  "agent_id": "YOUR_AGENT_ID",
+  "scenario": "Book an appointment for tomorrow at 2pm",
+  "max_turns": 10,
+  "expected_outcomes": [
+    "Agent confirms the appointment time",
+    "Agent asks for the customer's name",
+    "Agent provides a confirmation number"
+  ]
+}
