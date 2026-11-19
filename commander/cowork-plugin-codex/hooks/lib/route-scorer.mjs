@@ -135,11 +135,17 @@ export function normalizePrompt(prompt, maxChars = ANALYZED_CHARS) {
 // tests", "don't deploy, write unit tests for my code") also ends the
 // negation; a bare list ("don't deploy, build or test") does not, and
 // neither does a list of prohibitions closed by a comma, "or"/"nor" and any
-// verb ("do not write docs, write unit tests, or publish a release"). An "or"
-// without that comma belongs to the new clause ("skip deployment, write unit
-// tests for my code or run integration tests" asks for tests).
+// verb ("do not write docs, write unit tests, or publish a release"); a
+// preposition or adverb after ", or" ("..., or in JavaScript if you prefer")
+// continues the new clause. An "or" without that comma belongs to the new
+// clause ("skip deployment, write unit tests for my code or run integration
+// tests" asks for tests).
 const CLAUSE_VERB = String.raw`(?:write|add|run|review|fix|debug|build|create|make|test|update|refactor|implement|check|explain|plan|ship|document|audit|deploy|generate|set|draft|scan|summarize|optimize|design)`;
-const LIST_TAIL = String.raw`(?![^.!?;]*?,\s*(?:or|nor)\s+\w)`;
+// Closed-class words that cannot start a verb phrase. ", or in JavaScript", ", or with jest", ", or if you
+// prefer" continue the new clause instead of closing a prohibition list (Codex #302 delta4); any other word
+// after ", or"/", nor" is read as a verb, since verbs are an open class (Codex #302 delta3 NM3).
+const NOT_A_VERB = String.raw`(?:in|into|on|onto|at|with|without|within|by|for|from|to|of|as|via|using|per|over|under|after|before|during|until|unless|than|like|if|when|whenever|where|wherever|whether|whichever|whatever|while|otherwise|else|alternatively|preferably|ideally|possibly|perhaps|maybe|even|also|just|only|so|not|both|either|neither|the|a|an|my|our|your|its|their|this|that|these|those|any|some|it|you|we|they|me|us|them|anything|something)`;
+const LIST_TAIL = String.raw`(?![^.!?;]*?,\s*(?:or|nor)\s+(?!${NOT_A_VERB}\b)\w)`;
 const NEGATION_END = String.raw`(?=[.!?;]|\s[-\u2013\u2014]+\s|\b(?:but|instead|just|only|rather|then)\b|,\s*now\b|,\s*${CLAUSE_VERB}\s+(?:the|a|an|my|our|your|this|that|these|those|some|unit|it|me|up|all)\b${LIST_TAIL}|$)`;
 const COMMAND_POSITION = String.raw`(?:^|(?:[.!?;:,(]|\s[-\u2013\u2014]+)\s*|\b(?:and|but|so|then|please|pls|also|or)\s+)`;
 // "don't skip", "never forget to", "you shouldn't avoid": two negations make a request.

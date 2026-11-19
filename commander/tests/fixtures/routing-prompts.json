@@ -299,6 +299,9 @@
     { "prompt": "don't deploy - review the code changes in this pr", "expect": "ccc-review" },
     { "prompt": "Do not write documentation, write unit tests for my code, or deploy anything", "expect": "none" },
     { "prompt": "Skip deployment, write unit tests for my code or run integration tests", "expect": "ccc-testing" },
-    { "prompt": "Do not write documentation, write unit tests for my code, or publish a release", "expect": "none" }
+    { "prompt": "Do not write documentation, write unit tests for my code, or publish a release", "expect": "none" },
+    { "prompt": "Do not write documentation, write unit tests for my code in Python, or in JavaScript if you prefer", "expect": "ccc-testing", "_comment": "Codex #302 delta4: ', or' followed by a preposition (in/with/if) continues the new clause; it does not close a prohibition list." },
+    { "prompt": "Skip deployment, write unit tests for my code with pytest, or with jest if you prefer", "expect": "ccc-testing" },
+    { "prompt": "Do not write documentation, write unit tests for my code or deploy anything", "expect": "ccc-testing", "_comment": "Codex #302 delta4: genuinely ambiguous without the comma before 'or' (a prohibition list, or a request followed by an alternative). It reads like 'Skip deployment, write unit tests for my code or run integration tests', which must route to testing, so both route to testing; a comma before 'or' makes it a prohibition list (expect none above)." }
   ]
 }

@@ -228,8 +228,13 @@ test('a negated directive never routes; a described failure still does', async (
     'Do not write documentation, write unit tests for my code, or publish a release']) {
     assert.ok(!fires(p), `prohibited list fired: ${p}`);
   }
+  // Codex delta4: ", or" closes the list only before a verb; before a preposition or adverb ("in", "with",
+  // "if") it continues the new clause. Without the comma the "or" is ambiguous and reads as a request.
   for (const p of ['Skip deployment, write unit tests for my code or run integration tests',
-    "don't deploy, write unit tests for my code or run the audit"]) {
+    "don't deploy, write unit tests for my code or run the audit",
+    'Do not write documentation, write unit tests for my code in Python, or in JavaScript if you prefer',
+    'Skip deployment, write unit tests for my code with pytest, or with jest if you prefer',
+    'Do not write documentation, write unit tests for my code or deploy anything']) {
     assert.strictEqual(s.scoreRoutes(p)[0].route.id, 'ccc-testing', p);
   }
   assert.strictEqual(s.stripNegated('i must have broken it, debug the test'), 'i must have broken it, debug the test');
