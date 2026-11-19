@@ -502,3 +502,41 @@ test('only HTTPS (or loopback HTTP) origins can be approved; project headers car
   );
   assert.deepStrictEqual(projectHeaders, { B: 'b' });
 });
+
+// M11: the plugin's mcp_url / mcp_token settings are configuration on their own; no mcp.json needed.
+test('mcp_url and mcp_token settings configure passthrough without any mcp.json', async () => {
+  const srv = await mockServer({ requireAuth: true });
+  try {
+    process.env.CCC_MCP_URL = `${srv.origin}/mcp`;
+    process.env.CCC_MCP_TOKEN = TOKEN;
+    const pt = fresh();
+    assert.strictEqual(pt.isEnabled(), true);
+    const out = await pt.call('list_skills', {}, { fallback: localFallback });
+    assert.notStrictEqual(out.source, 'local');
+    assert.ok(srv.requests.every((r) => r.headers.authorization === `Bearer ${TOKEN}`));
+  } finally {
+    await srv.close();
+  }
+});
+
+test('a token setting alone targets the default approved origin with the bearer', () => {
+  process.env.CCC_MCP_TOKEN = TOKEN;
+  const pt = fresh();
+  assert.strictEqual(pt.isEnabled(), true);
+  const target = pt._internal.resolveTarget();
+  assert.strictEqual(target.endpoint, 'https://mcp.commanderplugin.com/mcp');
+  assert.strictEqual(target.source, 'settings');
+  assert.strictEqual(target.credentialed, true);
+  assert.strictEqual(target.headers.Authorization, `Bearer ${TOKEN}`);
+});
+
+test('the local fallback log names why: not configured vs disabled', async () => {
+  let pt = fresh();
+  const logFile = pt._internal.logFile;
+  await pt.call('list_skills', {}, { fallback: localFallback });
+  process.env.MCP_DISABLED = '1';
+  pt = fresh();
+  await pt.call('list_skills', {}, { fallback: localFallback });
+  const reasons = fs.readFileSync(logFile, 'utf8').trim().split('\n').map((l) => JSON.parse(l).reason);
+  assert.deepStrictEqual(reasons.slice(-2), ['not-configured', 'disabled']);
+});
