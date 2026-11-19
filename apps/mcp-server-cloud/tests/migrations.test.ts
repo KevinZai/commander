@@ -155,5 +155,8 @@ describe("migrations are never applied by the repo's tooling", () => {
     assert.match(sql(forwardFile), /drop policy if exists "users_update_own" on public\.users/);
     assertIdempotent(forwardFile);
     assertIdempotent(downFile);
+    // The down must work on both users schemas (TEXT and uuid user_id).
+    assert.match(sql(downFile), /attrelid = 'public\.users'::regclass and a\.attname = 'user_id'/);
+    assert.match(sql(downFile), /'auth\.uid\(\) = user_id'/);
   });
 });
