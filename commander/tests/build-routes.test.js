@@ -108,3 +108,10 @@ test('a skill without a sideEffect declaration fails the build; the flag reaches
   const out = build(fixture({ skills: { 'ccc-x': 'X.' }, hints: { skills: { 'ccc-x': { strong: ['x job'], sideEffect: true } } } }));
   assert.strictEqual(out.routes.find((r) => r.id === 'ccc-x').sideEffect, true);
 });
+
+test('worker is a boolean, needs a visible skill with no side effect, and reaches the registry', () => {
+  const ok = build(fixture({ skills: { 'ccc-x': 'X.' }, hints: { skills: { 'ccc-x': { strong: ['x job'], sideEffect: false, worker: true } } } }));
+  assert.strictEqual(ok.routes.find((r) => r.id === 'ccc-x').worker, true);
+  assert.throws(() => build(fixture({ skills: { 'ccc-x': 'X.' }, hints: { skills: { 'ccc-x': { strong: ['x job'], sideEffect: true, worker: true } } } })), /worker skill must be visible/);
+  assert.throws(() => build(fixture({ skills: { 'ccc-x': 'X.' }, hints: { skills: { 'ccc-x': { strong: ['x job'], sideEffect: false, worker: 'yes' } } } })), /worker must be true or false/);
+});

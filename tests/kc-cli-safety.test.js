@@ -246,3 +246,169 @@ test('--skills accepts a POSIX profile whose name ends in a backslash', { skip: 
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+// Codex review, HIGH 7: profile B holding a copy of profile A's manifest gets no authority from it. The
+// ownership check runs before any row or backup reference is consumed.
+test('--skills remove and tier ignore a manifest copied from another profile', () => {
+  withHome((home) => {
+    const a = join(home, 'profile-a');
+    const b = join(home, 'profile-b');
+    const userTarget = join(home, 'user-seo');
+    mkdirSync(userTarget);
+    const backupDir = join(home, 'a-backup');
+    mkdirSync(backupDir);
+    symlinkSync(join(home, 'a-original'), join(backupDir, 'ab-test-setup'));
+    const manifestA = JSON.stringify({ schema: 1, claude_dir: a, dirs: [], entries: [
+      { group: 'skills', path: 'skills/ccc-seo', type: 'symlink', target: userTarget },
+      { group: 'skills', path: 'skills/ab-test-setup', type: 'symlink', target: join(SKILLS_SRC, 'ab-test-setup'), backup: join(backupDir, 'ab-test-setup') },
+    ] });
+    for (const p of [a, b]) mkdirSync(join(p, 'commander'), { recursive: true });
+    writeFileSync(join(a, 'commander', 'install-manifest.json'), manifestA);
+    writeFileSync(join(b, 'commander', 'install-manifest.json'), manifestA);   // copied into B
+    mkdirSync(join(b, 'skills'));
+    symlinkSync(userTarget, join(b, 'skills', 'ccc-seo'));                    // same target A recorded
+    symlinkSync(join(SKILLS_SRC, 'ab-test-setup'), join(b, 'skills', 'ab-test-setup'));
+
+    let r = kc(home, ['--skills', 'remove', 'ccc-seo'], { CLAUDE_CONFIG_DIR: b });
+    assert.strictEqual(r.status, 1, 'A\'s row must not authorize removing B\'s link');
+    assert.match(r.stderr, /links outside CC Commander's skills/);
+    assert.ok(isLink(join(b, 'skills', 'ccc-seo')));
+
+    r = kc(home, ['--skills', 'remove', 'ab-test-setup'], { CLAUDE_CONFIG_DIR: b });
+    assert.strictEqual(r.status, 0, r.stderr);
+    assert.ok(!isLink(join(b, 'skills', 'ab-test-setup')), 'A\'s backup is not restored into B');
+    assert.doesNotMatch(r.stdout, /restored/);
+
+    r = kc(home, ['--skills', 'tier', 'essential'], { CLAUDE_CONFIG_DIR: b });
+    assert.ok(isLink(join(b, 'skills', 'ccc-seo')) && readlinkSync(join(b, 'skills', 'ccc-seo')) === userTarget, 'tier keeps B\'s own link');
+    assert.strictEqual(readFileSync(join(b, 'commander', 'install-manifest.json'), 'utf8'), manifestA, 'copied manifest untouched');
+    assert.strictEqual(readFileSync(join(a, 'commander', 'install-manifest.json'), 'utf8'), manifestA, 'A untouched');
+  });
+});
+
+// Codex review, MEDIUM 5: a tier name is an own key of _tiers.json, never a prototype member, and so is every
+// tier it includes; an invalid one changes nothing.
+test('--skills tier refuses prototype names before removing any link', () => {
+  withHome((home) => {
+    const skills = join(home, '.claude', 'skills');
+    mkdirSync(skills, { recursive: true });
+    symlinkSync(join(SKILLS_SRC, 'ccc-seo'), join(skills, 'ccc-seo'));
+    for (const bad of ['constructor', '__proto__', 'toString', 'hasOwnProperty']) {
+      const r = kc(home, ['--skills', 'tier', bad]);
+      assert.strictEqual(r.status, 1, bad);
+      assert.match(r.stderr, /Unknown tier/);
+      assert.ok(isLink(join(skills, 'ccc-seo')), `${bad}: managed link kept`);
+    }
+  });
+});
+
+test('--skills tier refuses an include of an unknown or prototype tier, and an include cycle', () => {
+  withHome((home) => {
+    const pkg = join(home, 'pkg');
+    mkdirSync(join(pkg, 'bin'), { recursive: true });
+    copyFileSync(KC, join(pkg, 'bin', 'kc.js'));
+    mkdirSync(join(pkg, 'skills', 'alpha'), { recursive: true });
+    writeFileSync(join(pkg, 'skills', '_tiers.json'), JSON.stringify({ tiers: {
+      proto: { skills: [], includes: ['constructor'] },
+      missing: { skills: [], includes: ['nope'] },
+      loop: { skills: [], includes: ['loop2'] },
+      loop2: { skills: [], includes: ['loop'] },
+    } }));
+    const skills = join(home, '.claude', 'skills');
+    mkdirSync(skills, { recursive: true });
+    symlinkSync(join(pkg, 'skills', 'alpha'), join(skills, 'alpha'));
+    for (const tier of ['proto', 'missing', 'loop']) {
+      const r = kc(home, ['--skills', 'tier', tier], {}, join(pkg, 'bin', 'kc.js'));
+      assert.strictEqual(r.status, 1, `${tier}: ${r.stdout}${r.stderr}`);
+      assert.match(r.stderr, /Unknown tier|includes itself/);
+      assert.ok(isLink(join(skills, 'alpha')), `${tier}: managed link kept`);
+    }
+  });
+});
+
+// Codex review, HIGH 8: a subcommand's argument values never reach the global flag scans.
+test('ccc next does not let an argument value select another command', () => {
+  withHome((home) => {
+    // A copy of the CLI outside any git checkout: if --update were selected it would run the fake npm.
+    const pkg = join(home, 'pkg');
+    mkdirSync(join(pkg, 'bin'), { recursive: true });
+    copyFileSync(KC, join(pkg, 'bin', 'kc.js'));
+    symlinkSync(join(REPO_ROOT, 'commander'), join(pkg, 'commander'));
+    const fakeBin = join(home, 'fake-bin');
+    mkdirSync(fakeBin);
+    const marker = join(home, 'npm-ran');
+    writeFileSync(join(fakeBin, 'npm'), `#!/bin/sh\ntouch "${marker}"\n`);
+    chmodSync(join(fakeBin, 'npm'), 0o755);
+    const extra = { PATH: fakeBin + delimiter + process.env.PATH };
+    for (const argv of [['next', '--description', '--update'], ['next', '--title', '--help'], ['next', '--title', '--skills', 'tier', 'constructor']]) {
+      const r = spawnSync(process.execPath, [join(pkg, 'bin', 'kc.js'), ...argv], { env: env(home, extra), encoding: 'utf8', input: '', timeout: 60_000 });
+      assert.ok(!existsSync(marker), `${argv.join(' ')}: the updater must not run`);
+      assert.doesNotMatch(r.stdout, /CC Commander — Update|Usage: {2}ccc|Switched to tier|Unknown tier/, argv.join(' '));
+    }
+  });
+});
+
+// Codex review, MEDIUM 7: on a detached checkout, --update applies install-remote.sh's checks and takes the
+// release tag from origin, never from local tags.
+function makeUpdateUpstream(root) {
+  const up = join(root, 'up');
+  mkdirSync(join(up, 'bin'), { recursive: true });
+  mkdirSync(join(up, 'commander'), { recursive: true });
+  const git = (dir, ...a) => {
+    const r = spawnSync('git', ['-C', dir, '-c', 'user.email=t@example.com', '-c', 'user.name=t', ...a], { encoding: 'utf8' });
+    assert.strictEqual(r.status, 0, r.stderr);
+    return r.stdout.trim();
+  };
+  git(up, 'init', '-q');
+  copyFileSync(KC, join(up, 'bin', 'kc.js'));
+  writeFileSync(join(up, 'install.sh'), '#!/bin/bash\necho "STUB INSTALL $*"\n');
+  writeFileSync(join(up, 'commander', 'engine.js'), '// 1\n');
+  git(up, 'add', '-A'); git(up, 'commit', '-qm', 'one'); git(up, 'tag', '-a', 'v1.0.0', '-m', 'v1.0.0');
+  writeFileSync(join(up, 'commander', 'engine.js'), '// 2\n');
+  git(up, 'commit', '-qam', 'two'); git(up, 'tag', 'v1.2.0');
+  writeFileSync(join(up, 'commander', 'engine.js'), '// 3 (unreleased)\n');
+  git(up, 'commit', '-qam', 'three');
+  const url = 'file://' + up;
+  const clone = (dir) => {
+    const r = spawnSync('git', ['clone', '-q', url, dir], { encoding: 'utf8' });
+    assert.strictEqual(r.status, 0, r.stderr);
+    git(dir, 'checkout', '-q', '--detach', 'v1.0.0');
+  };
+  return { url, git, clone, rev: (r) => git(up, 'rev-parse', r + '^{commit}') };
+}
+
+test('--update on a detached checkout ignores local-only tags and applies install-remote checks', () => {
+  withHome((home) => {
+    const up = makeUpdateUpstream(home);
+    const dir = join(home, 'ccc');
+    up.clone(dir);
+    up.git(dir, 'tag', 'v9.9.9');                       // local-only (or withdrawn) tag, higher than any release
+    const update = (extra = {}) => spawnSync(process.execPath, [join(dir, 'bin', 'kc.js'), '--update'],
+      { env: env(home, { CCC_REPO_URL: up.url, ...extra }), encoding: 'utf8', timeout: 60_000 });
+    const head = () => up.git(dir, 'rev-parse', 'HEAD');
+
+    let r = update({ CCC_REF: 'v9.9.9' });
+    assert.strictEqual(r.status, 1, 'a tag origin does not have is refused');
+    assert.doesNotMatch(r.stdout, /STUB INSTALL/);
+    assert.strictEqual(head(), up.rev('v1.0.0'));
+
+    writeFileSync(join(dir, 'commander', 'engine.js'), '// local edit\n');
+    r = update();
+    assert.strictEqual(r.status, 1);
+    assert.match(r.stderr, /has local changes/);
+    assert.doesNotMatch(r.stdout, /STUB INSTALL/);
+    up.git(dir, 'checkout', '-q', '--', 'commander/engine.js');
+
+    up.git(dir, 'remote', 'set-url', 'origin', 'https://example.com/someone-else/commander.git');
+    r = update();
+    assert.strictEqual(r.status, 1);
+    assert.match(r.stderr, /Refusing to update it/);
+    assert.doesNotMatch(r.stdout, /STUB INSTALL/);
+    up.git(dir, 'remote', 'set-url', 'origin', up.url);
+
+    r = update();
+    assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+    assert.strictEqual(head(), up.rev('v1.2.0'), 'the newest tag on origin, not the local v9.9.9');
+    assert.match(r.stdout, /STUB INSTALL --force/);
+  });
+});

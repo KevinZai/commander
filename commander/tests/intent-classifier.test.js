@@ -460,3 +460,48 @@ test('Codex Fable nudge recommends the registry deep model (CODEX_ROUTING.deep)'
   assert.ok(m, 'expected a /model nudge, got: ' + text);
   assert.strictEqual(m[1], CODEX_ROUTING.deep);
 });
+
+// ── Launcher environments, end to end ───────────────────────────────────────
+// The suite preload pins CCC_HEADLESS=0; these runs drop that pin and the CI
+// keys, then pass the environment each launcher really gives its child, so a
+// launcher that forgets to mark its run headless fails here.
+
+function launcherHook(payload, launcherEnv, home) {
+  const base = { ...process.env };
+  for (const key of ['CCC_HEADLESS', 'CI', 'CONTINUOUS_INTEGRATION', 'GITHUB_ACTIONS', 'CLAUDE_CODE_ENTRYPOINT', 'PLUGIN_ROOT', 'CCC_SOURCE_APP', 'CCC_ROUTE_MODE', 'CCC_ROUTE_NEXT', 'CCC_ROUTE_MENU']) delete base[key];
+  const result = spawnSync(process.execPath, [HOOK], {
+    input: JSON.stringify(payload),
+    encoding: 'utf8',
+    timeout: 5000,
+    env: { ...launcherEnv, HOME: home, USERPROFILE: home, CCC_TELEMETRY: '0', PATH: base.PATH },
+  });
+  assert.strictEqual(result.status, 0);
+  return JSON.parse(result.stdout.trim());
+}
+
+const LAUNCHERS = {
+  // commander/dispatcher.js: the env of every `claude -p` it starts.
+  'dispatcher claude -p': () => require('../dispatcher.js').childEnv({ CLAUDE_CODE_ENTRYPOINT: 'sdk-cli' }),
+  'CI runner': () => ({ CI: 'true' }),
+  // A fleet lane once its settings env sets CCC_HEADLESS=1 (see the fleet prompt).
+  'fleet lane': () => ({ CLAUDE_CODE_ENTRYPOINT: 'cli', CCC_HEADLESS: '1' }),
+};
+
+for (const [name, envOf] of Object.entries(LAUNCHERS)) {
+  test(`${name}: no picker at prompt submission and no menu at Stop`, function () {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-launch-'));
+    const prompt = launcherHook({ hook_event_name: 'UserPromptSubmit', session_id: 'l', prompt: 'can you look over the diff before I push' }, envOf(), home);
+    assert.doesNotMatch(JSON.stringify(prompt), /AskUserQuestion|request_user_input/);
+    const out = launcherHook({ hook_event_name: 'Stop', session_id: 'l', transcript_path: transcript(home, skillTurn('ccc-review')), stop_hook_active: false }, envOf(), home);
+    assert.ok(!out.decision, `${name}: Stop must not block for a menu`);
+  });
+}
+
+test('attended Remote Control (sdk-cli, no flag) stays interactive', function () {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-launch-'));
+  const env = { CLAUDE_CODE_ENTRYPOINT: 'sdk-cli' };
+  const prompt = launcherHook({ hook_event_name: 'UserPromptSubmit', session_id: 'rc', prompt: 'can you look over the diff before I push' }, env, home);
+  assert.match(JSON.stringify(prompt), /AskUserQuestion/);
+  const out = launcherHook({ hook_event_name: 'Stop', session_id: 'rc', transcript_path: transcript(home, skillTurn('ccc-review')), stop_hook_active: false }, env, home);
+  assert.strictEqual(out.decision, 'block');
+});

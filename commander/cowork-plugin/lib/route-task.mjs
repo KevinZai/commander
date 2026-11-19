@@ -2,33 +2,37 @@
 /**
  * route-task.mjs — CCC pre-run skill evaluation for one worker task.
  *
- *   node "${CLAUDE_PLUGIN_ROOT}/lib/route-task.mjs" "<task text>"
- *   printf '%s' "<task text>" | node "${CLAUDE_PLUGIN_ROOT}/lib/route-task.mjs"
+ *   node "${CLAUDE_PLUGIN_ROOT}/lib/route-task.mjs" --tasks-file slices.json
+ *   node "${CLAUDE_PLUGIN_ROOT}/lib/route-task.mjs" < task.txt
  *
- * Prints one JSON line: {skills: ["/ccc-x", ...], candidates: [{skill, score}],
- * prompt_block}. `skills` holds 0-2 skills a worker may load on its own (no
- * side-effect, hidden-only or agent routes), best first, from the same
- * registry and scorer the hooks use; `prompt_block` is that pick as a line
- * to put at the top of the worker's prompt. /ccc-fleet passes `skills` to
- * the ccc-fleet-run workflow as args.skills. Read-only and offline; the task
- * text is never written anywhere.
+ * Task text is data: pass it in a file (a JSON array of strings, one per
+ * slice) or on stdin, never interpolated into shell source.
+ *
+ * Prints one JSON line per task: {skills: ["/ccc-x", ...], candidates:
+ * [{skill, score}], prompt_block}. `skills` holds 0-2 worker skills
+ * (route-hints.json "worker": visible, no side effect, one thread), best
+ * first, from the same registry and scorer the hooks use; `prompt_block` is
+ * that pick as a line for the top of the worker's prompt. /ccc-fleet passes
+ * `skills` to the ccc-fleet-run workflow as args.skills. Read-only and
+ * offline; the task text is never written anywhere.
  */
-import { loadRoutes, scoreTask, autoFollowable, detectHost } from '../hooks/lib/route-scorer.mjs';
+import { readFileSync } from 'node:fs';
+import { loadRoutes, scoreTask, workerEligible, detectHost } from '../hooks/lib/route-scorer.mjs';
 import { isMainModule } from '../hooks/lib/code-mode.mjs';
 
 export const PICK_FLOOR = 0.25;
 export const PICK_MAX = 2;
 const MAX_INPUT = 65536;
+const IN_THREAD = 'Stay in this thread: do not start other agents or workflows, take the recommended option where the skill would ask a question, and never run deploy, push, publish or tracker steps.';
 
 /** The pre-run pick for one task. */
 export function pick(task, routes = loadRoutes(), host = detectHost()) {
   const name = (s) => (host === 'codex' ? `$${s.slice(1)}` : `commander:${s.slice(1)}`);
-  const any = host === 'codex' ? '$ccc-* skill' : 'commander:ccc-* skill';
   const scored = scoreTask(String(task || '').slice(0, MAX_INPUT), routes).filter((c) => c.route.kind === 'skill');
-  const skills = scored.filter((c) => c.score >= PICK_FLOOR && autoFollowable(c.route)).slice(0, PICK_MAX).map((c) => `/${c.route.id}`);
+  const skills = scored.filter((c) => c.score >= PICK_FLOOR && workerEligible(c.route)).slice(0, PICK_MAX).map((c) => `/${c.route.id}`);
   const promptBlock = skills.length
-    ? `CCC pre-run: before you start, load ${skills.map(name).join(', then ')} and follow it where it fits this task.`
-    : `CCC pre-run: no CCC skill matched this task by keyword. Check your skill list for a ${any} that fits and load it; never run deploy, push, publish or tracker skills. If none fits, just start.`;
+    ? `CCC pre-run: before you start, load ${skills.map(name).join(', then ')} and follow it where it fits this task. ${IN_THREAD}`
+    : 'CCC pre-run: no CCC skill fits this task; work without one.';
   return {
     skills,
     candidates: scored.slice(0, 3).map((c) => ({ skill: `/${c.route.id}`, score: c.score })),
@@ -47,12 +51,29 @@ async function readStdin() {
   return text;
 }
 
+/** Tasks from argv: --tasks-file <JSON array of strings>, else stdin as one task. */
+export function readTasks(argv, stdinText) {
+  const i = argv.indexOf('--tasks-file');
+  if (i >= 0) {
+    if (!argv[i + 1]) throw new Error('--tasks-file needs a path');
+    const raw = readFileSync(argv[i + 1], 'utf8');
+    if (raw.length > MAX_INPUT * 16) throw new Error('tasks file too large');
+    const tasks = JSON.parse(raw);
+    if (!Array.isArray(tasks) || !tasks.every((t) => typeof t === 'string')) throw new Error('tasks file must be a JSON array of strings');
+    return tasks;
+  }
+  return [String(stdinText || '')];
+}
+
 if (isMainModule(import.meta.url)) {
-  const arg = process.argv.slice(2).filter((a) => a !== '--json').join(' ');
-  const task = arg || (await readStdin());
-  if (!task.trim()) {
-    process.stderr.write('route-task: pass the task text as an argument or on stdin\n');
+  const argv = process.argv.slice(2);
+  try {
+    const tasks = readTasks(argv, argv.includes('--tasks-file') ? '' : await readStdin());
+    if (!tasks.length || tasks.some((t) => !t.trim())) throw new Error('every task needs text');
+    const routes = loadRoutes();
+    for (const t of tasks) process.stdout.write(`${JSON.stringify(pick(t, routes))}\n`);
+  } catch (err) {
+    process.stderr.write(`route-task: ${err.message}. Pass --tasks-file <JSON array of strings> or the task on stdin\n`);
     process.exit(2);
   }
-  process.stdout.write(`${JSON.stringify(pick(task))}\n`);
 }

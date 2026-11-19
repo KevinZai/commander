@@ -19,6 +19,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -39,6 +40,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -59,6 +61,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-claudemd"
       ],
@@ -91,6 +94,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-review",
         "ccc-plan"
@@ -126,6 +130,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -156,6 +161,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-plan",
         "ccc-build"
@@ -179,6 +185,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -200,6 +207,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -229,6 +237,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-testing",
         "ccc-review",
@@ -269,6 +278,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-update"
       ],
@@ -292,6 +302,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -326,6 +337,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-systematic-debugging",
         "ccc-testing"
@@ -353,6 +365,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -375,6 +388,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -399,6 +413,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -419,6 +434,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -452,6 +468,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-seo",
         "ccc-marketing"
@@ -485,6 +502,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-file-pr"
       ],
@@ -518,6 +536,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": true,
       "next": [],
       "descTriggers": []
     },
@@ -542,6 +561,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -571,6 +591,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-broadcast",
         "ccc-changelog"
@@ -605,6 +626,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-ship",
         "ccc-deploy",
@@ -652,6 +674,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-review",
         "ccc-testing"
@@ -695,6 +718,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-deploy-check",
         "ccc-security"
@@ -719,6 +743,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -743,6 +768,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-update",
         "ccc-tuneup"
@@ -766,6 +792,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-ship"
       ],
@@ -788,6 +815,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -811,6 +839,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": [
         "orchestrated work"
@@ -843,6 +872,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-babysit-pr"
       ],
@@ -876,6 +906,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-fleet-viz",
         "ccc-review"
@@ -899,6 +930,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -925,6 +957,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": [
         "full send"
@@ -953,6 +986,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": [
         "full stop"
@@ -980,6 +1014,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1003,6 +1038,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-deploy-check"
       ],
@@ -1024,6 +1060,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1046,6 +1083,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1067,6 +1105,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1087,6 +1126,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1112,6 +1152,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-plan",
         "ccc-build"
@@ -1140,6 +1181,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-linear"
       ],
@@ -1167,6 +1209,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1188,6 +1231,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-review"
       ],
@@ -1216,6 +1260,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-content",
         "ccc-seo"
@@ -1242,6 +1287,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1265,6 +1311,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1296,6 +1343,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-testing",
         "ccc-review"
@@ -1324,6 +1372,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-babysit-pr"
       ],
@@ -1345,6 +1394,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1367,6 +1417,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-review"
       ],
@@ -1396,6 +1447,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1417,6 +1469,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-plan"
       ],
@@ -1440,6 +1493,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-review"
       ],
@@ -1478,6 +1532,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-build",
         "ccc-testing",
@@ -1502,6 +1557,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-review"
       ],
@@ -1531,6 +1587,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1557,6 +1614,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1587,6 +1645,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-review",
         "ccc-deploy-check"
@@ -1615,6 +1674,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1635,6 +1695,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1668,6 +1729,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-plan",
         "ccc-brainstorm"
@@ -1693,6 +1755,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1732,6 +1795,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-qa",
         "ccc-deploy-check",
@@ -1766,6 +1830,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-systematic-debugging"
       ],
@@ -1801,6 +1866,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-build",
         "ccc-security"
@@ -1824,6 +1890,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1844,6 +1911,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -1881,6 +1949,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-harden",
         "ccc-review"
@@ -1914,6 +1983,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-content"
       ],
@@ -1941,6 +2011,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": [
         "auto mode",
@@ -1972,6 +2043,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-changelog",
         "ccc-broadcast",
@@ -2011,6 +2083,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2034,6 +2107,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-file-pr"
       ],
@@ -2060,6 +2134,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2090,6 +2165,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-tasks",
         "ccc-linear"
@@ -2113,6 +2189,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2138,6 +2215,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2174,10 +2252,10 @@
         "^\\s*why (is|does|did)\\s+.{0,40}\\b(fail|failing|crash|crashes|crashing|throw|throws|break|breaks|broken)\\b",
         "\\b(find|investigate|diagnose)\\s+(the\\s+)?root cause\\s+of\\b",
         "\\b(crash|crashes|crashing|hangs?|hanging|freezes?|freezing|times? out|timing out)\\s+(on|when|after|at|during|while|every|in)\\b",
-        "\\b(find out|figure out|work out|tell me)\\s+why\\b",
+        "\\b(find out|figure out|work out|tell me)\\s+why\\b.{0,60}\\b(fail\\w*|crash\\w*|break\\w*|broken|errors?|erroring|throw\\w*|hang\\w*|slow\\w*|timing out|times out|leak\\w*|grow\\w*|spik\\w*|returns?|wrong)\\b",
         "\\b(fix|debug|investigate)\\s+(the\\s+|these\\s+|our\\s+)?(failing|flaky|broken|red)\\s+(unit\\s+|e2e\\s+|integration\\s+)?tests?\\b",
         "\\b(build|tests?|app|page|api|server|endpoint|login|worker|job|script|query|deploy)\\s+(is|are|keeps?|has been)\\s+(still\\s+)?(broken|failing|crashing|timing out|hanging|erroring|flaky)\\b",
-        "\\b(memory leak|race condition|deadlock|segfault|null pointer|off-by-one)\\b",
+        "\\b(have|has|got|getting|hitting|seeing|there'?s|fix|find|track down|debug|chase)\\s+(an?\\s+|the\\s+|this\\s+|a few\\s+)?(memory leak|race condition|deadlock|segfault|null pointer|off-by-one)",
         "\\bdebug\\s+(it|this|that)\\b",
         "\\b(returns?|returning|throws?|throwing|getting|gives?|giving|hitting)\\s+(an?\\s+)?(http\\s+)?(500|502|503|504|exception|stack ?trace|segfault)\\b"
       ],
@@ -2186,12 +2264,15 @@
         "\\bcommander\\b",
         "\\badd a retry\\b",
         "^\\s*(what|how|when|who|where)\\s+(is|are|was|were|does|do)\\b",
-        "\\bbecause (of|the|a|it)\\b"
+        "\\bbecause (of|the|a|it)\\b",
+        "^\\s*(explain|describe|define)\\s+(what|how|the concept)\\b",
+        "\\bwhat (a|an)\\s+[\\w-]+(\\s+[\\w-]+)?\\s+is\\b"
       ],
       "paths": [],
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-testing",
         "ccc-review"
@@ -2223,6 +2304,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-babysit-pr"
       ],
@@ -2252,6 +2334,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2287,6 +2370,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": true,
       "next": [
         "ccc-qa",
         "ccc-review"
@@ -2312,6 +2396,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2334,6 +2419,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2354,6 +2440,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2375,6 +2462,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [
         "ccc-changelog",
         "ccc-doctor"
@@ -2400,6 +2488,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2424,6 +2513,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2462,6 +2552,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [
         "ccc-makeover",
         "ccc-review"
@@ -2487,6 +2578,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": true,
+      "worker": false,
       "next": [],
       "descTriggers": [
         "fewer approvals",
@@ -2516,6 +2608,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2540,6 +2633,7 @@
       "requirePath": true,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2560,6 +2654,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2580,6 +2675,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2602,6 +2698,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2622,6 +2719,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2646,6 +2744,7 @@
       "requirePath": true,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2670,6 +2769,7 @@
       "requirePath": true,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2694,6 +2794,7 @@
       "requirePath": true,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2721,6 +2822,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2743,6 +2845,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2767,6 +2870,7 @@
       "requirePath": true,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2787,6 +2891,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2807,6 +2912,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2827,6 +2933,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2851,6 +2958,7 @@
       "requirePath": true,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2873,6 +2981,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2894,6 +3003,7 @@
       "requirePath": false,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     },
@@ -2918,6 +3028,7 @@
       "requirePath": true,
       "priority": 0,
       "sideEffect": false,
+      "worker": false,
       "next": [],
       "descTriggers": []
     }

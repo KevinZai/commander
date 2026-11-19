@@ -91,7 +91,7 @@ Before dispatch, show the arc in two to four lines: pattern, agent count, model 
 
 ### 5. Pre-run skill evaluation
 
-Pick the CCC skills for each slice before dispatch, so every worker starts with the right skill: run `node "${CLAUDE_PLUGIN_ROOT}/lib/route-task.mjs" "<slice text>"` once per slice and pass each answer's `skills` array, in slice order, as the workflow's `args.skills`. A slice with no pick gets a pre-run check instead. With the Agent tool, put each answer's `prompt_block` at the top of that worker's prompt. Never add a side-effect skill (deploy, push, publish, tracker) that the slice does not ask for.
+Pick the CCC skills for each slice before dispatch, so every worker starts with the right skill. Never paste slice text into a shell command: write all slices as a JSON array of strings to a scratch file with the Write tool, then run `node "${CLAUDE_PLUGIN_ROOT}/lib/route-task.mjs" --tasks-file <that file>`. It prints one JSON line per slice, in order; pass each line's `skills` array as the workflow's `args.skills`. A slice whose `skills` is empty runs without a skill. With the Agent tool, put each line's `prompt_block` at the top of that worker's prompt. Only worker skills are ever picked (no deploy, push, publish, tracker, fleet or hidden skills); the workflow drops any other skill id it is given.
 
 ### 6. Dispatch
 

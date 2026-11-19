@@ -1,5 +1,5 @@
 {
-  "_comment": "Routing overlay merged with skill/agent frontmatter by scripts/build-routes.js into commander/cowork-plugin/hooks/lib/ccc-routes.json. strong = distinctive whole-word phrases (+0.6, enough for a menu alone); triggers = supporting phrases (+0.35 multi-word, +0.25 single word, never enough alone); patterns = request-shaped intent regex (+0.6, case-insensitive; topic mentions belong in strong/triggers); negatives = regex that removes the route; paths = file names/extensions mentioned in the prompt (+0.2); requirePath = score only when a path matches; next = the 'what next' graph read by the Stop handler; priority = integer tiebreak when two routes score the same (higher first, default 0); exclude = never route. A route with no signal at all fails the build. A menu needs 0.55; auto-run needs an intent pattern hit plus 0.8 with a 0.25 lead. Edit this file, run `npm run build:routes`, then `npm run eval:routes`. sideEffect (required for every skill) = true when the skill acts outside the conversation (deploy, push, publish, tracker, fleet or memory writes, settings, long loops); such a skill is offered as a menu and never auto-run.",
+  "_comment": "Routing overlay merged with skill/agent frontmatter by scripts/build-routes.js into commander/cowork-plugin/hooks/lib/ccc-routes.json. strong = distinctive whole-word phrases (+0.6, enough for a menu alone); triggers = supporting phrases (+0.35 multi-word, +0.25 single word, never enough alone); patterns = request-shaped intent regex (+0.6, case-insensitive; topic mentions belong in strong/triggers); negatives = regex that removes the route; paths = file names/extensions mentioned in the prompt (+0.2); requirePath = score only when a path matches; next = the 'what next' graph read by the Stop handler; priority = integer tiebreak when two routes score the same (higher first, default 0); exclude = never route. A route with no signal at all fails the build. A menu needs 0.55; auto-run needs an intent pattern hit plus 0.8 with a 0.25 lead. Edit this file, run `npm run build:routes`, then `npm run eval:routes`. sideEffect (required for every skill) = true when the skill acts outside the conversation (deploy, push, publish, tracker, fleet or memory writes, settings, long loops); such a skill is offered as a menu and never auto-run. worker = true when a fleet or workflow worker may load the skill on its own (`ccc next` skill and skills, route-task.mjs, ccc-fleet-run args.skills): visible, no side effect, and its main path works in one thread without starting other agents; every other skill is never handed to a worker.",
   "skills": {
     "ccc": {
       "strong": [
@@ -264,7 +264,8 @@
         "bigquery",
         "warehouse"
       ],
-      "sideEffect": false
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-debate": {
       "strong": [
@@ -356,7 +357,8 @@
         "ccc-review",
         "ccc-testing"
       ],
-      "sideEffect": false
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-devops": {
       "strong": [
@@ -391,7 +393,8 @@
         "ccc-deploy-check",
         "ccc-security"
       ],
-      "sideEffect": false
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-doc-sync": {
       "strong": [
@@ -614,7 +617,8 @@
         "ccc-content",
         "ccc-seo"
       ],
-      "sideEffect": false
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-memory": {
       "strong": [
@@ -661,7 +665,8 @@
         "ccc-testing",
         "ccc-review"
       ],
-      "sideEffect": false
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-more": {
       "strong": [
@@ -836,7 +841,8 @@
         "ccc-plan",
         "ccc-brainstorm"
       ],
-      "sideEffect": false
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-resume-session": {
       "strong": [
@@ -928,7 +934,8 @@
         "ccc-build",
         "ccc-security"
       ],
-      "sideEffect": false
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-safety": {
       "strong": [
@@ -973,7 +980,8 @@
         "ccc-harden",
         "ccc-review"
       ],
-      "sideEffect": false
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-seo": {
       "strong": [
@@ -996,7 +1004,8 @@
       "next": [
         "ccc-content"
       ],
-      "sideEffect": false
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-session": {
       "exclude": true,
@@ -1136,10 +1145,10 @@
         "^\\s*why (is|does|did)\\s+.{0,40}\\b(fail|failing|crash|crashes|crashing|throw|throws|break|breaks|broken)\\b",
         "\\b(find|investigate|diagnose)\\s+(the\\s+)?root cause\\s+of\\b",
         "\\b(crash|crashes|crashing|hangs?|hanging|freezes?|freezing|times? out|timing out)\\s+(on|when|after|at|during|while|every|in)\\b",
-        "\\b(find out|figure out|work out|tell me)\\s+why\\b",
+        "\\b(find out|figure out|work out|tell me)\\s+why\\b.{0,60}\\b(fail\\w*|crash\\w*|break\\w*|broken|errors?|erroring|throw\\w*|hang\\w*|slow\\w*|timing out|times out|leak\\w*|grow\\w*|spik\\w*|returns?|wrong)\\b",
         "\\b(fix|debug|investigate)\\s+(the\\s+|these\\s+|our\\s+)?(failing|flaky|broken|red)\\s+(unit\\s+|e2e\\s+|integration\\s+)?tests?\\b",
         "\\b(build|tests?|app|page|api|server|endpoint|login|worker|job|script|query|deploy)\\s+(is|are|keeps?|has been)\\s+(still\\s+)?(broken|failing|crashing|timing out|hanging|erroring|flaky)\\b",
-        "\\b(memory leak|race condition|deadlock|segfault|null pointer|off-by-one)\\b",
+        "\\b(have|has|got|getting|hitting|seeing|there'?s|fix|find|track down|debug|chase)\\s+(an?\\s+|the\\s+|this\\s+|a few\\s+)?(memory leak|race condition|deadlock|segfault|null pointer|off-by-one)",
         "\\bdebug\\s+(it|this|that)\\b",
         "\\b(returns?|returning|throws?|throwing|getting|gives?|giving|hitting)\\s+(an?\\s+)?(http\\s+)?(500|502|503|504|exception|stack ?trace|segfault)\\b"
       ],
@@ -1148,13 +1157,16 @@
         "\\bcommander\\b",
         "\\badd a retry\\b",
         "^\\s*(what|how|when|who|where)\\s+(is|are|was|were|does|do)\\b",
-        "\\bbecause (of|the|a|it)\\b"
+        "\\bbecause (of|the|a|it)\\b",
+        "^\\s*(explain|describe|define)\\s+(what|how|the concept)\\b",
+        "\\bwhat (a|an)\\s+[\\w-]+(\\s+[\\w-]+)?\\s+is\\b"
       ],
       "next": [
         "ccc-testing",
         "ccc-review"
       ],
-      "sideEffect": false
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-tasks": {
       "strong": [
@@ -1199,7 +1211,8 @@
         "ccc-qa",
         "ccc-review"
       ],
-      "sideEffect": false
+      "sideEffect": false,
+      "worker": true
     },
     "ccc-triage": {
       "strong": [

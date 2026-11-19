@@ -249,3 +249,10 @@ test('a check marker quoted inside a code span does not drop the real check (rou
   assert.strictEqual(parsed.criteria[0].check, 'npm test');
   assert.match(parsed.criteria[0].text, /`mode · check:manual`/);
 });
+
+test('an escaped backtick in prose does not swallow the check', async () => {
+  const lib = await libP;
+  const r = lib.splitCriterion('Prose ends in an escaped \\` character · check: `npm test`');
+  assert.strictEqual(r.check, 'npm test');
+  assert.strictEqual(r.text, 'Prose ends in an escaped \\` character');
+});

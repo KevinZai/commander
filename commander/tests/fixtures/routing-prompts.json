@@ -272,6 +272,8 @@
     { "prompt": "search my notes with qmd", "expect": "none" },
     { "prompt": "what does the threejs-pack router cover", "expect": "none" },
     { "prompt": "plot a volcano chart of these p-values in scanpy", "expect": "none" },
-    { "prompt": "review my Kubernetes manifests for a rolling deploy", "expect": "none" }
+    { "prompt": "review my Kubernetes manifests for a rolling deploy", "expect": "none" },
+    { "prompt": "Explain what a segfault is", "expect": "none" },
+    { "prompt": "Tell me why the sky is blue", "expect": "none" }
   ]
 }

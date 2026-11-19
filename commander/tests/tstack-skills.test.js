@@ -281,7 +281,9 @@ test('routing fixtures carry positive cases for every tstack skill', function() 
   });
 });
 
-test('ccc next selects a tstack skill for a matching Fleet job', async function() {
+// tstack PR skills are hidden and act on the PR, so they are never handed to a
+// Fleet worker: they show up as candidates, while skill and skills stay empty.
+test('ccc next lists a tstack skill as a candidate for a matching Fleet job, never as its pick', async function() {
   var nextLib = require('../lib/next');
   var home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc next tstack '));
   var dir = path.join(home, '.claude-lane');
@@ -297,9 +299,12 @@ test('ccc next selects a tstack skill for a matching Fleet job', async function(
   fs.writeFileSync(path.join(dir, 'plugins', 'installed_plugins.json'), JSON.stringify({ version: 2, plugins: { 'commander@commander-hub': [{ scope: 'user', version: '8.1.4', installPath: install }] } }));
   var env = { HOME: home, CLAUDE_CONFIG_DIR: dir };
   var r = await nextLib.next({ job: { kind: 'review', title: 'babysit PR #128 until it is green' }, env: env });
-  assert.strictEqual(r.skill, '/ccc-babysit-pr');
+  assert.strictEqual(r.candidates[0].skill, '/ccc-babysit-pr');
+  assert.strictEqual(r.skill, null);
+  assert.deepStrictEqual(r.skills, []);
   r = await nextLib.next({ job: { kind: 'code', title: 'modernize this PR' }, env: env });
-  assert.strictEqual(r.skill, '/ccc-modernize');
+  assert.strictEqual(r.candidates[0].skill, '/ccc-modernize');
+  assert.strictEqual(r.skill, null);
 });
 
 // ── CLI choose-your-own-adventure menu ────────────────────────────────────

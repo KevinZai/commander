@@ -141,8 +141,21 @@ export const TASK_CHARS = 4000;
 const TASK_LINE = /^\s*(?:[#>*-]+\s*)?(?:\*\*)?(?:task|goal|objective|your (?:task|job|slice)|slice \d+|deliverable|what to do|todo|ticket|issue|bug|fix|implement|build)\b/i;
 const WINDOW_STEP = 450;
 
+// Code fences, inline code, URLs and pasted blocks are quoted material, not
+// the job: blanked out of the whole task (line breaks kept) before any line
+// or window is read, and the result is cut at TASK_CHARS.
+function stripQuoted(text) {
+  const blank = (m) => m.replace(/[^\n]/g, ' ');
+  return String(text || '')
+    .replace(/```[\s\S]*?(```|$)/g, blank)
+    .replace(/<pasted_content[\s\S]*?(<\/pasted_content[^>]*>|$)/g, blank)
+    .replace(/`[^`\n]*`/g, blank)
+    .replace(/https?:\/\/\S+/g, blank)
+    .slice(0, TASK_CHARS);
+}
+
 function taskSegments(task) {
-  const raw = String(task || '');
+  const raw = stripQuoted(task);
   const lines = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   const segments = [];
   if (lines.length) segments.push(lines[0]);
@@ -216,23 +229,8 @@ export function detectHost(env = process.env, moduleUrl = import.meta.url) {
   return 'claude-code';
 }
 
-/**
- * True when nobody can answer a picker: CI, or CCC_HEADLESS=1 (set it for
- * fleet lanes, `claude -p` and `codex exec`). CCC_HEADLESS=0 forces
- * interactive. The entrypoint is not used: Remote Control and SDK sessions
- * report sdk-cli while a person still answers pickers. Headless routing
- * never asks for AskUserQuestion or request_user_input; it names the best
- * fitting skill instead.
- */
-export function isHeadless(env = process.env) {
-  const flag = String(env.CCC_HEADLESS || '').trim().toLowerCase();
-  if (['1', 'true', 'on', 'yes'].includes(flag)) return true;
-  if (['0', 'false', 'off', 'no'].includes(flag)) return false;
-  return ['CI', 'CONTINUOUS_INTEGRATION', 'GITHUB_ACTIONS'].some((k) => {
-    const v = String(env[k] || '').trim().toLowerCase();
-    return v !== '' && v !== '0' && v !== 'false';
-  });
-}
+// One headless rule for every hook that could emit a picker.
+export { isHeadless } from './headless.mjs';
 
 // A request to do work (not a quick question): the always-mode check line
 // is added only for these when no route matched.
@@ -283,11 +281,22 @@ function clamp(text) {
 // when one does not), and build-routes copies it into ccc-routes.json. No
 // route mode tells the model to run these on its own; they are only offered
 // as a menu for the user to pick.
-export const SIDE_EFFECT_SKILLS = new Set(loadRoutes().filter((r) => r.sideEffect).map((r) => r.id));
+// Read lazily: importing this module must never read the registry, so a
+// missing or damaged ccc-routes.json cannot break hooks that only import it.
+let sideEffectIds = null;
+export function sideEffectSkills() {
+  if (!sideEffectIds) sideEffectIds = new Set(loadRoutes().filter((r) => r.sideEffect).map((r) => r.id));
+  return sideEffectIds;
+}
 
-/** Does this route act outside the conversation? Older registries lack the flag. */
+/**
+ * Does this route act outside the conversation? Its own flag, or the bundled
+ * registry's (older registries lack the flag); when neither says no, it is.
+ */
 export function isSideEffect(route) {
-  return !!route && (route.sideEffect === true || SIDE_EFFECT_SKILLS.has(route.id));
+  if (!route) return false;
+  if (route.sideEffect === true) return true;
+  try { return sideEffectSkills().has(route.id); } catch { return route.sideEffect !== false; }
 }
 
 // Hidden (disable-model-invocation) skills that only read and advise, so
@@ -300,6 +309,16 @@ const PLUGIN_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 /** A hidden skill the model may follow by reading its file (always mode only). */
 export function followable(route) {
   return route.kind === 'skill' && !!route.manual && FOLLOWABLE_HIDDEN_SKILLS.has(route.id) && !isSideEffect(route);
+}
+
+/**
+ * May a fleet or workflow worker load this skill on its own? Only skills
+ * marked `worker` in route-hints.json: visible, no side effect, and a main
+ * path that stays in one thread (no further agents, no question it needs
+ * answered). Older registries without the flag hand workers nothing.
+ */
+export function workerEligible(route) {
+  return !!route && route.kind === 'skill' && route.worker === true && !route.manual && !isSideEffect(route);
 }
 
 /** May `always` mode tell the model to run this route without asking? */
@@ -327,7 +346,10 @@ export function renderRouteContext(candidates, tier, host, mode = 'auto', opts =
     if (!usable.length) return null;
     const [top, ...rest] = usable;
     const alts = rest.map((c) => invokeText(c.route, host)).join(', ');
-    body = `Headless, no menu. If it fits the task, ${skillCall(top.route, host)} first and follow it (${top.route.label})${alts ? `; else consider ${alts}` : ''}. Otherwise just do the task.`;
+    // suggest mode stays advisory: name the skill, never run it.
+    body = mode === 'suggest'
+      ? `Headless, no menu. A CCC skill may fit: ${invokeText(top.route, host)} (${top.route.label})${alts ? `; also ${alts}` : ''}. Mention it in one line; do not run it unless the task asks.`
+      : `Headless, no menu. If it fits the task, ${skillCall(top.route, host)} first and follow it (${top.route.label})${alts ? `; else consider ${alts}` : ''}. Otherwise just do the task.`;
   } else if (tier === 'hint') {
     const usable = top3.filter((c) => autoFollowable(c.route));
     if (!usable.length) return null;
@@ -403,13 +425,13 @@ export function renderSubagentCheck(host, forTask = '') {
   const skills = host === 'codex' ? '$ccc-* skill' : 'commander:ccc-* skill';
   const label = String(forTask || '').replace(/\s+/g, ' ').replace(/["<>]/g, '').trim().slice(0, 80);
   const guard = label ? `For the task "${label}" only; if that is not your task, ignore this block. ` : '';
-  return `<ccc-skills for="subagent">\n${guard}Pre-run check: before starting, look in your skill list for a ${skills} that fits your task and load it; skip deploy, push, publish and tracker skills unless your task says to. If none fits, just start.\n</ccc-skills>`;
+  return `<ccc-skills for="subagent">\n${guard}Pre-run check: before starting, look in your skill list for a ${skills} that fits your task and load it; never load deploy, push, publish, tracker or fleet skills from here. If none fits, just start.\n</ccc-skills>`;
 }
 
 export function renderSubagentContext(candidates, host, mode = 'auto', forTask = '') {
   const floor = mode === 'always' ? HINT_THRESHOLD : MEDIUM_THRESHOLD;
   const usable = candidates
-    .filter((c) => c.score >= floor && autoFollowable(c.route) && !c.route.manual)
+    .filter((c) => c.score >= floor && workerEligible(c.route))
     .slice(0, 3);
   if (!usable.length) return null;
   const [top] = usable;

@@ -416,7 +416,7 @@ function dispatch(task, options) {
   var command = 'claude';
   if (!sync) return { command: command + ' ' + args.join(' '), async: true };
 
-  var env = Object.assign({}, process.env, { CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: '70' });
+  var env = childEnv(process.env);
 
   if (stream) {
     validateCwd(cwd);
@@ -640,4 +640,14 @@ function selectModelForComplexity(score) {
   return 'fable';
 }
 
-module.exports = { dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, dispatchAsync: dispatchAsync, retryPlan: retryPlan,scoreComplexity: scoreComplexity, estimateScope: estimateScope, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel, estimateDispatchCost: estimateDispatchCost, selectModelForComplexity: selectModelForComplexity, MODEL_PRICING: MODEL_PRICING };
+/**
+ * The environment of a dispatched `claude` run. Nobody answers a picker
+ * there, so CCC_HEADLESS=1 tells Commander's routing hooks not to ask (the
+ * CLI's entrypoint value cannot tell a print run from an attended Remote
+ * Control session).
+ */
+function childEnv(base) {
+  return Object.assign({}, base, { CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: '70', CCC_HEADLESS: '1' });
+}
+
+module.exports = { childEnv: childEnv, dispatch: dispatch, dispatchWithRetry: dispatchWithRetry, dispatchAsync: dispatchAsync, retryPlan: retryPlan,scoreComplexity: scoreComplexity, estimateScope: estimateScope, isClaudeAvailable: isClaudeAvailable, getClaudeVersion: getClaudeVersion, generateSessionName: generateSessionName, getDefaultsForLevel: getDefaultsForLevel, estimateDispatchCost: estimateDispatchCost, selectModelForComplexity: selectModelForComplexity, MODEL_PRICING: MODEL_PRICING };

@@ -8,11 +8,12 @@
  *   {schema, action: proceed|defer|hold, when: now|<ISO>, skill, reason,
  *    version, source: 'ccc-next', tier, score, route_source, candidates[],
  *    skills[], prompt_block}
- * `skill` keeps its old meaning for Fleet's dispatch gate (one /ccc-* or
- * null; never the bare /ccc hub, which opens a menu nobody answers in a
- * lane). `skills` is the pre-run pick for a worker: 0-2 skills a worker may
- * load on its own (no side-effect or hidden-only skills), best first, and
- * `prompt_block` is the same pick as a paragraph for the worker's prompt.
+ * `skill` is the one skill Fleet's dispatch gate hands the run, or null;
+ * `skills` is the worker's pre-run pick (0-2, best first) and `prompt_block`
+ * the same pick as a paragraph for the worker's prompt. Every skill in
+ * either field is a worker skill (route-hints.json "worker": visible, no
+ * side effect, one thread), and `skill` is always `skills[0]` or null, so
+ * Fleet never receives a deploy, tracker, fleet or hidden skill.
  * Exit 2 bad input, 3 no usable commander plugin on this lane.
  * Read-only: it never dispatches, writes or calls the network.
  */
@@ -32,12 +33,13 @@ var MAX_INPUT = 65536;
 var PICK_FLOOR = 0.25;
 var PICK_MAX = 2;
 var PLUGIN_SRC = path.join(__dirname, '..', 'cowork-plugin');
-// Same fallback maps as fleet#328's stopgap, used when the registry has no
-// confident match: a tag wins over the kind; the hub is the last resort.
-var KIND_SKILL = { code: 'ccc-build', research: 'ccc-research', review: 'ccc-review', docs: 'ccc-doc-sync', other: 'ccc-suggest' };
+// Fallbacks when the registry has no match for the text: a tag wins over
+// the kind. Only worker skills; a kind or tag without one maps to nothing.
+var KIND_SKILL = { research: 'ccc-research' };
 var TAG_SKILL = {
-  design: 'ccc-design', plan: 'ccc-plan', planning: 'ccc-plan', debug: 'ccc-systematic-debugging', bug: 'ccc-systematic-debugging',
-  deploy: 'ccc-deploy-check', security: 'ccc-security', test: 'ccc-testing', qa: 'ccc-qa', audit: 'ccc-xray',
+  design: 'ccc-design', debug: 'ccc-systematic-debugging', bug: 'ccc-systematic-debugging',
+  security: 'ccc-security', test: 'ccc-testing', qa: 'ccc-testing', data: 'ccc-data', devops: 'ccc-devops',
+  seo: 'ccc-seo', marketing: 'ccc-marketing', mobile: 'ccc-mobile', saas: 'ccc-saas', research: 'ccc-research',
 };
 
 function fail(code, message) {
@@ -109,42 +111,29 @@ async function next(opts) {
   var routeSource = 'installed';
   if (!fs.existsSync(registry)) { registry = path.join(PLUGIN_SRC, 'hooks', 'lib', 'ccc-routes.json'); routeSource = 'checkout'; }
   var scorer = await import(url.pathToFileURL(path.join(PLUGIN_SRC, 'hooks', 'lib', 'route-scorer.mjs')).href);
+  var routes = scorer.loadRoutes(registry);
+  var byId = new Map(routes.map(function(r) { return [r.id, r]; }));
+  // A worker skill that this lane's plugin actually ships.
+  var eligible = function(id) { return byId.has(id) && scorer.workerEligible(byId.get(id)) && has(id); };
   var candidates = [];
   var text = [job.text, job.tags.join(' ')].filter(Boolean).join('. ');
   // scoreTask reads the whole description in pieces, not just its first 600 chars.
-  if (text) candidates = (scorer.scoreTask || scorer.scoreRoutes)(text, scorer.loadRoutes(registry));
+  if (text) candidates = scorer.scoreTask(text, routes);
   var skills = candidates.filter(function(c) { return c.route.kind === 'skill' && has(c.route.id); });
-  var tier = skills.length ? scorer.tierFor(skills, 'auto') : 'low';
-  var usable = function(id, route) {
-    if (!has(id)) return false;
-    var r = route || { id: id, kind: 'skill', manual: false };
-    return scorer.autoFollowable ? scorer.autoFollowable(r) : true;
-  };
-
-  var skill;
-  var reason;
-  if (tier !== 'low') {
-    skill = skills[0].route.id;
-    reason = 'registry ' + tier + ' match ' + skills[0].score;
-  } else {
-    var own = function(map, key) { return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : null; };
-    var fromTag = job.tags.map(function(t) { return own(TAG_SKILL, t); }).filter(function(s) { return s && has(s); })[0];
-    var fromKind = own(KIND_SKILL, job.kind) && has(own(KIND_SKILL, job.kind)) ? own(KIND_SKILL, job.kind) : null;
-    skill = fromTag || fromKind || null;
-    reason = fromTag ? 'tag' : fromKind ? 'kind ' + job.kind : 'no matching skill';
-  }
-
-  // Worker pick: registry matches a worker may load itself, then tag skills.
+  // Pick: registry matches above the floor, then tag and kind fallbacks; worker skills only.
   var picks = [];
-  skills.forEach(function(c) {
-    if (c.score >= PICK_FLOOR && usable(c.route.id, c.route) && picks.indexOf(c.route.id) < 0) picks.push(c.route.id);
-  });
-  job.tags.forEach(function(t) {
-    var id = Object.prototype.hasOwnProperty.call(TAG_SKILL, t) ? TAG_SKILL[t] : null;
-    var route = id && scorer.loadRoutes(registry).filter(function(r) { return r.id === id; })[0];
-    if (id && route && usable(id, route) && picks.indexOf(id) < 0) picks.push(id);
-  });
+  var why = [];
+  var add = function(id, reason) {
+    if (id && eligible(id) && picks.indexOf(id) < 0) { picks.push(id); why.push(reason); }
+  };
+  var own = function(map, key) { return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : null; };
+  skills.forEach(function(c) { if (c.score >= PICK_FLOOR) add(c.route.id, 'registry ' + scorer.tierFor([c], 'auto') + ' match ' + c.score); });
+  job.tags.forEach(function(t) { add(own(TAG_SKILL, t), 'tag ' + t); });
+  add(own(KIND_SKILL, job.kind), 'kind ' + job.kind);
   picks = picks.slice(0, PICK_MAX);
+  var skill = picks[0] || null;
+  var reason = skill ? why[0] : 'no matching skill';
+  var top = skill ? skills.filter(function(c) { return c.route.id === skill; })[0] : null;
 
   var out = {
     schema: SCHEMA,
@@ -154,8 +143,8 @@ async function next(opts) {
     reason: 'CCC ' + plugin.version + ': ' + reason + (skill ? ' -> /' + skill : ''),
     version: plugin.version,
     source: 'ccc-next',
-    tier: tier,
-    score: tier !== 'low' ? skills[0].score : null,
+    tier: top ? scorer.tierFor([top], 'auto') : 'low',
+    score: top ? top.score : null,
     route_source: routeSource,
     candidates: skills.slice(0, 3).map(function(c) { return { skill: '/' + c.route.id, score: c.score }; }),
     skills: picks.map(function(id) { return '/' + id; }),
@@ -171,13 +160,24 @@ function promptBlock(picks, version) {
   var head = 'CCC pre-run (CC Commander ' + version + '): ';
   if (!picks.length) return head + 'no CCC skill fits this task. Work without one; do not open the /ccc menu.';
   var list = picks.map(function(id) { return '/' + id; }).join(', then ');
-  return head + 'load ' + list + ' where it fits this task (plan before build, debug before fix, tests before commit). ' +
-    'Do not load other CCC skills and never run deploy, push, publish or tracker skills unless the task says to.';
+  return head + 'load ' + list + ' where it fits this task. Do not load other CCC skills. Stay in this run: do not start ' +
+    'other agents or workflows, take the recommended option where the skill would ask a question, and never run deploy, push, publish or tracker steps.';
 }
 
-/** Job from CLI flags (--kind K --tags a,b --title T), or null when none given. */
+var JOB_FLAGS = ['--kind', '--tags', '--title', '--description'];
+
+/**
+ * Job from CLI flags (--kind K --tags a,b --title T --description D), or
+ * null when none given. Parsed left to right: a flag's value is the next
+ * argument whatever it looks like, so a description reading "--update" stays
+ * data. Prefer JSON on stdin for task text.
+ */
 function jobFromArgs(args) {
-  var val = function(flag) { var i = args.indexOf(flag); return i >= 0 && args[i + 1] && args[i + 1].indexOf('--') !== 0 ? args[i + 1] : null; };
+  var vals = {};
+  for (var i = 0; i < args.length; i++) {
+    if (JOB_FLAGS.indexOf(args[i]) >= 0 && i + 1 < args.length) { vals[args[i]] = args[i + 1]; i++; }
+  }
+  var val = function(flag) { return Object.prototype.hasOwnProperty.call(vals, flag) ? vals[flag] : null; };
   var kind = val('--kind');
   var tags = val('--tags');
   var title = val('--title');

@@ -5,7 +5,9 @@
  * Scans tool inputs for common secret patterns before the tool executes.
  * Blocks the tool call and emits a warning if secrets are detected.
  * Patterns loaded from commander/core/secret-patterns.json.
- * Never crashes the session — fail open on any error.
+ * Fails closed: a scanned call that cannot be scanned (unreadable patterns,
+ * an error mid-scan) is denied with the reason, since passing it unscanned
+ * would let a secret through. Calls to tools it does not scan always pass.
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitDeny } from './lib/emit.mjs';
@@ -30,7 +32,7 @@ const SCANNED_TOOLS = new Set([
   'mcp__', // prefix match handled below
 ]);
 
-function toolShouldBeScanned(toolName) {
+export function toolShouldBeScanned(toolName) {
   if (SCANNED_TOOLS.has(toolName)) return true;
   if (toolName.startsWith('mcp__')) return true;
   return false;
@@ -82,6 +84,12 @@ function stripAllowlistedTokens(text, allowlistRegex) {
   return out;
 }
 
+/** Deny a scanned call that could not be scanned (fail closed). */
+export function scanFailed(toolName, why) {
+  return emitDeny(`CCC SECRET GUARD: could not scan this ${toolName || 'tool'} call for secrets (${why}), so it is blocked. ` +
+    'Reinstall or update the Commander plugin to restore secret-patterns.json.');
+}
+
 export async function run(input = {}) {
   track('hook_fired', { hook: 'PreToolUse', handler: 'secret-leak-guard' });
 
@@ -97,9 +105,11 @@ export async function run(input = {}) {
     let patternsConfig = { patterns: [], allowlist: [] };
     try {
       patternsConfig = JSON.parse(await readFile(PATTERNS_FILE, 'utf8'));
-    } catch {
-      // Patterns file missing — fail open
-      return { continue: true };
+    } catch (err) {
+      return scanFailed(toolName, `cannot read ${PATTERNS_FILE} (${err?.code || 'invalid JSON'})`);
+    }
+    if (!patternsConfig || !Array.isArray(patternsConfig.patterns)) {
+      return scanFailed(toolName, 'secret-patterns.json has no patterns list');
     }
 
     const toolInput = input.tool_input || input.input || {};
@@ -134,15 +144,14 @@ export async function run(input = {}) {
       `Use env vars or 1Password. False positive? Add to allowlist in secret-patterns.json.`;
 
     return emitDeny(stopReason);
-  } catch {
-    // Fail open — never block session on error
-    return { continue: true };
+  } catch (err) {
+    return scanFailed(toolName, err?.message || 'scan error');
   }
 }
 
 // Standalone entry (hooks.json may still call this file directly); the PreToolUse dispatcher imports run() instead.
 if (isMainModule(import.meta.url)) {
-  readStdinJson().then(run).catch(() => ({ continue: true })).then((out) => {
+  readStdinJson().then(run).catch((err) => scanFailed('', err?.message || 'hook error')).then((out) => {
     process.stdout.write(JSON.stringify(out) + '\n');
   });
 }

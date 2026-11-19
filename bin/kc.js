@@ -20,8 +20,79 @@ function _fatalHandler(err) {
 process.on('uncaughtException', _fatalHandler);
 process.on('unhandledRejection', function(reason) { _fatalHandler(reason instanceof Error ? reason : new Error(String(reason))); });
 
+// The one profile-path resolver, shared by `ccc --skills` and install.sh/uninstall.sh (through `__profile-dir`
+// below), so all three act on the same directory. It resolves one component at a time against the disk, like
+// `cd -P`: a symlink followed by .. climbs from the link's target, not lexically. Only win32 treats a backslash
+// as a separator; on POSIX `team\blue` is one directory name, not team/blue. Only the suffix after the root is
+// split, so a drive prefix is never joined onto itself. Returns null for a name that cannot be represented
+// safely: a control character (a newline would be stripped by shell command substitution) in the input or in
+// the resolved result, or a component that is a dangling or looping symlink.
+function physicalProfilePath(p) {
+  var win = process.platform === 'win32';
+  var P = win ? path.win32 : path.posix;
+  var UNSAFE = /[\u0000-\u001f\u007f]/;
+  if (typeof p !== 'string' || !p || UNSAFE.test(p)) return null;
+  var root, rest, cur;
+  if (P.isAbsolute(p)) {
+    root = P.parse(p).root;
+    if (win && !/^([A-Za-z]:)?[\\/]/.test(root) && !/^[\\/]{2}/.test(root)) return null;
+    rest = p.slice(root.length);
+    try { cur = fs.realpathSync.native(root); } catch (_e) { cur = root; }
+  } else {
+    if (win && /^[A-Za-z]:/.test(p)) return null;               // drive-relative (C:foo) is ambiguous
+    rest = p;
+    cur = fs.realpathSync.native(process.cwd());
+  }
+  var parts = rest.split(win ? /[\\/]+/ : /\/+/).filter(Boolean), missing = 0;
+  for (var i = 0; i < parts.length; i++) {
+    var c = parts[i];
+    if (c === '.') continue;
+    // After a missing component, .. climbs back through the missing ones; once none are left, the path is
+    // physical again and later components are resolved against the disk.
+    if (c === '..') { cur = P.dirname(cur); if (missing) missing--; continue; }
+    var next = P.join(cur, c);
+    if (!missing) {
+      try { cur = fs.realpathSync.native(next); continue; } catch (_e) { /* missing from here, or a dangling link */ }
+      // A dangling or looping symlink names a directory that mkdir -p would create elsewhere; refuse it.
+      try { fs.lstatSync(next); return null; } catch (_e) { /* truly missing */ }
+    }
+    missing++;
+    cur = next;
+  }
+  return UNSAFE.test(cur) ? null : cur;
+}
 
-if (args.includes('--help') || args.includes('-h')) {
+// Internal: `kc.js __profile-dir <dir> <home>` prints the physical profile dir for install.sh and uninstall.sh,
+// or refuses (exit 1) when it is a root, the home directory or one of its parents, or cannot be represented.
+if (args[0] === '__profile-dir') {
+  var pdReal = physicalProfilePath(args[1] || '');
+  if (!pdReal) {
+    process.stdout.write('the config dir ' + JSON.stringify(args[1] || '') + ' cannot be resolved safely: it is empty, holds or resolves to a control character such as a newline, or passes through a dangling symlink');
+    process.exit(1);
+  }
+  var pdHomeReal = physicalProfilePath(args[2] || '');
+  if (!pdHomeReal) { process.stdout.write('the home directory cannot be resolved'); process.exit(1); }
+  var pdP = process.platform === 'win32' ? path.win32 : path.posix;
+  var pdNorm = function(s) { return process.platform === 'darwin' || process.platform === 'win32' ? s.toLowerCase() : s; };
+  var pdDir = pdNorm(pdReal), pdHome = pdNorm(pdHomeReal);
+  var pdSep = pdDir.slice(-1) === pdP.sep ? pdDir : pdDir + pdP.sep;
+  if (pdDir === pdNorm(pdP.parse(pdReal).root) || pdDir === pdHome || (pdHome + pdP.sep).indexOf(pdSep) === 0) {
+    process.stdout.write('CLAUDE_DIR must not be /, the home directory or one of its parents: ' + args[1] + ' resolves to ' + pdReal);
+    process.exit(1);
+  }
+  process.stdout.write(pdReal);
+  process.exit(0);
+}
+
+// Subcommands parse their own arguments. When argv[0] names one, the global flag scans below see an empty list,
+// so a value such as `ccc next --description --update` can never select another command. `--next` and
+// `--checkin` anywhere select their command the same way.
+var SUBCOMMANDS = { checkin: true, hold: true, statusline: true, next: true, doctor: true };
+var subcommand = Object.hasOwn(SUBCOMMANDS, args[0]) ? args[0]
+  : args.includes('--next') ? 'next' : args.includes('--checkin') ? 'checkin' : '';
+var flags = subcommand ? [] : args;
+
+if (flags.includes('--help') || flags.includes('-h')) {
   console.log('\n  CC Commander — 576 skills. One command. Your AI work, managed by AI.\n');
   console.log('  Usage:  ccc\n');
   console.log('  --version    Show version');
@@ -52,7 +123,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('  --help       This help\n');
   process.exit(0);
 }
-if (args.includes('--version')) {
+if (flags.includes('--version')) {
   var rel = require(path.join(__dirname,'..','commander','lib','release-info'));
   var vr = rel.versionReport('CC Commander', rel.resolveRelease({ root: path.resolve(__dirname, '..') }));
   console.log(vr.line);
@@ -60,14 +131,14 @@ if (args.includes('--version')) {
   process.exit(0);
 }
 // Agent API: checkin (Fleet check-in gate; docs/FLEET-CHECKIN.md)
-if (args[0] === 'checkin' || args.includes('--checkin')) {
+if (subcommand === 'checkin') {
   var ci = require(path.join(__dirname,'..','commander','lib','checkin'));
   var ciResult = ci.buildCheckin({ root: path.resolve(__dirname, '..'), cli: !args.includes('--no-cli') });
   console.log(args.includes('--json') ? JSON.stringify(ciResult, null, 2) : ci.summaryLine(ciResult) + '\n' + ci.usageLine(ciResult));
   process.exit(ci.exitCode(ciResult));
 }
 // Agent API: hold set|clear|show (the one writer of fleet-hold.json; docs/FLEET-CHECKIN.md)
-if (args[0] === 'hold') {
+if (subcommand === 'hold') {
   var hd = require(path.join(__dirname,'..','commander','lib','hold'));
   try {
     var hdArgs = hd.parseArgs(args);
@@ -81,7 +152,7 @@ if (args[0] === 'hold') {
   }
 }
 // Agent API: statusline sync (dry run unless --apply; docs/FLEET-CHECKIN.md)
-if (args[0] === 'statusline') {
+if (subcommand === 'statusline') {
   var ss = require(path.join(__dirname,'..','commander','lib','statusline-sync'));
   var ssOpt = function(flag) {
     var i = args.indexOf(flag);
@@ -107,8 +178,8 @@ if (args[0] === 'statusline') {
     process.exit(e.exitCode || 1);
   }
 }
-if (args.includes('--simple')) { /* handled below — skip split, go to engine */ }
-if (args.includes('--update')) {
+if (flags.includes('--simple')) { /* handled below — skip split, go to engine */ }
+if (flags.includes('--update')) {
   // Commands run with argument arrays (execFileSync), never a shell string built from paths (audit #13).
   var cpUpd = require('child_process');
   var runUpd = function(cmd, argv) { cpUpd.execFileSync(cmd, argv, { stdio: 'inherit' }); };
@@ -138,25 +209,48 @@ if (args.includes('--update')) {
       console.log('  Pulling latest ' + branchUpd + '...');
       runUpd('git', ['-C', repoDir, 'pull', '--ff-only', '--recurse-submodules']);
     } else {
-      // A pinned checkout (install-remote.sh checks out a release tag): move to CCC_REF, or the newest vX.Y.Z tag.
-      runUpd('git', ['-C', repoDir, 'fetch', '--quiet', '--tags', 'origin']);
+      // A pinned checkout (install-remote.sh checks out a release tag): move to CCC_REF, or the newest vX.Y.Z tag
+      // on origin. The same checks as install-remote.sh run before the installer: origin is the CC Commander
+      // repository, tracked files are clean, and the ref is checked out at the exact commit origin publishes for
+      // it. Local tags are never consulted, so a local-only or withdrawn tag cannot be selected.
+      var failUpd = function(msg) { console.error('  ' + msg + '\n'); process.exit(1); };
+      var expectedUpd = process.env.CCC_REPO_URL || 'https://github.com/KevinZai/commander.git';
+      var normUrlUpd = function(u) { return String(u).toLowerCase().replace(/\/+$/, '').replace(/\.git$/, ''); };
+      var originUpd = '';
+      try { originUpd = outUpd('git', ['-C', repoDir, 'remote', 'get-url', 'origin']); } catch (_e) { originUpd = ''; }
+      if (!originUpd || normUrlUpd(originUpd) !== normUrlUpd(expectedUpd)) {
+        failUpd(repoDir + " tracks '" + originUpd + "', not " + expectedUpd + '. Refusing to update it.');
+      }
+      if (outUpd('git', ['-C', repoDir, 'status', '--porcelain', '--untracked-files=no'])) {
+        failUpd(repoDir + ' has local changes. Commit or discard them, then re-run.');
+      }
+      var REF_RE_UPD = /^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$/;
       var refUpd = process.env.CCC_REF || '';
+      if (refUpd && !REF_RE_UPD.test(refUpd)) failUpd('CCC_REF must be a tag or commit (got: ' + refUpd + ')');
       if (!refUpd) {
         var bestUpd = null;
-        outUpd('git', ['-C', repoDir, 'tag', '-l', 'v*']).split('\n').forEach(function(t) {
-          var m = /^v(\d+)\.(\d+)\.(\d+)$/.exec(t);
+        outUpd('git', ['-C', repoDir, 'ls-remote', '--tags', '--refs', originUpd, 'v*']).split('\n').forEach(function(line) {
+          var m = /\trefs\/tags\/(v(\d+)\.(\d+)\.(\d+))$/.exec(line);
           if (!m) return;
-          var v = [+m[1], +m[2], +m[3]];
-          if (!bestUpd || (v[0] - bestUpd.v[0] || v[1] - bestUpd.v[1] || v[2] - bestUpd.v[2]) > 0) bestUpd = { t: t, v: v };
+          var v = [+m[2], +m[3], +m[4]];
+          if (!bestUpd || (v[0] - bestUpd.v[0] || v[1] - bestUpd.v[1] || v[2] - bestUpd.v[2]) > 0) bestUpd = { t: m[1], v: v };
         });
         refUpd = bestUpd ? bestUpd.t : '';
       }
-      if (!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$/.test(refUpd)) {
-        console.error('  No release tag found to update to (set CCC_REF=<tag or commit>).\n');
-        process.exit(1);
+      if (!refUpd) failUpd('No release tag found on ' + originUpd + ' to update to (set CCC_REF=<tag or commit>).');
+      runUpd('git', ['-C', repoDir, 'fetch', '--quiet', originUpd, refUpd]);
+      var fetchedUpd = outUpd('git', ['-C', repoDir, 'rev-parse', '--verify', 'FETCH_HEAD^{commit}']);
+      if (/^[0-9a-fA-F]{7,40}$/.test(refUpd)) {
+        if (fetchedUpd.indexOf(refUpd.toLowerCase()) !== 0) failUpd('Fetched ' + fetchedUpd + ', not the requested commit ' + refUpd);
+      } else {
+        // The ref must resolve, on origin, to the commit that was fetched (annotated tags are peeled).
+        var remoteRefsUpd = outUpd('git', ['-C', repoDir, 'ls-remote', originUpd, 'refs/tags/' + refUpd, 'refs/tags/' + refUpd + '^{}', 'refs/heads/' + refUpd]).split('\n');
+        var peeledUpd = remoteRefsUpd.filter(function(l) { return /\^\{\}$/.test(l); })[0] || remoteRefsUpd.filter(Boolean)[0] || '';
+        var remoteCommitUpd = peeledUpd.split('\t')[0];
+        if (!remoteCommitUpd || remoteCommitUpd !== fetchedUpd) failUpd('Fetched ' + fetchedUpd + ', but ' + refUpd + ' on ' + originUpd + ' is ' + (remoteCommitUpd || 'unknown'));
       }
       console.log('  Checking out ' + refUpd + '...');
-      runUpd('git', ['-C', repoDir, 'checkout', '--quiet', '--detach', refUpd]);
+      runUpd('git', ['-C', repoDir, 'checkout', '--quiet', '--detach', fetchedUpd]);
       runUpd('git', ['-C', repoDir, 'submodule', 'update', '--init', '--recursive']);
     }
     console.log('  Commit: ' + outUpd('git', ['-C', repoDir, 'rev-parse', 'HEAD']));
@@ -169,8 +263,8 @@ if (args.includes('--update')) {
   }
   process.exit(0);
 }
-if (args.includes('--repair')) { var st = require(path.join(__dirname,'..','commander','state')); console.log('CC Commander — State Repair\n'); var r = st.repairState(); console.log(r.repaired ? '  Repaired: ' + r.details.join(', ') : '  State healthy.'); process.exit(0); }
-if (args.includes('--stats')) {
+if (flags.includes('--repair')) { var st = require(path.join(__dirname,'..','commander','state')); console.log('CC Commander — State Repair\n'); var r = st.repairState(); console.log(r.repaired ? '  Repaired: ' + r.details.join(', ') : '  State healthy.'); process.exit(0); }
+if (flags.includes('--stats')) {
   var st2 = require(path.join(__dirname,'..','commander','state')); var cs = st2.loadState();
   var ks; try { ks = require(path.join(__dirname,'..','lib','kit-stats')); } catch(_e) { ks = {getStats:function(){return {};},getStreak:function(){return {current:0};},getAchievements:function(){return [];}}; }
   var s = ks.getStats(), sk = ks.getStreak(), a = ks.getAchievements();
@@ -183,7 +277,7 @@ if (args.includes('--stats')) {
   process.exit(0);
 }
 // Agent API: next (Fleet "what next"; job JSON on stdin or --kind/--tags/--title; docs/FLEET-CHECKIN.md)
-if (args[0] === 'next' || args.includes('--next')) {
+if (subcommand === 'next') {
   dispatching = true;
   var nx = require(path.join(__dirname,'..','commander','lib','next'));
   var nxEmit = function(r) {
@@ -201,24 +295,25 @@ if (args[0] === 'next' || args.includes('--next')) {
     process.stdin.on('end', function() { nx.next({ input: nxInput }).then(nxEmit, nxFail); });
   }
 }
-// `ccc doctor` is the same as `ccc --doctor` (it used to open the menu).
-if (args[0] === 'doctor') args.push('--doctor');
+// `ccc doctor` is the same as `ccc --doctor` (it used to open the menu); its options come from its own argv.
+var docArgs = subcommand === 'doctor' ? args.slice(1) : flags;
+var docSelected = subcommand === 'doctor' || flags.includes('--doctor');
 // Agent API: doctor --instances (read-only audit of every Claude config dir in HOME or --home)
-if (args.includes('--doctor') && args.includes('--instances')) {
+if (docSelected && docArgs.includes('--instances')) {
   var inst = require(path.join(__dirname,'..','commander','lib','instances'));
-  var homeIdx = args.indexOf('--home');
-  var instResult = inst.auditInstances({ root: path.resolve(__dirname, '..'), home: homeIdx >= 0 ? args[homeIdx + 1] : undefined });
-  console.log(args.includes('--json') ? JSON.stringify(instResult, null, 2) : inst.renderTable(instResult));
+  var homeIdx = docArgs.indexOf('--home');
+  var instResult = inst.auditInstances({ root: path.resolve(__dirname, '..'), home: homeIdx >= 0 ? docArgs[homeIdx + 1] : undefined });
+  console.log(docArgs.includes('--json') ? JSON.stringify(instResult, null, 2) : inst.renderTable(instResult));
   process.exit(instResult.ok ? 0 : 1);
 }
-if (args.includes('--doctor') || args.includes('--tuneup')) {
+if (docSelected || flags.includes('--tuneup')) {
   var doc = require(path.join(__dirname, '..', 'commander', 'doctor'));
-  var isTuneup = args.includes('--tuneup');
+  var isTuneup = docArgs.includes('--tuneup');
   var docResult = doc.runFullStackChecks(path.resolve(__dirname, '..'));
   doc.printFullStackReport(docResult, { title: isTuneup ? 'ccc --tuneup' : 'ccc --doctor', tuneup: isTuneup });
   process.exit(docResult.summary.fail > 0 ? 1 : 0);
 }
-if (args.includes('--savings')) {
+if (flags.includes('--savings')) {
   var svMod = require(path.join(__dirname,'..','commander','lib','savings'));
   var svData = svMod.getSavings();
   function fmtSvRow(label, d) {
@@ -237,7 +332,7 @@ if (args.includes('--savings')) {
   console.log('\n  ⚠️  ' + svData.disclaimer + '\n');
   process.exit(0);
 }
-if (args.includes('--test')) {
+if (flags.includes('--test')) {
   console.log('CC Commander self-test:\n');
   var checks = [
     ['branding', function(){ return require(path.join(__dirname,'..','commander','branding')); }],
@@ -274,7 +369,7 @@ if (args.includes('--test')) {
   process.exit(passed === checks.length ? 0 : 1);
 }
 // Agent API: --status
-if (args.includes('--status')) {
+if (flags.includes('--status')) {
   var sb = require(path.join(__dirname,'..','commander','skill-browser'));
   var B = require(path.join(__dirname,'..','commander','branding'));
   var vc = 0; try { vc = fs.readdirSync(path.join(__dirname,'..','vendor')).length; } catch(_e) {}
@@ -282,18 +377,24 @@ if (args.includes('--status')) {
   process.exit(0);
 }
 // Agent API: --list-skills
-if (args.includes('--list-skills')) {
+if (flags.includes('--list-skills')) {
   var sb2 = require(path.join(__dirname,'..','commander','skill-browser'));
   var skills = sb2.listSkills();
-  if (args.includes('--json')) console.log(JSON.stringify(skills));
+  if (flags.includes('--json')) console.log(JSON.stringify(skills));
   else skills.forEach(function(s) { console.log(s.name + (s.description ? ' — ' + s.description.slice(0, 80) : '')); });
   process.exit(0);
 }
 // Agent API: --skills
-if (args.includes('--skills')) {
+if (flags.includes('--skills')) {
   var os = require('os');
-  // The config dir Claude Code reads (same rule as install.sh): CLAUDE_CONFIG_DIR, else ~/.claude.
-  var claudeConfigDir = process.env.CLAUDE_CONFIG_DIR ? path.resolve(process.env.CLAUDE_CONFIG_DIR) : path.join(os.homedir(), '.claude');
+  // The config dir Claude Code reads (same rule as install.sh): CLAUDE_CONFIG_DIR, else ~/.claude, resolved by the
+  // same physical resolver install.sh and uninstall.sh use, so all three act on one directory.
+  var claudeConfigRaw = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+  var claudeConfigDir = physicalProfilePath(claudeConfigRaw);
+  if (!claudeConfigDir) {
+    console.error('Invalid CLAUDE_CONFIG_DIR: ' + JSON.stringify(claudeConfigRaw) + ' cannot be resolved safely (it holds or resolves to a control character such as a newline, or passes through a dangling symlink); refusing to manage skills there.');
+    process.exit(1);
+  }
   var skillsInstallDir = path.join(claudeConfigDir, 'skills');
   var skillsSourceDir = path.join(__dirname, '..', 'skills');
   var installManifestPath = path.join(claudeConfigDir, 'commander', 'install-manifest.json');
@@ -408,8 +509,15 @@ if (args.includes('--skills')) {
       return real === path.join(root, 'skills');
     } catch (_e) { return false; }
   }
-  function manifestEntry(name) {
+  // Rows and backup references are trusted only from a manifest this profile owns. A manifest copied from
+  // another profile is checked before any row is consumed, so it cannot authorize removing a link here or
+  // restoring that profile's backup into this one.
+  function readOwnedManifest() {
     var m = readInstallManifest();
+    return m && installManifestOwned(m) ? m : null;
+  }
+  function manifestEntry(name) {
+    var m = readOwnedManifest();
     var rel = path.join('skills', name);
     return m && Array.isArray(m.entries) ? m.entries.find(function(e) { return e.path === rel; }) || null : null;
   }
@@ -454,17 +562,29 @@ if (args.includes('--skills')) {
     try { src = fs.realpathSync(skillsSourceDir); } catch (_e) { /* keep lexical */ }
     // A link into this checkout's skills/ is ours only under its own name; skills/alias -> <src>/other is the user's.
     if (path.dirname(resolvedTarget) === src && path.basename(resolvedTarget) === name) return true;
-    var m = readInstallManifest();
+    var m = readOwnedManifest();
     var rel = path.join('skills', name);
     return !!(m && Array.isArray(m.entries) && m.entries.some(function(e) { return e.path === rel && e.type === 'symlink' && e.target === target; }));
   }
 
-  function resolveSkills(tiersObj, tierName) {
-    var tier = tiersObj.tiers && tiersObj.tiers[tierName];
-    if (!tier) return [];
+  // A tier name is valid only as an own key of tiers (so `constructor` or `__proto__` never resolve through the
+  // prototype), and so is every tier it includes. Anything else throws before a link is touched.
+  function isTier(tiersObj, name) {
+    return typeof name === 'string' && !!tiersObj.tiers && typeof tiersObj.tiers === 'object' &&
+      Object.hasOwn(tiersObj.tiers, name) && !!tiersObj.tiers[name] && typeof tiersObj.tiers[name] === 'object';
+  }
+  function resolveSkills(tiersObj, tierName, seen) {
+    if (!isTier(tiersObj, tierName)) throw new Error('Unknown tier: ' + tierName);
+    seen = seen || [];
+    if (seen.indexOf(tierName) !== -1) throw new Error('Tier ' + tierName + ' includes itself');
+    seen = seen.concat(tierName);
+    var tier = tiersObj.tiers[tierName];
+    if ((tier.skills && !Array.isArray(tier.skills)) || (tier.includes && !Array.isArray(tier.includes))) {
+      throw new Error('Tier ' + tierName + ' is malformed in _tiers.json');
+    }
     var resolved = (tier.skills || []).slice();
     (tier.includes || []).forEach(function(inc) {
-      resolved = resolved.concat(resolveSkills(tiersObj, inc));
+      resolved = resolved.concat(resolveSkills(tiersObj, inc, seen));
     });
     return resolved.filter(function(s, i, a) { return a.indexOf(s) === i; });
   }
@@ -491,9 +611,9 @@ if (args.includes('--skills')) {
     } catch (_e) { return []; }
   }
 
-  var skillsIdx = args.indexOf('--skills');
-  var subCmd = args[skillsIdx + 1] || '';
-  // Skip sub-command args that start with '--' (treat as missing sub-command)
+  var skillsIdx = flags.indexOf('--skills');
+  var subCmd = flags[skillsIdx + 1] || '';
+  // Skip sub-command flags that start with '--' (treat as missing sub-command)
   if (subCmd.startsWith('--')) subCmd = '';
 
   if (!subCmd) {
@@ -509,7 +629,8 @@ if (args.includes('--skills')) {
       console.log('Tiers:');
       tierNames.forEach(function(name) {
         var t = tiers.tiers[name];
-        var count = name === 'full' ? allAvailable.length : resolveSkills(tiers, name).length;
+        var count;
+        try { count = name === 'full' ? allAvailable.length : resolveSkills(tiers, name).length; } catch (_e) { count = 0; }
         var padName = name.padEnd(14);
         console.log('  ' + padName + count + ' skills   ' + (t.description || ''));
       });
@@ -551,7 +672,7 @@ if (args.includes('--skills')) {
   }
 
   if (subCmd === 'install') {
-    var installName = args[skillsIdx + 2];
+    var installName = flags[skillsIdx + 2];
     if (!installName || installName.startsWith('--')) {
       console.error('Usage: ccc --skills install <name>');
       process.exit(1);
@@ -610,7 +731,7 @@ if (args.includes('--skills')) {
   }
 
   if (subCmd === 'remove') {
-    var removeName = args[skillsIdx + 2];
+    var removeName = flags[skillsIdx + 2];
     if (!removeName || removeName.startsWith('--')) {
       console.error('Usage: ccc --skills remove <name>');
       process.exit(1);
@@ -654,20 +775,18 @@ if (args.includes('--skills')) {
   }
 
   if (subCmd === 'tier') {
-    var tierName = args[skillsIdx + 2];
+    var tierName = flags[skillsIdx + 2];
     if (!tierName || tierName.startsWith('--')) {
       console.error('Usage: ccc --skills tier <tier>');
       if (tiers.tiers) console.error('Available tiers: ' + Object.keys(tiers.tiers).join(', '));
       process.exit(1);
     }
+    // Validate the tier and every tier it includes before resolving or changing anything.
     var tierSkills;
-    if (tierName === 'full') {
-      tierSkills = getAllAvailableSkills();
-    } else {
-      tierSkills = resolveSkills(tiers, tierName);
-    }
-    if (tierName !== 'full' && (!tiers.tiers || !tiers.tiers[tierName])) {
-      console.error('Unknown tier: ' + tierName);
+    try {
+      tierSkills = tierName === 'full' ? getAllAvailableSkills() : resolveSkills(tiers, tierName);
+    } catch (e) {
+      console.error(e.message);
       if (tiers.tiers) console.error('Available tiers: ' + Object.keys(tiers.tiers).join(', '));
       process.exit(1);
     }
@@ -733,15 +852,15 @@ if (args.includes('--skills')) {
   process.exit(1);
 }
 // Agent API: --list-sessions
-if (args.includes('--list-sessions')) {
+if (flags.includes('--list-sessions')) {
   var st3 = require(path.join(__dirname,'..','commander','state'));
   var sessions = st3.listSessions(50);
-  if (args.includes('--json')) console.log(JSON.stringify(sessions));
+  if (flags.includes('--json')) console.log(JSON.stringify(sessions));
   else sessions.forEach(function(s) { console.log((s.id||'?') + ' | ' + (s.task||'').slice(0,60) + ' | ' + (s.status||'?')); });
   process.exit(0);
 }
 // Agent API: --template (print template for other projects to use)
-if (args.includes('--template')) {
+if (flags.includes('--template')) {
   var templatePath = path.join(__dirname, '..', 'CLAUDE.md.template');
   try {
     process.stdout.write(fs.readFileSync(templatePath, 'utf8'));
@@ -751,7 +870,7 @@ if (args.includes('--template')) {
   process.exit(0);
 }
 // Daemon mode
-if (args.includes('--daemon')) {
+if (flags.includes('--daemon')) {
   dispatching = true; // prevent interactive launch
   var daemon = require(path.join(__dirname, '..', 'commander', 'daemon'));
   var blocker = daemon.startBlocker();
@@ -762,28 +881,28 @@ if (args.includes('--daemon')) {
     process.exit(1);
   }
   daemon.start({
-    interval: args.includes('--interval') ? parseInt(args[args.indexOf('--interval') + 1]) * 1000 : 300000,
-    budget: args.includes('--tick-budget') ? parseInt(args[args.indexOf('--tick-budget') + 1]) * 1000 : 15000,
-    dreamInterval: args.includes('--dream') ? parseInt(args[args.indexOf('--dream') + 1]) * 60000 : 3600000,
+    interval: flags.includes('--interval') ? parseInt(flags[flags.indexOf('--interval') + 1]) * 1000 : 300000,
+    budget: flags.includes('--tick-budget') ? parseInt(flags[flags.indexOf('--tick-budget') + 1]) * 1000 : 15000,
+    dreamInterval: flags.includes('--dream') ? parseInt(flags[flags.indexOf('--dream') + 1]) * 60000 : 3600000,
   });
 }
-if (args.includes('--daemon-stop')) {
+if (flags.includes('--daemon-stop')) {
   var daemon2 = require(path.join(__dirname, '..', 'commander', 'daemon'));
   if (daemon2.stop()) console.log('Daemon stopped.');
   else console.log('No daemon running.');
   process.exit(0);
 }
-if (args.includes('--queue') && !args.includes('--queue-list')) {
-  var qi = args.indexOf('--queue') + 1;
-  var qtask = args[qi];
+if (flags.includes('--queue') && !flags.includes('--queue-list')) {
+  var qi = flags.indexOf('--queue') + 1;
+  var qtask = flags[qi];
   if (!qtask || qtask.startsWith('--')) { console.error('Usage: ccc --queue "task description"'); process.exit(1); }
-  var qpri = args.includes('--priority') ? parseInt(args[args.indexOf('--priority') + 1]) : 3;
+  var qpri = flags.includes('--priority') ? parseInt(flags[flags.indexOf('--priority') + 1]) : 3;
   var q = require(path.join(__dirname, '..', 'commander', 'queue'));
   var item = q.addTask(qtask, qpri);
   console.log('Queued: ' + item.id + ' (priority ' + item.priority + ')');
   process.exit(0);
 }
-if (args.includes('--queue-list')) {
+if (flags.includes('--queue-list')) {
   var q2 = require(path.join(__dirname, '..', 'commander', 'queue'));
   var tasks = q2.listTasks();
   if (tasks.length === 0) { console.log('Queue empty.'); }
@@ -791,12 +910,12 @@ if (args.includes('--queue-list')) {
   process.exit(0);
 }
 // Agent API: --ingest <url>
-if (args.includes('--ingest')) {
-  var ingestUrl = args[args.indexOf('--ingest') + 1];
+if (flags.includes('--ingest')) {
+  var ingestUrl = flags[flags.indexOf('--ingest') + 1];
   if (!ingestUrl || ingestUrl.startsWith('--')) { console.error('Usage: ccc --ingest <github-url>'); process.exit(1); }
   var evaluator = require(path.join(__dirname, '..', 'commander', 'ingestion', 'evaluator'));
   var result = evaluator.evaluatePackage(ingestUrl);
-  if (args.includes('--json')) {
+  if (flags.includes('--json')) {
     console.log(JSON.stringify(result, null, 2));
   } else {
     var icon = result.recommendation === 'ADOPT' ? '✅' : result.recommendation === 'REFERENCE' ? '🔶' : '❌';
@@ -809,16 +928,16 @@ if (args.includes('--ingest')) {
   process.exit(0);
 }
 // Agent API: --dispatch "task"
-if (args.includes('--dispatch')) {
+if (flags.includes('--dispatch')) {
   dispatching = true;
-  var ti = args.indexOf('--dispatch') + 1;
-  var task = args[ti];
+  var ti = flags.indexOf('--dispatch') + 1;
+  var task = flags[ti];
   if (!task || task.startsWith('--')) { console.error('Usage: ccc --dispatch "task"'); process.exit(1); }
-  var jm = args.includes('--json');
-  var md = args.includes('--model') ? args[args.indexOf('--model') + 1] : undefined;
-  var mt = args.includes('--max-turns') ? parseInt(args[args.indexOf('--max-turns') + 1]) : 30;
-  var bg = args.includes('--budget') ? parseFloat(args[args.indexOf('--budget') + 1]) : undefined;
-  var cw = args.includes('--cwd') ? args[args.indexOf('--cwd') + 1] : undefined;
+  var jm = flags.includes('--json');
+  var md = flags.includes('--model') ? flags[flags.indexOf('--model') + 1] : undefined;
+  var mt = flags.includes('--max-turns') ? parseInt(flags[flags.indexOf('--max-turns') + 1]) : 30;
+  var bg = flags.includes('--budget') ? parseFloat(flags[flags.indexOf('--budget') + 1]) : undefined;
+  var cw = flags.includes('--cwd') ? flags[flags.indexOf('--cwd') + 1] : undefined;
   var d = require(path.join(__dirname,'..','commander','dispatcher'));
   var result = d.dispatch(task, { model: md, maxTurns: mt, maxBudgetUsd: bg, cwd: cw, bare: true, stream: false });
   if (result && typeof result.then === 'function') {
@@ -831,7 +950,7 @@ if (args.includes('--dispatch')) {
   }
 }
 if (!dispatching) {
-  if (args.includes('--simple') || process.env.CCC_TMUX_SESSION || process.env.CCC_SIMPLE) {
+  if (flags.includes('--simple') || process.env.CCC_TMUX_SESSION || process.env.CCC_SIMPLE) {
     // Simple mode: menu only (also used when already inside tmux split)
     var KitCommander = require(path.join(__dirname,'..','commander','engine'));
     new KitCommander().start().catch(function(err) { console.error('CC Commander error:', err.message); process.exit(1); });

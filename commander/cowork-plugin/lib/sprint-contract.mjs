@@ -27,12 +27,15 @@ function slugify(text) {
 /**
  * The text with every inline code span's content replaced by "x" (same
  * length), so a delimiter quoted inside backticks is not read as one. A run of
- * n backticks closes at the next run of exactly n; an unclosed run is literal.
+ * n backticks closes at the next run of exactly n; an unclosed run, or a
+ * backslash-escaped backtick outside a span, is literal.
  */
 function maskCodeSpans(s) {
   let out = '';
   let i = 0;
   while (i < s.length) {
+    // A backslash-escaped backtick outside a code span is a literal and opens nothing (CommonMark).
+    if (s[i] === '\\' && s[i + 1] === '`') { out += s.slice(i, i + 2); i += 2; continue; }
     if (s[i] !== '`') { out += s[i++]; continue; }
     let j = i;
     while (s[j] === '`') j++;

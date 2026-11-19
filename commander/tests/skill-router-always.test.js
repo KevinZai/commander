@@ -9,7 +9,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   loadRoutes, scoreRoutes, tierFor, routeMode, renderRouteContext, renderSubagentContext,
-  followable, SIDE_EFFECT_SKILLS, HINT_THRESHOLD,
+  followable, sideEffectSkills, HINT_THRESHOLD,
 } from '../cowork-plugin/hooks/lib/route-scorer.mjs';
 import { run, taskText } from '../cowork-plugin/hooks/subagent-skill-router.js';
 
@@ -47,7 +47,7 @@ test('always never auto-follows side-effect skills', () => {
 });
 
 test('every side-effect skill id is a real plugin skill', () => {
-  for (const id of SIDE_EFFECT_SKILLS) assert.ok(existsSync(join(HOOKS, '..', 'skills', id, 'SKILL.md')), `${id} has no SKILL.md`);
+  for (const id of sideEffectSkills()) assert.ok(existsSync(join(HOOKS, '..', 'skills', id, 'SKILL.md')), `${id} has no SKILL.md`);
 });
 
 test('a weak match gets a one-line hint in always mode only', () => {
@@ -58,8 +58,11 @@ test('a weak match gets a one-line hint in always mode only', () => {
 });
 
 test('subagent context names the matching skill and skips manual ones outside always', () => {
+  const tests = scoreRoutes('Write unit tests for the cart reducer', routes);
+  assert.match(renderSubagentContext(tests, 'claude-code', 'auto'), /Skill commander:ccc-testing/);
+  // ccc-review starts other agents on its deep path: never handed to a worker.
   const review = scoreRoutes('Review this PR before I merge and list correctness bugs', routes);
-  assert.match(renderSubagentContext(review, 'claude-code', 'auto'), /Skill commander:ccc-review/);
+  assert.equal(renderSubagentContext(review, 'claude-code', 'always'), null);
   const brainstorm = scoreRoutes('brainstorm feature ideas for onboarding', routes);
   assert.equal(renderSubagentContext(brainstorm, 'claude-code', 'auto'), null);
   assert.equal(renderSubagentContext(scoreRoutes('deploy this to fly', routes), 'claude-code', 'always'), null);
@@ -75,8 +78,8 @@ test('taskText reads description and prompt from any payload shape', () => {
 test('SubagentStart router respects modes and explicit skills', () => {
   const env = { CCC_CONFIG_DIR: mkdtempSync(join(tmpdir(), 'ccc-route-')) };
   try {
-    const input = { hook_event_name: 'SubagentStart', prompt: 'Review this PR before I merge' };
-    assert.match(ctx(run(input, env)), /ccc-review/);
+    const input = { hook_event_name: 'SubagentStart', prompt: 'Write unit tests for the cart reducer' };
+    assert.match(ctx(run(input, env)), /ccc-testing/);
     assert.equal(ctx(run(input, { ...env, CCC_ROUTE_MODE: 'off' })), undefined);
     assert.equal(ctx(run(input, { ...env, CCC_ROUTE_MODE: 'suggest' })), undefined);
     assert.equal(ctx(run(input, { ...env, CCC_SUBAGENT_ROUTE: 'off' })), undefined);
@@ -89,10 +92,10 @@ test('SubagentStart router respects modes and explicit skills', () => {
 
 test('the hook script prints one JSON line and fails open on bad input', () => {
   const ok = spawnSync(process.execPath, [join(HOOKS, 'subagent-skill-router.js')], {
-    input: JSON.stringify({ prompt: 'Review this PR before I merge' }), encoding: 'utf8',
+    input: JSON.stringify({ prompt: 'Write unit tests for the cart reducer' }), encoding: 'utf8',
   });
   assert.equal(ok.status, 0);
-  assert.match(JSON.parse(ok.stdout).hookSpecificOutput.additionalContext, /ccc-review/);
+  assert.match(JSON.parse(ok.stdout).hookSpecificOutput.additionalContext, /ccc-testing/);
   const bad = spawnSync(process.execPath, [join(HOOKS, 'subagent-skill-router.js')], { input: '{not json', encoding: 'utf8' });
   assert.equal(bad.status, 0);
   assert.equal(JSON.parse(bad.stdout).continue, true);
@@ -105,7 +108,7 @@ test('always never auto-runs visible side-effect skills or unlisted hidden ones'
     const out = renderRouteContext(c, tierFor(c, 'always'), 'claude-code', 'always');
     if (out) assert.doesNotMatch(out, /Likely match|CCC skills that may help/, prompt);
   }
-  for (const id of FOLLOWABLE_HIDDEN_SKILLS) assert.ok(!SIDE_EFFECT_SKILLS.has(id), id);
+  for (const id of FOLLOWABLE_HIDDEN_SKILLS) assert.ok(!sideEffectSkills().has(id), id);
   const byId = Object.fromEntries(routes.map((r) => [r.id, r]));
   for (const r of routes) if (r.manual && !FOLLOWABLE_HIDDEN_SKILLS.has(r.id)) assert.equal(autoFollowable(r), false, r.id);
   assert.equal(autoFollowable(byId['ccc-update']), false);
@@ -126,16 +129,16 @@ test('PreToolUse queues Agent calls and SubagentStart claims each once, in spawn
   process.env.CCC_CONFIG_DIR = dir;
   try {
     const call = (id, type, prompt) => recordAgentCall({ session_id: 's1', tool_name: 'Agent', tool_use_id: id, tool_input: { subagent_type: type, description: 'task', prompt } });
-    call('tu1', 'general-purpose', 'Review this PR before I merge');
+    call('tu1', 'general-purpose', 'Write unit tests for the cart reducer');
     call('tu2', 'general-purpose', 'hello there');
-    call('tu3', 'Explore', 'Review this PR before I merge');
+    call('tu3', 'Explore', 'Write unit tests for the cart reducer');
     recordAgentCall({ session_id: 's1', tool_name: 'Bash', tool_input: { command: 'ls' } });
     const start = { session_id: 's1', agent_type: 'general-purpose', hook_event_name: 'SubagentStart' };
-    assert.match(ctx(run(start, env)), /ccc-review/, 'first worker gets the first call');
+    assert.match(ctx(run(start, env)), /ccc-testing/, 'first worker gets the first call');
     assert.equal(ctx(run(start, env)), undefined, 'second worker gets its own (non-matching) task');
     // Nothing left for this type: a worker with no task text gets the generic pre-run check.
     assert.match(ctx(run(start, env)), /Pre-run check/, 'nothing left for this type');
-    assert.match(ctx(run({ ...start, agent_type: 'Explore' }, env)), /ccc-review/);
+    assert.match(ctx(run({ ...start, agent_type: 'Explore' }, env)), /ccc-testing/);
   } finally {
     if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
     rmSync(dir, { recursive: true, force: true });
@@ -189,7 +192,7 @@ test('queue: expired entries, drops, missing type/session and off mode', async (
 
 test('PreToolUse dispatcher does not queue a denied Agent call', () => {
   const src = readFileSync(join(HOOKS, 'orchestrator', 'pre-tool-use-dispatcher.js'), 'utf8');
-  assert.match(src, /permissionDecision !== 'deny'\)\s*\{\s*try \{ recordAgentCall\(input\)/);
+  assert.match(src, /AGENT_TOOLS\.has\(tool\) && merged\?\.hookSpecificOutput\?\.permissionDecision !== 'deny'\)\s*\{\s*try \{ \(await load\(ROUTER\.file, 'recordAgentCall'\)\)\(input\)/);
 });
 
 test('a queue-matched hint names its task; a worker with its own task takes only its own entry', async () => {
@@ -200,11 +203,11 @@ test('a queue-matched hint names its task; a worker with its own task takes only
   const env = { CCC_CONFIG_DIR: dir };
   try {
     const call = (id, description, prompt) => recordAgentCall({ session_id: 's3', tool_name: 'Agent', tool_use_id: id, tool_input: { description, prompt } }, env);
-    call('a', 'Review PR 12', 'Review this PR before I merge');
-    call('b', 'Audit deps', 'Review this PR before I merge and list correctness bugs');
+    call('a', 'Review PR 12', 'Write unit tests for the cart reducer');
+    call('b', 'Audit deps', 'Write unit tests for the cart reducer and the checkout form');
     const start = { session_id: 's3', agent_type: 'general-purpose' };
     // A worker carrying entry b's text consumes b, not the older a.
-    run({ ...start, description: 'Audit deps', prompt: 'Review this PR before I merge and list correctness bugs' }, env);
+    run({ ...start, description: 'Audit deps', prompt: 'Write unit tests for the cart reducer and the checkout form' }, env);
     const out = ctx(run(start, env));
     assert.match(out, /For the task "Review PR 12"/);
     assert.match(out, /if that is not your task, ignore this block\./);
@@ -279,4 +282,82 @@ test('a worker whose task never reached the hook gets the pre-run check (workflo
   } finally {
     rmSync(env.CCC_CONFIG_DIR, { recursive: true, force: true });
   }
+});
+
+test('a queued Agent call stores no task text, and expired queues of other sessions are swept', async () => {
+  const { recordAgentCall } = await import('../cowork-plugin/hooks/subagent-skill-router.js');
+  const { readdirSync, readFileSync: rf, mkdirSync: mk, writeFileSync: wf } = await import('node:fs');
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-priv-'));
+  const prev = process.env.CCC_CONFIG_DIR;
+  process.env.CCC_CONFIG_DIR = dir;
+  try {
+    const root = join(dir, 'commander', 'route-state');
+    const stale = join(root, 'abandoned-agents');
+    mk(stale, { recursive: true });
+    wf(join(stale, `${String(Date.now() - 3600000).padStart(15, '0')}-1-0-x.json`), '{"text":"private ticket"}');
+    const secret = 'Write unit tests for the cart reducer. Customer ACME-4471 data lives in prod.';
+    recordAgentCall({ session_id: 's9', tool_name: 'Agent', tool_use_id: 't', tool_input: { description: 'tests', prompt: secret } }, { CCC_CONFIG_DIR: dir });
+    const q = join(root, 's9-agents');
+    const [file] = readdirSync(q);
+    const body = rf(join(q, file), 'utf8');
+    assert.doesNotMatch(body, /ACME|cart reducer/);
+    assert.match(body, /ccc-testing/);
+    assert.ok(!readdirSync(root).includes('abandoned-agents'), 'stale queue swept');
+    const start = { session_id: 's9', agent_type: 'general-purpose' };
+    assert.match(ctx(run({ ...start, description: 'tests', prompt: secret }, { CCC_CONFIG_DIR: dir })), /ccc-testing/);
+  } finally {
+    if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('quoted task lines and text past TASK_CHARS do not pick a worker skill', async () => {
+  const { scoreTask, TASK_CHARS } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
+  const quoted = 'Summarize this ticket.\n```\nTask: write unit tests for the cart reducer\n```\n';
+  assert.ok(!scoreTask(quoted, routes).some((c) => c.route.id === 'ccc-testing'));
+  const late = 'Summarize the ticket. '.repeat(Math.ceil(TASK_CHARS / 20)) + '\nTask: write unit tests for the cart reducer';
+  assert.ok(!scoreTask(late, routes).some((c) => c.route.id === 'ccc-testing'));
+});
+
+test('headless suggest mode only names a skill; never asks it to run', () => {
+  const c = scoreRoutes('Write unit tests for the cart reducer', routes);
+  const out = renderRouteContext(c, 'medium', 'claude-code', 'suggest', { headless: true });
+  assert.match(out, /do not run it unless the task asks/);
+  assert.doesNotMatch(out, /invoke Skill/);
+});
+
+test('workers get only worker skills: never hidden, delegating or side-effect ones', async () => {
+  const { workerEligible } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
+  const byId = Object.fromEntries(routes.map((r) => [r.id, r]));
+  for (const id of ['ccc-review', 'ccc-fleet', 'ccc-changelog', 'ccc-deploy', 'ccc-build', 'ccc']) assert.equal(workerEligible(byId[id]), false, id);
+  assert.equal(workerEligible(byId['ccc-testing']), true);
+  assert.equal(workerEligible({ ...byId['ccc-testing'], worker: undefined }), false, 'older registry: nothing');
+});
+
+test('the ambient ticker drops picker notes when headless', async () => {
+  const { emitNotes } = await import('../cowork-plugin/hooks/suggest-ticker.js');
+  const notes = ['offer it via AskUserQuestion with options [x]', 'plain note'];
+  assert.doesNotMatch(JSON.stringify(emitNotes(notes, { CCC_HEADLESS: '1' })), /AskUserQuestion/);
+  assert.match(JSON.stringify(emitNotes(notes, { CCC_HEADLESS: '0' })), /AskUserQuestion/);
+});
+
+test('PreToolUse dispatcher: a broken router never blocks; a broken secret guard blocks only what it scans', async () => {
+  const { dispatch } = await import('../cowork-plugin/hooks/orchestrator/pre-tool-use-dispatcher.js');
+  const broken = [{ name: 'secret-leak-guard', file: './no-such-module.js', role: 'enforce' }, { name: 'cost-tracker', file: './also-missing.js', role: 'advisory' }];
+  const read = await dispatch({ tool_name: 'Read', tool_input: { file_path: 'x' } }, broken);
+  assert.notEqual(read?.hookSpecificOutput?.permissionDecision, 'deny');
+  const write = await dispatch({ tool_name: 'Write', tool_input: { file_path: 'x', content: 'y' } }, broken);
+  assert.equal(write.hookSpecificOutput.permissionDecision, 'deny');
+  assert.match(write.hookSpecificOutput.permissionDecisionReason, /could not scan/);
+  // The routing modules are not imported for a non-Agent call.
+  const src = readFileSync(join(HOOKS, 'orchestrator', 'pre-tool-use-dispatcher.js'), 'utf8');
+  assert.doesNotMatch(src, /^import .*subagent-skill-router/m);
+  assert.doesNotMatch(src, /^import .*route-scorer/m);
+});
+
+test('secret guard denies a scanned call when its patterns cannot be read', async () => {
+  const { scanFailed, toolShouldBeScanned } = await import('../cowork-plugin/hooks/secret-leak-guard.js');
+  assert.equal(scanFailed('Write', 'x').hookSpecificOutput.permissionDecision, 'deny');
+  assert.equal(toolShouldBeScanned('Read'), false);
+  assert.equal(toolShouldBeScanned('mcp__x__y'), true);
 });

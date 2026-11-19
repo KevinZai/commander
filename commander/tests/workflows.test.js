@@ -207,9 +207,28 @@ test('ccc-fleet-run gives every slice and stage a CCC pre-run skill step', async
   const fan = await runStubbed(src, { mode: 'fanout', tasks: ['fix the flaky test', 'add docs'], skills: [['/ccc-systematic-debugging', 'ccc-testing'], null] });
   const slices = fan.calls.filter(c => /^slice-/.test(c.label));
   assert.match(slices[0].prompt, /^CCC pre-run: before you start, load commander:ccc-systematic-debugging, then commander:ccc-testing/);
-  assert.match(slices[1].prompt, /^CCC pre-run: before you start, check your skill list/);
-  const bad = await runStubbed(src, { mode: 'pipeline', tasks: ['a', 'b'], skills: ['/deploy; rm -rf /', '/ccc-plan'] });
+  assert.match(slices[0].prompt, /do not start other agents or workflows/);
+  // args.skills given, nothing for this slice: no skill.
+  assert.match(slices[1].prompt, /^CCC pre-run: no CCC skill fits this task; work without one/);
+  // A caller's pick outside the worker allowlist is dropped, whatever its spelling.
+  const bad = await runStubbed(src, { mode: 'pipeline', tasks: ['a', 'b', 'c'], skills: ['/deploy; rm -rf /', '/ccc-fleet', ['/ccc-plan', '/ccc-security']] });
   const stages = bad.calls.filter(c => /^stage-/.test(c.label));
-  assert.match(stages[0].prompt, /check your skill list/, 'a malformed skill id is ignored');
-  assert.match(stages[1].prompt, /load commander:ccc-plan/);
+  assert.match(stages[0].prompt, /work without one/, 'a malformed skill id is ignored');
+  assert.match(stages[1].prompt, /work without one/, 'a fleet skill is never handed to a worker');
+  assert.doesNotMatch(stages[1].prompt, /ccc-fleet/);
+  assert.match(stages[2].prompt, /load commander:ccc-security with/, 'only the worker skill is kept');
+  // No args.skills at all: the worker checks the worker skills itself.
+  const none = await runStubbed(src, { mode: 'fanout', tasks: ['x'] });
+  const p = none.calls.find(c => /^slice-/.test(c.label)).prompt;
+  assert.match(p, /^CCC pre-run: before you start, check your skill list for one of commander:ccc-/);
+  assert.doesNotMatch(p, /unless/);
+});
+
+test('the workflow worker allowlist matches the registry', () => {
+  const src = fs.readFileSync(path.join(WF_DIR, 'ccc-fleet-run.workflow.js'), 'utf8');
+  const listed = JSON.parse(src.match(/const WORKER_SKILLS = new Set\((\[.*?\])\)/)[1]);
+  const reg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'cowork-plugin', 'hooks', 'lib', 'ccc-routes.json'), 'utf8'));
+  assert.deepStrictEqual(listed, reg.routes.filter(r => r.worker).map(r => r.id));
+  for (const r of reg.routes) if (r.worker) assert.ok(!r.manual && !r.sideEffect, r.id);
+  assert.ok(!listed.includes('ccc-review') && !listed.includes('ccc-fleet') && !listed.includes('ccc-changelog'));
 });
