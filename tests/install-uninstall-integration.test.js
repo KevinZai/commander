@@ -879,6 +879,31 @@ test('fresh settings leave guards inactive under a symlinked hooks/ dir', () => 
   });
 });
 
+// Codex #302 NEW HIGH 1: the status line runs on every render, so a fresh settings.json registers it only when this
+// install wrote lib/statusline.sh and it verifies, like the guards.
+test('fresh settings never register a pre-existing status line the installer did not write', () => {
+  withHome('ccc-install-unowned-statusline-', (home) => {
+    const claude = join(home, '.claude');
+    mkdirSync(join(claude, 'lib'), { recursive: true });
+    writeFileSync(join(claude, 'lib', 'statusline.sh'), '#!/bin/sh\necho not CC Commander\n');
+    const res = install(home, ['--mode=full', '--skills=essential']);
+    ok(res, 'install');
+    const s = JSON.parse(readFileSync(join(claude, 'settings.json'), 'utf8'));
+    assert.strictEqual(s.statusLine, undefined, 'an unverified status line is not registered: ' + JSON.stringify(s.statusLine));
+    assert.match(res.stdout, /Status line left inactive — lib\/statusline\.sh: not written by this install/);
+    assert.strictEqual(readFileSync(join(claude, 'lib', 'statusline.sh'), 'utf8'), '#!/bin/sh\necho not CC Commander\n');
+  });
+});
+
+test('--mode=config fresh install registers no status line', () => {
+  withHome('ccc-install-config-statusline-', (home) => {
+    const claude = join(home, '.claude');
+    ok(run(INSTALL_SH, home, ['--force', '--mode=config', '--skip-deps']), 'install');
+    const s = JSON.parse(readFileSync(join(claude, 'settings.json'), 'utf8'));
+    assert.strictEqual(s.statusLine, undefined);
+  });
+});
+
 test('--mode=config fresh install registers no absent guards', () => {
   withHome('ccc-install-config-guards-', (home) => {
     const claude = join(home, '.claude');

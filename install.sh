@@ -1134,22 +1134,24 @@ var hooksDir = path.join(root, 'hooks').replace(/[\\"$`]/g, '\\$&');
 var sha = function(buf) { return nodeCrypto.createHash('sha256').update(buf).digest('hex'); };
 var manifest = null;
 try { manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); } catch (_e) { manifest = null; }
-function guardProblem(name) {
-  var rel = 'hooks/' + name + '.js';
+// Why <dir>/<file> cannot be registered, or null when this install wrote it and it verifies.
+function installedProblem(dirName, fileName, component) {
+  var rel = dirName + '/' + fileName;
   var shipped; try { shipped = sha(fs.readFileSync(path.join(srcRoot, rel))); } catch (_e) { return 'not shipped in this checkout'; }
   var rec = manifest && (manifest.entries || []).find(function(e) { return e.type === 'file' && e.path === rel; });
-  if (!rec) return 'not written by this install (an existing file, a skipped hooks/ dir, or the hooks component was not selected)';
+  if (!rec) return 'not written by this install (an existing file, a skipped ' + dirName + '/ dir, or the ' + component + ' component was not selected)';
   if (rec.sha !== shipped) return 'the recorded copy is not the shipped version';
-  var dir = path.join(root, 'hooks'), st;
-  try { st = fs.lstatSync(dir); } catch (_e) { return 'hooks/ is missing'; }
-  if (st.isSymbolicLink() || !st.isDirectory()) return 'hooks/ is a symlink or not a directory';
-  try { if (fs.realpathSync(dir) !== path.join(fs.realpathSync(root), 'hooks')) return 'hooks/ resolves outside the config dir'; } catch (_e) { return 'hooks/ cannot be resolved'; }
-  var file = path.join(dir, name + '.js'), fst;
+  var dir = path.join(root, dirName), st;
+  try { st = fs.lstatSync(dir); } catch (_e) { return dirName + '/ is missing'; }
+  if (st.isSymbolicLink() || !st.isDirectory()) return dirName + '/ is a symlink or not a directory';
+  try { if (fs.realpathSync(dir) !== path.join(fs.realpathSync(root), dirName)) return dirName + '/ resolves outside the config dir'; } catch (_e) { return dirName + '/ cannot be resolved'; }
+  var file = path.join(dir, fileName), fst;
   try { fst = fs.lstatSync(file); } catch (_e) { return rel + ' is missing'; }
   if (!fst.isFile()) return rel + ' is not a regular file';
   if (sha(fs.readFileSync(file)) !== shipped) return rel + ' differs from the shipped version';
   return null;
 }
+function guardProblem(name) { return installedProblem('hooks', name + '.js', 'hooks'); }
 var cfg = JSON.parse(fs.readFileSync(src, 'utf8'));
 var registered = [], inactive = [];
 Object.keys(cfg.hooks || {}).forEach(function(ev) {
@@ -1169,9 +1171,18 @@ Object.keys(cfg.hooks || {}).forEach(function(ev) {
   }).filter(function(m) { return m.hooks.length > 0; });
   if (!cfg.hooks[ev].length) delete cfg.hooks[ev];
 });
-// The status line script lives in this config dir's lib/, like the hooks.
+// The status line script lives in this config dir's lib/, like the hooks, and runs on every render: it is
+// registered only when this install wrote lib/statusline.sh and it verifies (Codex #302).
+var statusInactive = null;
 if (cfg.statusLine && typeof cfg.statusLine.command === 'string') {
-  cfg.statusLine.command = cfg.statusLine.command.split('$HOME/.claude/lib/').join(path.join(root, 'lib').replace(/[\\"$`]/g, '\\$&') + '/');
+  var sl = /\$HOME\/\.claude\/lib\/([\w.-]+)/.exec(cfg.statusLine.command);
+  var slWhy = sl ? installedProblem('lib', sl[1], 'lib') : null;
+  if (slWhy) {
+    statusInactive = 'lib/' + sl[1] + ': ' + slWhy;
+    delete cfg.statusLine;
+  } else {
+    cfg.statusLine.command = cfg.statusLine.command.split('$HOME/.claude/lib/').join(path.join(root, 'lib').replace(/[\\"$`]/g, '\\$&') + '/');
+  }
 }
 var dst = path.join(root, 'settings.json');
 var tmp = path.join(root, '.settings.json.ccc-tmp-' + process.pid);
@@ -1179,6 +1190,7 @@ fs.writeFileSync(tmp, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o644, flag: 
 fs.renameSync(tmp, dst);
 process.stdout.write('registered\t' + Array.from(new Set(registered)).join(', ') + '\n');
 inactive.forEach(function(i) { process.stdout.write('inactive\t' + i + '\n'); });
+if (statusInactive) process.stdout.write('statusline-inactive\t' + statusInactive + '\n');
 SETTINGS
 )" || { cc_status_line "✗" "settings.json could not be written" "$M_RED"; exit 1; }
       guards_registered="$(printf '%s\n' "$settings_out" | awk -F'\t' '$1=="registered"{print $2}')"
@@ -1189,6 +1201,9 @@ SETTINGS
       fi
       printf '%s\n' "$settings_out" | awk -F'\t' '$1=="inactive"{print $2}' | while IFS= read -r line; do
         [ -n "$line" ] && cc_status_line "!" "Guard hook left inactive — $line"
+      done
+      printf '%s\n' "$settings_out" | awk -F'\t' '$1=="statusline-inactive"{print $2}' | while IFS= read -r line; do
+        [ -n "$line" ] && cc_status_line "!" "Status line left inactive — $line"
       done
     else
       cc_status_line "·" "settings.json preserved (existing config kept)"
