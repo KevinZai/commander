@@ -83,11 +83,19 @@ test('fleet pick: weak matches in a long description still give the worker 0-2 u
   assert.strictEqual(deploy.skills.indexOf('/ccc-deploy'), -1, 'side-effect skills are never a worker pick');
 });
 
-test('without an installed registry the checkout registry is used and reported', async function() {
+test('without an installed registry the checkout registry is reported and nothing is a worker pick', async function() {
   var l = laneWith(['ccc-security'], { registry: false });
   var r = await nextLib.next({ job: { title: 'audit the auth flow for OWASP issues', tags: ['security'] }, env: l.env });
   assert.strictEqual(r.route_source, 'checkout');
-  assert.strictEqual(r.skills[0], '/ccc-security');
+  assert.deepStrictEqual(r.skills, []);
+  assert.deepStrictEqual(r.candidates, []);
+  assert.match(r.prompt_block, /no CCC skill fits/);
+});
+
+test('candidates list worker skills only', async function() {
+  var l = laneWith(['ccc-fleet', 'ccc-testing']);
+  var r = await nextLib.next({ job: { title: 'Run fleet agents in parallel' }, env: l.env });
+  assert.ok(r.candidates.every(function(c) { return c.skill !== '/ccc-fleet'; }), JSON.stringify(r.candidates));
 });
 
 test('fleet-hold.json in the lane state dir holds or defers; a past defer is ignored', async function() {

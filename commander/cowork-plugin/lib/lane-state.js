@@ -27,6 +27,8 @@ function homeOf(env) {
   return env.HOME || env.USERPROFILE || os.homedir();
 }
 
+var BLOCKED_LEAF = '.ccc-unresolvable-config-dir';
+
 // Extended-length UNC: \\?\UNC\server\share is the root, not \\?\UNC\.
 var EXT_UNC = /^([\\/]{2}[?.][\\/]UNC[\\/][^\\/]+[\\/][^\\/]+)(?:[\\/]|$)/i;
 
@@ -56,9 +58,11 @@ function physicalDir(p) {
     rest = p;
     try { cur = real(process.cwd()); } catch (_e) { cur = P.resolve(process.cwd()); }
   }
-  // When the OS could not open the path (a non-directory in the middle, or any error but ENOENT), return it as
-  // written, not normalized, so reads fail the same way instead of landing in another directory.
-  var asWritten = P.isAbsolute(p) ? p : (cur.slice(-1) === P.sep ? cur : cur + P.sep) + p;
+  // When the OS could not open the path (a non-directory in the middle, or any error but ENOENT), return a dir
+  // under the component it stops at, so every path built from it fails the same way. (The path as written would
+  // not do: path.join normalizes /etc/hosts/../ssh/commander to /etc/ssh/commander.) Same as blockedDir() in
+  // commander/lib/profile-path.js.
+  var blocked = function(x) { return P.join(x, BLOCKED_LEAF); };
   var isDir = function(x) { try { return fs.statSync(x).isDirectory(); } catch (_e) { return false; } };
   var parts = rest.split(win ? /[\\/]+/ : /\/+/).filter(Boolean), missing = 0;
   for (var i = 0; i < parts.length; i++) {
@@ -70,11 +74,11 @@ function physicalDir(p) {
       var resolved = null, err = null;
       try { resolved = real(next); } catch (e) { err = e; }
       if (resolved !== null) {
-        if (i < parts.length - 1 && !isDir(resolved)) return asWritten;   // /etc/hosts/.. is ENOTDIR, not /etc
+        if (i < parts.length - 1 && !isDir(resolved)) return blocked(resolved);   // /etc/hosts/.. is ENOTDIR, not /etc
         cur = resolved;
         continue;
       }
-      if (!err || err.code !== 'ENOENT') return asWritten;                 // ENOTDIR, EACCES, ELOOP
+      if (!err || err.code !== 'ENOENT') return blocked(next);                 // ENOTDIR, EACCES, ELOOP
     }
     missing++;
     cur = next;

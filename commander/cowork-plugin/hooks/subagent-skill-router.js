@@ -25,8 +25,8 @@
  * route ids and hashes of its text; a session's expired entries are removed
  * when its next worker starts.
  */
-import { readFileSync, writeFileSync, mkdirSync, renameSync, readdirSync, unlinkSync, lstatSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, writeFileSync, mkdirSync, renameSync, readdirSync, unlinkSync, lstatSync, openSync, fstatSync, closeSync, constants as FS } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { emitModel, emitSilent } from './lib/emit.mjs';
 import { readStdinJson } from './lib/session-key.mjs';
@@ -76,6 +76,23 @@ function realDir(p) {
   try { const st = lstatSync(p); return st.isDirectory() && !st.isSymbolicLink(); } catch { return false; }
 }
 
+/** Create one directory level (never recursively, so a symlinked parent is never written through). */
+function mkdirOne(p) {
+  try { mkdirSync(p, { mode: 0o700 }); } catch (err) { if (err?.code !== 'EEXIST') throw err; }
+  return realDir(p);
+}
+
+/** Read a queue entry only when it is a regular file, never through a symlink. */
+function readEntry(file) {
+  const fd = openSync(file, FS.O_RDONLY | (FS.O_NOFOLLOW || 0));
+  try {
+    if (!fstatSync(fd).isFile()) throw new Error('not a file');
+    return JSON.parse(readFileSync(fd, 'utf8'));
+  } finally {
+    closeSync(fd);
+  }
+}
+
 /** The session's queue dir, or null when it or the queue root is not a real directory. */
 function ownQueue(sessionId) {
   const dir = queueDir(sessionId);
@@ -105,12 +122,17 @@ export function recordAgentCall(input = {}, env = process.env) {
     const text = [desc, prompt].filter((v) => v.trim()).join('\n');
     if (!text) return emitSilent();
     // The text itself is not stored: only what SubagentStart needs.
-    const named = coordinatorDecided(prompt) || coordinatorDecided(desc);
+    // Only the prompt carries the coordinator's decision; a description is a label anyone can write.
+    const named = coordinatorDecided(prompt);
     const routes = named ? [] : scoreTask(text, loadRoutes()).slice(0, 5).map((c) => ({ id: c.route.id, score: c.score, patternHits: c.patternHits }));
     const hashes = [...new Set([text, desc, prompt].filter((v) => v.trim()).map(textHash))];
-    const dir = queueDir(input.session_id);
-    mkdirSync(dir, { recursive: true, mode: 0o700 });
-    if (!ownQueue(input.session_id)) return emitSilent();
+    // The state dir may be created; the queue root and the session dir are each created one level at a time
+    // and must be real directories before anything is written.
+    const root = queueRoot();
+    mkdirSync(dirname(root), { recursive: true, mode: 0o700 });
+    if (!mkdirOne(root) || !mkdirOne(queueDir(input.session_id))) return emitSilent();
+    const dir = ownQueue(input.session_id);
+    if (!dir) return emitSilent();
     const name = `${String(Date.now()).padStart(15, '0')}-${process.pid}-${seq++}-${slug(input.tool_use_id) || 'call'}.json`;
     const tmp = join(dir, `.${name}.tmp`);
     writeFileSync(tmp, JSON.stringify({ type: String(ti.subagent_type || DEFAULT_AGENT_TYPE), hashes, named, routes }), { mode: 0o600 });
@@ -169,7 +191,7 @@ export function claimTask(input = {}, own = '') {
     }
     if (claimed) continue;
     let entry;
-    try { entry = JSON.parse(readFileSync(file, 'utf8')); } catch { continue; }
+    try { entry = readEntry(file); } catch { continue; }
     if ((entry.type || DEFAULT_AGENT_TYPE) !== type) continue;
     if (own && !sameTask(entry, own)) continue;
     // The rename is the claim: only one concurrent SubagentStart wins it.
@@ -189,20 +211,20 @@ function savedRouteMode() {
   }
 }
 
-// The coordinator's decision comes first in the prompt: a leading "CCC
-// pre-run" line, or a first line that names a CCC skill. Text further down
-// (a quoted ticket, a summary's history) cannot silence or replace the hint.
-const NAMED_SKILL = /(?:^|\s)[/$]ccc[\w-]*|commander:ccc/;
-const PRE_RUN = /^\s*CCC pre-run\b/;
+// The coordinator's decision comes first in the prompt field: a first line
+// that starts with "CCC pre-run" or with a CCC skill name (slash, dollar or
+// commander: form). A mention later on that line, a later line (a quoted
+// ticket, a summary's history) or the description cannot silence or replace
+// the hint.
+const DECIDED = /^\s*(?:CCC pre-run\b|[/$]ccc[\w-]*(?![\w/-])|\/?commander:ccc[\w-]*(?![\w/-]))/;
 
 function firstLine(text) {
   return String(text || '').replace(/^\s+/, '').split('\n')[0] || '';
 }
 
-/** Did the coordinator already decide this worker's skill? Only the first line counts. */
+/** Did the coordinator already decide this worker's skill? Only the start of the prompt's first line counts. */
 export function coordinatorDecided(text) {
-  const line = firstLine(text);
-  return PRE_RUN.test(line) || NAMED_SKILL.test(line);
+  return DECIDED.test(firstLine(text));
 }
 
 /** Rebuild scored candidates from a queued entry's route ids. */
@@ -244,8 +266,9 @@ export function run(input = {}, env = process.env) {
     const host = detectHost(env);
     // No task reached the hook (a Workflow script's worker): pre-run check.
     if (!own.trim() && !claimed) return emitModel('SubagentStart', renderSubagentCheck(host));
-    // A worker already told to use a specific skill needs no hint.
-    if (own ? (coordinatorDecided(ownPrompt(input)) || coordinatorDecided(own)) : claimed.named) return emitSilent();
+    // A worker already told to use a specific skill needs no hint: its own prompt says so, or the queued
+    // entry it matched recorded that the dispatched prompt did (a host that passes only the description).
+    if (coordinatorDecided(ownPrompt(input)) || claimed?.named) return emitSilent();
     // A queue-matched hint says so, so a mismatched worker ignores it.
     const queued = !own;
     const candidates = own ? scoreTask(own, loadRoutes()) : fromQueued(claimed.routes);

@@ -20,6 +20,8 @@ argument-hint: "[audit | owasp | secrets | deps | ai | codeql | variants | incid
 
 This skill extends Claude Code's built-in `/security-review`; it does not reimplement it. Lane commands and checklists live in [references/lanes.md](references/lanes.md). The user's selected model is preserved; the only tier routing here is the optional `fable` threat-model delegation in step 4.
 
+**Worker mode.** When your prompt starts with a "CCC pre-run" line, or you run as a fleet or workflow worker, stay in this one thread: do not start agents, workflows or `codex exec`. Do any step this skill would delegate yourself, or skip it and say so. At an approval step (edits during an audit, installs, deploy, push, publish, tracker or settings changes), do not proceed; report the decision in your result.
+
 ## When to use / when not to
 
 Use for: a security audit or OWASP check, secrets or credential scanning, dependency CVE and license audits, hardening an LLM-powered feature against prompt injection, wiring CodeQL into CI, hunting variants of a known bug, or running an active incident.

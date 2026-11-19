@@ -52,8 +52,12 @@ function rootOf(p, f) {
  * component with more path after it is not a directory: /etc/hosts/../ssh is
  * ENOTDIR to the OS, not /etc/ssh) or 'unresolvable' (any error but ENOENT,
  * such as EACCES or ELOOP). For 'notdir' and 'unresolvable' the path is the
- * input as written (made absolute, not normalized), so a lenient caller's
- * reads fail the way the OS fails them instead of landing in another dir.
+ * input as written (made absolute, not normalized), and `blocked` is the
+ * component the OS stops at; a lenient caller that must still build paths
+ * builds them under blocked (see blockedDir), where every access fails the way
+ * the OS fails the original, instead of joining onto the written path, which
+ * path.join would normalize into another directory (/etc/hosts/../ssh/x is
+ * /etc/ssh/x to path.join).
  * opts: { platform, fs, cwd } for tests.
  */
 function resolvePhysical(p, opts) {
@@ -89,12 +93,12 @@ function resolvePhysical(p, opts) {
       var resolved = null, err = null;
       try { resolved = real(next); } catch (e) { err = e; }
       if (resolved !== null) {
-        if (i < parts.length - 1 && !isDir(resolved)) return { path: asWritten, problem: problem || 'notdir' };
+        if (i < parts.length - 1 && !isDir(resolved)) return { path: asWritten, problem: problem || 'notdir', blocked: resolved };
         cur = resolved;
         continue;
       }
       // Only ENOENT means "missing from here"; any other error (ENOTDIR, EACCES, ELOOP) is not a path to act on.
-      if (!err || err.code !== 'ENOENT') return { path: asWritten, problem: problem || 'unresolvable' };
+      if (!err || err.code !== 'ENOENT') return { path: asWritten, problem: problem || 'unresolvable', blocked: next };
       try { xfs.lstatSync(next); problem = problem || 'dangling'; } catch (_e) { /* truly missing */ }
     }
     missing++;
@@ -102,6 +106,12 @@ function resolvePhysical(p, opts) {
   }
   if (UNSAFE.test(cur)) problem = problem || 'control';
   return { path: cur, problem: problem };
+}
+
+/** A dir under the component the OS stops at: any path built under it fails as the original path does. */
+var BLOCKED_LEAF = '.ccc-unresolvable-config-dir';
+function blockedDir(r, opts) {
+  return r && r.blocked ? flavor(opts).P.join(r.blocked, BLOCKED_LEAF) : null;
 }
 
 /** The physical path, or null when it cannot be represented or reached safely (see resolvePhysical). */
@@ -142,6 +152,8 @@ function checkProfileDir(dir, home, opts) {
 
 module.exports = {
   resolvePhysical: resolvePhysical,
+  blockedDir: blockedDir,
+  BLOCKED_LEAF: BLOCKED_LEAF,
   physicalProfilePath: physicalProfilePath,
   isRootPath: isRootPath,
   checkProfileDir: checkProfileDir,

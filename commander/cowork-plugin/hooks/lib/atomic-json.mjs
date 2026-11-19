@@ -6,10 +6,12 @@
  * (Codex audit #26). updateJson() takes an exclusive lock file (`<file>.lock`, created with O_EXCL), reads,
  * applies `mutate`, writes a temp file and renames it over the target, then releases the lock.
  *
- * Lock policy: wait up to `waitMs` (default 400 ms, polled every few ms); a lock older than `staleMs` (default 5 s)
- * belongs to a crashed process and is broken. When the lock still can't be had the update proceeds unlocked:
- * hooks must not stall the tool call, and the temp-file rename still guarantees no reader ever sees a torn file.
- * The result says which happened (`locked: true|false`).
+ * Lock policy: wait up to `waitMs` (default 400 ms, polled every few ms). A lock is broken when the process that
+ * wrote it (its pid) is gone, or when it is older than `staleMs` (default 5 s). When the lock still can't be had
+ * the update proceeds unlocked (hooks must not stall the tool call, and the temp-file rename still guarantees no
+ * reader ever sees a torn file), unless `requireLock` is set, which throws instead. The result says which
+ * happened (`locked: true|false`). With `strict`, only a missing file starts from `fallback()`; a file that is
+ * unreadable or not a JSON object throws instead of being reset.
  */
 import { open, readFile, writeFile, rename, unlink, stat, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
@@ -30,7 +32,7 @@ async function acquire(lockFile, { waitMs, staleMs }) {
     }
     try {
       const st = await stat(lockFile);
-      if (Date.now() - st.mtimeMs > staleMs) {
+      if (Date.now() - st.mtimeMs > staleMs || await ownerGone(lockFile)) {
         await unlink(lockFile).catch(() => {});
         continue;
       }
@@ -40,6 +42,14 @@ async function acquire(lockFile, { waitMs, staleMs }) {
     if (Date.now() >= deadline) return false;
     await sleep(3 + Math.floor(Math.random() * 5));
   }
+}
+
+/** The lock's writer (a pid other than ours) no longer runs. */
+async function ownerGone(lockFile) {
+  let pid;
+  try { pid = Number(String(await readFile(lockFile, 'utf8')).trim()); } catch { return false; }
+  if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid) return false;
+  try { process.kill(pid, 0); return false; } catch (err) { return err?.code === 'ESRCH'; }
 }
 
 /** Write JSON through a unique temp file and rename, so a concurrent reader sees the old or the new file, never half. */
@@ -60,16 +70,21 @@ export async function writeJsonAtomic(file, value) {
  * missing or unreadable) and returns the next value, or `undefined` to leave the file untouched.
  * Returns { value, written, locked }.
  */
-export async function updateJson(file, mutate, { fallback = () => ({}), waitMs = 400, staleMs = 5000 } = {}) {
+export async function updateJson(file, mutate, { fallback = () => ({}), waitMs = 400, staleMs = 5000, strict = false, requireLock = false } = {}) {
   await mkdir(dirname(file), { recursive: true });
   const lockFile = `${file}.lock`;
   const locked = await acquire(lockFile, { waitMs, staleMs });
+  if (requireLock && !locked) throw new Error(`could not lock ${file}`);
   try {
     let current;
     try {
       current = JSON.parse(await readFile(file, 'utf8'));
-      if (!current || typeof current !== 'object' || Array.isArray(current)) current = fallback();
-    } catch {
+      if (!current || typeof current !== 'object' || Array.isArray(current)) {
+        if (strict) throw new Error(`${file} is not a JSON object`);
+        current = fallback();
+      }
+    } catch (err) {
+      if (strict && err?.code !== 'ENOENT') throw err;
       current = fallback();
     }
     const next = await mutate(current);

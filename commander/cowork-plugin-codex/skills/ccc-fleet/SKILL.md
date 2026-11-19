@@ -91,7 +91,7 @@ Before dispatch, show the arc in two to four lines: pattern, agent count, model 
 
 ### 5. Pre-run skill evaluation
 
-Pick the CCC skills for each slice before dispatch, so every worker starts with the right skill. Never paste slice text into a shell command: write all slices as a JSON array of strings to a scratch file with the Write tool, then run `node "${CLAUDE_PLUGIN_ROOT}/lib/route-task.mjs" --tasks-file <that file>`. It prints one JSON line per slice, in order; pass each line's `skills` array as the workflow's `args.skills`. A slice whose `skills` is empty runs without a skill. With the Agent tool, put each line's `prompt_block` at the top of that worker's prompt. Only worker skills are ever picked (no deploy, push, publish, tracker, fleet or hidden skills); the workflow drops any other skill id it is given.
+Pick the CCC skills for each slice before dispatch, so every worker starts with the right skill. Never paste slice text into a shell command: write all slices as a JSON array of strings to a scratch file with the Write tool, then run `node "${CLAUDE_PLUGIN_ROOT}/lib/route-task.mjs" --tasks-file <that file>`. It prints one JSON line per slice, in order; pass each line's `skills` array as the workflow's `args.skills`. A slice whose `skills` is empty runs without a skill. With the Agent tool, each line's `prompt_block` is the first line of that worker's prompt; everything else (the worktree check below, the slice) follows it. Only worker skills are ever picked (no deploy, push, publish, tracker, fleet or hidden skills); the workflow drops any other skill id it is given.
 
 ### 6. Dispatch
 
@@ -114,7 +114,7 @@ The same workflow runs from the prompt as `/commander:ccc-fleet-run`; inspect ru
 - Set `model` and `effort` per role: workers `medium`, specialists `low`, directors and verifiers `high`.
 - Set `isolation: "worktree"` only for agents that write files while other agents or the coordinator also write (fan-out slices, team leads, a background agent that edits code). Sequential pipeline stages and read-only reviewers run without it.
 - Set `run_in_background: true`, and send parallel calls in one message so they start together.
-- Start every writing agent's prompt with: "FIRST: run `git rev-parse --show-toplevel`. It must be your assigned worktree, not the main checkout; abort and report if it is not. Edit relative paths only."
+- Directly after the `prompt_block` line from step 5, give every writing agent: "FIRST: run `git rev-parse --show-toplevel`. It must be your assigned worktree, not the main checkout; abort and report if it is not. Edit relative paths only."
 - Each prompt names the non-overlapping file domain, the check command to run, "do not push, do not force, do not merge", and the report shape: files changed, check run and result, worktree path, branch.
 - Naming: worker branches are `feat/fleet-<slug>-<n>` (or `feat/<task-slug>` for a single background agent) and worktrees live at `.claude/worktrees/<branch-slug>`; the Workflow runtime and `isolation: "worktree"` create their own paths, so only the fallback dispatch applies these names.
 - Background agents get a time budget: 60 minutes by default, or the number the user names. State it in the prompt ("stop and report at the budget, even if unfinished") and in the plan echo.

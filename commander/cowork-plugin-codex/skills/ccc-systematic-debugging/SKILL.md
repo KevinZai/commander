@@ -23,6 +23,8 @@ NO FIX WITHOUT CONFIRMED ROOT CAUSE
 
 Guess-and-check fixes waste time and create new bugs; quick patches mask the real issue. Complete each phase before starting the next.
 
+**Worker mode.** When your prompt starts with a "CCC pre-run" line, or you run as a fleet or workflow worker, stay in this one thread: do not start agents, workflows or `codex exec`. Do any step this skill would delegate yourself, or skip it and say so. At an approval step (edits during an audit, installs, deploy, push, publish, tracker or settings changes), do not proceed; report the decision in your result.
+
 ## When to use / when not to
 
 - Use for any bug, failing or flaky test, crash, wrong output, or error whose cause is not yet proven.

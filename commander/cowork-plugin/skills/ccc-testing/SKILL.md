@@ -15,6 +15,8 @@ argument-hint: "[tdd | e2e | verify | qa | qa-only | strategy | visual | load | 
 
 **CC Commander** · /ccc-testing · one entry to the testing domain; routes to the specialist lane and keeps test work out of your working tree.
 
+**Worker mode.** When your prompt starts with a "CCC pre-run" line, or you run as a fleet or workflow worker, stay in this one thread: do not start agents, workflows or `codex exec`. Do any step this skill would delegate yourself, or skip it and say so. At an approval step (edits during an audit, installs, deploy, push, publish, tracker or settings changes), do not proceed; report the decision in your result.
+
 ## When to use / when not to
 
 - Use when the request is about writing, planning or running tests and the right specialist is not obvious.

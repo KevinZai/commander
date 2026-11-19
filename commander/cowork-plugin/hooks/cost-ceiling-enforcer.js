@@ -67,8 +67,9 @@ export async function run(input = {}) {
         if (typeof config.costCeiling === 'number' && config.costCeiling > 0) {
           ceiling = config.costCeiling;
         }
-      } catch {
-        // No config file — no ceiling
+      } catch (err) {
+        // No config file: no ceiling. Unreadable or malformed: the ceiling is unknown, so block (below).
+        if (err?.code !== 'ENOENT') { ceiling = Infinity; throw err; }
       }
     }
     if (!ceiling) {
@@ -94,12 +95,15 @@ export async function run(input = {}) {
       // cross together, exactly one claims the warning and the other is denied.
       let claimedWarning = false;
       if (costData && !costData.ceilingWarnedAt) {
+        // The warning counts only once its marker is written under the lock; any failure denies instead.
         try {
-          await updateJson(COST_FILE, (current) => {
+          let wanted = false;
+          const r = await updateJson(COST_FILE, (current) => {
             if (current.ceilingWarnedAt) return undefined;
-            claimedWarning = true;
+            wanted = true;
             return { ...current, ceilingWarnedAt: new Date().toISOString() };
-          });
+          }, { strict: true, requireLock: true });
+          claimedWarning = wanted && r.written && r.locked;
         } catch {}
       }
       if (claimedWarning) {

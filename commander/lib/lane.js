@@ -41,10 +41,14 @@ var DEFAULT_ALIASES = Object.freeze({ guestnetworks: 'ai5' });
  */
 // Only win32 treats a backslash as a separator.
 var DOTDOT = process.platform === 'win32' ? /(^|[\\/])\.\.([\\/]|$)/ : /(^|\/)\.\.(\/|$)/;
+// A path the OS cannot open (through a non-directory, EACCES, ELOOP) becomes a dir under the component it stops
+// at, so every state path built from it fails the same way instead of path.join normalizing it elsewhere.
 function physicalConfigDir(raw) {
-  if (!DOTDOT.test(String(raw))) return path.resolve(raw);
+  if (!DOTDOT.test(String(raw))) return { dir: path.resolve(raw), problem: null };
   var r = profilePath.resolvePhysical(raw);
-  return r.path || path.resolve(raw);
+  var blocked = profilePath.blockedDir(r);
+  if (blocked) return { dir: blocked, problem: r.problem };
+  return { dir: r.path || path.resolve(raw), problem: null };
 }
 
 function homeOf(env) {
@@ -77,7 +81,7 @@ function laneAliases(env) {
 
 /**
  * Resolve the lane for an environment (default process.env).
- * Returns {lane, account, configDir, stateDir, source, known, aliased}.
+ * Returns {lane, account, configDir, stateDir, source, known, aliased, problem}.
  *   source:  'CCC_CONFIG_DIR' | 'CLAUDE_CONFIG_DIR' | 'default'
  *   known:   false when the dir name is neither .claude nor .claude-<name>
  *   aliased: true when an alias renamed the lane (account keeps the suffix)
@@ -91,7 +95,8 @@ function resolveLane(env) {
   // configDir is physical, resolved by the installer's resolver (lib/profile-path.js), so check-in, hold and
   // `ccc next` read the directory install.sh wrote: /var/../x is /private/x on macOS, as the OS opens it. The
   // lane name comes from the path as written, so ~/.claude-ai1 linked to a dotfiles dir is still lane ai1.
-  var configDir = physicalConfigDir(raw);
+  var phys = physicalConfigDir(raw);
+  var configDir = phys.dir;
   var base = path.basename(path.resolve(raw));
   var lane = 'custom';
   var account = null;
@@ -118,6 +123,7 @@ function resolveLane(env) {
     source: source,
     known: known,
     aliased: aliased,
+    problem: phys.problem, // 'notdir' | 'unresolvable' when the config dir cannot be opened; else null
   };
 }
 

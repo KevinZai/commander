@@ -37,7 +37,12 @@ export async function run(input = {}) {
     const { value: costData } = await updateJson(COST_FILE, (current) => {
       const toolCalls = (Number.isFinite(current.toolCalls) ? current.toolCalls : 0) + 1;
       return { ...current, toolCalls, estimatedCost: toolCalls * UNIT_PER_CALL };
-    }, { fallback: () => ({ toolCalls: 0, estimatedCost: 0, sessionId: SESSION_KEY, startedAt: new Date().toISOString() }) });
+    }, {
+      // Only a missing counter starts at zero; a corrupt one or a lock that cannot be had is an error, so a
+      // configured ceiling never reads a reset or unlocked count.
+      fallback: () => ({ toolCalls: 0, estimatedCost: 0, sessionId: SESSION_KEY, startedAt: new Date().toISOString() }),
+      strict: true, requireLock: true, waitMs: 1000,
+    });
 
     if (costData.toolCalls > ALERT_CALLS) {
       out = emitUser(

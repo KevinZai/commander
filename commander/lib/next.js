@@ -114,8 +114,9 @@ async function next(opts) {
   var routes = scorer.loadRoutes(registry);
   var byId = new Map(routes.map(function(r) { return [r.id, r]; }));
   var bundled = new Set(scorer.loadRoutes(path.join(PLUGIN_SRC, 'hooks', 'lib', 'ccc-routes.json')).filter(scorer.workerEligible).map(function(r) { return r.id; }));
-  // A worker skill in both registries that this lane's plugin actually ships.
-  var eligible = function(id) { return bundled.has(id) && byId.has(id) && scorer.workerEligible(byId.get(id)) && has(id); };
+  // A worker skill in both registries that this lane's plugin actually ships. Without an installed registry
+  // there is no evidence of what the lane's plugin allows, so nothing is a worker pick.
+  var eligible = function(id) { return routeSource === 'installed' && bundled.has(id) && byId.has(id) && scorer.workerEligible(byId.get(id)) && has(id); };
   var candidates = [];
   var text = [job.text, job.tags.join(' ')].filter(Boolean).join('. ');
   // scoreTask reads the whole description in pieces, not just its first 600 chars.
@@ -147,7 +148,8 @@ async function next(opts) {
     tier: top ? scorer.tierFor([top], 'auto') : 'low',
     score: top ? top.score : null,
     route_source: routeSource,
-    candidates: skills.slice(0, 3).map(function(c) { return { skill: '/' + c.route.id, score: c.score }; }),
+    // Worker skills only, so a consumer that reads candidates cannot pick a skill the worker filter rejected.
+    candidates: skills.filter(function(c) { return eligible(c.route.id); }).slice(0, 3).map(function(c) { return { skill: '/' + c.route.id, score: c.score }; }),
     skills: picks.map(function(id) { return '/' + id; }),
     prompt_block: promptBlock(picks, plugin.version, scorer.WORKER_RULES),
   };

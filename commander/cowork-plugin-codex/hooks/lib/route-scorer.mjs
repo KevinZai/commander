@@ -146,23 +146,37 @@ const WINDOW_STEP = 450;
 // and pasted blocks are quoted material, not
 // the job: blanked out of the whole task (line breaks kept) before any line
 // or window is read, and the result is cut at TASK_CHARS.
+// A heading, list item or thematic break: it ends a blockquote's lazy continuation.
+const BLOCK_START = /^ {0,3}(?:#{1,6}(?:\s|$)|[-*+]\s|\d{1,9}[.)]\s|(?:[-*_]\s*){3,}$)/;
+// An inline code span: a run of N backticks closed by a run of exactly N.
+const INLINE_CODE = /(?<!`)(`+)(?!`)(?:.*?[^`])?\1(?!`)/g;
+
 function stripQuoted(text) {
   const blank = (m) => m.replace(/[^\n]/g, ' ');
   const lines = String(text || '').replace(/<pasted_content[\s\S]*?(<\/pasted_content[^>]*>|$)/g, blank).split('\n');
   let fence = null; // { ch, len } of the open fence
   let quote = false; // inside a blockquote paragraph (lazy continuation lines count)
+  let code = false; // inside an indented code block
+  let prevBlank = true; // an indented code block starts after a blank line (or at the top)
   const out = lines.map((line) => {
+    const wasBlank = prevBlank;
+    prevBlank = !line.trim();
     if (fence) {
       const close = line.match(/^ {0,3}(`{3,}|~{3,})\s*$/);
       if (close && close[1][0] === fence.ch && close[1].length >= fence.len) fence = null;
       return '';
     }
+    if (!line.trim()) { quote = false; return line; }
+    // Four spaces or a tab after a blank line (or continuing such a block) is an indented code block.
+    if (/^(?: {4}|\t)/.test(line) && (code || (wasBlank && !quote))) { code = true; return ''; }
+    code = false;
     const open = line.match(/^ {0,3}(`{3,}|~{3,})/);
     if (open) { fence = { ch: open[1][0], len: open[1].length }; quote = false; return ''; }
     if (/^ {0,3}>/.test(line)) { quote = true; return ''; }
-    if (!line.trim()) { quote = false; return line; }
-    if (quote) return '';
-    return line.replace(/`[^`\n]*`/g, blank).replace(/https?:\/\/\S+/g, blank);
+    // A lazy quote line is paragraph text; a heading, list item or rule starts a new block.
+    if (quote && !BLOCK_START.test(line)) return '';
+    quote = false;
+    return line.replace(INLINE_CODE, blank).replace(/https?:\/\/\S+/g, blank);
   });
   return out.join('\n').slice(0, TASK_CHARS);
 }

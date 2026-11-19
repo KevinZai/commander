@@ -201,9 +201,11 @@ function buildCheckin(opts) {
     if (hooks.status === 'fail') next.push('claude plugin install ' + pluginId);
   }
 
-  checks.push(ln.known
-    ? check('lane', 'ok', 'lane ' + ln.lane + ' (' + ln.source + ')')
-    : check('lane', 'warn', 'config dir ' + ln.configDir + ' is not .claude or .claude-<lane>; lane "custom"'));
+  checks.push(ln.problem
+    ? check('lane', 'fail', ln.source + ' cannot be resolved safely (' + ln.problem + '); fix the config dir path', true)
+    : ln.known
+      ? check('lane', 'ok', 'lane ' + ln.lane + ' (' + ln.source + ')')
+      : check('lane', 'warn', 'config dir ' + ln.configDir + ' is not .claude or .claude-<lane>; lane "custom"'));
 
   var blocking = checks.some(function(c) { return c.blocking; });
   var usage = laneUsage.readLaneUsage(ln.lane, { env: env, now: opts.now });

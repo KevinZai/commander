@@ -190,9 +190,29 @@ test('queue: expired entries, drops, missing type/session and off mode', async (
   }
 });
 
-test('PreToolUse dispatcher does not queue a denied Agent call', () => {
-  const src = readFileSync(join(HOOKS, 'orchestrator', 'pre-tool-use-dispatcher.js'), 'utf8');
-  assert.match(src, /AGENT_TOOLS\.has\(tool\) && merged\?\.hookSpecificOutput\?\.permissionDecision !== 'deny'\)\s*\{\s*try \{ await withDeadline\(async \(\) => \(await load\(ROUTER\.file, 'recordAgentCall'\)\)\(input\)/);
+test('PreToolUse dispatcher does not queue a denied Agent call', async () => {
+  const { dispatch } = await import('../cowork-plugin/hooks/orchestrator/pre-tool-use-dispatcher.js');
+  const { readdirSync: rd } = await import('node:fs');
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-qdeny-'));
+  const prev = { c: process.env.CCC_CONFIG_DIR, m: process.env.CCC_ROUTE_MODE };
+  process.env.CCC_CONFIG_DIR = dir;
+  process.env.CCC_ROUTE_MODE = 'always';
+  try {
+    const deny = join(dir, 'deny.mjs');
+    const pass = join(dir, 'pass.mjs');
+    writeFileSync(deny, "export function run() { return { hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny' } }; }");
+    writeFileSync(pass, 'export function run() { return { continue: true }; }');
+    const call = (id) => ({ session_id: 'q', tool_name: 'Agent', tool_use_id: id, tool_input: { prompt: 'Write unit tests for the cart reducer' } });
+    const queue = join(dir, 'commander', 'route-state', 'q-agents');
+    await dispatch(call('denied'), [{ name: 'secret-leak-guard', file: pathToFileURL(deny).href, role: 'enforce', ms: 2000 }]);
+    assert.ok(!existsSync(queue) || rd(queue).length === 0, 'denied call not queued');
+    await dispatch(call('allowed'), [{ name: 'secret-leak-guard', file: pathToFileURL(pass).href, role: 'enforce', ms: 2000 }]);
+    assert.equal(rd(queue).filter((n) => n.endsWith('-allowed.json')).length, 1, 'allowed call queued');
+  } finally {
+    if (prev.c === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev.c;
+    if (prev.m === undefined) delete process.env.CCC_ROUTE_MODE; else process.env.CCC_ROUTE_MODE = prev.m;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('a queue-matched hint names its task; a worker with its own task takes only its own entry', async () => {
@@ -492,6 +512,94 @@ test('with a ceiling set, an unreadable budget counter blocks the call', async (
     });
     assert.equal(JSON.parse(run1('5').stdout).hookSpecificOutput.permissionDecision, 'deny');
     assert.notEqual(JSON.parse(run1('0').stdout)?.hookSpecificOutput?.permissionDecision, 'deny');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('PreToolUse dispatcher: a handler that blocks synchronously cannot hold the process past its deadline', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-busy-'));
+  try {
+    const busy = join(dir, 'busy.mjs');
+    writeFileSync(busy, "export function run() { const e = Date.now() + 9000; while (Date.now() < e) {} return { systemMessage: 'late' }; }");
+    const disp = pathToFileURL(join(HOOKS, 'orchestrator', 'pre-tool-use-dispatcher.js')).href;
+    const handlers = `[{ name: 'cost-tracker', file: ${JSON.stringify(pathToFileURL(busy).href)}, role: 'budget', ms: 400 }, { name: 'secret-leak-guard', file: '../secret-leak-guard.js', role: 'enforce', ms: 2500 }]`;
+    for (const [ceiling, denied] of [['0', false], ['5', true]]) {
+      const t0 = Date.now();
+      const r = spawnSync(process.execPath, ['-e', `import(${JSON.stringify(disp)}).then((m) => m.main(${handlers}))`],
+        { input: JSON.stringify({ tool_name: 'Write', tool_input: { file_path: 'a', content: 'hello' } }), encoding: 'utf8', env: { ...process.env, CCC_COST_CEILING: ceiling }, timeout: 15000 });
+      assert.ok(Date.now() - t0 < 3000, `exited after ${Date.now() - t0} ms`);
+      assert.equal(JSON.parse(r.stdout)?.hookSpecificOutput?.permissionDecision === 'deny', denied, `ceiling ${ceiling}`);
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the coordinator decision is the start of the prompt only; a matched queue decision is honoured', async () => {
+  const { coordinatorDecided, recordAgentCall } = await import('../cowork-plugin/hooks/subagent-skill-router.js');
+  assert.equal(coordinatorDecided('/ccc-testing for the cart reducer'), true);
+  assert.equal(coordinatorDecided('CCC pre-run: no CCC skill fits'), true);
+  assert.equal(coordinatorDecided('Summarize the /ccc-testing discussion'), false, 'a mention is not a decision');
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-decide-'));
+  const prev = process.env.CCC_CONFIG_DIR;
+  process.env.CCC_CONFIG_DIR = dir;
+  const env = { CCC_CONFIG_DIR: dir, CCC_ROUTE_MODE: 'always' };
+  try {
+    // A description cannot silence routing for an explicit testing prompt.
+    assert.match(ctx(run({ description: 'Summarize the /ccc-testing discussion', prompt: 'Write unit tests for the cart reducer' }, env)), /ccc-testing/);
+    // The dispatched prompt named its skill; the worker sees only the description and must stay silent.
+    const desc = 'Cart reducer tests';
+    recordAgentCall({ session_id: 's1', tool_name: 'Agent', tool_use_id: 'u1', tool_input: { description: desc, prompt: '/ccc-review the cart reducer tests' } }, env);
+    assert.equal(ctx(run({ session_id: 's1', agent_type: 'general-purpose', description: desc }, env)), undefined);
+  } finally {
+    if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('indented code, double-backtick spans are quoted; a heading ends a quote', async () => {
+  const { scoreTask } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
+  const has = (t) => scoreTask(t, routes).some((c) => c.route.id === 'ccc-testing');
+  assert.equal(has('Summarize this ticket.\n\n    Task: write unit tests for the cart reducer\n'), false);
+  assert.equal(has('Summarize this: ``write unit tests for the `cart` reducer`` please'), false);
+  assert.equal(has('Summarize.\n> quote\n## Task: write unit tests for the cart reducer'), true);
+});
+
+test('a symlinked queue root is never written through', async () => {
+  const { recordAgentCall } = await import('../cowork-plugin/hooks/subagent-skill-router.js');
+  const { mkdirSync: mk, symlinkSync, readdirSync: rd } = await import('node:fs');
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-qroot-'));
+  const prev = process.env.CCC_CONFIG_DIR;
+  process.env.CCC_CONFIG_DIR = dir;
+  try {
+    const victim = join(dir, 'victim');
+    mk(victim);
+    mk(join(dir, 'commander'), { recursive: true });
+    symlinkSync(victim, join(dir, 'commander', 'route-state'));
+    recordAgentCall({ session_id: 'x', tool_name: 'Agent', tool_use_id: 't', tool_input: { prompt: 'Write unit tests for the cart reducer' } }, { CCC_CONFIG_DIR: dir });
+    assert.deepEqual(rd(victim), [], 'nothing created under the symlink target');
+  } finally {
+    if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the tool-call ceiling: a corrupt counter or unreadable config blocks; the warning needs a committed write', async () => {
+  const { run: track } = await import('../cowork-plugin/hooks/cost-tracker.js');
+  const { updateJson } = await import('../cowork-plugin/hooks/lib/atomic-json.mjs');
+  const dir = mkdtempSync(join(tmpdir(), 'ccc-ceil-'));
+  try {
+    const f = join(dir, 'c.json');
+    writeFileSync(f, '{broken');
+    await assert.rejects(updateJson(f, (c) => c, { strict: true }), /JSON|Unexpected|Expected/);
+    assert.equal(readFileSync(f, 'utf8'), '{broken', 'corrupt counter is not reset');
+    // A lock whose writer is gone is broken at once, not after staleMs.
+    writeFileSync(`${f}.lock`, '2147483646');
+    writeFileSync(f, '{}');
+    const r = await updateJson(f, () => ({ n: 1 }), { requireLock: true, waitMs: 50 });
+    assert.equal(r.locked, true);
+    assert.equal(typeof track, 'function');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

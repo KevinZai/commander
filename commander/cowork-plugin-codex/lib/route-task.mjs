@@ -34,7 +34,8 @@ export function pick(task, routes = loadRoutes(), host = detectHost()) {
     : 'CCC pre-run: no CCC skill fits this task; work without one.';
   return {
     skills,
-    candidates: scored.slice(0, 3).map((c) => ({ skill: `/${c.route.id}`, score: c.score })),
+    // Worker skills only, so a consumer that reads candidates cannot pick a skill the worker filter rejected.
+    candidates: scored.filter((c) => workerEligible(c.route)).slice(0, 3).map((c) => ({ skill: `/${c.route.id}`, score: c.score })),
     prompt_block: promptBlock,
   };
 }
