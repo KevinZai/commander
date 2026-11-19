@@ -44,7 +44,7 @@ test('registry match: a security audit job routes to /ccc-security with stable k
   var l = laneWith(['ccc-security', 'ccc-build', 'ccc-review']);
   var r = await nextLib.next({ job: { kind: 'code', tags: ['security'], title: 'audit the auth flow for OWASP issues' }, env: l.env });
   assert.deepStrictEqual(Object.keys(r), CONTRACT_KEYS);
-  assert.deepStrictEqual([r.schema, r.action, r.when, r.skill, r.version, r.source, r.route_source], [1, 'proceed', 'now', '/ccc-security', '8.1.2', 'ccc-next', 'installed']);
+  assert.deepStrictEqual([r.schema, r.action, r.when, r.skill, r.skills[0], r.version, r.source, r.route_source], [1, 'proceed', 'now', null, '/ccc-security', '8.1.2', 'ccc-next', 'installed']);
   assert.notStrictEqual(r.tier, 'low');
   assert.ok(r.score >= 0.55);
   assert.strictEqual(r.candidates[0].skill, '/ccc-security');
@@ -53,14 +53,14 @@ test('registry match: a security audit job routes to /ccc-security with stable k
 test('a registry match whose skill is not installed falls back to the tag/kind map', async function() {
   var l = laneWith(['ccc-testing']);
   var r = await nextLib.next({ job: { kind: 'code', tags: ['test'], title: 'audit the auth flow for OWASP issues' }, env: l.env });
-  assert.strictEqual(r.skill, '/ccc-testing');
+  assert.strictEqual(r.skills[0], '/ccc-testing');
   assert.strictEqual(r.tier, 'low');
-  assert.match(r.reason, /tag test -> \/ccc-testing$/);
+  assert.match(r.reason, /tag test -> skills \/ccc-testing$/);
 });
 
 test('fallbacks: tag beats kind; nothing matching gives no skill, never the /ccc hub', async function() {
   var l = laneWith(['ccc-security', 'ccc-testing', 'ccc-build', 'ccc-plan']);
-  assert.strictEqual((await nextLib.next({ job: { kind: 'code', tags: ['Test', 'security'] }, env: l.env })).skill, '/ccc-testing');
+  assert.strictEqual((await nextLib.next({ job: { kind: 'code', tags: ['Test', 'security'] }, env: l.env })).skills[0], '/ccc-testing');
   // Kinds and tags whose old fallback is not a worker skill give nothing.
   assert.strictEqual((await nextLib.next({ job: { kind: 'code', tags: ['planning'] }, env: l.env })).skill, null);
   var none = await nextLib.next({ job: { kind: 'mystery' }, env: l.env });
@@ -87,7 +87,7 @@ test('without an installed registry the checkout registry is used and reported',
   var l = laneWith(['ccc-security'], { registry: false });
   var r = await nextLib.next({ job: { title: 'audit the auth flow for OWASP issues', tags: ['security'] }, env: l.env });
   assert.strictEqual(r.route_source, 'checkout');
-  assert.strictEqual(r.skill, '/ccc-security');
+  assert.strictEqual(r.skills[0], '/ccc-security');
 });
 
 test('fleet-hold.json in the lane state dir holds or defers; a past defer is ignored', async function() {
@@ -133,7 +133,7 @@ test('CLI: stdin job -> one JSON line, exit 0; bad JSON exit 2; no plugin exit 3
   var r = runCli(l, '{"kind":"code","tags":["test"]}');
   assert.strictEqual(r.status, 0, r.stderr);
   assert.strictEqual(r.stdout.trim().split('\n').length, 1);
-  assert.strictEqual(JSON.parse(r.stdout).skill, '/ccc-testing');
+  assert.strictEqual(JSON.parse(r.stdout).skills[0], '/ccc-testing');
   assert.strictEqual(runCli(l, '{oops').status, 2);
   var none = tmp('ccc next cli none ');
   var r3 = runCli({ env: { HOME: none, CLAUDE_CONFIG_DIR: path.join(none, '.claude-ai2') } }, '{}');
@@ -153,7 +153,7 @@ test('a project-scoped install is used when ccc next runs inside that project', 
   delete env.CCC_CONFIG_DIR;
   var r = childProcess.spawnSync(process.execPath, [KC, 'next', '--json'], { input: '{"tags":["test"]}', env: env, cwd: project, encoding: 'utf8' });
   assert.strictEqual(r.status, 0, r.stderr);
-  assert.strictEqual(JSON.parse(r.stdout).skill, '/ccc-testing');
+  assert.strictEqual(JSON.parse(r.stdout).skills[0], '/ccc-testing');
 });
 
 test('a corrupt fleet-hold.json fails closed as a hold', async function() {
@@ -195,9 +195,7 @@ test('Fleet never receives a side-effect, delegating or hidden skill in any fiel
   for (var i = 0; i < jobs.length; i++) {
     var r = await nextLib.next({ job: jobs[i], env: l.env });
     assert.deepStrictEqual([r.schema, typeof r.action, typeof r.when, typeof r.reason, r.version], [1, 'string', 'string', 'string', '8.1.2']);
-    assert.ok(r.skill === null || /^\/ccc(-[a-z0-9-]{1,40})?$/.test(r.skill));
-    if (r.skill) assert.ok(workers.has(r.skill.slice(1)), JSON.stringify(jobs[i]) + ' -> ' + r.skill);
-    assert.strictEqual(r.skill, r.skills[0] || null, 'skill is skills[0]');
+    assert.strictEqual(r.skill, null, 'Fleet keeps only skill and drops the worker rules, so it is always null');
     r.skills.forEach(function(s2) { assert.ok(workers.has(s2.slice(1)), s2); });
   }
 });
@@ -205,4 +203,16 @@ test('Fleet never receives a side-effect, delegating or hidden skill in any fiel
 test('a --description value that looks like a flag stays data', function() {
   var job = nextLib.jobFromArgs(['next', '--json', '--description', '--update', '--title', '--kind']);
   assert.deepStrictEqual(job, { kind: undefined, tags: [], title: '--kind', description: '--update' });
+});
+
+test('a stale installed registry cannot bring back a skill removed from the worker list', async function() {
+  var l = laneWith(['ccc-design', 'ccc-research', 'ccc-testing']);
+  var reg = path.join(l.dir, 'plugins', 'cache', 'commander-hub', 'commander', '8.1.2', 'hooks', 'lib', 'ccc-routes.json');
+  var data = JSON.parse(fs.readFileSync(reg, 'utf8'));
+  data.routes.forEach(function(r) { if (r.id === 'ccc-design' || r.id === 'ccc-research') r.worker = true; });
+  fs.writeFileSync(reg, JSON.stringify(data));
+  var d = await nextLib.next({ job: { title: 'Design my landing page' }, env: l.env });
+  assert.strictEqual(d.skills.indexOf('/ccc-design'), -1);
+  var r = await nextLib.next({ job: { title: 'research the best libraries for charts' }, env: l.env });
+  assert.strictEqual(r.skills.indexOf('/ccc-research'), -1);
 });

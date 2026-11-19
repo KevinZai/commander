@@ -16,12 +16,14 @@
  *
  * Failure policy (hooks.json sets onFailure "block" with an 8 s timeout, so this process must answer in
  * time and must not crash). Each handler runs under one deadline that covers its import and its run:
- *   cost-tracker (advisory, 1.5 s): an error or timeout is a silent pass.
- *   cost-ceiling-enforcer (budget, 2.5 s): an error or timeout denies the call when a tool-call
- *     ceiling is configured (and CCC_COST_OVERRIDE is not 1), and passes when none is.
+ *   cost-tracker and cost-ceiling-enforcer (budget, 1.5 s and 2.5 s): an error or timeout denies the
+ *     call when a tool-call ceiling is configured (and CCC_COST_OVERRIDE is not 1), and passes when
+ *     none is (the ceiling is off by default). Checking the configuration has its own 500 ms limit.
  *   secret-leak-guard (enforce, 2.5 s): an error or timeout denies a call it scans.
- * The three deadlines add up to 6.5 s. Input that is not a JSON object is denied. The subagent router
- * is loaded only for Agent/Task calls, after the decision, and never changes it.
+ * The deadlines add up to well under the 8 s hook timeout, and main() exits the process as soon as
+ * the answer is written, so work that lost a race cannot hold the process open. Input that is not a
+ * JSON object is denied. The subagent router is loaded only for Agent/Task calls, after the decision,
+ * and never changes it.
  */
 import { readFileSync } from 'node:fs';
 import { isMainModule } from '../lib/code-mode.mjs';
@@ -84,7 +86,7 @@ async function load(rel, name) {
 // { file } entries, the same shape as the SessionStart orchestrator, so ccc doctor
 // counts these handlers as run by this dispatcher.
 export const HANDLERS = Object.freeze([
-  { name: 'cost-tracker', file: '../cost-tracker.js', role: 'advisory', ms: 1500 },
+  { name: 'cost-tracker', file: '../cost-tracker.js', role: 'budget', ms: 1500 },
   { name: 'cost-ceiling-enforcer', file: '../cost-ceiling-enforcer.js', role: 'budget', ms: 2500 },
   { name: 'secret-leak-guard', file: '../secret-leak-guard.js', role: 'enforce', ms: 2500 },
 ]);
@@ -100,7 +102,11 @@ export function mergeOutputs(outputs) {
 async function onFailure(role, tool, name, err) {
   const why = `${name}: ${err?.message || 'error'}`;
   if (role === 'enforce') return guardCovers(tool) ? guardFailed(tool, why) : emitSilent();
-  if (role === 'budget') return (await budgetConfigured()) ? budgetFailed(why) : emitSilent();
+  if (role === 'budget') {
+    // Unknown (the check itself stalled or failed): treat as configured.
+    const configured = await withDeadline(() => budgetConfigured(), 500).catch(() => true);
+    return configured ? budgetFailed(why) : emitSilent();
+  }
   return emitSilent();
 }
 
@@ -131,9 +137,15 @@ async function readInput() {
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { return null; }
 }
 
-if (isMainModule(import.meta.url)) {
-  readInput()
-    .then((input) => dispatch(input))
-    .catch((err) => guardFailed('', err?.message || 'dispatcher error'))
-    .then((out) => process.stdout.write(JSON.stringify(out) + '\n'));
+/** Read stdin, answer, and exit at once: nothing left running can delay the exit past the hook timeout. */
+export async function main(handlers = HANDLERS) {
+  let out;
+  try {
+    out = await dispatch(await readInput(), handlers);
+  } catch (err) {
+    out = guardFailed('', err?.message || 'dispatcher error');
+  }
+  process.stdout.write(JSON.stringify(out) + '\n', () => process.exit(0));
 }
+
+if (isMainModule(import.meta.url)) main();

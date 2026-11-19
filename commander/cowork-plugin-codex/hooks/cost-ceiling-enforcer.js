@@ -19,7 +19,8 @@
  *   After that   → denies each tool call (PreToolUse permissionDecision deny,
  *                  with the reason shown to Claude and the user), UNLESS
  *                  CCC_COST_OVERRIDE=1. The turn continues; Claude can stop.
- * State is keyed by the stdin session_id (shared with cost-tracker.js).
+ * State is keyed by the stdin session_id (shared with cost-tracker.js). With a ceiling set, a budget
+ * that cannot be read or checked blocks the call (fail closed).
  */
 import { track } from '../lib/telemetry.mjs';
 import { emitDeny, emitUser } from './lib/emit.mjs';
@@ -48,6 +49,7 @@ export async function run(input = {}) {
   track('hook_fired', { hook: 'PreToolUse', handler: 'cost-ceiling-enforcer' });
 
   const COST_FILE = join(CCC_DIR, 'sessions', `active-cost-${sessionKey(input)}.json`);
+  let ceiling;
 
   try {
     // Explicit override — always allow, stay silent
@@ -56,7 +58,7 @@ export async function run(input = {}) {
     }
 
     // Explicit ceiling only: env first, then the lane config. Unset == off.
-    let ceiling = envCeiling(setting('cost_ceiling'));
+    ceiling = envCeiling(setting('cost_ceiling'));
     const from = settingSource('cost_ceiling');
     const source = ceiling === undefined ? `"costCeiling" in ${CONFIG_FILE}` : from === 'userConfig' ? 'the cost_ceiling plugin option' : 'CCC_COST_CEILING';
     if (ceiling === undefined) {
@@ -77,8 +79,9 @@ export async function run(input = {}) {
     let costData = null;
     try {
       costData = JSON.parse(await readFile(COST_FILE, 'utf8'));
-    } catch {
-      // No cost file yet — budget is 0, allow through
+    } catch (err) {
+      // No cost file yet: the budget is 0. Any other failure means the count is unknown.
+      if (err?.code !== 'ENOENT') throw err;
     }
     const currentCost = costData?.estimatedCost || 0;
 
@@ -116,8 +119,12 @@ export async function run(input = {}) {
     }
 
     return { continue: true };
-  } catch {
-    // Fail open — never block on error
+  } catch (err) {
+    // With a ceiling set, a budget that cannot be checked blocks the call; without one, nothing to enforce.
+    if (ceiling) {
+      return emitDeny(`CCC tool-call budget ceiling: could not check the budget (${err?.code || err?.message || 'error'}), ` +
+        'so this call was blocked. Set CCC_COST_OVERRIDE=1 to continue.');
+    }
     return { continue: true };
   }
 }

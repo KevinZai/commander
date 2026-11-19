@@ -141,20 +141,30 @@ export const TASK_CHARS = 4000;
 const TASK_LINE = /^\s*(?:[#*-]+\s*)?(?:\*\*)?(?:task|goal|objective|your (?:task|job|slice)|slice \d+|deliverable|what to do|todo|ticket|issue|bug|fix|implement|build)\b/i;
 const WINDOW_STEP = 450;
 
-// Code fences (``` and ~~~), blockquote lines, inline code, URLs and pasted
-// blocks are quoted material, not
+// Code fences (``` or ~~~, closed only by the same character at least as
+// long), blockquotes with their lazy continuation lines, inline code, URLs
+// and pasted blocks are quoted material, not
 // the job: blanked out of the whole task (line breaks kept) before any line
 // or window is read, and the result is cut at TASK_CHARS.
 function stripQuoted(text) {
   const blank = (m) => m.replace(/[^\n]/g, ' ');
-  return String(text || '')
-    .replace(/```[\s\S]*?(```|$)/g, blank)
-    .replace(/~~~[\s\S]*?(~~~|$)/g, blank)
-    .replace(/^[ \t]*>.*$/gm, blank)
-    .replace(/<pasted_content[\s\S]*?(<\/pasted_content[^>]*>|$)/g, blank)
-    .replace(/`[^`\n]*`/g, blank)
-    .replace(/https?:\/\/\S+/g, blank)
-    .slice(0, TASK_CHARS);
+  const lines = String(text || '').replace(/<pasted_content[\s\S]*?(<\/pasted_content[^>]*>|$)/g, blank).split('\n');
+  let fence = null; // { ch, len } of the open fence
+  let quote = false; // inside a blockquote paragraph (lazy continuation lines count)
+  const out = lines.map((line) => {
+    if (fence) {
+      const close = line.match(/^ {0,3}(`{3,}|~{3,})\s*$/);
+      if (close && close[1][0] === fence.ch && close[1].length >= fence.len) fence = null;
+      return '';
+    }
+    const open = line.match(/^ {0,3}(`{3,}|~{3,})/);
+    if (open) { fence = { ch: open[1][0], len: open[1].length }; quote = false; return ''; }
+    if (/^ {0,3}>/.test(line)) { quote = true; return ''; }
+    if (!line.trim()) { quote = false; return line; }
+    if (quote) return '';
+    return line.replace(/`[^`\n]*`/g, blank).replace(/https?:\/\/\S+/g, blank);
+  });
+  return out.join('\n').slice(0, TASK_CHARS);
 }
 
 function taskSegments(task) {
@@ -435,7 +445,7 @@ export function renderSubagentCheck(host, queued = false) {
   const pick = ids.length
     ? `if one of ${ids.join(', ')} fits your task, load it; load no other CCC skill from here. ${WORKER_RULES}`
     : 'work without a CCC skill.';
-  return `<ccc-skills for="subagent">\n${guard}Pre-run check: if your prompt already has a "CCC pre-run" line, follow that and ignore this block. Otherwise ${pick} If none fits, just start.\n</ccc-skills>`;
+  return `<ccc-skills for="subagent">\n${guard}Pre-run check: if your prompt starts with a "CCC pre-run" line, follow that and ignore this block. Otherwise ${pick} If none fits, just start.\n</ccc-skills>`;
 }
 
 // A queued task is matched to a worker by agent type and spawn order, not

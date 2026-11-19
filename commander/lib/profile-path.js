@@ -47,8 +47,13 @@ function rootOf(p, f) {
  * Resolve a profile path physically. Returns { path, problem }: path is the
  * physical path (null only for empty input or a drive-relative win32 path);
  * problem is null, or 'control' (a control character such as a newline in the
- * input or the result, which shell command substitution could strip), or
- * 'dangling' (a component is a dangling or looping symlink).
+ * input or the result, which shell command substitution could strip),
+ * 'dangling' (a component is a dangling symlink), 'notdir' (an existing
+ * component with more path after it is not a directory: /etc/hosts/../ssh is
+ * ENOTDIR to the OS, not /etc/ssh) or 'unresolvable' (any error but ENOENT,
+ * such as EACCES or ELOOP). For 'notdir' and 'unresolvable' the path is the
+ * input as written (made absolute, not normalized), so a lenient caller's
+ * reads fail the way the OS fails them instead of landing in another dir.
  * opts: { platform, fs, cwd } for tests.
  */
 function resolvePhysical(p, opts) {
@@ -70,6 +75,8 @@ function resolvePhysical(p, opts) {
     var cwd = opts.cwd || process.cwd();
     try { cur = real(cwd); } catch (_e) { cur = P.resolve(cwd); }
   }
+  var asWritten = P.isAbsolute(p) ? p : (cur.slice(-1) === P.sep ? cur : cur + P.sep) + p;
+  var isDir = function(x) { try { return xfs.statSync(x).isDirectory(); } catch (_e) { return false; } };
   var parts = rest.split(f.win ? /[\\/]+/ : /\/+/).filter(Boolean), missing = 0;
   for (var i = 0; i < parts.length; i++) {
     var c = parts[i];
@@ -79,7 +86,15 @@ function resolvePhysical(p, opts) {
     if (c === '..') { cur = P.dirname(cur); if (missing) missing--; continue; }
     var next = P.join(cur, c);
     if (!missing) {
-      try { cur = real(next); continue; } catch (_e) { /* missing from here, or a dangling link */ }
+      var resolved = null, err = null;
+      try { resolved = real(next); } catch (e) { err = e; }
+      if (resolved !== null) {
+        if (i < parts.length - 1 && !isDir(resolved)) return { path: asWritten, problem: problem || 'notdir' };
+        cur = resolved;
+        continue;
+      }
+      // Only ENOENT means "missing from here"; any other error (ENOTDIR, EACCES, ELOOP) is not a path to act on.
+      if (!err || err.code !== 'ENOENT') return { path: asWritten, problem: problem || 'unresolvable' };
       try { xfs.lstatSync(next); problem = problem || 'dangling'; } catch (_e) { /* truly missing */ }
     }
     missing++;
@@ -110,7 +125,7 @@ function checkProfileDir(dir, home, opts) {
   var f = flavor(opts);
   var r = resolvePhysical(dir, opts);
   if (!r.path || r.problem) {
-    return { ok: false, message: 'the config dir ' + JSON.stringify(dir || '') + ' cannot be resolved safely: it is empty, holds or resolves to a control character such as a newline, or passes through a dangling symlink' };
+    return { ok: false, message: 'the config dir ' + JSON.stringify(dir || '') + ' cannot be resolved safely: it is empty, holds or resolves to a control character such as a newline, or passes through a dangling symlink, a non-directory or an unreadable component (' + (r.problem || 'empty') + ')' };
   }
   var h = physicalProfilePath(home, opts);
   if (!h) return { ok: false, message: 'the home directory cannot be resolved' };

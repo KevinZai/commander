@@ -8,12 +8,13 @@
  *   {schema, action: proceed|defer|hold, when: now|<ISO>, skill, reason,
  *    version, source: 'ccc-next', tier, score, route_source, candidates[],
  *    skills[], prompt_block}
- * `skill` is the one skill Fleet's dispatch gate hands the run, or null;
- * `skills` is the worker's pre-run pick (0-2, best first) and `prompt_block`
- * the same pick as a paragraph for the worker's prompt. Every skill in
- * either field is a worker skill (route-hints.json "worker": visible, no
- * side effect, one thread), and `skill` is always `skills[0]` or null, so
- * Fleet never receives a deploy, tracker, fleet or hidden skill.
+ * `skill` is always null: Fleet's dispatch gate keeps only that field and
+ * drops `prompt_block`, and a skill invoked by name without the worker rules
+ * may delegate or act beyond the task. The worker's pre-run reads `skills`
+ * (0-2 worker skills, best first) and `prompt_block` (the pick plus the
+ * worker rules) itself. A worker skill is one marked "worker" in both this
+ * lane's installed registry and the bundled one, so a stale install cannot
+ * bring back a skill that was removed from the list.
  * Exit 2 bad input, 3 no usable commander plugin on this lane.
  * Read-only: it never dispatches, writes or calls the network.
  */
@@ -112,8 +113,9 @@ async function next(opts) {
   var scorer = await import(url.pathToFileURL(path.join(PLUGIN_SRC, 'hooks', 'lib', 'route-scorer.mjs')).href);
   var routes = scorer.loadRoutes(registry);
   var byId = new Map(routes.map(function(r) { return [r.id, r]; }));
-  // A worker skill that this lane's plugin actually ships.
-  var eligible = function(id) { return byId.has(id) && scorer.workerEligible(byId.get(id)) && has(id); };
+  var bundled = new Set(scorer.loadRoutes(path.join(PLUGIN_SRC, 'hooks', 'lib', 'ccc-routes.json')).filter(scorer.workerEligible).map(function(r) { return r.id; }));
+  // A worker skill in both registries that this lane's plugin actually ships.
+  var eligible = function(id) { return bundled.has(id) && byId.has(id) && scorer.workerEligible(byId.get(id)) && has(id); };
   var candidates = [];
   var text = [job.text, job.tags.join(' ')].filter(Boolean).join('. ');
   // scoreTask reads the whole description in pieces, not just its first 600 chars.
@@ -130,16 +132,16 @@ async function next(opts) {
   job.tags.forEach(function(t) { add(own(TAG_SKILL, t), 'tag ' + t); });
   add(own(KIND_SKILL, job.kind), 'kind ' + job.kind);
   picks = picks.slice(0, PICK_MAX);
-  var skill = picks[0] || null;
-  var reason = skill ? why[0] : 'no matching skill';
-  var top = skill ? skills.filter(function(c) { return c.route.id === skill; })[0] : null;
+  var first = picks[0] || null;
+  var reason = first ? why[0] + ' -> skills ' + picks.map(function(id) { return '/' + id; }).join(', ') : 'no matching skill';
+  var top = first ? skills.filter(function(c) { return c.route.id === first; })[0] : null;
 
   var out = {
     schema: SCHEMA,
     action: 'proceed',
     when: 'now',
-    skill: skill ? '/' + skill : null,
-    reason: 'CCC ' + plugin.version + ': ' + reason + (skill ? ' -> /' + skill : ''),
+    skill: null,
+    reason: 'CCC ' + plugin.version + ': ' + reason,
     version: plugin.version,
     source: 'ccc-next',
     tier: top ? scorer.tierFor([top], 'auto') : 'low',

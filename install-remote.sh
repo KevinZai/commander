@@ -15,7 +15,9 @@
 #
 # Environment:
 #   CCC_REF=v8.1.6        Install this tag or full commit SHA. Default: the
-#                         newest vX.Y.Z release tag.
+#                         newest vX.Y.Z release tag. A branch name is refused:
+#                         a name that is not a commit must be a tag on the
+#                         repository (the same rule as `ccc --update`).
 #   CCC_INSTALL_DIR=DIR   Checkout location. Default: ~/.cc-commander
 #   CCC_INSTALL_CLI=1     Allow `npm install -g @anthropic-ai/claude-code`
 #                         when the claude command is missing.
@@ -98,6 +100,20 @@ if [[ -z "$REF" ]]; then
 fi
 echo -e "  ${CYAN}►${NC} Release: ${WHITE}${REF}${NC}"
 
+# A ref that is not a commit is resolved only as the exact tag refs/tags/<REF> on the remote (ls-remote patterns
+# also match longer refs that end the same way, and a branch is mutable), peeled when annotated. `ccc --update`
+# (bin/kc.js) applies the same rule. FETCH_SPEC is what gets fetched; EXPECTED_COMMIT is what it must be.
+if [[ "$REF" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+  FETCH_SPEC="$REF"
+  EXPECTED_COMMIT=""
+else
+  FETCH_SPEC="refs/tags/$REF"
+  remote_refs="$(git ls-remote --tags "$REPO_URL" "$FETCH_SPEC" "$FETCH_SPEC^{}" 2>/dev/null || true)"
+  EXPECTED_COMMIT="$(printf '%s\n' "$remote_refs" | awk -v r="$FETCH_SPEC^{}" '$2 == r {print $1; exit}')"
+  [[ -n "$EXPECTED_COMMIT" ]] || EXPECTED_COMMIT="$(printf '%s\n' "$remote_refs" | awk -v r="$FETCH_SPEC" '$2 == r {print $1; exit}')"
+  [[ -n "$EXPECTED_COMMIT" ]] || fail "$REF is not a release tag on $REPO_URL (CCC_REF takes a tag or a commit, not a branch)."
+fi
+
 # ── Clone or update the kit ──────────────────────────────────────────────────
 
 if [ -d "$INSTALL_DIR/.git" ]; then
@@ -117,9 +133,14 @@ else
   git -C "$INSTALL_DIR" remote add origin "$REPO_URL"
 fi
 
-git -C "$INSTALL_DIR" fetch --quiet --depth 1 origin "$REF" 2>/dev/null \
+git -C "$INSTALL_DIR" fetch --quiet --depth 1 origin "$FETCH_SPEC" 2>/dev/null \
   || fail "Could not fetch $REF from $REPO_URL. Check the tag or commit and your connection."
-git -C "$INSTALL_DIR" checkout --quiet --detach FETCH_HEAD
+FETCHED="$(git -C "$INSTALL_DIR" rev-parse --verify 'FETCH_HEAD^{commit}')"
+# Checked before checkout, so a mismatch leaves the working tree as it was.
+if [[ -n "$EXPECTED_COMMIT" && "$FETCHED" != "$EXPECTED_COMMIT" ]]; then
+  fail "Fetched $FETCHED, but refs/tags/$REF on $REPO_URL is $EXPECTED_COMMIT"
+fi
+git -C "$INSTALL_DIR" checkout --quiet --detach "$FETCHED"
 git -C "$INSTALL_DIR" submodule update --quiet --init --recursive --depth 1 2>/dev/null \
   || echo -e "  ${AMBER}!${NC} Some vendor submodules could not be fetched; the kit still installs."
 
@@ -131,11 +152,8 @@ COMMIT="$(git -C "$INSTALL_DIR" rev-parse HEAD)"
 if [[ "$REF" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
   [[ "$COMMIT" == "$(printf '%s' "$REF" | tr '[:upper:]' '[:lower:]')"* ]] || fail "HEAD is $COMMIT, not the requested commit $REF"
 else
-  # The tag must resolve, on the remote, to the commit that was checked out (annotated tags are peeled).
-  remote_refs="$(git ls-remote "$REPO_URL" "refs/tags/$REF" "refs/tags/$REF^{}" "refs/heads/$REF" 2>/dev/null || true)"
-  remote_commit="$(printf '%s\n' "$remote_refs" | awk '$2 ~ /\^\{\}$/ {print $1; exit}')"
-  [[ -n "$remote_commit" ]] || remote_commit="$(printf '%s\n' "$remote_refs" | awk 'NF {print $1; exit}')"
-  [[ "$remote_commit" == "$COMMIT" ]] || fail "HEAD is $COMMIT, but $REF on $REPO_URL is ${remote_commit:-unknown}"
+  # The tag resolved above, on the remote, must be the commit that was checked out (annotated tags are peeled).
+  [[ "$EXPECTED_COMMIT" == "$COMMIT" ]] || fail "HEAD is $COMMIT, but refs/tags/$REF on $REPO_URL is ${EXPECTED_COMMIT:-unknown}"
 fi
 for f in package.json install.sh bin/kc.js commander/engine.js; do
   [ -f "$INSTALL_DIR/$f" ] || fail "Checkout is missing $f"

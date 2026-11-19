@@ -39,7 +39,8 @@ var DEFAULT_ALIASES = Object.freeze({ guestnetworks: 'ai5' });
  * names the same directory and keeps the spelling callers and `~` shortening expect. Falls back to the
  * lexical path when it cannot be resolved (empty or drive-relative).
  */
-var DOTDOT = /(^|[\\/])\.\.([\\/]|$)/;
+// Only win32 treats a backslash as a separator.
+var DOTDOT = process.platform === 'win32' ? /(^|[\\/])\.\.([\\/]|$)/ : /(^|\/)\.\.(\/|$)/;
 function physicalConfigDir(raw) {
   if (!DOTDOT.test(String(raw))) return path.resolve(raw);
   var r = profilePath.resolvePhysical(raw);

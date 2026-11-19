@@ -50,8 +50,12 @@ export async function run(input = {}) {
     } else {
       out = emitSilent();
     }
-  } catch {
-    out = { continue: true, suppressOutput: true };
+  } catch (err) {
+    // The count was not recorded. Thrown so the PreToolUse dispatcher can block the call when a
+    // tool-call ceiling is configured (the ceiling would otherwise read a stale count); without
+    // one, the dispatcher passes it.
+    track('hook_fired', { hook: 'PreToolUse', handler: 'cost-tracker' });
+    throw err;
   }
 
   track('hook_fired', { hook: 'PreToolUse', handler: 'cost-tracker' });

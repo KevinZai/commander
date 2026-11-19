@@ -40,7 +40,8 @@ var EXT_UNC = /^([\\/]{2}[?.][\\/]UNC[\\/][^\\/]+[\\/][^\\/]+)(?:[\\/]|$)/i;
  */
 function physicalDir(p) {
   // Only a `..` segment can name a different directory than the lexical path; keep any other path as written.
-  if (!/(^|[\\/])\.\.([\\/]|$)/.test(String(p))) return path.resolve(p);
+  var dotdot = process.platform === 'win32' ? /(^|[\\/])\.\.([\\/]|$)/ : /(^|\/)\.\.(\/|$)/; // only win32 splits on a backslash
+  if (!dotdot.test(String(p))) return path.resolve(p);
   var win = process.platform === 'win32';
   var P = win ? path.win32 : path.posix;
   var real = function(x) { return fs.realpathSync.native(x); };
@@ -55,13 +56,26 @@ function physicalDir(p) {
     rest = p;
     try { cur = real(process.cwd()); } catch (_e) { cur = P.resolve(process.cwd()); }
   }
+  // When the OS could not open the path (a non-directory in the middle, or any error but ENOENT), return it as
+  // written, not normalized, so reads fail the same way instead of landing in another directory.
+  var asWritten = P.isAbsolute(p) ? p : (cur.slice(-1) === P.sep ? cur : cur + P.sep) + p;
+  var isDir = function(x) { try { return fs.statSync(x).isDirectory(); } catch (_e) { return false; } };
   var parts = rest.split(win ? /[\\/]+/ : /\/+/).filter(Boolean), missing = 0;
   for (var i = 0; i < parts.length; i++) {
     var c = parts[i];
     if (c === '.') continue;
     if (c === '..') { cur = P.dirname(cur); if (missing) missing--; continue; }
     var next = P.join(cur, c);
-    if (!missing) { try { cur = real(next); continue; } catch (_e) { /* missing from here */ } }
+    if (!missing) {
+      var resolved = null, err = null;
+      try { resolved = real(next); } catch (e) { err = e; }
+      if (resolved !== null) {
+        if (i < parts.length - 1 && !isDir(resolved)) return asWritten;   // /etc/hosts/.. is ENOTDIR, not /etc
+        cur = resolved;
+        continue;
+      }
+      if (!err || err.code !== 'ENOENT') return asWritten;                 // ENOTDIR, EACCES, ELOOP
+    }
     missing++;
     cur = next;
   }

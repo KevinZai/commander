@@ -221,3 +221,45 @@ test('install, check-in, hold and next agree on a symlink/.. profile', posixOnly
     assert.strictEqual(laneState.configDir({ HOME: home, CLAUDE_CONFIG_DIR: cfg }), physical, 'plugin hooks agree');
   });
 });
+
+// Codex review, round 3, finding 1: an existing component with more path after it must be a directory, and only
+// ENOENT means "missing". /etc/hosts/../ssh is ENOTDIR to the OS, so it is refused, never substituted by /etc/ssh.
+test('a profile path through a non-directory is refused by the installer and the CLI, and not substituted by the lane readers', posixOnly, () => {
+  withHome((home) => {
+    writeFileSync(join(home, 'file.txt'), 'x');
+    mkdirSync(join(home, 'prof', 'commands'), { recursive: true });
+    writeFileSync(join(home, 'prof', 'commands', 'mine.md'), 'mine');
+    for (const cfg of [`${home}/file.txt/../prof`, `${home}/file.txt/sub/../../prof`, `${home}/file.txt/.`]) {
+      const r = profileDir(home, cfg);
+      assert.strictEqual(r.status, 1, cfg);
+      assert.match(r.stdout, /cannot be resolved safely.*notdir/, cfg);
+      for (const res of [install(home, cfg, ['--clean']), uninstall(home, cfg)]) {
+        assert.notStrictEqual(res.status, 0, `${cfg}: scripts must refuse`);
+        assert.match(res.stdout, /notdir/);
+      }
+      const k = kc(home, ['--skills', 'install', 'ccc-seo'], { CLAUDE_CONFIG_DIR: cfg });
+      assert.strictEqual(k.status, 1, `${cfg}: --skills must refuse`);
+    }
+    assert.strictEqual(readFileSync(join(home, 'prof', 'commands', 'mine.md'), 'utf8'), 'mine', '--clean never reached prof/');
+    assert.ok(!existsSync(join(home, 'prof', 'commander')) && !existsSync(join(home, 'prof', 'skills')));
+
+    // The lane readers keep the path as written, so a read fails as the OS fails it (ENOTDIR) instead of
+    // landing in prof/.
+    const cfg = `${home}/file.txt/../prof`;
+    const lane = require('../commander/lib/lane.js');
+    const laneState = require('../commander/cowork-plugin/lib/lane-state.js');
+    assert.strictEqual(lane.resolveLane({ HOME: home, CLAUDE_CONFIG_DIR: cfg }).configDir, cfg);
+    assert.strictEqual(laneState.configDir({ HOME: home, CLAUDE_CONFIG_DIR: cfg }), cfg);
+  });
+});
+
+test('resolvePhysical treats only ENOENT as missing', () => {
+  const fail = (code) => () => { const e = new Error(code); e.code = code; throw e; };
+  for (const code of ['EACCES', 'ELOOP', 'ENOTDIR']) {
+    const r = profilePath.resolvePhysical('/a/b/../c', { platform: 'linux', fs: { realpathSync: (p) => (p === '/' ? '/' : fail(code)()), lstatSync: fail('ENOENT') } });
+    assert.strictEqual(r.problem, 'unresolvable', code);
+    assert.strictEqual(r.path, '/a/b/../c', `${code}: kept as written`);
+  }
+  const missing = profilePath.resolvePhysical('/a/b/../c', { platform: 'linux', fs: { realpathSync: (p) => (p === '/' ? '/' : fail('ENOENT')()), lstatSync: fail('ENOENT') } });
+  assert.deepStrictEqual(missing, { path: '/a/c', problem: null });
+});

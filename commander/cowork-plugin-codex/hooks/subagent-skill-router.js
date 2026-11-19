@@ -22,10 +22,10 @@
  * off and suggest stay silent; auto and always inject. CCC_SUBAGENT_ROUTE=off
  * turns off only this hook. Never blocks: any error is silent. Task text is
  * scored in memory and never logged; a queued call stores only its scored
- * route ids and hashes of its text, and expired entries are swept from every
- * session's queue on each new call.
+ * route ids and hashes of its text; a session's expired entries are removed
+ * when its next worker starts.
  */
-import { readFileSync, writeFileSync, mkdirSync, renameSync, readdirSync, unlinkSync, rmdirSync, lstatSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, renameSync, readdirSync, unlinkSync, lstatSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { emitModel, emitSilent } from './lib/emit.mjs';
@@ -65,35 +65,21 @@ function textHash(text) {
   return createHash('sha256').update(String(text || '').replace(/\s+/g, ' ').trim()).digest('hex');
 }
 
-// Remove expired entries from every session's queue (an interrupted session
-// never claims its own), and the queue directories they leave empty. Only
-// real directories named <session>-agents are entered (a symlink is never
-// followed), and only files named like queue entries are removed; anything
-// else is left alone.
-const QUEUE_DIR_NAME = /^[\w-]{1,80}-agents$/;
+// Only real directories (never a symlink) are entered, and only files named
+// like queue entries are read or removed. Entries hold no task text (route
+// ids and hashes only), so other sessions' expired entries are left in place
+// rather than swept: removing files across directories cannot be made safe
+// against a directory swapped in between.
 const QUEUE_FILE_NAME = /^\.?\d{15}-\d+-\d+-[\w-]+\.json(?:\.tmp|\.claimed)?$/;
 
 function realDir(p) {
   try { const st = lstatSync(p); return st.isDirectory() && !st.isSymbolicLink(); } catch { return false; }
 }
 
-function sweepQueues() {
-  if (!realDir(queueRoot())) return;
-  let dirs;
-  try { dirs = readdirSync(queueRoot()).filter((d) => QUEUE_DIR_NAME.test(d)); } catch { return; }
-  for (const d of dirs) {
-    const dir = join(queueRoot(), d);
-    if (!realDir(dir)) continue;
-    let names;
-    try { names = readdirSync(dir); } catch { continue; }
-    let left = names.length;
-    for (const name of names) {
-      if (!QUEUE_FILE_NAME.test(name) || !(ageOf(name) > QUEUE_TTL_MS)) continue;
-      const file = join(dir, name);
-      try { if (lstatSync(file).isFile()) { unlinkSync(file); left -= 1; } } catch {}
-    }
-    if (!left) try { rmdirSync(dir); } catch {}
-  }
+/** The session's queue dir, or null when it or the queue root is not a real directory. */
+function ownQueue(sessionId) {
+  const dir = queueDir(sessionId);
+  return realDir(queueRoot()) && realDir(dir) ? dir : null;
 }
 
 function routingOn(env = process.env) {
@@ -118,14 +104,13 @@ export function recordAgentCall(input = {}, env = process.env) {
     const prompt = typeof ti.prompt === 'string' ? ti.prompt : '';
     const text = [desc, prompt].filter((v) => v.trim()).join('\n');
     if (!text) return emitSilent();
-    sweepQueues();
     // The text itself is not stored: only what SubagentStart needs.
-    const named = NAMED_SKILL.test(text);
+    const named = coordinatorDecided(prompt) || coordinatorDecided(desc);
     const routes = named ? [] : scoreTask(text, loadRoutes()).slice(0, 5).map((c) => ({ id: c.route.id, score: c.score, patternHits: c.patternHits }));
     const hashes = [...new Set([text, desc, prompt].filter((v) => v.trim()).map(textHash))];
     const dir = queueDir(input.session_id);
     mkdirSync(dir, { recursive: true, mode: 0o700 });
-    if (!realDir(dir)) return emitSilent();
+    if (!ownQueue(input.session_id)) return emitSilent();
     const name = `${String(Date.now()).padStart(15, '0')}-${process.pid}-${seq++}-${slug(input.tool_use_id) || 'call'}.json`;
     const tmp = join(dir, `.${name}.tmp`);
     writeFileSync(tmp, JSON.stringify({ type: String(ti.subagent_type || DEFAULT_AGENT_TYPE), hashes, named, routes }), { mode: 0o600 });
@@ -141,8 +126,8 @@ export function dropAgentCall(input = {}) {
   try {
     const id = slug(input.tool_use_id);
     if (!id || !slug(input.session_id)) return;
-    const dir = queueDir(input.session_id);
-    if (!realDir(dir)) return;
+    const dir = ownQueue(input.session_id);
+    if (!dir) return;
     for (const name of readdirSync(dir)) {
       if (QUEUE_FILE_NAME.test(name) && name.endsWith(`-${id}.json`)) try { if (lstatSync(join(dir, name)).isFile()) unlinkSync(join(dir, name)); } catch {}
     }
@@ -169,8 +154,8 @@ function ageOf(name) {
 export function claimTask(input = {}, own = '') {
   const type = String(input.agent_type || input.subagent_type || '');
   if (!type || !slug(input.session_id)) return null;
-  const dir = queueDir(input.session_id);
-  if (!realDir(dir)) return null;
+  const dir = ownQueue(input.session_id);
+  if (!dir) return null;
   let names;
   try { names = readdirSync(dir).sort(); } catch { return null; }
   let claimed = null;
@@ -204,8 +189,21 @@ function savedRouteMode() {
   }
 }
 
-// A worker prompt that already names a CCC skill.
+// The coordinator's decision comes first in the prompt: a leading "CCC
+// pre-run" line, or a first line that names a CCC skill. Text further down
+// (a quoted ticket, a summary's history) cannot silence or replace the hint.
 const NAMED_SKILL = /(?:^|\s)[/$]ccc[\w-]*|commander:ccc/;
+const PRE_RUN = /^\s*CCC pre-run\b/;
+
+function firstLine(text) {
+  return String(text || '').replace(/^\s+/, '').split('\n')[0] || '';
+}
+
+/** Did the coordinator already decide this worker's skill? Only the first line counts. */
+export function coordinatorDecided(text) {
+  const line = firstLine(text);
+  return PRE_RUN.test(line) || NAMED_SKILL.test(line);
+}
 
 /** Rebuild scored candidates from a queued entry's route ids. */
 function fromQueued(list) {
@@ -218,6 +216,13 @@ function fromQueued(list) {
 function firstString(...values) {
   for (const v of values) if (typeof v === 'string' && v.trim()) return v;
   return '';
+}
+
+/** The prompt field alone (the coordinator's instructions start there). */
+function ownPrompt(input = {}) {
+  const ti = input.tool_input && typeof input.tool_input === 'object' ? input.tool_input : {};
+  const sub = input.subagent && typeof input.subagent === 'object' ? input.subagent : {};
+  return firstString(input.prompt, input.task, sub.prompt, ti.prompt, ti.task);
 }
 
 /** The subagent's task text, from whichever field this host provides. */
@@ -240,7 +245,7 @@ export function run(input = {}, env = process.env) {
     // No task reached the hook (a Workflow script's worker): pre-run check.
     if (!own.trim() && !claimed) return emitModel('SubagentStart', renderSubagentCheck(host));
     // A worker already told to use a specific skill needs no hint.
-    if (own ? NAMED_SKILL.test(own) : claimed.named) return emitSilent();
+    if (own ? (coordinatorDecided(ownPrompt(input)) || coordinatorDecided(own)) : claimed.named) return emitSilent();
     // A queue-matched hint says so, so a mismatched worker ignores it.
     const queued = !own;
     const candidates = own ? scoreTask(own, loadRoutes()) : fromQueued(claimed.routes);
