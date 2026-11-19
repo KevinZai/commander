@@ -236,25 +236,81 @@ function lastActivityMs(entryPath, stats) {
   return newest;
 }
 
+// Worker statuses that end a worker. Anything else (running, queued, testing, blocked, unknown) is unsettled.
+const TERMINAL_STATUSES = new Set([
+  'done', 'complete', 'completed', 'success', 'succeeded', 'pass', 'passed',
+  'failed', 'failure', 'error', 'errored', 'cancelled', 'canceled', 'aborted', 'killed', 'skipped',
+]);
+
+function isTerminalStatus(status) {
+  return typeof status === 'string' && TERMINAL_STATUSES.has(status.trim().toLowerCase().replace(/[\s-]+/g, '_'));
+}
+
+function readJsonOrNull(file) {
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (err) {
+    if (err instanceof SyntaxError) return null;   // a malformed marker settles nothing
+    throw err;
+  }
+}
+
+// Whether a run still has a worker that has not settled: its newest progress or status-marker status is not
+// terminal and it has no completion marker. Cleanup never prunes such a run, however old it looks (Codex #302
+// delta4): a slow worker that stops writing for a day is not a dead one. Read errors propagate to the caller.
+function runHasUnsettledWorker(runDir) {
+  const latest = new Map();
+  let progress = '';
+  try {
+    progress = fs.readFileSync(path.join(runDir, PROGRESS_FILE), 'utf8');
+  } catch (err) {
+    if (!err || err.code !== 'ENOENT') throw err;
+  }
+  for (const line of progress.split('\n')) {
+    if (!line.trim()) continue;
+    let event;
+    try { event = JSON.parse(line); } catch (_) { continue; }
+    if (event && typeof event.worker_id === 'string' && typeof event.status === 'string') {
+      latest.set(event.worker_id, event.status);
+    }
+  }
+  const completed = new Set();
+  for (const name of fs.readdirSync(runDir)) {
+    const kind = name.endsWith('-complete.json') ? 'complete' : name.endsWith('-status.json') ? 'status' : null;
+    if (!kind) continue;
+    const payload = readJsonOrNull(path.join(runDir, name));
+    if (!payload || typeof payload !== 'object') continue;
+    const id = typeof payload.worker_id === 'string' ? payload.worker_id : name.slice(0, -`-${kind}.json`.length);
+    if (kind === 'complete') completed.add(id);
+    else if (!latest.has(id)) latest.set(id, payload.status || payload.state || payload.phase);
+  }
+  for (const [id, status] of latest) {
+    if (!completed.has(id) && !isTerminalStatus(status)) return true;
+  }
+  return false;
+}
+
 function pruneFleetTmp(options = {}) {
   // Default: the run directories under <base>/runs/, never the current run. options.root prunes the
   // entries of that one directory instead. (The old codex-fleet and ccc-fleet dirs under os.tmpdir() are legacy
   // locations nothing writes to any more.)
   // Cleanup never leaves the run store: the default store (fleet/ and fleet/runs/) must be private real directories,
   // an explicit root must be a real directory (lstat, not a symlink), and an entry that is a symlink is removed as a
-  // link without following it. A run is aged by its newest marker, not the directory mtime.
+  // link without following it. A run is aged by its newest marker, not the directory mtime, and a run with a
+  // worker that has not settled is never removed. Returns { root, removed, skipped }.
   const base = fleetBaseDir(options);
   const root = options.root || path.join(base, 'runs');
   const olderThanMs = options.olderThanMs || ONE_DAY_MS;
   const now = options.now || Date.now();
   const removed = [];
+  const skipped = [];
   const keep = options.root ? null : currentRunDir(options);
 
   let rootStats;
   try {
     rootStats = fs.lstatSync(root);
   } catch (err) {
-    if (err && err.code === 'ENOENT') return { root, removed };
+    if (err && err.code === 'ENOENT') return { root, removed, skipped };
     throw err;
   }
   if (rootStats.isSymbolicLink()) throw new Error(`refusing to prune a symlinked fleet dir: ${root}`);
@@ -263,18 +319,25 @@ function pruneFleetTmp(options = {}) {
     throw new Error(`refusing to prune: fleet run store is not a private directory: ${root}`);
   }
 
+  // Each entry is handled on its own: one that cannot be read or removed is reported in `skipped` and kept,
+  // and cleanup of the others continues (Codex #302 delta4).
   for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
     const entryPath = path.join(root, entry.name);
     if (keep && entryPath === keep) continue;
-    const stats = fs.lstatSync(entryPath);
-    if (now - lastActivityMs(entryPath, stats) <= olderThanMs) continue;
+    try {
+      const stats = fs.lstatSync(entryPath);
+      if (now - lastActivityMs(entryPath, stats) <= olderThanMs) continue;
+      if (!options.root && stats.isDirectory() && runHasUnsettledWorker(entryPath)) continue;
 
-    if (stats.isDirectory()) fs.rmSync(entryPath, { recursive: true, force: true });
-    else fs.unlinkSync(entryPath);   // a file or a symlink: the link itself, never its target
-    removed.push(entryPath);
+      if (stats.isDirectory()) fs.rmSync(entryPath, { recursive: true, force: true });
+      else fs.unlinkSync(entryPath);   // a file or a symlink: the link itself, never its target
+      removed.push(entryPath);
+    } catch (err) {
+      skipped.push({ path: entryPath, reason: (err && (err.code || err.message)) || String(err) });
+    }
   }
 
-  return { root, removed };
+  return { root, removed, skipped };
 }
 
 module.exports = {

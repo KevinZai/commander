@@ -289,3 +289,52 @@ test('pruneFleetTmp keeps an old-looking run whose markers are still being writt
   assert.deepEqual(removed.map(real), [real(finished.runDir)]);
   assert.ok(fs.existsSync(path.join(active.runDir, fleet.PROGRESS_FILE)), 'the still-active run survives');
 });
+
+// Codex #302 delta4 M-cleanup-running: a non-current run whose worker is still running is never pruned, however
+// old its markers look; a worker counts as settled only on a terminal status or a completion marker.
+test('pruneFleetTmp never removes a run with a worker still running', (t) => {
+  const { env } = lane(t);
+  const weekAgo = (Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000;
+  const age = (dir) => {
+    for (const f of fs.readdirSync(dir)) fs.utimesSync(path.join(dir, f), weekAgo, weekAgo);
+    fs.utimesSync(dir, weekAgo, weekAgo);
+  };
+  const running = fleet.startFleetRun({ env });
+  fleet.emitFleetWorkerProgress({ worker_id: 'w1', status: 'complete' }, { env, runId: running.runId, stream: quiet });
+  fleet.emitFleetWorkerProgress({ worker_id: 'w2', status: 'running' }, { env, runId: running.runId, stream: quiet });
+  const settledByMarker = fleet.startFleetRun({ env });
+  fleet.emitFleetWorkerProgress({ worker_id: 'w1', status: 'running' }, { env, runId: settledByMarker.runId, stream: quiet });
+  fleet.writeCompletionMarker('w1', { exit_code: 1 }, { env, runId: settledByMarker.runId });
+  const settledByStatus = fleet.startFleetRun({ env });
+  fleet.emitFleetWorkerProgress({ worker_id: 'w1', status: 'running' }, { env, runId: settledByStatus.runId, stream: quiet });
+  fleet.emitFleetWorkerProgress({ worker_id: 'w1', status: 'failed' }, { env, runId: settledByStatus.runId, stream: quiet });
+  fleet.startFleetRun({ env }); // a later run is current
+  for (const r of [running, settledByMarker, settledByStatus]) age(r.runDir);
+  const { removed } = fleet.pruneFleetTmp({ env });
+  assert.deepEqual(removed.map(real).sort(), [real(settledByMarker.runDir), real(settledByStatus.runDir)].sort());
+  assert.ok(fs.existsSync(running.runDir), 'the run with a running worker survives');
+});
+
+// Codex #302 delta4 M-eacces: one unreadable run is skipped and reported; cleanup of the others continues.
+test('pruneFleetTmp skips an unreadable run and still prunes the others', (t) => {
+  const { env } = lane(t);
+  const unreadable = fleet.startFleetRun({ env });
+  const old = fleet.startFleetRun({ env });
+  fleet.startFleetRun({ env });
+  const dayAgo = (Date.now() - 2 * 24 * 60 * 60 * 1000) / 1000;
+  fs.utimesSync(unreadable.runDir, dayAgo, dayAgo);
+  fs.utimesSync(old.runDir, dayAgo, dayAgo);
+  const realReaddir = fs.readdirSync;
+  t.mock.method(fs, 'readdirSync', function readdirSync(p, ...rest) {
+    if (path.resolve(String(p)) === path.resolve(unreadable.runDir)) {
+      throw Object.assign(new Error(`EACCES: permission denied, scandir '${p}'`), { code: 'EACCES' });
+    }
+    return realReaddir.call(fs, p, ...rest);
+  });
+  const { removed, skipped } = fleet.pruneFleetTmp({ env });
+  assert.deepEqual(removed.map(real), [real(old.runDir)]);
+  assert.equal(skipped.length, 1);
+  samePath(skipped[0].path, unreadable.runDir);
+  assert.match(skipped[0].reason, /EACCES/);
+  assert.ok(realReaddir(path.dirname(unreadable.runDir)).includes(path.basename(unreadable.runDir)));
+});

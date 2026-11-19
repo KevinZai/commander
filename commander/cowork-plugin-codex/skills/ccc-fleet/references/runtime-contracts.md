@@ -54,7 +54,7 @@ One worker failure never cancels or rolls back another. Preserve every worktree,
 
 ## Cleanup on success
 
-Only after every worker succeeded and the synthesis report is written, prune run directories older than 24 hours (the current run is kept; a symlinked or non-private run store is refused, and a symlinked entry is removed as a link without touching its target):
+Only after every worker succeeded and the synthesis report is written, prune run directories older than 24 hours (the current run is kept, and so is any run with a worker whose latest status is not terminal and that has no completion marker; a symlinked or non-private run store is refused, a symlinked entry is removed as a link without touching its target, and a run that cannot be read is skipped and listed in `skipped` while the others are still pruned):
 
 ```bash
 node -e 'console.log(JSON.stringify(require(process.argv[1]).pruneFleetTmp()))' \
