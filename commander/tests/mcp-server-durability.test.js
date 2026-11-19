@@ -198,3 +198,69 @@ describe('commander_update offline guard', () => {
     assert.equal(fetchCalls, 1);
   });
 });
+
+// M5: the dispatch hint is structured data, never a shell string, and only names a shipped agent.
+describe('commander_invoke_agent dispatch hint', () => {
+  it('returns {command, argv} with the task as one literal argument', async () => {
+    const task = 'fix "it"; rm -rf ~ $(whoami) `id`';
+    const { isError, body } = await rpc('commander_invoke_agent', { name: 'reviewer', task });
+    assert.equal(isError, false);
+    assert.deepEqual(body.dispatch, { command: 'ccc', argv: ['--dispatch', task, '--agent', 'reviewer'] });
+    assert.equal(body.dispatchHint, undefined, 'no shell-string hint');
+  });
+
+  it('rejects a name that is not a shipped agent', async () => {
+    for (const name of ['nope', '../reviewer', 'reviewer; id', '']) {
+      const { isError } = await rpc('commander_invoke_agent', { name, task: 't' });
+      assert.equal(isError, true, JSON.stringify(name));
+    }
+  });
+});
+
+describe('record stores: lane dir and locking', () => {
+  it('writes under the lane named by CCC_CONFIG_DIR', async () => {
+    const lane = path.join(TMP, '.claude-ai9');
+    process.env.CCC_CONFIG_DIR = lane;
+    try {
+      const { isError, body } = await rpc('commander_notes_pin', { content: 'lane note' });
+      assert.equal(isError, false);
+      assert.equal(body.store, path.join(fs.realpathSync(lane), 'commander', 'pinned-notes.json'));
+    } finally {
+      delete process.env.CCC_CONFIG_DIR;
+    }
+  });
+
+  it('waits out a held lock and breaks a stale one', async () => {
+    fs.mkdirSync(STORE, { recursive: true });
+    const lock = path.join(STORE, 'pinned-notes.json.lock');
+    fs.writeFileSync(lock, 'other');
+    const old = new Date(Date.now() - 60_000);
+    fs.utimesSync(lock, old, old);
+    const { isError } = await rpc('commander_notes_pin', { content: 'after stale lock' });
+    assert.equal(isError, false, 'a stale lock is broken');
+    assert.equal(fs.existsSync(lock), false, 'the lock is released after the write');
+
+    fs.writeFileSync(lock, 'held');
+    const held = await rpc('commander_notes_pin', { content: 'blocked' });
+    assert.equal(held.isError, true, 'a fresh lock held by another writer is not overridden');
+    assert.match(held.body.error, /locked/);
+    fs.rmSync(lock);
+    assert.equal(readJson('pinned-notes.json').length, 1);
+  });
+});
+
+describe('JSON-RPC notifications', () => {
+  it('never replies to a message without an id', async () => {
+    const lines = [];
+    const orig = process.stdout.write;
+    process.stdout.write = (chunk) => { lines.push(String(chunk)); return true; };
+    try {
+      await server.handleRequest({ jsonrpc: '2.0', method: 'notifications/initialized' });
+      await server.handleRequest({ jsonrpc: '2.0', method: 'notifications/cancelled', params: {} });
+      await server.handleRequest({ jsonrpc: '2.0', method: 'some/unknown' });
+    } finally {
+      process.stdout.write = orig;
+    }
+    assert.deepEqual(lines, []);
+  });
+});
