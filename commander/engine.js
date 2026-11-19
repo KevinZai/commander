@@ -26,95 +26,16 @@ function inSplitMode() {
   return !!process.env.CCC_TMUX_SESSION;
 }
 
-// Send a claude command to the right tmux pane instead of running headless
-// Dispatch counter for naming panes
+// Send a claude command to a new tmux pane instead of running headless.
+// The pane logic lives in lib/tmux-dispatch.js; null means nothing was sent.
 var dispatchCounter = 0;
 
 function tmuxDispatch(task, resumeSessionId) {
-  try {
-    var cp = require('child_process');
-    var crypto = require('crypto');
-    var claudeBin = require('./claude-finder').resolve();
-
-    // Pre-dispatch auth check: verify Claude Code can authenticate
-    try {
-      var authCheck = cp.execFileSync(claudeBin, ['-p', 'reply with OK', '--max-turns', '1', '--output-format', 'text'], {
-        encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 15000
-      });
-    } catch(authErr) {
-      var errMsg = String(authErr.stderr || authErr.message || '');
-      if (errMsg.indexOf('authentication') !== -1 || errMsg.indexOf('401') !== -1 || errMsg.indexOf('login') !== -1) {
-        process.stdout.write('\n  \x1b[31mAuth error: Claude Code credentials are invalid or expired.\x1b[0m\n');
-        process.stdout.write('  Run \x1b[1mclaude /login\x1b[0m to re-authenticate, then try again.\n\n');
-        return null;
-      }
-    }
-
-    var sessionName = process.env.CCC_TMUX_SESSION || 'ccc';
-    var sessionId = resumeSessionId || crypto.randomUUID();
-    dispatchCounter++;
-    var paneTitle = 'claude-' + dispatchCounter;
-
-    // Count current panes
-    var paneCount = 1;
-    try {
-      paneCount = parseInt(cp.execFileSync('tmux', ['display-message', '-p', '-t', sessionName, '#{window_panes}'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim(), 10) || 1;
-    } catch(_e) {}
-
-    // Create pane
-    if (paneCount === 1) {
-      cp.execFileSync('tmux', ['split-window', '-h', '-t', sessionName, '-l', '75%'], { stdio: 'pipe' });
-    } else {
-      var lastPane = paneCount - 1;
-      cp.execFileSync('tmux', ['select-pane', '-t', sessionName + ':.' + lastPane], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['split-window', '-h', '-t', sessionName], { stdio: 'pipe' });
-    }
-
-    // Set pane title
-    cp.execFileSync('tmux', ['select-pane', '-T', paneTitle], { stdio: 'pipe' });
-
-    // Launch Claude with session persistence
-    // Validate sessionId: strict allowlist to prevent shell injection
-    if (!/^[a-zA-Z0-9._:-]+$/.test(sessionId)) {
-      sessionId = crypto.randomUUID(); // replace tainted ID with safe one
-    }
-    if (resumeSessionId) {
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', claudeBin + ' --resume ' + sessionId + ' --continue'], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
-    } else {
-      // Start interactive Claude, then send task as user input after a brief pause
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', claudeBin + ' --session-id ' + sessionId], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
-      // Wait for Claude Code to be ready (poll for prompt, up to 8s)
-      var ready = false;
-      for (var attempt = 0; attempt < 16; attempt++) {
-        try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500); } catch(e) { /* noop */ }
-        try {
-          var paneContent = cp.execFileSync('tmux', ['capture-pane', '-t', sessionName, '-p'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-          if (paneContent.indexOf('>') !== -1 || paneContent.indexOf('╭') !== -1) {
-            ready = true;
-            break;
-          }
-        } catch(_e) {}
-      }
-      if (!ready) { try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000); } catch(e) { /* noop */ } }
-      // Sanitize task: strip control chars, limit length
-      var safeTask = String(task || '').replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 4000);
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', safeTask], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
-    }
-
-    // Return focus to menu pane
-    cp.execFileSync('tmux', ['select-pane', '-t', sessionName + ':.0'], { stdio: 'pipe' });
-
-    // Rebalance layout
-    try {
-      cp.execFileSync('tmux', ['select-layout', '-t', sessionName, 'main-vertical'], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['resize-pane', '-t', sessionName + ':.0', '-x', '35'], { stdio: 'pipe' });
-    } catch(_e) {}
-
-    return sessionId;
-  } catch(_e) { return null; }
+  dispatchCounter++;
+  return require('./lib/tmux-dispatch').dispatch(task, resumeSessionId, {
+    sessionName: process.env.CCC_TMUX_SESSION || 'ccc',
+    paneTitle: 'claude-' + dispatchCounter
+  });
 }
 
 var cockpit = require('./cockpit');
@@ -582,10 +503,14 @@ class KitCommander {
         var claudeSessionId = tmuxDispatch(fullTask);
         if (claudeSessionId) {
           state.updateSession(session.id, { claudeSessionId: claudeSessionId });
+          process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
+          process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
+          state.completeSession(session.id, 'dispatched');
+        } else {
+          tmuxStatus('DISPATCH FAILED');
+          process.stdout.write('\x0a  Dispatch failed: Claude Code did not start in a new pane, so the task was not sent.\x0a');
+          state.completeSession(session.id, 'error');
         }
-        process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
-        process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
-        state.completeSession(session.id, 'dispatched');
       } else {
         // Simple mode: run headless with streaming output
         process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
@@ -663,10 +588,14 @@ class KitCommander {
         var claudeSessionId = tmuxDispatch(fullTask);
         if (claudeSessionId) {
           state.updateSession(session.id, { claudeSessionId: claudeSessionId });
+          process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
+          process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
+          state.completeSession(session.id, 'dispatched');
+        } else {
+          tmuxStatus('DISPATCH FAILED');
+          process.stdout.write('\x0a  Dispatch failed: Claude Code did not start in a new pane, so the task was not sent.\x0a');
+          state.completeSession(session.id, 'error');
         }
-        process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
-        process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
-        state.completeSession(session.id, 'dispatched');
       } else {
         // Simple mode: run headless with streaming output
         process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
@@ -728,9 +657,14 @@ class KitCommander {
       process.stdout.write('\x0a' + tui.divider('Resuming Session') + '\x0a\x0a');
       process.stdout.write('  ' + tui.dimText('Task: ' + (session.task || 'unknown').slice(0, 120)) + '\x0a');
       if (inSplitMode() && session.claudeSessionId) {
-        tmuxDispatch(null, session.claudeSessionId);
-        process.stdout.write('  ' + tui.boldText('Resumed in Claude pane \u2192', tui.getTheme().primary) + '\x0a');
-        process.stdout.write('  ' + tui.dimText('Session resumed in pane. Ctrl+A \u2192 to switch.') + '\x0a');
+        if (tmuxDispatch(null, session.claudeSessionId)) {
+          process.stdout.write('  ' + tui.boldText('Resumed in Claude pane \u2192', tui.getTheme().primary) + '\x0a');
+          process.stdout.write('  ' + tui.dimText('Session resumed in pane. Ctrl+A \u2192 to switch.') + '\x0a');
+        } else {
+          tmuxStatus('RESUME FAILED');
+          process.stdout.write('  Could not resume: no Claude pane was opened.\x0a');
+          state.completeSession(session.id, 'error');
+        }
       } else {
         process.stdout.write('  ' + tui.dimText('Claude is working \u2014 live output below.') + '\x0a\x0a');
         var result = await d.dispatch('Continue: ' + session.task, { stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort, fallbackModel: 'sonnet', bare: false, resume: session.claudeSessionId || undefined });
