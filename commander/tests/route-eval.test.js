@@ -194,3 +194,38 @@ test('route-eval flags a case that expects a route missing from the registry', a
   assert.strictEqual(report.unknown.length, 1);
   assert.strictEqual(report.pass, false);
 });
+
+test('a negated directive never routes; a described failure still does', async () => {
+  const s = await import(SCORER);
+  const fires = (p) => s.tierFor(s.scoreRoutes(p), 'auto') !== 'low';
+  for (const p of ['do not deploy to vercel', 'skip the code review, how long does the build take',
+    "don't write a changelog, what changed in the last release", 'avoid deploying on fridays, is that a common rule',
+    "we don't want to deploy, what is in the vercel config"]) {
+    assert.ok(!fires(p), `negated prompt fired: ${p}`);
+  }
+  // The clause after a contrast marker is still the request.
+  assert.strictEqual(s.scoreRoutes("review this pr but don't deploy it")[0].route.id, 'ccc-review');
+  assert.strictEqual(s.scoreRoutes("don't deploy, just review the code changes in this pr")[0].route.id, 'ccc-review');
+  // Problem descriptions are not directives.
+  assert.strictEqual(s.stripNegated("the tests don't work on my machine"), "the tests don't work on my machine");
+  assert.strictEqual(s.stripNegated("login is not working, it doesn't work"), "login is not working, it doesn't work");
+  assert.strictEqual(s.stripNegated("i don't know why it fails, debug it"), "i don't know why it fails, debug it");
+  // Length is kept, so offsets into the text stay valid.
+  const text = 'do not deploy. review the pr';
+  assert.strictEqual(s.stripNegated(text).length, text.length);
+  assert.match(s.stripNegated(text), /^ +\. review the pr$/);
+});
+
+test('normalizePrompt blanks double-quoted spans and reuses the task quoting rules', async () => {
+  const s = await import(SCORER);
+  assert.strictEqual(s.normalizePrompt('what does "deploy to production" mean'), 'what does mean');
+  assert.strictEqual(s.normalizePrompt('what does “run a security audit” mean'), 'what does mean');
+  // Blockquotes and indented code are quoted material, as in worker tasks.
+  assert.strictEqual(s.normalizePrompt('> deploy the app now\n\nwhat is this log line'), 'what is this log line');
+  assert.strictEqual(s.normalizePrompt('explain this:\n\n    npm run deploy\n\nplease'), 'explain this: please');
+  // A paste longer than the task window cannot push the request out.
+  const paste = `<pasted_content>${'x '.repeat(3000)}</pasted_content>\nreview this pr`;
+  assert.strictEqual(s.normalizePrompt(paste), 'review this pr');
+  // Apostrophes are not quotes.
+  assert.strictEqual(s.normalizePrompt("it's the user's build"), "it's the user's build");
+});

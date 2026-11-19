@@ -86,22 +86,26 @@ function onPath(bin, env) {
 }
 
 /**
- * Which Fleet tools exist here: the `fleet` CLI and the claude-fleet skill in
- * either host's skill dirs (Claude: <config dir>/skills, <cwd>/.claude/skills;
- * Codex: <cwd>/.agents/skills, ~/.agents/skills, /etc/codex/skills).
+ * Which Fleet tools exist here:
+ *   cli        the `fleet` CLI on PATH
+ *   skill      the claude-fleet skill in a user- or machine-level skill dir
+ *              (<config dir>/skills, ~/.agents/skills, /etc/codex/skills)
+ *   localSkill a claude-fleet skill only in the open checkout
+ *              (<cwd>/.claude/skills, <cwd>/.agents/skills)
+ * A checkout-local skill comes with whatever repository is open, so it never
+ * turns Fleet routing on and is never named as the skill to use; with
+ * CCC_FLEET_ROUTE=on it is only offered, with a question first.
  */
 export function fleetTools(env = process.env, cwd = process.cwd()) {
   const home = env.HOME || homedir();
-  const skillDirs = [
-    join(laneConfigDir(env), 'skills'),
-    join(resolve(cwd), '.claude', 'skills'),
-    join(resolve(cwd), '.agents', 'skills'),
-    join(home, '.agents', 'skills'),
-    '/etc/codex/skills',
-  ];
+  const has = (dir) => existsSync(join(dir, 'claude-fleet', 'SKILL.md'));
+  const userDirs = [join(laneConfigDir(env), 'skills'), join(home, '.agents', 'skills'), '/etc/codex/skills'];
+  const localDirs = [join(resolve(cwd), '.claude', 'skills'), join(resolve(cwd), '.agents', 'skills')];
+  const skill = userDirs.some(has);
   return {
     cli: onPath('fleet', env),
-    skill: skillDirs.some((dir) => existsSync(join(dir, 'claude-fleet', 'SKILL.md'))),
+    skill,
+    localSkill: !skill && localDirs.some(has),
   };
 }
 
@@ -126,7 +130,7 @@ export function checkinLine(env = process.env) {
 
 /** Model context for a Fleet intent. mode 'suggest' offers the route instead of directing it. */
 export function renderFleetContext(intent, tools, checkin, mode = 'auto') {
-  if (!tools.cli && !tools.skill) {
+  if (!tools.cli && !tools.skill && !tools.localSkill) {
     return `<ccc-fleet-route intent="${intent.id}">\nThis looks like a Fleet control-plane request, but no Fleet tools (the \`fleet\` CLI or the claude-fleet skill) are installed here. Say so in one line and answer from what you can read; do not substitute /ccc-fleet, which runs local parallel agents.\n</ccc-fleet-route>`;
   }
   const lines = [`<ccc-fleet-route intent="${intent.id}">`];
@@ -135,6 +139,9 @@ export function renderFleetContext(intent, tools, checkin, mode = 'auto') {
     lines.push(mode === 'suggest'
       ? 'Offer the claude-fleet skill as an option and ask before using it.'
       : 'Use the claude-fleet skill.');
+  } else if (tools.localSkill) {
+    // Shipped by the open checkout, not installed by the user: never a directive.
+    lines.push('A claude-fleet skill exists only in this checkout, not in your installed skills. Offer it as an option and ask before using it.');
   }
   if (tools.cli) lines.push(`Read-only commands: ${intent.commands.map((c) => '`' + c + '`').join(', ')}.`);
   if (intent.note) lines.push(intent.note);

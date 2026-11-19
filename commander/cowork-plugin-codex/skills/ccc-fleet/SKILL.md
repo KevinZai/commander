@@ -101,7 +101,7 @@ Prefer the Workflow tool for Fan-out, Pipeline and Judge panel. It runs fan-out 
 |---|---|
 | Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "fanout", tasks: ["slice 1 …", "slice 2 …"], skills: [["/ccc-testing"], []] } })` |
 | Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 …", "stage 2 …"] } })` (2 or more stages) |
-| Judge panel | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
+| Judge panel | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3, skills: [["/ccc-data"]] } })` (judge and debate share one task: every attempt or lens worker reads `skills[0]`; route the task once and pass its `skills` there, or omit `skills` and each worker checks its own list) |
 | Pattern migration | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js", args: { pattern: "…", transform: "…", verify: "…" } })` |
 
 The same workflow runs from the prompt as `/commander:ccc-fleet-run`; inspect running and finished runs with `/workflows`. Pass at most `<cap>` fan-out slices.

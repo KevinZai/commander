@@ -274,6 +274,17 @@
     { "prompt": "plot a volcano chart of these p-values in scanpy", "expect": "none" },
     { "prompt": "review my Kubernetes manifests for a rolling deploy", "expect": "none" },
     { "prompt": "Explain what a segfault is", "expect": "none" },
-    { "prompt": "Tell me why the sky is blue", "expect": "none" }
+    { "prompt": "Tell me why the sky is blue", "expect": "none" },
+    { "prompt": "do not run a security audit, I only want to know what the config flag does", "expect": "none" },
+    { "prompt": "skip the code review, how long does the build take", "expect": "none" },
+    { "prompt": "the readme says \"run a security audit\", what does that refer to", "expect": "none" },
+    { "prompt": "my teammate wrote \"review this pr\" in slack, what did they mean", "expect": "none" },
+    { "prompt": "do not deploy to vercel", "expect": "none" },
+    { "prompt": "don't write a changelog, what changed in the last release", "expect": "none" },
+    { "prompt": "no need to write tests, what does this function return", "expect": "none" },
+    { "prompt": "please don't publish the release notes yet", "expect": "none" },
+    { "prompt": "review this pr but don't deploy it", "expect": "ccc-review" },
+    { "prompt": "don't deploy, just review the code changes in this pr", "expect": "ccc-review" },
+    { "prompt": "the build doesn't work anymore, debug it", "expect": "ccc-systematic-debugging" }
   ]
 }

@@ -74,10 +74,11 @@ function fixture(t, { fleetCli = true, skill = false, ccc = 'ok' } = {}) {
   return { root, bin, home, cfg, marker };
 }
 
-function run(f, prompt, env = {}) {
+function run(f, prompt, env = {}, cwd = undefined) {
   const clean = { ...process.env };
   for (const k of ['CCC_ROUTE_MODE', 'CCC_FLEET_ROUTE', 'CCC_CONFIG_DIR', 'PLUGIN_ROOT']) delete clean[k];
   const r = spawnSync(process.execPath, [HOOK], {
+    cwd,
     input: JSON.stringify({ hook_event_name: 'UserPromptSubmit', session_id: 'test', prompt }),
     encoding: 'utf8',
     timeout: 10000,
@@ -154,4 +155,32 @@ test('the claude-fleet skill is found in Codex skill dirs too (~/.agents/skills)
   } finally {
     fs.rmSync(home, { recursive: true, force: true });
   }
+});
+
+test('checkout-local claude-fleet skill neither enables nor directs', async (t) => {
+  const { fleetTools } = await import(LIB);
+  const f = fixture(t, { fleetCli: false, skill: false });
+  const checkout = path.join(f.root, 'checkout');
+  for (const dir of [['.claude', 'skills'], ['.agents', 'skills']]) {
+    fs.mkdirSync(path.join(checkout, ...dir, 'claude-fleet'), { recursive: true });
+    fs.writeFileSync(path.join(checkout, ...dir, 'claude-fleet', 'SKILL.md'), 'x');
+  }
+  const env = { HOME: f.home, PATH: '', CLAUDE_CONFIG_DIR: f.cfg };
+  assert.deepStrictEqual(fleetTools(env, checkout), { cli: false, skill: false, localSkill: true });
+
+  // Not opted in: a skill shipped by the open repository does not turn Fleet routing on.
+  assert.doesNotMatch(run(f, 'fleet status', {}, checkout), /ccc-fleet-route/);
+
+  // Opted in: it is offered with a question, never named as the skill to use.
+  const ctx = run(f, 'fleet status', { CCC_FLEET_ROUTE: 'on' }, checkout);
+  assert.match(ctx, /<ccc-fleet-route intent="status">/);
+  assert.match(ctx, /exists only in this checkout.*Offer it as an option and ask before using it\./);
+  assert.doesNotMatch(ctx, /Use the claude-fleet skill/);
+  assert.doesNotMatch(ctx, /no Fleet tools/);
+
+  // An installed skill still wins over the checkout copy.
+  fs.mkdirSync(path.join(f.cfg, 'skills', 'claude-fleet'), { recursive: true });
+  fs.writeFileSync(path.join(f.cfg, 'skills', 'claude-fleet', 'SKILL.md'), 'x');
+  assert.deepStrictEqual(fleetTools(env, checkout), { cli: false, skill: true, localSkill: false });
+  assert.match(run(f, 'fleet status', {}, checkout), /Use the claude-fleet skill\./);
 });

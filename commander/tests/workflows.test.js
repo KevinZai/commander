@@ -225,6 +225,23 @@ test('ccc-fleet-run gives every slice and stage a CCC pre-run skill step', async
   assert.match(p, /do not proceed and report the decision/);
 });
 
+test('judge and debate workers get the pre-run step', async () => {
+  const src = fs.readFileSync(path.join(WF_DIR, 'ccc-fleet-run.workflow.js'), 'utf8');
+  // One shared task: every attempt and lens worker reads skills[0].
+  const judge = await runStubbed(src, { mode: 'judge', task: 'pick a cache strategy', attempts: 2, skills: ['/ccc-data'] });
+  const attempts = judge.calls.filter(c => /^attempt-/.test(c.label));
+  assert.strictEqual(attempts.length, 2);
+  for (const a of attempts) assert.match(a.prompt, /^CCC pre-run: before you start, load commander:ccc-data with the Skill tool/);
+  const debate = await runStubbed(src, { mode: 'debate', task: 'review the auth diff', lenses: ['security', 'performance'], rounds: 2, skills: ['/ccc-security'] });
+  const lensCalls = debate.calls.filter(c => /-r\d$/.test(c.label));
+  assert.strictEqual(lensCalls.length, 4, 'two lenses x two rounds');
+  for (const c of lensCalls) assert.match(c.prompt, /^CCC pre-run: before you start, load commander:ccc-security/);
+  // Without args.skills each worker checks the worker skills itself; synthesis agents get no pre-run.
+  const bare = await runStubbed(src, { mode: 'debate', task: 'x', lenses: ['security'], rounds: 1 });
+  assert.match(bare.calls.find(c => c.label === 'security-r1').prompt, /^CCC pre-run: before you start, check your skill list/);
+  assert.doesNotMatch(bare.calls.find(c => c.label === 'judge').prompt, /CCC pre-run/);
+});
+
 test('the workflow worker allowlist matches the registry', () => {
   const src = fs.readFileSync(path.join(WF_DIR, 'ccc-fleet-run.workflow.js'), 'utf8');
   const listed = JSON.parse(src.match(/const WORKER_SKILLS = new Set\((\[.*?\])\)/)[1]);
