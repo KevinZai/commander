@@ -39,6 +39,9 @@ else
 fi
 
 REPO_URL="${CCC_REPO_URL:-https://github.com/KevinZai/commander.git}"
+# Default checkout path. scripts/diagnose-ccc-sources.sh reports a checkout
+# here (origin = this repository) as the current CLI, and
+# scripts/reset-commander-install.sh removes it only with --remove-checkout.
 INSTALL_DIR="${CCC_INSTALL_DIR:-$HOME/.cc-commander}"
 REF="${CCC_REF:-}"
 

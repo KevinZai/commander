@@ -10,6 +10,8 @@
 #   reset-commander-install.sh --full          # also remove legacy CLI install (pre-v4 plugin era)
 #   reset-commander-install.sh --dry-run       # show what WOULD be removed, touch nothing
 #   reset-commander-install.sh --full --dry-run
+#   reset-commander-install.sh --full --remove-checkout
+#                                              # also remove the ~/.cc-commander checkout
 #
 # Default mode removes (from ~/.claude/plugins/):
 #   • ccc-marketplace         (v3.0.0 legacy)
@@ -23,7 +25,12 @@
 #   • ~/.claude/skills/ccc/                (legacy standalone skill — EXACT match only)
 #   • ~/.claude/skills/commander/          (legacy standalone skill)
 #   • ~/.claude/commander/                 (CLI state dir)
-#   • ~/.cc-commander, ~/.ccc              (install trails)
+#   • ~/.ccc, ~/.config/cc-commander       (install trails)
+#   • ~/.cc-commander                      (only with --remove-checkout; a git
+#                                           checkout with local changes or
+#                                           untracked files is archived to the
+#                                           backup first, and kept if the
+#                                           archive cannot be verified)
 #   • npm-global cc-commander              (if detected via `npm ls -g`)
 #
 # NOT touched (even under --full):
@@ -32,6 +39,8 @@
 #
 # Safe to re-run. Creates timestamped backup of all state files + manifests
 # to ~/.claude/backups/commander-reset-YYYYMMDD-HHMMSS/ before touching anything.
+# Command files, skill dirs and the CLI state dir are copied into the backup
+# before removal; a failed copy aborts the reset.
 #
 # After running: fully quit Claude Code / Cowork Desktop (Cmd+Q), reopen, then:
 #   /plugin marketplace add KevinZai/commander
@@ -42,12 +51,14 @@ set -euo pipefail
 # ----- Parse flags -----
 FULL=0
 DRY_RUN=0
+REMOVE_CHECKOUT=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --full)    FULL=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
+    --remove-checkout) REMOVE_CHECKOUT=1; shift ;;
     -h|--help)
-      grep -E '^# ?' "$0" | sed 's/^# \?//' | head -40
+      grep -E '^# ?' "$0" | sed 's/^# \?//' | head -50
       exit 0
       ;;
     *) echo "Unknown flag: $1" >&2; exit 2 ;;
@@ -91,6 +102,10 @@ safe_rm_file() {
 
 [[ $DRY_RUN -eq 1 ]] && warn "DRY-RUN MODE — no changes will be made."
 [[ $FULL -eq 1 ]]    && info "FULL MODE — will also purge legacy CLI install (~/.claude/commands/, ~/.claude/commander/, etc.)"
+if [[ $REMOVE_CHECKOUT -eq 1 && $FULL -eq 0 ]]; then
+  fail "--remove-checkout only applies with --full."
+  exit 2
+fi
 
 PLUGINS_DIR="${HOME}/.claude/plugins"
 
@@ -254,13 +269,23 @@ if [[ $FULL -eq 1 ]]; then
   step "Purging legacy CLI install (--full)…"
   FULL_REMOVED=0
 
-  # 2a. Legacy slash commands (install-remote.sh left these before v4.0 plugin)
+  # 2a. Legacy slash commands (install-remote.sh left these before v4.0 plugin).
+  # Every file is copied into the backup before any is removed.
+  COMMAND_FILES=()
   for pattern in ccc commander; do
     for f in "${HOME}/.claude/commands/${pattern}"*.md; do
-      [[ -f "$f" ]] || continue
-      safe_rm_file "$f"
-      FULL_REMOVED=$((FULL_REMOVED + 1))
+      [[ -f "$f" ]] && COMMAND_FILES+=("$f")
     done
+  done
+  if [[ ${#COMMAND_FILES[@]} -gt 0 && $DRY_RUN -eq 0 ]]; then
+    mkdir -p "$BACKUP/commands" && cp -p "${COMMAND_FILES[@]}" "$BACKUP/commands/" || {
+      fail "Could not back up command files to $BACKUP/commands — nothing removed from ~/.claude/commands."
+      exit 1
+    }
+  fi
+  for f in ${COMMAND_FILES[@]+"${COMMAND_FILES[@]}"}; do
+    safe_rm_file "$f"
+    FULL_REMOVED=$((FULL_REMOVED + 1))
   done
 
   # 2b. Legacy standalone skills (EXACT dir name "ccc" or "commander" only —
@@ -269,7 +294,10 @@ if [[ $FULL -eq 1 ]]; then
     if [[ -d "$dir" ]]; then
       # Backup before nuking a skill dir (larger artifacts)
       if [[ $DRY_RUN -eq 0 ]]; then
-        cp -r "$dir" "$BACKUP/$(basename "$dir")-skill-backup" 2>/dev/null || true
+        cp -r "$dir" "$BACKUP/$(basename "$dir")-skill-backup" || {
+          fail "Could not back up $dir — not removing it."
+          exit 1
+        }
       fi
       safe_rm "$dir"
       FULL_REMOVED=$((FULL_REMOVED + 1))
@@ -280,21 +308,51 @@ if [[ $FULL -eq 1 ]]; then
   STATE_DIR="${HOME}/.claude/commander"
   if [[ -d "$STATE_DIR" ]]; then
     if [[ $DRY_RUN -eq 0 ]]; then
-      cp -r "$STATE_DIR" "$BACKUP/commander-state-backup" 2>/dev/null || true
+      cp -r "$STATE_DIR" "$BACKUP/commander-state-backup" || {
+        fail "Could not back up $STATE_DIR — not removing it."
+        exit 1
+      }
     fi
     safe_rm "$STATE_DIR"
     FULL_REMOVED=$((FULL_REMOVED + 1))
   fi
 
-  # 2d. Other install trails
-  for trail in "${HOME}/.cc-commander" "${HOME}/.ccc" "${HOME}/.config/cc-commander"; do
+  # 2d. The CLI checkout (install-remote.sh's default path) needs
+  # --remove-checkout. A checkout with any local change or untracked file is
+  # archived into the backup first and kept unless the archive verifies.
+  CHECKOUT_DIR="${HOME}/.cc-commander"
+  if [[ -e "$CHECKOUT_DIR" ]]; then
+    if [[ $REMOVE_CHECKOUT -eq 0 ]]; then
+      warn "Keeping $CHECKOUT_DIR (the CLI checkout). Add --remove-checkout to remove it."
+    elif [[ -e "$CHECKOUT_DIR/.git" ]] && [[ -n "$(git -C "$CHECKOUT_DIR" status --porcelain 2>/dev/null || echo unreadable)" ]]; then
+      ARCHIVE="$BACKUP/cc-commander-checkout.tar.gz"
+      if [[ $DRY_RUN -eq 1 ]]; then
+        dry "would archive $CHECKOUT_DIR (local changes) to $ARCHIVE, verify it, then remove it"
+        FULL_REMOVED=$((FULL_REMOVED + 1))
+      elif tar -czf "$ARCHIVE" -C "$(dirname "$CHECKOUT_DIR")" "$(basename "$CHECKOUT_DIR")" \
+          && tar -tzf "$ARCHIVE" >/dev/null; then
+        echo "  archived: $CHECKOUT_DIR -> $ARCHIVE"
+        safe_rm "$CHECKOUT_DIR"
+        FULL_REMOVED=$((FULL_REMOVED + 1))
+      else
+        fail "$CHECKOUT_DIR has local changes or untracked files and the archive at $ARCHIVE did not verify — keeping it."
+        CHECKOUT_REFUSED=1
+      fi
+    else
+      safe_rm "$CHECKOUT_DIR"
+      FULL_REMOVED=$((FULL_REMOVED + 1))
+    fi
+  fi
+
+  # 2e. Other install trails
+  for trail in "${HOME}/.ccc" "${HOME}/.config/cc-commander"; do
     if [[ -e "$trail" ]]; then
       safe_rm "$trail"
       FULL_REMOVED=$((FULL_REMOVED + 1))
     fi
   done
 
-  # 2e. Legacy ccc binary on PATH (from `npm install -g cc-commander` era).
+  # 2f. Legacy ccc binary on PATH (from `npm install -g cc-commander` era).
   # We detect via `command -v ccc` to catch all npm prefixes (nvm, homebrew,
   # system npm, pnpm, etc.) rather than guessing which prefix is active.
   CCC_BIN="$(command -v ccc 2>/dev/null || true)"
@@ -361,6 +419,11 @@ if [[ $DRY_RUN -eq 1 ]]; then
   echo ""
   info "DRY RUN COMPLETE — re-run without --dry-run to apply changes."
   exit 0
+fi
+
+if [[ "${CHECKOUT_REFUSED:-0}" -eq 1 ]]; then
+  fail "The CLI checkout was not removed (see above). Commit, stash or move its changes, then re-run."
+  exit 1
 fi
 
 if [[ "$LEFTOVER" -eq 0 ]]; then
