@@ -19,8 +19,6 @@
       "WebSearch",
       "WebFetch",
       "Skill(*)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
       "Bash(git status:*)",
       "Bash(ls:*)",
       "Bash(wc:*)",

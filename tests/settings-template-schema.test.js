@@ -32,7 +32,7 @@ test('no script runners or git write ops are pre-approved', () => {
   for (const cmd of writers) {
     assert.ok(!allow.some((a) => a.startsWith(`Bash(${cmd}`)), `${cmd} must not be pre-approved`);
   }
-  const READ_ONLY = /^Bash\((?:git (?:diff|log|status)|ls|wc|cat|head|tail):\*\)$/;
+  const READ_ONLY = /^Bash\((?:git status|ls|wc|cat|head|tail):\*\)$/;
   for (const a of allow.filter((x) => x.startsWith('Bash('))) assert.match(a, READ_ONLY, `${a} is not a read-only prefix`);
 });
 
@@ -43,5 +43,14 @@ test('guard hooks registered', () => {
   for (const guard of ['careful-guard', 'confidence-gate']) {
     const f = `$HOME/.claude/hooks/${guard}.js`;
     assert.ok(bash.includes(`if [ -f "${f}" ]; then node "${f}"; fi`), `${guard} is registered with an existence check`);
+  }
+});
+
+// Codex #302 H12: `git diff --output=<file>` and `git log --output=<file>` write files, so a prefix grant
+// for either command is not read-only. Neither is pre-approved; auto mode decides per call.
+test('no git diff or git log prefix grants', () => {
+  const allow = template().permissions.allow;
+  for (const cmd of ['git diff', 'git log']) {
+    assert.ok(!allow.some((a) => a.startsWith(`Bash(${cmd}`)), `${cmd} accepts --output and must not be pre-approved`);
   }
 });
