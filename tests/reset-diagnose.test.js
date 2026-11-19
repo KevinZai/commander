@@ -241,3 +241,23 @@ test('a second --full keeps an edited command the manifest records', () => {
     fs.rmSync(sb.home, { recursive: true, force: true });
   }
 });
+
+// Codex #302 M9: the backup holds ignored files such as .env, so it is owner-only.
+test('the backup dir is 0700 and the checkout archive 0600', () => {
+  const sb = sandbox();
+  try {
+    const dir = makeCheckout(sb.home);
+    fs.writeFileSync(path.join(dir, '.env'), 'SECRET=1\n');
+    const r = spawnSync('bash', ['-c', 'umask 022; exec bash "$0" --full --remove-checkout', RESET], {
+      env: { HOME: sb.home, PATH: `${sb.bin}:/usr/bin:/bin`, TERM: 'dumb', CC_NO_COLOR: '1' },
+      encoding: 'utf8', timeout: 30000,
+    });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const root = path.join(sb.home, '.claude', 'backups');
+    const backup = path.join(root, fs.readdirSync(root)[0]);
+    assert.equal(fs.statSync(backup).mode & 0o777, 0o700);
+    assert.equal(fs.statSync(path.join(backup, 'cc-commander-checkout.tar.gz')).mode & 0o777, 0o600);
+  } finally {
+    fs.rmSync(sb.home, { recursive: true, force: true });
+  }
+});

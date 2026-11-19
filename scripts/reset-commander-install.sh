@@ -122,7 +122,8 @@ fi
 # ----- Backup -----
 BACKUP="${HOME}/.claude/backups/commander-reset-$(date +%Y%m%d-%H%M%S)"
 if [[ $DRY_RUN -eq 0 ]]; then
-  mkdir -p "$BACKUP"
+  # Owner-only: the backup can hold the checkout archive with ignored files such as .env (Codex #302 M9).
+  mkdir -p "$BACKUP" && chmod 700 "$BACKUP"
   for f in known_marketplaces.json installed_plugins.json install-counts-cache.json blocklist.json; do
     [[ -f "$PLUGINS_DIR/$f" ]] && cp "$PLUGINS_DIR/$f" "$BACKUP/" || true
   done
@@ -369,6 +370,7 @@ if [[ $FULL -eq 1 ]]; then
   # tree, so ignored files such as .env, hidden untracked files and commits
   # that exist only locally are kept) and removed only once the archive
   # verifies. Local-only commits are named so the user knows to push them.
+  # The backup dir is 0700 and the archive 0600 because it keeps such files.
   CHECKOUT_DIR="${HOME}/.cc-commander"
   if [[ -e "$CHECKOUT_DIR" ]]; then
     if [[ $REMOVE_CHECKOUT -eq 0 ]]; then
@@ -384,8 +386,9 @@ if [[ $FULL -eq 1 ]]; then
       if [[ $DRY_RUN -eq 1 ]]; then
         dry "would archive $CHECKOUT_DIR to $ARCHIVE, verify it, then remove it"
         FULL_REMOVED=$((FULL_REMOVED + 1))
-      elif mkdir -p "$BACKUP" && tar -czf "$ARCHIVE" -C "$(dirname "$CHECKOUT_DIR")" "$(basename "$CHECKOUT_DIR")" \
-          && tar -tzf "$ARCHIVE" >/dev/null; then
+      elif mkdir -p "$BACKUP" && chmod 700 "$BACKUP" \
+          && (umask 077 && tar -czf "$ARCHIVE" -C "$(dirname "$CHECKOUT_DIR")" "$(basename "$CHECKOUT_DIR")") \
+          && chmod 600 "$ARCHIVE" && tar -tzf "$ARCHIVE" >/dev/null; then
         echo "  archived: $CHECKOUT_DIR -> $ARCHIVE"
         safe_rm "$CHECKOUT_DIR"
         FULL_REMOVED=$((FULL_REMOVED + 1))
