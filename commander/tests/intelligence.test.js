@@ -460,8 +460,9 @@ test('the relevant-skills block travels with the task, before "Task:"', function
 // Codex #302 Medium 5: an imported project outside the launch dir keeps its CLAUDE.md because dispatch runs there.
 test('every dispatch path binds cwd to the imported project directory', function() {
   var src = require('fs').readFileSync(require('path').join(__dirname, '..', 'engine.js'), 'utf8');
-  assert.strictEqual((src.match(/systemPrompt: sysPrompt,\s*cwd: activeProjectDir\(\)/g) || []).length, 2);
-  assert.ok(/paneTitle: 'claude-' \+ dispatchCounter,\s*cwd: activeProjectDir\(\)/.test(src), 'split mode opens the pane in the project dir');
+  // The root is resolved once per dispatch (dispatchRoot) and the same value feeds context and cwd (project-root.test.js).
+  assert.strictEqual((src.match(/systemPrompt: sysPrompt,\s*cwd: root\.dir/g) || []).length, 2);
+  assert.strictEqual((src.match(/tmuxDispatch\(fullTask, null, root\.dir\)/g) || []).length, 2, 'split mode opens the pane in the project dir');
   var calls = [];
   var exec = function(cmd, args) {
     calls.push(args);
