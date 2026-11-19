@@ -118,9 +118,21 @@ mint them. Kevin must stand up or designate an OAuth 2.1 authorization server
   client registration strongly recommended),
 - publishes JWKS (asymmetric signing — RS256/ES256/EdDSA),
 - mints access tokens with `iss` = `OAUTH_ISSUER_URL`, `aud` =
-  `OAUTH_RESOURCE_URL`, and a `sub` equal to the CC Commander `user_id`
-  (UUID) **or** an `email` claim matching `users.email` — that is how tokens
-  map to the same key records as `/v1` Bearer license keys.
+  `OAUTH_RESOURCE_URL`, and a stable `sub`.
+
+Tokens map to the same key records as `/v1` Bearer license keys ONLY through
+`oauth_identities` (migration `src/db/migrations/005_oauth_identities.sql`):
+one row per `(issuer, subject)` pointing at `users.user_id`. There is no
+fallback to `sub` = `user_id` or to the `email` claim; an unlinked identity,
+a missing table or a lookup error denies the token. Before setting
+`OAUTH_ISSUER_URL`, apply 005 and insert a row for each existing user who will
+connect (service role, SQL Editor):
+
+```sql
+insert into public.oauth_identities (issuer, subject, user_id)
+values ('https://auth.commanderplugin.com', '<token sub>', '<users.user_id>')
+on conflict (issuer, subject) do nothing;
+```
 
 ```bash
 fly secrets set \

@@ -104,6 +104,15 @@ describe("hosted migrations (apps/mcp-server-cloud/src/db/migrations)", () => {
     assert.match(text, /revoke execute on function %s from public, anon, authenticated/);
   });
 
+  it("005 keys OAuth identities by (issuer, subject) with the users.user_id type", () => {
+    const text = sql(path.join(MIGRATIONS, "005_oauth_identities.sql"));
+    assert.match(text, /create table if not exists public\.oauth_identities/);
+    assert.match(text, /primary key \(issuer, subject\)/);
+    assert.match(text, /user_id %s not null references public\.users\(user_id\) on delete cascade/);
+    assert.match(text, /attrelid = 'public\.users'::regclass and a\.attname = 'user_id'/);
+    assert.match(text, /revoke all on table public\.oauth_identities from public, anon, authenticated/);
+  });
+
   it("fresh-install SQL matches the 004 end-state", () => {
     const creators = sql(path.join(APP_ROOT, "src/db/creators-schema.sql"));
     assert.ok(!/create policy creators_public_read/.test(creators), "no public-read policy");
