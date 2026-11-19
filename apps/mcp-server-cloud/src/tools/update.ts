@@ -13,6 +13,8 @@ export type CheckUpdateResult = {
 
 const LATEST_MANIFEST_URL = "https://raw.githubusercontent.com/KevinZai/commander/main/package.json";
 const FETCH_TIMEOUT_MS = 3000;
+/** The whole string must be a version; the value is echoed to the client. */
+const VERSION_RE = /^\d+\.\d+\.\d+(-[\w.]+)?$/;
 
 function compareSemver(a: string, b: string): number {
   const pa = a.split(/[.-]/).map((x) => (/^\d+$/.test(x) ? Number(x) : x));
@@ -34,7 +36,7 @@ export async function fetchLatestVersion(fetchImpl: typeof fetch = fetch): Promi
     const res = await fetchImpl(LATEST_MANIFEST_URL, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
     if (!res.ok) return null;
     const json = (await res.json()) as { version?: unknown };
-    return typeof json.version === "string" && /^\d+\.\d+\.\d+/.test(json.version) ? json.version : null;
+    return typeof json.version === "string" && VERSION_RE.test(json.version) ? json.version : null;
   } catch {
     return null;
   }
