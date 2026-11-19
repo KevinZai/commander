@@ -113,3 +113,23 @@ test('bump-version.js updates nested plugins[i].version in marketplace.json (tem
     assert.ok(!fs.existsSync(path.join(ROOT, rel + '.bump-tmp')), 'no stray .bump-tmp for ' + rel);
   }
 });
+
+// Codex #302 M10: the version is written into install-remote.sh's CCC_SHIPPED_REF="v<version>" assignment and
+// becomes the release tag the remote installer accepts, so only strict semver without build metadata is taken.
+test('bump-version.js refuses a version that is not strict X.Y.Z[-prerelease] and writes nothing', function () {
+  const tmp = makeTempRoot();
+  try {
+    const before = fs.readFileSync(path.join(tmp, 'install-remote.sh'), 'utf8');
+    for (const bad of ['8.1.7+build.1', '8.1.7";touch pwned;"', '8.1.7 ', '8.1.7-', '08.1.7', '8.1.7-beta..1', '8.1.7-$(id)']) {
+      const r = spawnSync(process.execPath, [BUMP, bad], { env: { ...process.env, BUMP_VERSION_ROOT: tmp }, encoding: 'utf8' });
+      assert.notStrictEqual(r.status, 0, bad);
+      assert.match(r.stderr, /strict semver/, bad);
+    }
+    assert.strictEqual(fs.readFileSync(path.join(tmp, 'install-remote.sh'), 'utf8'), before);
+    const ok = spawnSync(process.execPath, [BUMP, '8.2.0-beta.1'], { env: { ...process.env, BUMP_VERSION_ROOT: tmp }, encoding: 'utf8' });
+    assert.strictEqual(ok.status, 0, ok.stderr);
+    assert.match(fs.readFileSync(path.join(tmp, 'install-remote.sh'), 'utf8'), /^CCC_SHIPPED_REF="v8\.2\.0-beta\.1"$/m);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});

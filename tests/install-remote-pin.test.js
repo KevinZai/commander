@@ -127,3 +127,17 @@ test('install-remote.sh refuses a fetched commit other than CCC_EXPECTED_COMMIT'
     assert.match(r.stdout, /STUB INSTALL/);
   });
 });
+
+// Codex #302 M10: build metadata is refused here as in scripts/bump-version.js, before anything is fetched.
+test('install-remote.sh refuses a ref with build metadata or shell characters before fetching', () => {
+  withHome((home) => {
+    const up = makeUpstream(home);
+    for (const ref of ['v1.2.0+build.1', 'v1.2.0;id', 'v1.2.0$(id)']) {
+      const dir = join(home, 'fresh-' + ref.replace(/\W/g, '_'));
+      const r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: ref });
+      assert.notStrictEqual(r.status, 0, ref);
+      assert.match(r.stdout, /CCC_REF must be a tag or commit/, ref);
+      assert.ok(!existsSync(dir), `${ref}: nothing was cloned`);
+    }
+  });
+});

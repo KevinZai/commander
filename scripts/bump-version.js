@@ -18,9 +18,15 @@ if (!version) {
   process.exit(1);
 }
 
-// Basic semver/pre-release sanity check
-if (!/^\d+\.\d+\.\d+/.test(version)) {
-  process.stderr.write('ERROR: version must start with X.Y.Z (got: ' + version + ')\n');
+// Strict semver, X.Y.Z with an optional pre-release (Codex #302 M10). The version is written into
+// install-remote.sh's CCC_SHIPPED_REF="v<version>" shell assignment and names the release tag, so nothing
+// else gets through: no shell characters, and no +build metadata, which install-remote.sh refuses as a ref.
+var NUM = '(?:0|[1-9]\\d*)';
+var PRE_ID = '(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*)';
+var STRICT_SEMVER = new RegExp('^' + NUM + '\\.' + NUM + '\\.' + NUM + '(?:-' + PRE_ID + '(?:\\.' + PRE_ID + ')*)?$');
+if (!STRICT_SEMVER.test(version)) {
+  process.stderr.write('ERROR: version must be strict semver X.Y.Z or X.Y.Z-prerelease (got: ' + JSON.stringify(version) + ')\n');
+  if (version.indexOf('+') !== -1) process.stderr.write('  Build metadata (+...) is not supported: release tags and install-remote.sh refs cannot carry it.\n');
   process.exit(1);
 }
 
