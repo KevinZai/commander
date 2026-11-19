@@ -178,3 +178,26 @@ test('skills-loader catalog matches the registry skills section', function() {
   assert.ok(all.some(function(s) { return s.id === 'plugin/ccc-data'; }) && all.some(function(s) { return s.id === 'ecosystem/ccc-data'; }));
   assert.ok(loader.getSkill('ecosystem/ccc-data').content.length > 0);
 });
+
+// Codex #302 delta2 MEDIUM 6: a skill name shared by a top-level and a nested copy resolves to the top-level one.
+test('getSkill prefers the top-level skill when names collide', function () {
+  var fsMod = require('fs');
+  var pathMod = require('path');
+  var loader = require('../mcp-server/skills-loader.js');
+  var root = pathMod.join(__dirname, '..', '..');
+  var reg = fsMod.readFileSync(pathMod.join(root, 'commander', 'core', 'registry.yaml'), 'utf8');
+  var entries = [];
+  reg.replace(/^  - id: (.*)\n    name: (.*)\n    path: (.*)$/gm, function (_m, id, name, p) { entries.push({ id: id.trim(), name: name.trim(), path: p.trim() }); });
+  var byName = {};
+  entries.forEach(function (e) { (byName[e.name] = byName[e.name] || []).push(e); });
+  var collisions = Object.keys(byName).filter(function (n) {
+    return byName[n].length > 1 && !entries.some(function (e) { return e.id === n; }) &&
+      byName[n].some(function (e) { return e.path === 'skills/' + n + '/SKILL.md'; });
+  });
+  assert.ok(collisions.indexOf('cold-email') !== -1, 'fixture: cold-email has a top-level and a nested copy');
+  collisions.forEach(function (n) {
+    var got = loader.getSkill(n);
+    var want = fsMod.readFileSync(pathMod.join(root, 'skills', n, 'SKILL.md'), 'utf8');
+    assert.strictEqual(got && got.content, want, n + ' resolved to a nested copy');
+  });
+});
