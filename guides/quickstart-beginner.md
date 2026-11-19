@@ -35,11 +35,15 @@ Without CC Commander, Claude Code is a general-purpose assistant. With CC Comman
 
 ### Install CC Commander (One Command)
 
-Open your terminal and run:
+Open your terminal and download the installer from a release tag, read it, then run it:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
+curl -fsSLo install-remote.sh https://raw.githubusercontent.com/KevinZai/commander/v8.1.7/install-remote.sh
+less install-remote.sh        # read what it will do
+bash install-remote.sh
 ```
+
+The script installs the release it ships with and prints the commit it checked out. To insist on an exact commit, run `CCC_EXPECTED_COMMIT=<40-character commit from the release page> bash install-remote.sh`; any other commit stops the install before anything changes.
 
 The installer:
 1. Detects your existing Claude Code configuration

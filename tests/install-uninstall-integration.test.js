@@ -638,11 +638,11 @@ function makeUpstream(root) {
   return { url: 'file://' + up, rev: (r) => git('rev-parse', r + '^{commit}') };
 }
 
-test('install-remote.sh installs the newest release tag, or CCC_REF, and prints the commit', () => {
+test('install-remote.sh installs CCC_REF=latest (the newest release tag) or a named tag, and prints the commit', () => {
   withHome('ccc-remote-', (home) => {
     const upstream = makeUpstream(home);
     const dir = join(home, '.cc-commander');
-    const env = { CCC_REPO_URL: upstream.url, CCC_INSTALL_DIR: dir };
+    const env = { CCC_REPO_URL: upstream.url, CCC_INSTALL_DIR: dir, CCC_REF: 'latest' };
     let res = run(INSTALL_REMOTE_SH, home, [], env);
     ok(res, 'install-remote');
     const head = () => spawnSync('git', ['-C', dir, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout.trim();
@@ -661,7 +661,7 @@ test('install-remote.sh refuses a checkout whose origin is not the expected repo
   withHome('ccc-remote-origin-', (home) => {
     const upstream = makeUpstream(home);
     const dir = join(home, '.cc-commander');
-    ok(run(INSTALL_REMOTE_SH, home, [], { CCC_REPO_URL: upstream.url, CCC_INSTALL_DIR: dir }), 'install-remote');
+    ok(run(INSTALL_REMOTE_SH, home, [], { CCC_REPO_URL: upstream.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.2.0' }), 'install-remote');
     spawnSync('git', ['-C', dir, 'remote', 'set-url', 'origin', 'https://example.com/someone-else/commander.git']);
     const res = run(INSTALL_REMOTE_SH, home, [], { CCC_REPO_URL: upstream.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.0.0' });
     assert.notStrictEqual(res.status, 0);

@@ -36,11 +36,14 @@ const BUMPED_FILES = [
   path.join('apps', 'mcp-server-cloud', 'package-lock.json'),
 ];
 
+// Text files carrying the release tag (TEXT_FILES in bump-version.js).
+const TEXT_FILES = ['install-remote.sh', path.join('guides', 'quickstart-beginner.md')];
+
 const MARKETPLACE_REL = path.join('.claude-plugin', 'marketplace.json');
 
 function makeTempRoot() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-bump-version-'));
-  for (const rel of BUMPED_FILES) {
+  for (const rel of BUMPED_FILES.concat(TEXT_FILES)) {
     const dest = path.join(tmp, rel);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.copyFileSync(path.join(ROOT, rel), dest);
@@ -50,7 +53,7 @@ function makeTempRoot() {
 
 function snapshotReal() {
   const snap = {};
-  for (const rel of BUMPED_FILES) snap[rel] = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+  for (const rel of BUMPED_FILES.concat(TEXT_FILES)) snap[rel] = fs.readFileSync(path.join(ROOT, rel), 'utf8');
   return snap;
 }
 
@@ -93,12 +96,19 @@ test('bump-version.js updates nested plugins[i].version in marketplace.json (tem
     assert.strictEqual(obj.version, testVersion, rel + ' version should update');
   }
 
+  // The remote installer's default ref and every tag-pinned install URL follow the release, mode kept.
+  const remote = fs.readFileSync(path.join(tmp, 'install-remote.sh'), 'utf8');
+  assert.match(remote, /^CCC_SHIPPED_REF="v99\.99\.99-test"$/m);
+  assert.doesNotMatch(remote, /\/commander\/v\d+\.\d+\.\d+\/install-remote\.sh/);
+  assert.match(fs.readFileSync(path.join(tmp, 'guides', 'quickstart-beginner.md'), 'utf8'), /\/commander\/v99\.99\.99-test\/install-remote\.sh/);
+  assert.ok(fs.statSync(path.join(tmp, 'install-remote.sh')).mode & 0o100, 'install-remote.sh stays executable');
+
   // stdout should mention the nested update (telemetry sanity)
   assert.match(r.stdout, /plugins\[\d+\]/, 'output should report plugins[i] update');
 
   // The real checkout must be byte-for-byte untouched.
   const realAfter = snapshotReal();
-  for (const rel of BUMPED_FILES) {
+  for (const rel of BUMPED_FILES.concat(TEXT_FILES)) {
     assert.strictEqual(realAfter[rel], realBefore[rel], 'real ' + rel + ' must not be modified');
     assert.ok(!fs.existsSync(path.join(ROOT, rel + '.bump-tmp')), 'no stray .bump-tmp for ' + rel);
   }

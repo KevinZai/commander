@@ -2,12 +2,11 @@
 # ============================================================================
 # CC Commander — One-Line Remote Installer
 # ============================================================================
-# Paste this anywhere:
-#   curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
+# Download the script from a release tag, read it, then run it:
+#   curl -fsSLo install-remote.sh https://raw.githubusercontent.com/KevinZai/commander/v8.1.7/install-remote.sh
+#   bash install-remote.sh
 #
-# Or with wget:
-#   wget -qO- https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
-#
+
 # What it checks: the checkout's origin is the CC Commander repository, and
 # HEAD is the exact commit of the release tag (or commit) being installed.
 # It prints that commit so you can compare it with the release page. It does
@@ -15,9 +14,12 @@
 #
 # Environment:
 #   CCC_REF=v8.1.6        Install this tag or full commit SHA. Default: the
-#                         newest vX.Y.Z release tag. A branch name is refused:
-#                         a name that is not a commit must be a tag on the
-#                         repository (the same rule as `ccc --update`).
+#                         release this script ships with (CCC_SHIPPED_REF);
+#                         CCC_REF=latest takes the newest vX.Y.Z tag. A branch
+#                         name is refused: a name that is not a commit must be
+#                         a tag on the repository (the same rule as `ccc --update`).
+#   CCC_EXPECTED_COMMIT=SHA  Full 40-character commit the release must be;
+#                         any other fetched commit stops before checkout.
 #   CCC_INSTALL_DIR=DIR   Checkout location. Default: ~/.cc-commander
 #   CCC_INSTALL_CLI=1     Allow `npm install -g @anthropic-ai/claude-code`
 #                         when the claude command is missing.
@@ -43,7 +45,11 @@ REPO_URL="${CCC_REPO_URL:-https://github.com/KevinZai/commander.git}"
 # here (origin = this repository) as the current CLI, and
 # scripts/reset-commander-install.sh removes it only with --remove-checkout.
 INSTALL_DIR="${CCC_INSTALL_DIR:-$HOME/.cc-commander}"
-REF="${CCC_REF:-}"
+# The release this script ships with. scripts/bump-version.js rewrites it and
+# scripts/check-version-parity.js checks it against package.json.
+CCC_SHIPPED_REF="v8.1.7"
+REF="${CCC_REF:-$CCC_SHIPPED_REF}"
+PINNED_COMMIT="${CCC_EXPECTED_COMMIT:-}"
 
 fail() {
   echo -e "  ${RED}✗${NC} $1"
@@ -78,6 +84,10 @@ fi
 if [[ -n "$REF" ]] && ! [[ "$REF" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$ ]]; then
   fail "CCC_REF must be a tag or commit (got: $REF)"
 fi
+if [[ -n "$PINNED_COMMIT" ]]; then
+  [[ "$PINNED_COMMIT" =~ ^[0-9a-fA-F]{40}$ ]] || fail "CCC_EXPECTED_COMMIT must be a full 40-character commit SHA"
+  PINNED_COMMIT="$(printf '%s' "$PINNED_COMMIT" | tr '[:upper:]' '[:lower:]')"
+fi
 
 # ── Claude Code CLI ──────────────────────────────────────────────────────────
 # Never installed globally without an explicit opt-in.
@@ -96,9 +106,10 @@ fi
 
 # ── Resolve the release to install ───────────────────────────────────────────
 
-if [[ -z "$REF" ]]; then
+if [[ "$REF" == "latest" ]]; then
   REF="$(git ls-remote --tags --refs "$REPO_URL" 'v*' 2>/dev/null \
-    | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)"
+    | awk '{ r = $2; if (index(r, "refs/tags/") == 1) print substr(r, 11) }' \
+    | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)"
   [[ -n "$REF" ]] || fail "Could not list release tags from $REPO_URL. Check your connection, or set CCC_REF=<tag or commit>."
 fi
 echo -e "  ${CYAN}►${NC} Release: ${WHITE}${REF}${NC}"
@@ -143,6 +154,9 @@ FETCHED="$(git -C "$INSTALL_DIR" rev-parse --verify 'FETCH_HEAD^{commit}')"
 if [[ -n "$EXPECTED_COMMIT" && "$FETCHED" != "$EXPECTED_COMMIT" ]]; then
   fail "Fetched $FETCHED, but refs/tags/$REF on $REPO_URL is $EXPECTED_COMMIT"
 fi
+if [[ -n "$PINNED_COMMIT" && "$FETCHED" != "$PINNED_COMMIT" ]]; then
+  fail "Fetched $FETCHED for $REF, but CCC_EXPECTED_COMMIT is $PINNED_COMMIT. Nothing was changed."
+fi
 git -C "$INSTALL_DIR" checkout --quiet --detach "$FETCHED"
 git -C "$INSTALL_DIR" submodule update --quiet --init --recursive --depth 1 2>/dev/null \
   || echo -e "  ${AMBER}!${NC} Some vendor submodules could not be fetched; the kit still installs."
@@ -179,5 +193,5 @@ chmod +x install.sh
 
 echo ""
 echo -e "  ${GREEN}✓${NC} CC Commander ${REF} (${COMMIT:0:12}) installed to ${WHITE}${INSTALL_DIR}${NC}"
-echo -e "  ${DIM}To update: ccc --update   (or re-run this script; CCC_REF=<tag> pins a release)${NC}"
+echo -e "  ${DIM}To update: ccc --update   (or re-run this script; CCC_REF=<tag> pins a release, CCC_EXPECTED_COMMIT=<sha> its commit)${NC}"
 echo ""

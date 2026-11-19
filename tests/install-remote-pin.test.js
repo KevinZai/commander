@@ -92,3 +92,38 @@ test('install-remote.sh pins lightweight and annotated tags exactly and refuses 
     assert.strictEqual(head(), up.rev('v1.2.0'), 'a full commit SHA still works');
   });
 });
+
+// M10: the script installs the release it ships with unless told otherwise, and CCC_EXPECTED_COMMIT pins the
+// exact commit: a mismatch stops before checkout or install.
+test('install-remote.sh defaults to its embedded release; CCC_REF=latest picks the newest tag', () => {
+  const shipped = require('../package.json').version;
+  const src = require('node:fs').readFileSync(INSTALL_REMOTE_SH, 'utf8');
+  assert.match(src, new RegExp('^CCC_SHIPPED_REF="v' + shipped.replace(/\./g, '\\.') + '"$', 'm'));
+  withHome((home) => {
+    const up = makeUpstream(home);
+    const dir = join(home, '.cc-commander');
+    let r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir });
+    assert.match(r.stdout, new RegExp('Release: v' + shipped.replace(/\./g, '\\.')));
+    assert.notStrictEqual(r.status, 0, 'the fixture repo has no such tag');
+    r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'latest' });
+    assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+    assert.strictEqual(up.git(dir, 'rev-parse', 'HEAD'), up.rev('v1.2.0'));
+  });
+});
+
+test('install-remote.sh refuses a fetched commit other than CCC_EXPECTED_COMMIT', () => {
+  withHome((home) => {
+    const up = makeUpstream(home);
+    const dir = join(home, '.cc-commander');
+    let r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.2.0', CCC_EXPECTED_COMMIT: up.rev('v1.0.0') });
+    assert.notStrictEqual(r.status, 0);
+    assert.match(r.stdout, /CCC_EXPECTED_COMMIT/);
+    assert.doesNotMatch(r.stdout, /STUB INSTALL/);
+    r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.2.0', CCC_EXPECTED_COMMIT: 'not-a-sha' });
+    assert.notStrictEqual(r.status, 0);
+    assert.match(r.stdout, /CCC_EXPECTED_COMMIT must be a full 40-character commit/);
+    r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.2.0', CCC_EXPECTED_COMMIT: up.rev('v1.2.0').toUpperCase() });
+    assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /STUB INSTALL/);
+  });
+});
