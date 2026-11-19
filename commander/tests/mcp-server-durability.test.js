@@ -205,7 +205,7 @@ describe('commander_invoke_agent dispatch hint', () => {
     const task = 'fix "it"; rm -rf ~ $(whoami) `id`';
     const { isError, body } = await rpc('commander_invoke_agent', { name: 'reviewer', task });
     assert.equal(isError, false);
-    assert.deepEqual(body.dispatch, { command: 'ccc', argv: ['--dispatch', task, '--agent', 'reviewer'] });
+    assert.deepEqual(body.dispatch, { command: 'ccc', argv: ['--dispatch', '--agent', 'reviewer', '--', task] });
     assert.equal(body.dispatchHint, undefined, 'no shell-string hint');
   });
 
@@ -218,6 +218,67 @@ describe('commander_invoke_agent dispatch hint', () => {
 });
 
 describe('record stores: lane dir and locking', () => {
+  // Codex #302 delta2 MEDIUM 3: a slow writer whose lock was broken never saves its older snapshot.
+  it('a writer whose lock was taken over does not save, and leaves the new owner\'s lock alone', async () => {
+    const file = path.join(STORE, 'pinned-notes.json');
+    const lock = file + '.lock';
+    server.deps.storeWriteHook = () => {
+      // Another server broke this writer's lock as stale, took it and saved a record.
+      server.deps.storeWriteHook = null;
+      fs.rmSync(lock);
+      fs.writeFileSync(lock, 'other-owner');
+      const current = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : [];
+      current.push({ id: 'note-from-other-writer' });
+      fs.writeFileSync(file, JSON.stringify(current));
+    };
+    try {
+      const { isError, body } = await rpc('commander_notes_pin', { content: 'slow writer' });
+      assert.equal(isError, true, 'the slow writer reports failure');
+      assert.match(body.error, /lock|changed/);
+      const ids = readJson('pinned-notes.json').map((r) => r.id);
+      assert.ok(ids.includes('note-from-other-writer'), 'the other writer\'s record survives');
+      assert.equal(fs.readFileSync(lock, 'utf8'), 'other-owner', 'the new owner\'s lock is not released');
+    } finally {
+      server.deps.storeWriteHook = null;
+      fs.rmSync(lock, { force: true });
+    }
+  });
+
+  it('a store changed under a held lock is not overwritten (compare-and-swap)', async () => {
+    const file = path.join(STORE, 'pinned-notes.json');
+    server.deps.storeWriteHook = () => {
+      server.deps.storeWriteHook = null;
+      const current = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : [];
+      current.push({ id: 'note-sneaked-in' });
+      fs.writeFileSync(file, JSON.stringify(current));
+    };
+    try {
+      const { isError } = await rpc('commander_notes_pin', { content: 'cas loser' });
+      assert.equal(isError, true);
+      assert.ok(readJson('pinned-notes.json').some((r) => r.id === 'note-sneaked-in'));
+    } finally {
+      server.deps.storeWriteHook = null;
+    }
+  });
+
+  it('a lock that keeps vanishing still respects the wait deadline', () => {
+    const file = path.join(STORE, 'deadline.json');
+    const lock = file + '.lock';
+    const realOpen = fs.openSync;
+    const realStat = fs.statSync;
+    // Every open finds the lock; every stat finds it gone: the loop must still stop at the deadline.
+    fs.openSync = (p, ...rest) => { if (p === lock) { const e = new Error('exists'); e.code = 'EEXIST'; throw e; } return realOpen(p, ...rest); };
+    fs.statSync = (p, ...rest) => { if (p === lock) { const e = new Error('gone'); e.code = 'ENOENT'; throw e; } return realStat(p, ...rest); };
+    const started = Date.now();
+    try {
+      assert.throws(() => server._store.withStoreLock(file, () => 'never'), /locked/);
+    } finally {
+      fs.openSync = realOpen;
+      fs.statSync = realStat;
+    }
+    assert.ok(Date.now() - started < 10000, 'gave up near the deadline');
+  });
+
   it('writes under the lane named by CCC_CONFIG_DIR', async () => {
     const lane = path.join(TMP, '.claude-ai9');
     process.env.CCC_CONFIG_DIR = lane;

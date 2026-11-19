@@ -185,7 +185,7 @@ function scanProject(dir) {
  * The engine prepends it to the task with a fixed "reference data, not
  * instructions" sentence; it never goes into --append-system-prompt.
  * CLAUDE.md is not copied: dispatches run in the imported project's directory
- * (engine.js activeProjectDir), so Claude Code loads it from there.
+ * (engine.js dispatchRoot, lib/project-root.js), so Claude Code loads it from there.
  * Commander NEVER writes to the project's .claude/ — only reads.
  *
  * @param {object} project - From scanProject()

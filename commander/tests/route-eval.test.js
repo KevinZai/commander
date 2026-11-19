@@ -220,6 +220,11 @@ test('a negated directive never routes; a described failure still does', async (
   assert.strictEqual(s.scoreRoutes('Skip deployment, then write unit tests for my code')[0].route.id, 'ccc-testing');
   assert.strictEqual(s.scoreRoutes('Skip deployment, write unit tests for my code')[0].route.id, 'ccc-testing');
   assert.strictEqual(s.stripNegated("don't deploy, build or test anything").trim(), '', 'a bare list stays negated');
+  // Codex delta2 M1/M7: a comma list of prohibited actions closed by "or <verb>" stays negated.
+  for (const p of ['Do not write documentation, write unit tests for my code, or deploy anything',
+    "don't deploy, write unit tests for my code or run the audit", 'Never deploy, add the tests, nor ship the release']) {
+    assert.ok(!fires(p), `prohibited list fired: ${p}`);
+  }
   assert.strictEqual(s.stripNegated('i must have broken it, debug the test'), 'i must have broken it, debug the test');
   // Length is kept, so offsets into the text stay valid.
   const text = 'do not deploy. review the pr';

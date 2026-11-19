@@ -13,7 +13,9 @@ var SHELLS = ['sh', 'bash', 'zsh', 'fish', 'dash', 'ksh', 'mksh', 'tcsh', 'csh',
 // Readiness is an allowlist: the task is typed only when the pane's
 // foreground command is Claude Code itself. A denylist of shells let task
 // text reach any unlisted shell or REPL (ash, busybox, pwsh, xonsh, python3).
-var CLAUDE_COMMANDS = ['claude', 'node'];
+// "node" is not on the list: Claude Code sets its process title to "claude",
+// and a bare node may be any script or REPL with stale Claude text on screen.
+var CLAUDE_COMMANDS = ['claude'];
 // The native installer runs the binary from versions/<semver>, so tmux
 // reports the version string as the command name.
 var NATIVE_VERSION_RE = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
@@ -33,7 +35,7 @@ function commandName(command) {
   return String(command || '').trim().replace(/^-/, '').split('/').pop();
 }
 
-// True only when the foreground command is Claude Code: claude, node, the
+// True only when the foreground command is Claude Code: claude, the
 // basename of the resolved claude binary, or a native-installer version name.
 function isClaudeProcess(command, claudeBin) {
   var c = commandName(command);
@@ -90,15 +92,19 @@ function checkAuth(exec, claudeBin, write) {
 // command is Claude Code (allowlist, never "not a shell") AND the pane shows
 // Claude Code's prompt UI. Anything else (a shell, sleep, a REPL, a pager)
 // resets the streak, so the task is never typed into another program.
+function paneRunsClaude(exec, paneId, claudeBin) {
+  var current = '';
+  try {
+    current = String(exec('tmux', ['display-message', '-p', '-t', paneId, '#{pane_current_command}'])).trim();
+  } catch (_e) { current = ''; }
+  return isClaudeProcess(current, claudeBin);
+}
+
 function waitForClaude(exec, sleep, paneId, maxPolls, pollMs, claudeBin) {
   var streak = 0;
   for (var attempt = 0; attempt < maxPolls; attempt++) {
     sleep(pollMs);
-    var current = '';
-    try {
-      current = String(exec('tmux', ['display-message', '-p', '-t', paneId, '#{pane_current_command}'])).trim();
-    } catch (_e) { current = ''; }
-    var ready = isClaudeProcess(current, claudeBin) && paneShowsClaude(exec, paneId);
+    var ready = paneRunsClaude(exec, paneId, claudeBin) && paneShowsClaude(exec, paneId);
     streak = ready ? streak + 1 : 0;
     if (streak >= 2) return true;
   }
@@ -158,8 +164,18 @@ function dispatch(task, resumeSessionId, options) {
         return null;
       }
       var safeTask = String(task || '').replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 4000);
+      // Claude can exit between the last poll and delivery: re-check the
+      // foreground command right before the text and again before Enter.
+      if (!paneRunsClaude(exec, paneId, claudeBin)) {
+        write('\n  Claude Code exited in pane ' + paneId + '; the task was not sent.\n');
+        return null;
+      }
       // "--" ends tmux option parsing so a task starting with "-" is literal text.
       exec('tmux', ['send-keys', '-t', paneId, '-l', '--', safeTask]);
+      if (!paneRunsClaude(exec, paneId, claudeBin)) {
+        write('\n  Claude Code exited in pane ' + paneId + ' before Enter; the task was not submitted.\n');
+        return null;
+      }
       exec('tmux', ['send-keys', '-t', paneId, 'Enter']);
     }
 

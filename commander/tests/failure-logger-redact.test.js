@@ -95,3 +95,49 @@ test('the log is owner-only: file 0600, a new state dir 0700', { skip: !POSIX },
   runHook(env, { tool_name: 'Bash', error: 'boom again' });
   assert.equal(fs.statSync(logOf(home)).mode & 0o777, 0o600);
 });
+
+// Codex #302 delta2 MEDIUM 5: arrays, multiline assignments and long tokens past the old scan limit.
+const { pathToFileURL } = require('node:url');
+const REDACT = path.join(__dirname, '..', 'cowork-plugin', 'hooks', 'lib', 'redact-log.mjs');
+
+test('passwords in arrays are redacted', async () => {
+  const { redactLogText } = await import(pathToFileURL(REDACT).href);
+  const a = 'pw-' + 'Alpha12345';
+  const b = 'pw-' + 'Bravo67890';
+  for (const text of [
+    `{"passwords": ["${a}", "${b}"]}`,
+    `{"db": {"password": ["${a}"]}}`,
+    `config.passwords = ['${a}', '${b}']`,
+    `API_KEYS=(${a} ${b})`,
+  ]) {
+    const out = redactLogText(text);
+    assert.ok(!out.includes(a) && !out.includes(b), `array leaked: ${out}`);
+  }
+  const obj = redactLogText({ secrets: [a, b], ok: ['fine'] });
+  assert.ok(!obj.includes(a) && !obj.includes(b), obj);
+  assert.ok(obj.includes('fine'), 'non-secret arrays survive');
+});
+
+test('multiline quoted assignments are redacted in full', async () => {
+  const { redactLogText } = await import(pathToFileURL(REDACT).href);
+  const l1 = 'line1-' + 'Q8w7e6r5';
+  const l2 = 'line2-' + 'T4y3u2i1';
+  for (const text of [
+    `DB_PASSWORD="${l1}\n${l2}"\nnext`,
+    `export PRIVATE_KEY='${l1}\n${l2}'`,
+    `secret_key: "${l1}\n${l2}"`,
+    `DB_PASSWORD="${l1}`,
+  ]) {
+    const out = redactLogText(text);
+    assert.ok(!out.includes(l1) && !out.includes(l2), `multiline leaked: ${JSON.stringify(out)}`);
+  }
+});
+
+test('a long quoted token that runs past the old scan limit is still redacted', async () => {
+  const { redactLogText } = await import(pathToFileURL(REDACT).href);
+  const token = 'tok' + 'Z'.repeat(20000);
+  const out = redactLogText(`{"access_token": "${token}"}`, { max: 30000 });
+  assert.ok(!out.includes('ZZZZZZZZ'), 'token prefix leaked');
+  const late = 'x'.repeat(17000) + ` GITHUB_TOKEN=${SECRETS.ghToken}`;
+  assert.ok(!redactLogText(late, { max: 20000 }).includes(SECRETS.ghToken), 'a secret past 16000 chars leaked');
+});

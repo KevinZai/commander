@@ -161,13 +161,25 @@ function listSkills(opts) {
   };
 }
 
+// A name shared by several copies resolves to a top-level skill (skills/<name>/ or a plugin skill) before a nested
+// pack copy (skills/<pack>/<name>/), whatever order the registry lists them in.
+function byName(catalog, name) {
+  var hits = catalog.filter(function(s) { return s.name === name; });
+  if (hits.length < 2) return hits[0] || null;
+  var topLevel = function(s) {
+    var parent = path.dirname(path.dirname(s.path));
+    return parent === SKILLS_DIR || parent === PLUGIN_SKILLS_DIR;
+  };
+  return hits.find(topLevel) || hits[0];
+}
+
 function getSkill(name) {
   var catalog = buildCatalog();
   // By id, then by name, then by the pre-registry nested id (<parent>/<child>, the skill's dir under skills/).
   var nestedPath = typeof name === 'string' && /^[a-z0-9._-]+\/[a-z0-9._-]+$/i.test(name)
     ? path.join(SKILLS_DIR, name, 'SKILL.md') : null;
   var skill = catalog.find(function(s) { return s.id === name; }) ||
-    catalog.find(function(s) { return s.name === name; }) ||
+    byName(catalog, name) ||
     (nestedPath ? catalog.find(function(s) { return s.path === nestedPath; }) : null);
   if (!skill) return null;
 

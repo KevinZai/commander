@@ -43,11 +43,11 @@ for d in "$R"/skills/*/; do
 done
 for w in "$R"/workflows/*.workflow.js; do [ -f "$w" ] && printf 'workflow\t/commander:%s\n' "$(basename "$w" .workflow.js)"; done
 for m in "$R"/menus/*.json; do [ -f "$m" ] && printf 'menu\t%s\n' "$(basename "$m" .json)"; done
-printf 'agents\t%s\n' "$(ls "$R"/agents/*.md 2>/dev/null | wc -l | tr -d ' ')"
-node -e 'const fs=require("fs"),R=process.argv[1];const n=(p,k)=>{try{const j=JSON.parse(fs.readFileSync(R+p,"utf8"));return Object.keys(k?j[k]||{}:j).length}catch{return "—"}};console.log("hookEvents\t"+n("/hooks/hooks.json","hooks"));console.log("mcpServers\t"+n("/.mcp.json","mcpServers"))' "$R"
+printf 'agents\t%s\n' "$(ls "$R"/agents/*.md "$R"/agents/*.toml 2>/dev/null | wc -l | tr -d ' ')"
+node -e 'const fs=require("fs"),R=process.argv[1];const n=(ps,k)=>{for(const p of ps){try{const j=JSON.parse(fs.readFileSync(R+p,"utf8"));return Object.keys(k?j[k]||{}:j).length}catch{}}return "—"};console.log("hookEvents\t"+n(["/hooks/hooks.json","/hooks.json"],"hooks"));console.log("mcpServers\t"+n(["/.mcp.json"],"mcpServers"))' "$R"
 ```
 
-Each output row is tab-separated: `version`, one `skill` row per skill directory (name, truncated description), one `workflow` row per plugin workflow, one `menu` row per menu file, then `agents`, `hookEvents`, `mcpServers`. A failed probe prints nothing or `—`; keep going and show `—`.
+Each output row is tab-separated: `version`, one `skill` row per skill directory (name, truncated description), one `workflow` row per plugin workflow, one `menu` row per menu file, then `agents` (`agents/*.md`, or `agents/*.toml` in the Codex build), `hookEvents` (`hooks/hooks.json`, or `hooks.json` at the Codex plugin root), `mcpServers`. A failed probe prints nothing or `—`; keep going and show `—`.
 
 ### 2. Header and stats
 

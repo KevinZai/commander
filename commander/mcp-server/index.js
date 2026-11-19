@@ -141,7 +141,8 @@ function handleInvokeAgent(args) {
     agent: name,
     task: task,
     note: 'Local mode: use Claude Code /ccc-' + name + ' with the task context below.',
-    dispatch: { command: 'ccc', argv: ['--dispatch', task, '--agent', name] },
+    // The task follows "--", so a task that starts with "-" is never read as a ccc option.
+    dispatch: { command: 'ccc', argv: ['--dispatch', '--agent', name, '--', task] },
   };
 }
 
@@ -229,10 +230,14 @@ function sleepSync(ms) {
 }
 
 /**
- * Run fn while holding <file>.lock, created with O_EXCL so two servers (one per
- * session) never interleave a read-modify-write. A lock older than
+ * Run fn(guard) while holding <file>.lock, created with O_EXCL so two servers
+ * (one per session) never interleave a read-modify-write. A lock older than
  * LOCK_STALE_MS is left by a dead writer and is broken; a live one is waited
- * on for up to LOCK_WAIT_MS, then the call fails instead of losing a record.
+ * on for up to LOCK_WAIT_MS (on every retry path), then the call fails instead
+ * of losing a record. The lock holds a unique token: guard.assertOwned()
+ * re-reads it right before a write, so a slow writer whose lock was broken as
+ * stale fails instead of saving its older snapshot, and release removes the
+ * lock only while it is still ours.
  */
 function withStoreLock(file, fn) {
   try {
@@ -241,28 +246,52 @@ function withStoreLock(file, fn) {
     throw new Error('Could not save ' + file + ': ' + err.message);
   }
   var lockFile = file + '.lock';
+  var token = process.pid + ':' + crypto.randomBytes(8).toString('hex');
   var deadline = Date.now() + LOCK_WAIT_MS;
   var fd;
   for (;;) {
+    if (Date.now() >= deadline) throw new Error('Store ' + file + ' is locked by another writer; try again');
     try {
       fd = fs.openSync(lockFile, 'wx', 0o600);
       break;
     } catch (err) {
       if (!err || err.code !== 'EEXIST') throw new Error('Could not lock ' + file + ': ' + (err && err.message));
       var age = 0;
-      try { age = Date.now() - fs.statSync(lockFile).mtimeMs; } catch (_) { continue; }
+      try { age = Date.now() - fs.statSync(lockFile).mtimeMs; } catch (_) { sleepSync(5); continue; }
       if (age > LOCK_STALE_MS) { try { fs.unlinkSync(lockFile); } catch (_) {} continue; }
-      if (Date.now() >= deadline) throw new Error('Store ' + file + ' is locked by another writer; try again');
       sleepSync(25);
     }
   }
-  try {
-    fs.writeSync(fd, String(process.pid));
-    fs.closeSync(fd);
-    return fn();
-  } finally {
-    try { fs.unlinkSync(lockFile); } catch (_) {}
+  function owned() {
+    try { return fs.readFileSync(lockFile, 'utf8') === token; } catch (_) { return false; }
   }
+  var guard = {
+    assertOwned: function () {
+      if (!owned()) throw new Error('Lost the lock on ' + file + ' to another writer; nothing was saved, try again');
+    },
+  };
+  try {
+    fs.writeSync(fd, token);
+    fs.closeSync(fd);
+    return fn(guard);
+  } finally {
+    if (owned()) { try { fs.unlinkSync(lockFile); } catch (_) {} }
+  }
+}
+
+// The store's raw bytes (null when it does not exist), for the compare-and-swap check before a write.
+function storeSnapshot(file) {
+  try { return fs.readFileSync(file, 'utf8'); } catch (err) {
+    if (err && err.code === 'ENOENT') return null;
+    throw new Error('Could not read ' + file + ': ' + err.message);
+  }
+}
+
+// Right before the rename: the lock is still ours and the store is byte-identical to what was read.
+function assertWritable(file, guard, snapshot) {
+  if (typeof deps.storeWriteHook === 'function') deps.storeWriteHook(file);
+  guard.assertOwned();
+  if (storeSnapshot(file) !== snapshot) throw new Error('Store ' + file + ' changed during the update; nothing was saved, try again');
 }
 
 function newRecordId(prefix) {
@@ -287,12 +316,13 @@ function readStore(file) {
   return parsed;
 }
 
-/** Atomically write the list (temp file + rename), then confirm the record landed. */
-function writeStore(file, records, id) {
+/** Atomically write the list (temp file + rename), then confirm the record landed. beforeRename may veto. */
+function writeStore(file, records, id, beforeRename) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   var tmp = file + '.' + process.pid + '.' + crypto.randomBytes(4).toString('hex') + '.tmp';
   try {
     fs.writeFileSync(tmp, JSON.stringify(records, null, 2));
+    if (beforeRename) beforeRename();
     fs.renameSync(tmp, file);
   } catch (err) {
     try { fs.unlinkSync(tmp); } catch (_) {}
@@ -304,20 +334,22 @@ function writeStore(file, records, id) {
 
 function appendRecord(fileName, record) {
   var file = path.join(storeDir(), fileName);
-  return withStoreLock(file, function () {
+  return withStoreLock(file, function (guard) {
+    var snapshot = storeSnapshot(file);
     var records = readStore(file);
     records.push(record);
-    writeStore(file, records, record.id);
+    writeStore(file, records, record.id, function () { assertWritable(file, guard, snapshot); });
     return file;
   });
 }
 
 function updateRecord(fileName, id, patch) {
   var file = path.join(storeDir(), fileName);
-  return withStoreLock(file, function () { updateRecordLocked(file, id, patch); });
+  return withStoreLock(file, function (guard) { updateRecordLocked(file, id, patch, guard); });
 }
 
-function updateRecordLocked(file, id, patch) {
+function updateRecordLocked(file, id, patch, guard) {
+  var snapshot = storeSnapshot(file);
   var records = readStore(file);
   var found = false;
   records = records.map(function (r) {
@@ -326,7 +358,7 @@ function updateRecordLocked(file, id, patch) {
     return Object.assign({}, r, patch);
   });
   if (!found) throw new Error('Record ' + id + ' not found in ' + file);
-  writeStore(file, records, id);
+  writeStore(file, records, id, function () { assertWritable(file, guard, snapshot); });
 }
 
 function requireString(value, field) {
@@ -418,6 +450,8 @@ function handleTasksPush(args) {
 // Test seam: integrations are resolved lazily so tests can substitute them.
 var deps = {
   linear: function () { return require('../integrations/linear'); },
+  // Called inside the store lock right before the ownership and compare-and-swap checks; null in production.
+  storeWriteHook: null,
 };
 
 // ─── Tool dispatch map ─────────────────────────────────────────
@@ -539,4 +573,5 @@ module.exports = {
   HANDLERS: HANDLERS,
   handleRequest: handleRequest,
   deps: deps,
+  _store: { withStoreLock: withStoreLock },
 };

@@ -6,19 +6,34 @@
  *   - env-style assignments whose name says secret (GITHUB_TOKEN=…, AWS_SECRET_ACCESS_KEY=…, DB_PASS="…");
  *   - quoted JSON keys that say secret ("client_secret": "…", "authorization": "…");
  *   - credential headers (Authorization:, Proxy-Authorization:, Cookie:, X-Api-Key: …) up to the end of the line.
+ * A value may be quoted across lines, unterminated (redacted to the end), or a [list] / shell (array) of values; the
+ * whole input is redacted before it is clipped, so a secret that straddles the clip point never survives.
  * The name is kept and only the value becomes [redacted], so a log row still says which variable or header failed.
  * Over-redaction is acceptable here; a leaked credential is not.
  */
 import { redact } from '../../lib/safety-snapshot.js';
 
-const SCAN_LIMIT = 16000;      // bound the regex work on a huge error before redaction
+// The whole text is redacted before it is clipped, so a secret can never survive because it straddled a cut. Only
+// input past MAX_INPUT (far more than any tool error) is dropped first; a quoted value cut there runs to the end of
+// the text and is redacted as unterminated. Name parts are length-bounded so the scan stays linear.
+const MAX_INPUT = 256 * 1024;
 const DEFAULT_MAX = 4000;      // what is kept after redaction
 const CLIP_MARK = '…[clipped]';
 
-const ENV_SECRET = /\b([A-Z][A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|PASS|PWD|CREDENTIALS?|AUTH|COOKIE)[A-Z0-9_]*)(\s*=\s*)("[^"\n]*"|'[^'\n]*'|[^\s"';&|]+)/g;
-const LOWER_SECRET = /\b((?:access|private|secret|client|session|api)[_-]?key|credentials?|auth[_-]?token|cookie)(\s*[=:]\s*)("[^"\n]*"|'[^'\n]*'|[^\s"';&|,}]+)/gi;
-const JSON_SECRET = /("[^"\\\n]{0,60}(?:key|token|secret|passw(?:or)?d|authorization|cookie|credentials?)[^"\\\n]{0,60}"\s*:\s*)"(?:[^"\\]|\\.)*"/gi;
+// A secret's value: a double-quoted string (escapes and line breaks allowed; unterminated runs to the end), a
+// single-quoted string (same), a [list] or a shell (array), or a bare token.
+const DQ = String.raw`"(?:[^"\\]|\\[\s\S])*(?:"|$)`;
+const SQ = String.raw`'[^']*(?:'|$)`;
+const LIST = String.raw`\[(?:[^\[\]"']|"(?:[^"\\]|\\[\s\S])*"|'[^']*')*(?:\]|$)|\([^)]*(?:\)|$)`;
+const ENV_SECRET = new RegExp(String.raw`\b([A-Z][A-Z0-9_]{0,60}(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|PASS|PWD|CREDENTIALS?|AUTH|COOKIE)S?[A-Z0-9_]{0,60})(\s*=\s*)(${DQ}|${SQ}|${LIST}|[^\s"';&|]+)`, 'g');
+const LOWER_SECRET = new RegExp(String.raw`\b((?:access|private|secret|client|session|api)[_-]?keys?|credentials?|auth[_-]?tokens?|cookies?)(\s*[=:]\s*)(${DQ}|${SQ}|${LIST}|[^\s"';&|,}]+)`, 'gi');
+// A dotted or plain identifier that names secrets, assigned a list: config.passwords = ['a', 'b'].
+const LIST_SECRET = new RegExp(String.raw`\b([A-Za-z_][\w.-]{0,60}?(?:passw(?:or)?ds?|secrets?|tokens?|api[_-]?keys?|credentials?))(\s*[=:]\s*)(${LIST})`, 'gi');
+const JSON_KEY = String.raw`"[^"\\\n]{0,60}(?:key|token|secret|passw(?:or)?d|authorization|cookie|credentials?)[^"\\\n]{0,60}"\s*:\s*`;
+const JSON_SECRET = new RegExp(String.raw`(${JSON_KEY})(${DQ}|${LIST})`, 'gi');
 const HEADER_SECRET = /\b((?:proxy-)?authorization|x-api-key|api-key|x-auth-token|cookie|set-cookie)(\s*:\s*)(?!\s*")[^\r\n]+/gi;
+
+const asRedacted = (value) => (value.startsWith('[') ? '["[redacted]"]' : value.startsWith('(') ? '([redacted])' : value.startsWith('"') ? '"[redacted]"' : '[redacted]');
 
 /** Redact secrets in `value` and clip it to `max` characters. Non-strings are JSON-serialised first; null stays null. */
 export function redactLogText(value, { max = DEFAULT_MAX } = {}) {
@@ -29,13 +44,14 @@ export function redactLogText(value, { max = DEFAULT_MAX } = {}) {
     try { text = JSON.stringify(value); } catch { text = String(value); }
   }
   if (typeof text !== 'string') return null;
-  if (text.length > SCAN_LIMIT) text = text.slice(0, SCAN_LIMIT);
+  if (text.length > MAX_INPUT) text = text.slice(0, MAX_INPUT);
 
   const scrubbed = redact(
     text
       .replace(HEADER_SECRET, '$1$2[redacted]')
-      .replace(JSON_SECRET, '$1"[redacted]"')
+      .replace(JSON_SECRET, (_m, key, value) => key + asRedacted(value))
       .replace(ENV_SECRET, '$1$2[redacted]')
+      .replace(LIST_SECRET, '$1$2[redacted]')
       .replace(LOWER_SECRET, '$1$2[redacted]'),
   );
   if (typeof scrubbed !== 'string') return null;
