@@ -12,9 +12,11 @@
 --   survey_skip_streak >=3 → -500 (500 cap)
 -- Tiers 'pro' and 'founders': 100000 calls/mo flat.
 --
--- This file is the FRESH-INSTALL end-state. Existing databases upgrade via
--- migrations/002_paywall_tiers.sql (tier domain + stripe columns + founders
--- cap parity). The armed 100-call/mo free cap is app-side (lib/paywall.ts),
+-- This file is the FRESH-INSTALL base (it already includes migration 002).
+-- Existing databases upgrade via migrations/002_paywall_tiers.sql (tier
+-- domain + stripe columns + founders cap parity). Fresh AND existing
+-- databases then apply migrations/003_* onward, in numeric order; each is
+-- idempotent and has a down script in migrations/down/. The armed 100-call/mo free cap is app-side (lib/paywall.ts),
 -- gated by env CCC_PAYWALL_ARMED — no schema dependency.
 
 create extension if not exists "pgcrypto";

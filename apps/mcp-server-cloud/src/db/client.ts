@@ -18,6 +18,11 @@ export type UserRow = {
   // Dark paywall plumbing (migration 002) — set by the Stripe webhook.
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
+  // Billing state (migration 003) — written only by the Stripe webhook.
+  lifetime_tier: "founders" | null;
+  founders_payment_intent: string | null;
+  subscription_status: string | null;
+  subscription_event_created: string | null;
 };
 
 export type UsageCounterRow = {
