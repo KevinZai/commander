@@ -138,11 +138,31 @@ test('CC-1397: a missing session_id dedupes per-day instead of always firing', a
   assert.ok(isNudge(third), 'a new day did not get its own nudge');
 });
 
-test('CC-1397: the fallback build-console.mjs path is guarded by test -f', async () => {
+test('nudge has no workspace-relative fallback', async () => {
   const HOME = await homeWithTelemetry();
   const result = await run({ input: INPUT, env: { HOME }, now: NOW });
   const context = result.hookSpecificOutput.additionalContext;
-  assert.match(context, /test -f "\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/build-console\.mjs"/, 'no test -f guard before the fallback');
+  // Exactly one command, rooted at the plugin: a repo-relative fallback would
+  // run whatever builder the open workspace happens to contain.
+  assert.match(context, /`node "\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/build-console\.mjs" --tab overview`/);
+  assert.ok(!/\|\|/.test(context), 'the nudge still chains a fallback command');
+  assert.ok(!/test -f/.test(context), 'the nudge still carries the old test -f guard');
+  const mentions = context.match(/build-console\.mjs/g) || [];
+  assert.equal(mentions.length, 1, 'the nudge names more than one builder path');
+  assert.ok(!/(^|[\s`])commander\/cowork-plugin\//.test(context), 'the nudge names a workspace-relative path');
+});
+
+test('silent when the builder is missing', async () => {
+  const HOME = await homeWithTelemetry();
+  const builderPath = path.join(HOME, 'no-such-plugin', 'scripts', 'build-console.mjs');
+  const result = await run({ input: INPUT, env: { HOME }, now: NOW, builderPath });
+  assert.equal(result.continue, true);
+  assert.ok(!isNudge(result), 'nudged although the plugin-local builder does not exist');
+
+  // The default resolution points at the builder shipped beside the hook.
+  const shipped = path.join(HERE, '..', 'cowork-plugin', 'scripts', 'build-console.mjs');
+  await fs.access(shipped);
+  assert.ok(isNudge(await run({ input: { ...INPUT, session_id: 'with-builder' }, env: { HOME }, now: NOW })));
 });
 
 test('never throws — a read-only home degrades to silence, not an error', async () => {

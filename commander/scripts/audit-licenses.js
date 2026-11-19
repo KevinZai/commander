@@ -4,11 +4,20 @@
 //
 // Exit codes:
 //   0 = all clear (all MIT) or only compatible-but-flagged (allowed list)
-//   1 = HARD FAIL: GPL/AGPL/MPL/proprietary copy found (or unknown)
+//   1 = HARD FAIL: GPL/AGPL/MPL/proprietary copy found (or unknown), or a copy
+//       whose license is unverified ships in the npm package
 //
 // Usage:
 //   node commander/scripts/audit-licenses.js           # print report
 //   node commander/scripts/audit-licenses.js --check   # exit 1 on any FAIL
+//   --copies <file>     read this provenance map instead of copied-content.json
+//   --packlist <file>   read `npm pack --dry-run --json` output from a file
+//                       instead of running npm pack (fixtures, offline runs)
+//
+// An unverified (LicenseRef-Unverified) or UNKNOWN copy that appears in the
+// package file list FAILS: it would be redistributed. An unverified copy that
+// is not packaged only warns. When the file list cannot be computed, every
+// unverified copy is treated as packaged (fail closed).
 
 'use strict';
 
@@ -125,27 +134,112 @@ function resolveVendorLicense(copy, vendors) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
+// ─── Package file list ───────────────────────────────────────────────────────
+
+// Licenses whose redistribution we cannot vouch for: shipping one is a FAIL.
+const UNVERIFIED_SPDX = new Set(['LicenseRef-Unverified', 'UNKNOWN']);
+
+function parseArgs(argv) {
+  const opts = { check: false, json: false, copies: COPIES_JSON, packlist: null };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--check') opts.check = true;
+    else if (a === '--json') opts.json = true;
+    else if (a === '--copies' || a === '--packlist') {
+      const value = argv[++i];
+      if (!value || value.startsWith('--')) throw new Error(a + ' needs a file path');
+      opts[a.slice(2)] = path.resolve(value);
+    } else throw new Error('unknown argument: ' + a);
+  }
+  return opts;
+}
+
+// Accepts `npm pack --dry-run --json` output ([{ files: [{ path }] }]) or a
+// plain array of paths. Returns a Set of repo-relative POSIX paths.
+function packlistFromJson(parsed) {
+  const entries = Array.isArray(parsed) ? parsed : [parsed];
+  const files = new Set();
+  for (const entry of entries) {
+    if (typeof entry === 'string') files.add(entry.replace(/\\/g, '/'));
+    else if (entry && Array.isArray(entry.files)) {
+      for (const f of entry.files) if (f && typeof f.path === 'string') files.add(f.path.replace(/\\/g, '/'));
+    }
+  }
+  return files;
+}
+
+// Returns { files: Set|null, source, error? }. null files means "unknown".
+function loadPacklist(packlistFile) {
+  if (packlistFile) {
+    try {
+      return { files: packlistFromJson(JSON.parse(fs.readFileSync(packlistFile, 'utf8'))), source: packlistFile };
+    } catch (err) {
+      return { files: null, source: packlistFile, error: err.message };
+    }
+  }
+  const { spawnSync } = require('node:child_process');
+  const r = spawnSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+    shell: process.platform === 'win32',
+  });
+  if (r.status !== 0 || r.error) {
+    return { files: null, source: 'npm pack --dry-run', error: r.error ? r.error.message : 'exit ' + r.status };
+  }
+  try {
+    return { files: packlistFromJson(JSON.parse(r.stdout)), source: 'npm pack --dry-run' };
+  } catch (err) {
+    return { files: null, source: 'npm pack --dry-run', error: err.message };
+  }
+}
+
 function main() {
-  const checkMode = process.argv.includes('--check');
-  const jsonMode = process.argv.includes('--json');
+  let opts;
+  try {
+    opts = parseArgs(process.argv.slice(2));
+  } catch (err) {
+    console.error('audit-licenses: ' + err.message);
+    process.exit(2);
+  }
+  const checkMode = opts.check;
+  const jsonMode = opts.json;
 
   // 1. Classify vendors
   const vendors = classifyVendors();
 
   // 2. Load copies provenance map
-  if (!fs.existsSync(COPIES_JSON)) {
-    console.error('ERROR: copied-content.json not found at', COPIES_JSON);
+  if (!fs.existsSync(opts.copies)) {
+    console.error('ERROR: copies provenance map not found at', opts.copies);
     process.exit(1);
   }
-  const { copies } = JSON.parse(fs.readFileSync(COPIES_JSON, 'utf8'));
+  const { copies } = JSON.parse(fs.readFileSync(opts.copies, 'utf8'));
 
   // 3. Classify each copy
-  const results = copies.map(copy => {
+  const classified = copies.map(copy => {
     let spdx = resolveVendorLicense(copy, vendors);
     // An unverified copy must say why (upstream gone, no license text); without a reason it counts as unknown.
     if (spdx === 'LicenseRef-Unverified' && !/unreachable|404|no license text/i.test(copy.notes || '')) spdx = 'UNKNOWN';
-    const cls = CLASSIFICATION[spdx] || CLASSIFICATION['UNKNOWN'];
-    return { ...copy, spdx, ...cls };
+    if (!CLASSIFICATION[spdx]) spdx = 'UNKNOWN';
+    return { ...copy, spdx };
+  });
+
+  // 3b. A copy we cannot vouch for fails when it ships. The file list is only
+  // computed when such a copy exists, so a clean tree never runs npm pack.
+  const needsPacklist = classified.some(c => UNVERIFIED_SPDX.has(c.spdx));
+  const packlist = needsPacklist ? loadPacklist(opts.packlist) : { files: null, source: 'not needed' };
+  if (needsPacklist && !packlist.files) {
+    console.error('audit-licenses: could not read the package file list (' + packlist.source + ': ' + packlist.error + '); treating every unverified copy as packaged.');
+  }
+  const results = classified.map(copy => {
+    const packaged = needsPacklist && UNVERIFIED_SPDX.has(copy.spdx)
+      ? (packlist.files ? packlist.files.has(copy.file) : true)
+      : undefined;
+    const cls = CLASSIFICATION[copy.spdx];
+    if (copy.spdx === 'LicenseRef-Unverified' && packaged) {
+      return { ...copy, packaged, verdict: 'FAIL', label: '❌ Unverified license in the npm package' };
+    }
+    return packaged === undefined ? { ...copy, ...cls } : { ...copy, packaged, ...cls };
   });
 
   // 4. Count verdicts
@@ -193,7 +287,7 @@ function main() {
   if (fail.length > 0) {
     console.log('  ❌ HARD FAIL — ' + fail.length + ' file(s) from non-distributable/copyleft vendor:\n');
     for (const r of fail) {
-      console.log(`     • ${r.file} (${r.spdx})`);
+      console.log(`     • ${r.file} (${r.spdx}${r.packaged ? ', packaged' : ''})`);
     }
     console.log('\n  ACTION REQUIRED: Kevin must remove, relicense, or convert to submodule reference.');
     console.log('  DO NOT commit until resolved.\n');
@@ -209,7 +303,8 @@ function main() {
     }
     if (unverified.length > 0) {
       console.log('  ❓ LICENSE UNVERIFIED — ' + unverified.length + ' file(s) whose upstream is unreachable and that ship no license text.');
-      console.log('  Not known to be distribution-compatible: recover the license, rewrite the file, or remove it.\n');
+      console.log('  Not in the npm package, so nothing is redistributed yet; packaging one fails --check.');
+      console.log('  Recover the license, rewrite the file, or remove it.\n');
       for (const r of unverified) console.log(`     • ${r.file} (${r.spdx})`);
       console.log('');
     }

@@ -864,7 +864,7 @@ skills:
     source: ecosystem
     domain: ccc-design
     tier: free
-    description: Generate marketing screenshots of your app using Playwright. Use when the user wants to create screenshots for Product Hunt, social media, landing pages, or documentation.
+    description: "Capture crisp 2x marketing images of your own running web app with a Playwright script: viewport presets, light and dark themes, logged-in pages, predictable file names. Use when the user needs product shots for a launch post, store listing, landing page, social card or docs."
   - id: svg-animation
     name: svg-animation
     path: skills/ccc-design/svg-animation/SKILL.md

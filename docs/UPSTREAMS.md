@@ -44,7 +44,7 @@ All 15 bumps are fast-forwards of the old pin.
 | `ccc-memory`, `ccc-tasks` | anthropics/knowledge-work-plugins | Apache-2.0 | adapted | 2026-11-13 | Heavily reframed for Commander; no line-level sync |
 | `ccc-adhd`, `mode-switcher` | ayghri/i-have-adhd | MIT | 2026-10 | 2026-10-11 | Up to date |
 | `caveman` | JuliusBrussee/caveman | MIT at our base; Apache-2.0 from 3.0.0 (2026-09-24) | pre-3.0 | 2026-11-17 | Kept at the MIT-era text on purpose; do not sync to the Apache-2.0 upstream |
-| `ccc-design/screenshots` | Shpigford/skills | Unverified (stated MIT; no license text shipped) | — | unreachable | Upstream repo is no longer public; copy kept |
+| `ccc-design/screenshots` | none (clean-room rewrite, 2026-11-19) | Project license | — | — | No longer a copy: rewritten from a functional spec without reading the earlier text, which came from the unreachable Shpigford/skills repo with no license text. Removed from `copied-content.json`; nothing to sync |
 | `playground` | frodo-temaki/playground-skill | MIT (README only, no LICENSE file) | — | 2026-01-28 | Identical to upstream |
 | `context-mode` | mksglu/context-mode | Elastic License 2.0 | external install | 2026-11-18 | Wrapper only; nothing bundled |
 | `ccc-testing/plankton-code-quality` | alexfazio/plankton | MIT | — | 2026-03-08 | Up to date |

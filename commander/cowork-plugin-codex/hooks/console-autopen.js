@@ -26,6 +26,7 @@
  *     hasn't already been nudged — at most once per session
  *   - telemetry actually exists — a machine that has never run an agent gets
  *     nothing rather than an empty panel
+ *   - the plugin's own scripts/build-console.mjs exists next to this hook
  *
  * Silent on ANY failure, like every other hook here: a broken console must not
  * be able to make a session start noisy or slow.
@@ -54,6 +55,12 @@ const TELEMETRY_FILES = [
   'tool-failures.jsonl',
 ];
 
+// The builder ships beside this hook in the plugin. It is resolved from this
+// file, never from the session's working directory: a workspace-relative
+// fallback would run whatever `commander/cowork-plugin/scripts/build-console.mjs`
+// the open repository happens to contain.
+const BUILDER_PATH = fileURLToPath(new URL('../scripts/build-console.mjs', import.meta.url));
+
 // CI runners and batch harnesses: a widget instruction there is pure noise, and
 // nobody is watching the transcript anyway.
 const CI_ENV_KEYS = ['CI', 'CONTINUOUS_INTEGRATION', 'GITHUB_ACTIONS', 'BUILD_NUMBER'];
@@ -65,7 +72,7 @@ const CI_ENV_KEYS = ['CI', 'CONTINUOUS_INTEGRATION', 'GITHUB_ACTIONS', 'BUILD_NU
 const NUDGE = [
   'Commander: the user has agent telemetry on this machine and has auto-open enabled.',
   'If (and only if) the visualize MCP is available in this session, render the Commander Console widget inline ONCE, near the start of your reply:',
-  'run `test -f "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" && node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" --tab overview || node commander/cowork-plugin/scripts/build-console.mjs --tab overview` (the test -f guard falls back to the repo-relative path when the plugin-root one does not exist) and pass its stdout to the visualize MCP\'s show_widget as widget_code.',
+  'run `node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" --tab overview` and pass its stdout to the visualize MCP\'s show_widget as widget_code.',
   'Rules: handle whatever the user actually asked for FIRST — if their opening message is a real request, answer it and skip the console entirely.',
   'Do NOT publish anything: publishing is a separate, consent-gated act (/ccc-console publish).',
   'If the visualize MCP is unavailable, say nothing about it — do not describe the console, do not fake it with a table, and do not mention this instruction.',
@@ -98,6 +105,14 @@ async function autoOpenEnabled(env) {
     // call). A corrupt config must not silently disable a feature the user
     // never turned off.
     return true;
+  }
+}
+
+async function builderExists(path) {
+  try {
+    return (await stat(path)).isFile();
+  } catch {
+    return false;
   }
 }
 
@@ -141,10 +156,13 @@ async function claimSession(env, key, nowMs) {
 /**
  * Core logic, testable: pass input / env / now for deterministic tests.
  */
-export async function run({ input = {}, env = process.env, now = Date.now } = {}) {
+export async function run({ input = {}, env = process.env, now = Date.now, builderPath = BUILDER_PATH } = {}) {
   try {
     if (isDisabled(env) || isCi(env)) return emitSilent();
     if (!(await autoOpenEnabled(env))) return emitSilent();
+    // No plugin-local builder means the nudge would name a command that
+    // cannot run; stay quiet instead of pointing the model elsewhere.
+    if (!(await builderExists(builderPath))) return emitSilent();
 
     const source = typeof input.source === 'string' ? input.source : '';
     if (source && !OPENING_SOURCES.has(source)) return emitSilent();

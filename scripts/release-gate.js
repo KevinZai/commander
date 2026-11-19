@@ -28,6 +28,8 @@ var GATES = [
   { id: 'audit-counts', cmd: 'node', args: ['scripts/audit-counts.js', '--check'] },
   { id: 'registry', cmd: 'node', args: ['scripts/build-from-registry.js', '--check'] },
   { id: 'frontmatter', cmd: 'node', args: ['scripts/audit-frontmatter.js', '--check'] },
+  // A copy with an unverified or unknown license that ships in the npm package fails here.
+  { id: 'licenses', cmd: 'node', args: ['commander/scripts/audit-licenses.js', '--check'] },
   { id: 'fable-contract', cmd: 'node', args: ['scripts/add-fable-contract.js', '--check'] },
   { id: 'doc-sync', cmd: 'node', args: ['bin/doc-sync.js'] },
   { id: 'skill-doc-sync', cmd: 'node', args: ['commander/cowork-plugin/skills/ccc-doc-sync/sync.js', '--check'] },

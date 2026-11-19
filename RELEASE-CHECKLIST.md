@@ -11,7 +11,7 @@ One gate list serves every entry point: `scripts/release-gate.js` runs in the ta
 3. Version: `node scripts/bump-version.js <version>` was committed, the top `CHANGELOG.md` entry is `## [<version>]`, and the `CLAUDE.md` release-check marker matches.
 4. `node scripts/release-gate.js --tag v<version> --require-plugin-validate` prints `GO`. It runs, in order:
    - tag = `package.json` version = top `CHANGELOG.md` entry (G2)
-   - version parity, product contract, audit counts, registry, frontmatter, Fable contract, doc-sync, skill doc-sync, compat, changelog version, routes, route eval, parity (G3)
+   - version parity, product contract, audit counts, registry, frontmatter, licenses (an unverified or unknown copy in the npm package fails), Fable contract, doc-sync, skill doc-sync, compat, changelog version, routes, route eval, parity (G3)
    - lint at the single ceiling in `package.json` `lint` (G4; CI calls the same script)
    - Codex mirror drift, and `claude plugin validate ./commander/cowork-plugin --strict` (needs the `claude` CLI; the tag workflow logs it as SKIP, so it must pass here)
    - `npm run test:ci`, `bash tests/smoke.sh` and the full `npm test` suite (G9)
