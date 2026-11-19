@@ -12,9 +12,31 @@ For each forward migration `NNN_name.sql`:
 3. Apply `down/NNN_name.down.sql` twice; both runs must succeed and the
    objects must be gone. Re-apply the forward migration to finish.
 
-Apply order: `002` (if not applied), `003`, `004`, `005`, `006`; then
+Apply order: `002` (if not applied; on the TEXT schema see its section),
+`003`, `004`, `005`, `006`; then
 `supabase/migrations/20261119000000_users_update_lockdown.sql` when the live
 `users` table came from `supabase/migrations/20260417000000_beta_v4.sql`.
+
+## 002_paywall_tiers
+
+002 is written for the hosted **uuid** users schema (`src/db/schema.sql`) and
+creates `get_effective_cap(uuid)`. On the **TEXT** schema
+(`supabase/migrations/20260417000000_beta_v4.sql`), which already has
+`get_effective_cap(text)`, it adds a second overload rather than replacing
+the function: string arguments keep resolving to the text version (no
+Founders/Pro cap parity), the uuid overload fails with
+`operator does not exist: text = uuid`, and PostgREST may answer the
+ambiguous `rpc/get_effective_cap` call with PGRST203.
+
+```sql
+select format_type(atttypid, atttypmod) from pg_attribute
+ where attrelid = 'public.users'::regclass and attname = 'user_id';
+-- uuid: apply 002 as is
+select oid::regprocedure from pg_proc where proname = 'get_effective_cap';
+-- uuid schema: exactly one row, get_effective_cap(uuid)
+-- TEXT schema: if get_effective_cap(uuid) is listed next to (text), remove it:
+--   drop function if exists public.get_effective_cap(uuid);
+```
 
 ## 003_stripe_events
 
