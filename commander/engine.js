@@ -38,6 +38,21 @@ function tmuxDispatch(task, resumeSessionId) {
   });
 }
 
+// The dispatched task: the active project's context and relevant past lessons as labelled reference data, then the task.
+function referencedTask(task) {
+  var cs = {};
+  try { cs = state.loadState() || {}; } catch (_e) { cs = {}; }
+  return require('./lib/reference-data').buildReferencedTask(task, {
+    projectDir: cs.activeProject && cs.activeProject.dir,
+    lessonsFor: task
+  });
+}
+
+// Identifiers interpolated into a system prompt are restricted to a plain token.
+function safeId(value) {
+  return String(value == null ? '' : value).replace(/[^A-Za-z0-9_.:-]/g, '').slice(0, 80);
+}
+
 var cockpit = require('./cockpit');
 var S = tui.S;
 
@@ -435,10 +450,9 @@ class KitCommander {
       if (complexity.effort) defaults.effort = complexity.effort;
     }
 
-    // Build system prompt with plugins + knowledge + Linear MCP context
+    // System prompt: fixed PM instructions + Linear MCP context + skill hint. Project context and past lessons are
+    // data, so they travel with the task as labelled blocks (lib/reference-data.js), never in the system prompt.
     var sysPrompt = (function() {
-      var knowledge = require("./knowledge");
-      var knowledgePrompt = knowledge.buildKnowledgePrompt(fullTask);
       var pluginsMod = require("./plugins");
       var det = pluginsMod.detectPlugins();
       var dispPlan = pluginsMod.buildDispatchPlan(det);
@@ -465,8 +479,6 @@ class KitCommander {
         "## Skill Suggestions (proactive)\n" +
         "Feature: spec-interviewer | Code: tdd-workflow | Bug: systematic-debugging | Review: review | Deploy: deploy-check | UI: ccc-design | SEO: ccc-seo | Security: ccc-security | Ship: qa/e2e\n" +
         "Suggest: I recommend [skill] because [reason]. AskUserQuestion: use / skip / others."
-      var cs = state.loadState();
-      if (cs.activeProject) { try { var pi = require("./project-importer"); var proj = pi.scanProject(cs.activeProject.dir); prompt += "\n\n" + pi.buildProjectPrompt(proj); } catch(_e) {} }
       // Linear MCP context injection
       var linearCtx = "";
       try {
@@ -474,7 +486,7 @@ class KitCommander {
         if (lm.validateAuth()) {
           var sess = state.getSession(session.id);
           if (sess && sess.linearIssueId) {
-            linearCtx = "\n\n## Linear Integration\nLinear MCP tools available (mcp__linear__*). Current issue: " + sess.linearIssueIdentifier + " (ID: " + sess.linearIssueId + "). Update progress via mcp__linear__save_comment. Mark done via mcp__linear__save_issue when complete.";
+            linearCtx = "\n\n## Linear Integration\nLinear MCP tools available (mcp__linear__*). Current issue: " + safeId(sess.linearIssueIdentifier) + " (ID: " + safeId(sess.linearIssueId) + "). Update progress via mcp__linear__save_comment. Mark done via mcp__linear__save_issue when complete.";
           }
         }
       } catch(_e) {}
@@ -490,8 +502,9 @@ class KitCommander {
           skillHint = '\n\nProject stack detected: ' + projectStack.join(', ') + '. Most relevant skills: ' + topSkills.join(', ') + '.';
         }
       } catch(_) {}
-      return prompt + knowledgePrompt + linearCtx + skillHint;
+      return prompt + linearCtx + skillHint;
     })();
+    var dispatchTask = referencedTask(fullTask);
 
     try {
       sp.stop(true);
@@ -515,7 +528,7 @@ class KitCommander {
         // Simple mode: run headless with streaming output
         process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
         process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
-        var dispatchP = d.dispatchWithRetry(fullTask, {
+        var dispatchP = d.dispatchWithRetry(dispatchTask, {
           stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
           model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
           fallbackModel: "sonnet", bare: false,
@@ -570,14 +583,11 @@ class KitCommander {
     var currentState = state.loadState();
     var defaults = d.getDefaultsForLevel(state.getUserLevel(currentState));
     var sysPrompt = (function() {
-      var knowledge = require("./knowledge");
-      var knowledgePrompt = knowledge.buildKnowledgePrompt(fullTask);
       var prompt = "Start with a plan. Present it before implementing.";
-      var cs = state.loadState();
-      if (cs.activeProject) { try { var pi = require("./project-importer"); var proj = pi.scanProject(cs.activeProject.dir); prompt += "\n\n" + pi.buildProjectPrompt(proj); } catch(_e) {} }
-      prompt += "\n\n## Linear Integration\nLinear MCP tools available (mcp__linear__*). Current issue: " + issue.identifier + " (ID: " + issue.id + "). Update progress via mcp__linear__save_comment. Mark done via mcp__linear__save_issue when complete.";
-      return prompt + knowledgePrompt;
+      prompt += "\n\n## Linear Integration\nLinear MCP tools available (mcp__linear__*). Current issue: " + safeId(issue.identifier) + " (ID: " + safeId(issue.id) + "). Update progress via mcp__linear__save_comment. Mark done via mcp__linear__save_issue when complete.";
+      return prompt;
     })();
+    var dispatchTask = referencedTask(fullTask);
     try {
       sp.stop(true);
       tmuxStatus('Building: ' + fullTask.slice(0, 60));
@@ -600,7 +610,7 @@ class KitCommander {
         // Simple mode: run headless with streaming output
         process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
         process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
-        var dispatchP = d.dispatchWithRetry(fullTask, {
+        var dispatchP = d.dispatchWithRetry(dispatchTask, {
           stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
           model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
           fallbackModel: "sonnet", bare: false,
@@ -849,14 +859,14 @@ class KitCommander {
       } catch(_e) { try { require('./error-logger').log(_e, 'yolo-linear-start'); } catch(_) {} }
 
       var prompt = cycle === 1 ? task : "Review and improve the previous work on: " + task + ". Fix any issues. Add missing tests. Improve quality.";
-      var knowledgePrompt = knowledge.buildKnowledgePrompt(task);
+      var yoloTask = require('./lib/reference-data').buildReferencedTask(prompt, { lessonsFor: task });
       try {
         fs.writeFileSync(statusPath, "YOLO Loop: cycle " + cycle + "/" + maxCycles + " | " + new Date().toISOString() + " | Task: " + task);
         tmuxStatus("YOLO Cycle " + cycle + "/" + maxCycles + " started");
         sp.stop(true);
         process.stdout.write("\x0a" + tui.divider("YOLO Cycle " + cycle + "/" + maxCycles + (cycle === 1 ? " \u2014 Building" : " \u2014 Improving")) + "\x0a\x0a");
         process.stdout.write("  " + tui.dimText("Live output below. Watch file: " + statusPath + "") + "\x0a\x0a");
-        var result = await d.dispatch(prompt, { stream: true, maxTurns: Math.round(100 / maxCycles), effort: cycle === 1 ? "high" : "medium", model: "opus", maxBudgetUsd: Math.round(10 / maxCycles), permissionMode: "plan", fallbackModel: "sonnet", bare: false, name: d.generateSessionName("yolo-" + cycle + "-" + task), systemPrompt: "YOLO Loop cycle " + cycle + "/" + maxCycles + ". " + (cycle === 1 ? "Build from scratch." : "Review previous work. Fix issues. Add tests. Ship quality.") + knowledgePrompt });
+        var result = await d.dispatch(yoloTask, { stream: true, maxTurns: Math.round(100 / maxCycles), effort: cycle === 1 ? "high" : "medium", model: "opus", maxBudgetUsd: Math.round(10 / maxCycles), permissionMode: "plan", fallbackModel: "sonnet", bare: false, name: d.generateSessionName("yolo-" + cycle + "-" + task), systemPrompt: "YOLO Loop cycle " + cycle + "/" + maxCycles + ". " + (cycle === 1 ? "Build from scratch." : "Review previous work. Fix issues. Add tests. Ship quality.") });
         state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
         state.completeSession(session.id, "success");
         knowledge.extractAndStore(state.getSession(session.id) || session, result.result || "");
