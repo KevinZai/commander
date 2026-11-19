@@ -116,6 +116,16 @@ describe("hosted migrations (apps/mcp-server-cloud/src/db/migrations)", () => {
 describe("migrations are never applied by the repo's tooling", () => {
   it("supabase down scripts live outside supabase/migrations", () => {
     const supaMigrations = readdirSync(path.join(REPO_ROOT, "supabase/migrations"));
-    assert.ok(supaMigrations.every((f) => !/down/i.test(f)), "no down script inside supabase/migrations");
+    assert.ok(supaMigrations.every((f) => !/\.down\.sql$/i.test(f)), "no down script inside supabase/migrations");
+  });
+
+  it("the users lockdown drops users_update_own and has a down in supabase/down", () => {
+    const name = "20261119000000_users_update_lockdown";
+    const forwardFile = path.join(REPO_ROOT, "supabase/migrations", `${name}.sql`);
+    const downFile = path.join(REPO_ROOT, "supabase/down", `${name}.down.sql`);
+    assert.ok(existsSync(downFile));
+    assert.match(sql(forwardFile), /drop policy if exists "users_update_own" on public\.users/);
+    assertIdempotent(forwardFile);
+    assertIdempotent(downFile);
   });
 });
