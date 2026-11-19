@@ -274,6 +274,76 @@ for (const keep of [true, false]) {
   });
 }
 
+// Codex #302 delta4 M-dryrun: the symlink check is a preflight. A real run changes nothing (no plugin files,
+// no legacy commands, no backup) and --dry-run reports the same failure with the same exit status.
+for (const dryRun of [false, true]) {
+  test(`a symlinked CLI state dir fails preflight before any change (dry run: ${dryRun})`, () => {
+    const sb = sandbox();
+    try {
+      const claude = path.join(sb.home, '.claude');
+      const market = path.join(claude, 'plugins', 'marketplaces', 'ccc-marketplace');
+      const legacyCmd = path.join(claude, 'commands', 'ccc-old.md');
+      const outside = path.join(sb.home, 'elsewhere');
+      fs.mkdirSync(market, { recursive: true });
+      fs.writeFileSync(path.join(market, 'plugin.json'), '{}\n');
+      fs.mkdirSync(path.dirname(legacyCmd), { recursive: true });
+      fs.writeFileSync(legacyCmd, 'legacy\n');
+      fs.mkdirSync(outside);
+      fs.symlinkSync(outside, path.join(claude, 'commander'));
+      const r = run(RESET, dryRun ? ['--full', '--dry-run'] : ['--full'], sb);
+      assert.equal(r.status, 1, r.stdout + r.stderr);
+      assert.match(r.stdout + r.stderr, /commander is a symlink/);
+      assert.ok(fs.existsSync(path.join(market, 'plugin.json')), 'plugin files untouched');
+      assert.ok(fs.existsSync(legacyCmd), 'legacy command untouched');
+      assert.ok(!fs.existsSync(path.join(claude, 'backups')), 'no backup created');
+    } finally {
+      fs.rmSync(sb.home, { recursive: true, force: true });
+    }
+  });
+}
+
+// Codex #302 delta4 H-race: the state dir is swapped for a symlink while it is being backed up. The reset
+// works from the directory it validated (cd -P once, same physical path and inode), re-checks the name right
+// before removal and aborts; the symlink target is never touched.
+for (const keep of [true, false]) {
+  test(`a state dir swapped for a symlink during backup is detected and the target is left alone (kept command: ${keep})`, () => {
+    const sb = sandbox();
+    try {
+      const claude = path.join(sb.home, '.claude');
+      const state = path.join(claude, 'commander');
+      const outside = path.join(sb.home, 'elsewhere');
+      fs.mkdirSync(path.join(claude, 'commands'), { recursive: true });
+      fs.mkdirSync(state);
+      fs.writeFileSync(path.join(state, 'old-state.json'), '{}\n');
+      fs.mkdirSync(path.join(outside, 'nested'), { recursive: true });
+      fs.writeFileSync(path.join(outside, 'precious.txt'), 'keep me\n');
+      fs.writeFileSync(path.join(outside, 'nested', 'data.json'), '{}\n');
+      if (keep) {
+        fs.writeFileSync(path.join(claude, 'commands', 'ccc-recorded.md'), 'recorded\n');
+        fs.writeFileSync(path.join(state, 'install-manifest.json'),
+          JSON.stringify({ entries: [{ group: 'commands', type: 'file', path: 'commands/ccc-recorded.md' }] }));
+      }
+      // A cp that swaps the state dir for a symlink when the state backup starts, then copies.
+      fs.writeFileSync(path.join(sb.bin, 'cp'), [
+        '#!/bin/sh',
+        'case "$*" in *commander-state-backup*)',
+        '  mv "$HOME/.claude/commander" "$HOME/moved-state" && ln -s "$HOME/elsewhere" "$HOME/.claude/commander" ;;',
+        'esac',
+        'exec /bin/cp "$@"',
+        '',
+      ].join('\n'), { mode: 0o755 });
+      const r = run(RESET, ['--full'], sb);
+      assert.equal(r.status, 1, r.stdout + r.stderr);
+      assert.match(r.stdout + r.stderr, /changed during the reset/);
+      assert.equal(fs.readFileSync(path.join(outside, 'precious.txt'), 'utf8'), 'keep me\n');
+      assert.ok(fs.existsSync(path.join(outside, 'nested', 'data.json')), 'nested target content survives');
+      assert.ok(fs.lstatSync(state).isSymbolicLink(), 'the planted link is left for the user to inspect');
+    } finally {
+      fs.rmSync(sb.home, { recursive: true, force: true });
+    }
+  });
+}
+
 // Codex #302 M9: the backup holds ignored files such as .env, so it is owner-only.
 test('the backup dir is 0700 and the checkout archive 0600', () => {
   const sb = sandbox();

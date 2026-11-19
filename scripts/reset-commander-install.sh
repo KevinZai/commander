@@ -108,6 +108,28 @@ if [[ $REMOVE_CHECKOUT -eq 1 && $FULL -eq 0 ]]; then
   exit 2
 fi
 
+# The inode of a path, never following a final symlink (ls -d does not dereference on BSD or GNU ls).
+inode_of() { ls -di "$1" 2>/dev/null | awk '{print $1}'; }
+
+# ----- Preflight (before any change; --dry-run reports the same failure) -----
+# A symlinked CLI state dir is never followed: the backup copy and the manifest-preservation loop would act on
+# the link target (Codex #302 delta3 NH1). Refuse it before the plugin purge or any other change (Codex #302
+# delta4). A real directory is pinned by its physical path and inode; phase 2c re-checks both before it acts.
+STATE_DIR="${HOME}/.claude/commander"
+STATE_PHYS=""
+STATE_INODE=""
+if [[ $FULL -eq 1 ]]; then
+  if [[ -L "$STATE_DIR" ]]; then
+    fail "$STATE_DIR is a symlink (-> $(readlink "$STATE_DIR")) — not following it; nothing was changed."
+    fail "Replace the link with the directory it points to, or remove the link yourself, then re-run."
+    exit 1
+  fi
+  if [[ -d "$STATE_DIR" ]]; then
+    STATE_PHYS="$(cd -P "${HOME}/.claude" && pwd -P)/commander"
+    STATE_INODE="$(inode_of "$STATE_DIR")"
+  fi
+fi
+
 PLUGINS_DIR="${HOME}/.claude/plugins"
 
 if [[ ! -d "$PLUGINS_DIR" ]]; then
@@ -342,32 +364,56 @@ if [[ $FULL -eq 1 ]]; then
   # 2c. CLI state directory (contains old v1.x code + state)
   # While command files of the current install are kept, its install manifest stays: it is what
   # protects an edited kept command on the next --full and what uninstall.sh removes them by (Codex #302 H10).
-  STATE_DIR="${HOME}/.claude/commander"
+  # The directory validated in preflight is entered once (cd -P) and checked by physical path and inode; the
+  # backup and every removal then run relative to it, and the name is re-checked right before removal, so a
+  # directory swapped for a symlink mid-run is never followed (Codex #302 delta4 H-race).
   KEEP_MANIFEST=0
-  # A symlinked state dir is never followed: the backup copy and the manifest-preservation glob
-  # would act on the link target (Codex #302 delta3 NH1). It is left in place and the run fails.
-  if [[ -L "$STATE_DIR" ]]; then
-    fail "$STATE_DIR is a symlink (-> $(readlink "$STATE_DIR")) — not following it; nothing under it was backed up or removed."
-    fail "Replace the link with the directory it points to, or remove the link yourself, then re-run."
-    STATE_REFUSED=1
-  fi
   [[ $KEPT_CURRENT -gt 0 && -f "$STATE_DIR/install-manifest.json" ]] && KEEP_MANIFEST=1
-  if [[ "${STATE_REFUSED:-0}" -eq 0 && -d "$STATE_DIR" ]]; then
-    if [[ $DRY_RUN -eq 0 ]]; then
-      cp -r "$STATE_DIR" "$BACKUP/commander-state-backup" || {
-        fail "Could not back up $STATE_DIR — not removing it."
-        exit 1
-      }
-    fi
-    if [[ $KEEP_MANIFEST -eq 1 ]]; then
-      for entry in "$STATE_DIR"/* "$STATE_DIR"/.[!.]* "$STATE_DIR"/..?*; do
-        [[ -e "$entry" || -L "$entry" ]] || continue
-        [[ "$entry" == "$STATE_DIR/install-manifest.json" ]] && continue
-        safe_rm "$entry"
-      done
-      warn "Keeping $STATE_DIR/install-manifest.json; it records the kept command file(s) for uninstall.sh."
+  state_changed() {
+    fail "$STATE_DIR changed during the reset (it is now a symlink or a different directory) — stopped before removing anything under it."
+    fail "Inspect it, then re-run."
+    exit 1
+  }
+  if [[ -L "$STATE_DIR" ]] || { [[ -e "$STATE_DIR" ]] && [[ "$(inode_of "$STATE_DIR")" != "$STATE_INODE" ]]; }; then
+    state_changed
+  fi
+  if [[ -d "$STATE_DIR" ]]; then
+    if [[ $DRY_RUN -eq 1 && $KEEP_MANIFEST -eq 0 ]]; then
+      dry "would back up and rm -rf $STATE_DIR"
     else
-      safe_rm "$STATE_DIR"
+      STATE_RC=0
+      (
+        cd -P "$STATE_DIR" || exit 3
+        [[ "$(pwd -P)" == "$STATE_PHYS" && "$(inode_of .)" == "$STATE_INODE" ]] || exit 3
+        if [[ $DRY_RUN -eq 0 ]]; then
+          cp -R . "$BACKUP/commander-state-backup" || exit 4
+        fi
+        [[ ! -L "$STATE_DIR" && "$(inode_of "$STATE_DIR")" == "$STATE_INODE" ]] || exit 3
+        for entry in * .[!.]* ..?*; do
+          [[ -e "$entry" || -L "$entry" ]] || continue
+          [[ $KEEP_MANIFEST -eq 1 && "$entry" == "install-manifest.json" ]] && continue
+          if [[ $DRY_RUN -eq 1 ]]; then
+            dry "would rm -rf $STATE_DIR/$entry"
+          else
+            rm -rf -- "./$entry" || exit 5
+            echo "  removed: $STATE_DIR/$entry"
+          fi
+        done
+      ) || STATE_RC=$?
+      case "$STATE_RC" in
+        0) ;;
+        3) state_changed ;;
+        4) fail "Could not back up $STATE_DIR — not removing it."; exit 1 ;;
+        *) fail "Could not remove everything under $STATE_DIR."; exit 1 ;;
+      esac
+      if [[ $KEEP_MANIFEST -eq 1 ]]; then
+        warn "Keeping $STATE_DIR/install-manifest.json; it records the kept command file(s) for uninstall.sh."
+      elif [[ $DRY_RUN -eq 0 ]]; then
+        # rmdir removes only an empty directory and never follows a link: nothing else can be lost here.
+        [[ -L "$STATE_DIR" ]] && state_changed
+        rmdir "$STATE_DIR" || { fail "Could not remove $STATE_DIR (no longer empty?)."; exit 1; }
+        echo "  removed: $STATE_DIR"
+      fi
     fi
     FULL_REMOVED=$((FULL_REMOVED + 1))
   fi
@@ -477,7 +523,6 @@ if [[ $FULL -eq 1 ]]; then
   done
   for d in "${HOME}/.claude/skills/ccc" "${HOME}/.claude/skills/commander" "${HOME}/.claude/commander"; do
     [[ -d "$d" ]] || continue
-    [[ "$d" == "${HOME}/.claude/commander" && "${STATE_REFUSED:-0}" -eq 1 ]] && continue
     if [[ "$d" == "${HOME}/.claude/commander" && "${KEEP_MANIFEST:-0}" -eq 1 && $DRY_RUN -eq 0 \
           && "$(ls -A "$d")" == "install-manifest.json" ]]; then
       continue
@@ -490,11 +535,6 @@ if [[ $DRY_RUN -eq 1 ]]; then
   echo ""
   info "DRY RUN COMPLETE — re-run without --dry-run to apply changes."
   exit 0
-fi
-
-if [[ "${STATE_REFUSED:-0}" -eq 1 ]]; then
-  fail "${HOME}/.claude/commander was not removed because it is a symlink (see above)."
-  exit 1
 fi
 
 if [[ "${CHECKOUT_REFUSED:-0}" -eq 1 ]]; then
