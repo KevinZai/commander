@@ -35,9 +35,12 @@ var EXT_UNC = /^([\\/]{2}[?.][\\/]UNC[\\/][^\\/]+[\\/][^\\/]+)(?:[\\/]|$)/i;
  * /var/../x is /private/x on macOS and a symlink followed by .. climbs from the link's target. Only win32
  * splits on a backslash. A copy of resolvePhysical() in commander/lib/profile-path.js, the resolver install.sh
  * uses; commander/tests/lane-state.test.js keeps the two in step. Falls back to the lexical path only when the
- * input cannot be resolved at all (a drive-relative win32 path).
+ * input cannot be resolved at all (a drive-relative win32 path). A path with no `..` segment is kept as written
+ * (same directory, the spelling callers expect).
  */
 function physicalDir(p) {
+  // Only a `..` segment can name a different directory than the lexical path; keep any other path as written.
+  if (!/(^|[\\/])\.\.([\\/]|$)/.test(String(p))) return path.resolve(p);
   var win = process.platform === 'win32';
   var P = win ? path.win32 : path.posix;
   var real = function(x) { return fs.realpathSync.native(x); };

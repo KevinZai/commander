@@ -33,8 +33,15 @@ var MAX_LANE = 16; // same cap as the status line's lane hint
 // default case in lib/statusline.sh ccc_lane_alias().
 var DEFAULT_ALIASES = Object.freeze({ guestnetworks: 'ai5' });
 
-/** The physical config dir; falls back to the lexical path when it cannot be resolved (empty or drive-relative). */
+/**
+ * The config dir. A path with a `..` segment is resolved physically, like the OS and the installer
+ * (lib/profile-path.js), so /var/../x is /private/x on macOS; any other path is kept as written, which
+ * names the same directory and keeps the spelling callers and `~` shortening expect. Falls back to the
+ * lexical path when it cannot be resolved (empty or drive-relative).
+ */
+var DOTDOT = /(^|[\\/])\.\.([\\/]|$)/;
 function physicalConfigDir(raw) {
+  if (!DOTDOT.test(String(raw))) return path.resolve(raw);
   var r = profilePath.resolvePhysical(raw);
   return r.path || path.resolve(raw);
 }
