@@ -210,6 +210,17 @@ test('a negated directive never routes; a described failure still does', async (
   assert.strictEqual(s.stripNegated("the tests don't work on my machine"), "the tests don't work on my machine");
   assert.strictEqual(s.stripNegated("login is not working, it doesn't work"), "login is not working, it doesn't work");
   assert.strictEqual(s.stripNegated("i don't know why it fails, debug it"), "i don't know why it fails, debug it");
+  // Mid-sentence, subject-led negations (Fable review of #302).
+  for (const p of ['You should not write unit tests here', 'You must not deploy to vercel', "Let's not deploy to vercel today",
+    'It is not necessary to write unit tests for this', "you don't need to write a changelog", 'Don\u2019t write unit tests for my code']) {
+    assert.ok(!fires(p), `negated prompt fired: ${p}`);
+  }
+  // Double negation, a spaced dash and a new imperative clause end the negated span.
+  assert.strictEqual(s.scoreRoutes("don't skip the unit tests - write unit tests for auth")[0].route.id, 'ccc-testing');
+  assert.strictEqual(s.scoreRoutes('Skip deployment, then write unit tests for my code')[0].route.id, 'ccc-testing');
+  assert.strictEqual(s.scoreRoutes('Skip deployment, write unit tests for my code')[0].route.id, 'ccc-testing');
+  assert.strictEqual(s.stripNegated("don't deploy, build or test anything").trim(), '', 'a bare list stays negated');
+  assert.strictEqual(s.stripNegated('i must have broken it, debug the test'), 'i must have broken it, debug the test');
   // Length is kept, so offsets into the text stay valid.
   const text = 'do not deploy. review the pr';
   assert.strictEqual(s.stripNegated(text).length, text.length);
@@ -228,4 +239,14 @@ test('normalizePrompt blanks double-quoted spans and reuses the task quoting rul
   assert.strictEqual(s.normalizePrompt(paste), 'review this pr');
   // Apostrophes are not quotes.
   assert.strictEqual(s.normalizePrompt("it's the user's build"), "it's the user's build");
+});
+
+test('worker tasks apply the same negation rules as prompts (route-task path)', async () => {
+  const s = await import(SCORER);
+  const routes = s.loadRoutes();
+  const top = (t) => (s.scoreTask(t, routes)[0] || {}).route?.id;
+  assert.notStrictEqual(top('Don\u2019t write unit tests for my code'), 'ccc-testing');
+  assert.notStrictEqual(top('You should not write unit tests here'), 'ccc-testing');
+  assert.strictEqual(top('Skip deployment, then write unit tests for my code'), 'ccc-testing');
+  assert.strictEqual(top("don't skip the unit tests - write unit tests for auth"), 'ccc-testing');
 });

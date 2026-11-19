@@ -285,6 +285,17 @@
     { "prompt": "please don't publish the release notes yet", "expect": "none" },
     { "prompt": "review this pr but don't deploy it", "expect": "ccc-review" },
     { "prompt": "don't deploy, just review the code changes in this pr", "expect": "ccc-review" },
-    { "prompt": "the build doesn't work anymore, debug it", "expect": "ccc-systematic-debugging" }
+    { "prompt": "the build doesn't work anymore, debug it", "expect": "ccc-systematic-debugging" },
+    { "prompt": "You should not write unit tests here", "expect": "none" },
+    { "prompt": "You must not deploy to vercel", "expect": "none" },
+    { "prompt": "Let's not deploy to vercel today", "expect": "none" },
+    { "prompt": "It is not necessary to write unit tests for this", "expect": "none" },
+    { "prompt": "we shouldn't run a security audit yet", "expect": "none" },
+    { "prompt": "Don\u2019t write unit tests for my code", "expect": "none" },
+    { "prompt": "don't deploy, build or test anything", "expect": "none" },
+    { "prompt": "don't skip the unit tests - write unit tests for auth", "expect": "ccc-testing" },
+    { "prompt": "Skip deployment, then write unit tests for my code", "expect": "ccc-testing" },
+    { "prompt": "Skip deployment, write unit tests for my code", "expect": "ccc-testing" },
+    { "prompt": "don't deploy - review the code changes in this pr", "expect": "ccc-review" }
   ]
 }
