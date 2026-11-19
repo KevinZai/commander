@@ -141,3 +141,25 @@ test('install-remote.sh refuses a ref with build metadata or shell characters be
     }
   });
 });
+
+// Codex #302 LOW: a pin mismatch states what did change (a new checkout dir with fetched objects) instead of
+// claiming nothing was changed.
+test('install-remote.sh pin mismatch says what was left behind', () => {
+  withHome((home) => {
+    const up = makeUpstream(home);
+    const dir = join(home, '.cc-commander');
+    let r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.2.0', CCC_EXPECTED_COMMIT: up.rev('v1.0.0') });
+    assert.notStrictEqual(r.status, 0);
+    assert.doesNotMatch(r.stdout, /Nothing was changed/);
+    assert.match(r.stdout, /Nothing was checked out or installed/);
+    assert.match(r.stdout, /created .*\.cc-commander.* with the fetched objects only/);
+    {
+      r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.0.0' });
+      assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+    }
+    r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.2.0', CCC_EXPECTED_COMMIT: up.rev('v1.0.0') });
+    assert.notStrictEqual(r.status, 0);
+    assert.match(r.stdout, /Nothing was checked out or installed; .*\.cc-commander stays at its previous commit/);
+    assert.strictEqual(up.git(dir, 'rev-parse', 'HEAD'), up.rev('v1.0.0'));
+  });
+});

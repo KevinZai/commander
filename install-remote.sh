@@ -99,6 +99,7 @@ elif [[ "${CCC_INSTALL_CLI:-}" == "1" ]]; then
   npm install -g @anthropic-ai/claude-code
   command -v claude &>/dev/null || fail "Failed to install Claude Code CLI. Try: npm install -g @anthropic-ai/claude-code"
   echo -e "  ${GREEN}✓${NC} Claude Code CLI installed"
+  CLI_INSTALLED=1
 else
   echo -e "  ${AMBER}!${NC} Claude Code CLI not found. Install it from https://code.claude.com"
   echo -e "    ${DIM}(or re-run with CCC_INSTALL_CLI=1 to npm install it globally). Continuing with the kit.${NC}"
@@ -144,6 +145,7 @@ elif [ -e "$INSTALL_DIR" ]; then
 else
   echo -e "  ${CYAN}►${NC} Downloading kit to $INSTALL_DIR..."
   git init --quiet "$INSTALL_DIR"
+  CREATED_DIR=1
   git -C "$INSTALL_DIR" remote add origin "$REPO_URL"
 fi
 
@@ -151,11 +153,23 @@ git -C "$INSTALL_DIR" fetch --quiet --depth 1 origin "$FETCH_SPEC" 2>/dev/null \
   || fail "Could not fetch $REF from $REPO_URL. Check the tag or commit and your connection."
 FETCHED="$(git -C "$INSTALL_DIR" rev-parse --verify 'FETCH_HEAD^{commit}')"
 # Checked before checkout, so a mismatch leaves the working tree as it was.
+# What a refusal at this point leaves behind: no checkout and no install, but possibly a new checkout dir holding
+# the fetched objects and a Claude Code CLI installed above (Codex #302).
+left_behind() {
+  local note="Nothing was checked out or installed; "
+  if [[ "${CREATED_DIR:-0}" == "1" ]]; then
+    note+="this run created $INSTALL_DIR with the fetched objects only (delete it to start over)."
+  else
+    note+="$INSTALL_DIR stays at its previous commit (the fetched objects are kept in its .git)."
+  fi
+  [[ "${CLI_INSTALLED:-0}" == "1" ]] && note+=" The Claude Code CLI installed above stays installed."
+  printf '%s' "$note"
+}
 if [[ -n "$EXPECTED_COMMIT" && "$FETCHED" != "$EXPECTED_COMMIT" ]]; then
-  fail "Fetched $FETCHED, but refs/tags/$REF on $REPO_URL is $EXPECTED_COMMIT"
+  fail "Fetched $FETCHED, but refs/tags/$REF on $REPO_URL is $EXPECTED_COMMIT. $(left_behind)"
 fi
 if [[ -n "$PINNED_COMMIT" && "$FETCHED" != "$PINNED_COMMIT" ]]; then
-  fail "Fetched $FETCHED for $REF, but CCC_EXPECTED_COMMIT is $PINNED_COMMIT. Nothing was changed."
+  fail "Fetched $FETCHED for $REF, but CCC_EXPECTED_COMMIT is $PINNED_COMMIT. $(left_behind)"
 fi
 git -C "$INSTALL_DIR" checkout --quiet --detach "$FETCHED"
 git -C "$INSTALL_DIR" submodule update --quiet --init --recursive --depth 1 2>/dev/null \
