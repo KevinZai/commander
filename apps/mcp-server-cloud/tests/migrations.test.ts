@@ -98,6 +98,15 @@ describe("hosted migrations (apps/mcp-server-cloud/src/db/migrations)", () => {
       assert.ok(!view.includes(secret), `creators_public must not expose ${secret}`);
     }
     assert.match(view, /where approved_at is not null/);
+    // The view is auto-updatable and runs as its owner (bypassing RLS), so
+    // Supabase's default anon/authenticated grants would make it writable.
+    // Every grant must be revoked before select is granted back.
+    assert.ok(!/security_invoker/.test(text), "no security_invoker option (rejected on PG <= 14; off is the default)");
+    const revokeAt = text.indexOf("revoke all on table public.creators_public from public, anon, authenticated");
+    const grantAt = text.indexOf("grant select on table public.creators_public to anon, authenticated, service_role");
+    assert.ok(revokeAt >= 0, "creators_public: revoke all from public, anon, authenticated");
+    assert.ok(grantAt > revokeAt, "creators_public: grant select only after the revoke");
+    assert.ok(!/grant (all|insert|update|delete)[^;]* on table public\.creators_public/.test(text), "creators_public: select only");
     for (const fn of ["increment_usage", "get_effective_cap", "increment_creator_clicks"]) {
       assert.ok(text.includes(`'${fn}'`), `004 covers ${fn}`);
     }

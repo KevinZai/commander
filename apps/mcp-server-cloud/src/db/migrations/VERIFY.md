@@ -41,7 +41,18 @@ select * from public.creators;            -- permission denied
 select slug, display_name from public.creators_public;  -- works, approved rows only
 select public.increment_creator_clicks('x');             -- permission denied
 select public.increment_usage(null, '2026-01');          -- permission denied
+-- creators_public is auto-updatable and runs as its owner; writes through it
+-- must fail, or anon could edit creators rows past RLS:
+update public.creators_public set display_name = 'x';    -- MUST FAIL: permission denied
+delete from public.creators_public;                       -- MUST FAIL: permission denied
+insert into public.creators_public (slug) values ('x');  -- MUST FAIL: permission denied
 reset role;
+-- Repeat the three writes under `set role authenticated;` — each must fail.
+
+select grantee, privilege_type from information_schema.role_table_grants
+ where table_schema = 'public' and table_name = 'creators_public'
+   and grantee in ('anon', 'authenticated');
+-- exactly two rows, both SELECT
 ```
 
 ## 005_oauth_identities

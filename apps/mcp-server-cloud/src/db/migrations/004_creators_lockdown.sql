@@ -32,11 +32,12 @@ begin
     execute 'revoke all on table public.creator_clicks from anon, authenticated';
   end if;
 
-  -- Runs with the view owner's rights (security_invoker off), so anon can
-  -- read these columns without any policy on public.creators.
+  -- Runs with the view owner's rights (security_invoker is off by default;
+  -- the option is not named because PG <= 14 rejects it), so anon can read
+  -- these columns without any policy on public.creators. CREATE OR REPLACE
+  -- without WITH also resets any options set on an earlier copy.
   execute $view$
-    create or replace view public.creators_public
-    with (security_invoker = false) as
+    create or replace view public.creators_public as
     select
       slug,
       display_name,
@@ -55,7 +56,11 @@ begin
     where approved_at is not null
   $view$;
 
-  execute 'revoke all on table public.creators_public from public';
+  -- The view is auto-updatable and runs as its owner, which bypasses RLS on
+  -- public.creators. Supabase's default privileges grant anon and
+  -- authenticated ALL on new relations in public, so without this revoke an
+  -- anon UPDATE or DELETE through the view would write creators rows.
+  execute 'revoke all on table public.creators_public from public, anon, authenticated';
   execute 'grant select on table public.creators_public to anon, authenticated, service_role';
 end
 $do$;
