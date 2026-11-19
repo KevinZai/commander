@@ -19,35 +19,23 @@
       "WebSearch",
       "WebFetch",
       "Skill(*)",
-      "Bash(npm install:*)",
       "Bash(npm run:*)",
-      "Bash(pnpm install:*)",
       "Bash(pnpm run:*)",
       "Bash(pnpm test:*)",
       "Bash(pnpm build:*)",
-      "Bash(npx:*)",
-      "Bash(node:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
       "Bash(git status:*)",
       "Bash(git branch:*)",
-      "Bash(git checkout:*)",
-      "Bash(git stash:*)",
       "Bash(git fetch:*)",
-      "Bash(git pull:*)",
-      "Bash(gh:*)",
       "Bash(ls:*)",
       "Bash(mkdir:*)",
-      "Bash(cp:*)",
-      "Bash(mv:*)",
       "Bash(wc:*)",
       "Bash(cat:*)",
       "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(curl:*)"
+      "Bash(tail:*)"
     ],
     "deny": [
       "Bash(rm -rf:*)",
@@ -66,6 +54,21 @@
     }
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f \"$HOME/.claude/hooks/careful-guard.js\" ]; then node \"$HOME/.claude/hooks/careful-guard.js\"; fi"
+          },
+          {
+            "type": "command",
+            "command": "if [ -f \"$HOME/.claude/hooks/confidence-gate.js\" ]; then node \"$HOME/.claude/hooks/confidence-gate.js\"; fi"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

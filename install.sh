@@ -192,6 +192,34 @@ if $VERIFY_ONLY; then
     cc_status_line "!" "hooks.json not found"
   fi
 
+  # Guard hooks: Claude Code runs hooks registered in settings.json (not <config dir>/hooks/hooks.json).
+  # Not registered is a warning (an existing settings.json is never edited); registered but missing is an error.
+  if [ -f "$CLAUDE_DIR/settings.json" ]; then
+    for guard in careful-guard confidence-gate; do
+      guard_state="$(node -e '
+        var fs = require("fs");
+        var cfg; try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (_e) { process.stdout.write("unreadable"); process.exit(0); }
+        var name = process.argv[2] + ".js", found = null;
+        ((cfg.hooks && cfg.hooks.PreToolUse) || []).forEach(function(m) {
+          (m.hooks || []).forEach(function(h) {
+            if (found || typeof h.command !== "string" || h.command.indexOf(name) === -1) return;
+            var q = /"((?:[^"\\]|\\.)*)"/.exec(h.command);
+            found = q ? q[1].replace(/\\(.)/g, "$1").split("$HOME").join(process.env.HOME || "") : "";
+          });
+        });
+        if (found === null) process.stdout.write("unregistered");
+        else if (found && fs.existsSync(found)) process.stdout.write("ok");
+        else process.stdout.write("missing:" + found);
+      ' "$CLAUDE_DIR/settings.json" "$guard" 2>/dev/null || echo unreadable)"
+      case "$guard_state" in
+        ok) cc_status_line "✓" "$guard registered in settings.json (PreToolUse Bash)" ;;
+        unregistered) cc_status_line "!" "$guard not registered in settings.json (see settings.json.template)" ;;
+        missing:*) cc_status_line "✗" "$guard registered but its script is missing: ${guard_state#missing:}"; errors=$((errors+1)) ;;
+        *) ;;  # settings.json validity is reported above
+      esac
+    done
+  fi
+
   # Check lib
   if [ -f "$CLAUDE_DIR/lib/terminal-art.sh" ]; then
     cc_status_line "✓" "Terminal art library installed"
@@ -1076,10 +1104,30 @@ if should_install "claude-md" || should_install "settings"; then
   fi
   if should_install "settings"; then
     if [ ! -f "$CLAUDE_DIR/settings.json" ] && [ -f "$SCRIPT_DIR/settings.json.template" ]; then
-      cp "$SCRIPT_DIR/settings.json.template" "$CLAUDE_DIR/settings.json"
-      cc_status_line "✓" "settings.json created (new install)"
+      # Render hook paths for this config dir, as the hooks config is: "$HOME/.claude/hooks/x.js" -> "<config dir>/hooks/x.js".
+      # The guard hooks are wrapped in `if [ -f … ]`, so they keep blocking (exit 2) and become no-ops after uninstall.
+      node - "$SCRIPT_DIR/settings.json.template" "$CLAUDE_DIR" <<'SETTINGS'
+'use strict';
+var fs = require('fs'), path = require('path');
+var src = process.argv[2], root = path.resolve(process.argv[3]);
+var hooksDir = path.join(root, 'hooks').replace(/[\\"$`]/g, '\\$&');
+var cfg = JSON.parse(fs.readFileSync(src, 'utf8'));
+Object.keys(cfg.hooks || {}).forEach(function(ev) {
+  (cfg.hooks[ev] || []).forEach(function(m) {
+    (m.hooks || []).forEach(function(h) {
+      if (typeof h.command === 'string') h.command = h.command.split('$HOME/.claude/hooks/').join(hooksDir + '/');
+    });
+  });
+});
+var dst = path.join(root, 'settings.json');
+var tmp = path.join(root, '.settings.json.ccc-tmp-' + process.pid);
+fs.writeFileSync(tmp, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o644, flag: 'wx' });
+fs.renameSync(tmp, dst);
+SETTINGS
+      cc_status_line "✓" "settings.json created (new install; careful-guard and confidence-gate registered)"
     else
       cc_status_line "·" "settings.json preserved (existing config kept)"
+      cc_status_line "·" "Guard hooks are not added to an existing settings.json; to register careful-guard and confidence-gate, copy the PreToolUse entry from $SCRIPT_DIR/settings.json.template"
     fi
     # Deduplicate extraKnownMarketplaces: remove stale ccc-marketplace and
     # commander-marketplace entries (both point at the same repo as commander-hub

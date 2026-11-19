@@ -798,6 +798,54 @@ test('install.sh --clean works when ~/.claude is a symlink to a dotfiles folder'
   });
 });
 
+// H12: a fresh settings.json registers the guard hooks at this config dir's hooks path; they block (exit 2), and
+// --verify reports them. An existing settings.json is left byte-for-byte as it was.
+test('fresh install renders guard hooks for the config dir', () => {
+  withHome('ccc-install-guards-', (home) => {
+    const cfg = join(realpathSync(home), 'claude work');
+    ok(install(home, ['--mode=full', '--skills=essential'], { CLAUDE_CONFIG_DIR: cfg }), 'install');
+    const settings = JSON.parse(readFileSync(join(cfg, 'settings.json'), 'utf8'));
+    const cmds = settings.hooks.PreToolUse.flatMap((m) => m.hooks.map((h) => h.command));
+    for (const guard of ['careful-guard', 'confidence-gate']) {
+      const f = join(cfg, 'hooks', `${guard}.js`);
+      assert.ok(cmds.includes(`if [ -f "${f}" ]; then node "${f}"; fi`), `${guard} rendered for ${cfg}: ${cmds.join(' | ')}`);
+      assert.ok(existsSync(f));
+    }
+    assert.ok(!JSON.stringify(settings.hooks).includes('$HOME/.claude'), 'no default-profile paths remain');
+    const guardCmd = cmds.find((c) => c.includes('careful-guard'));
+    const blocked = spawnSync('bash', ['-c', guardCmd], {
+      input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'rm -rf /' } }), encoding: 'utf8',
+    });
+    assert.strictEqual(blocked.status, 2, 'the rendered guard blocks a destructive command');
+    const verify = run(INSTALL_SH, home, ['--verify'], { CLAUDE_CONFIG_DIR: cfg });
+    assert.match(verify.stdout, /careful-guard registered in settings\.json/);
+    assert.match(verify.stdout, /confidence-gate registered in settings\.json/);
+
+    // After uninstall the guard script is gone and the kept settings.json entry is a no-op.
+    ok(uninstall(home, { CLAUDE_CONFIG_DIR: cfg }), 'uninstall');
+    assert.ok(existsSync(join(cfg, 'settings.json')));
+    const after = spawnSync('bash', ['-c', guardCmd], {
+      input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'rm -rf /' } }), encoding: 'utf8',
+    });
+    assert.strictEqual(after.status, 0);
+  });
+});
+
+test('install keeps an existing settings.json byte-for-byte', () => {
+  withHome('ccc-install-keepsettings-', (home) => {
+    const claude = join(home, '.claude');
+    mkdirSync(claude, { recursive: true });
+    const mine = '{\n  "model": "sonnet",\n  "permissions": { "allow": ["Bash(node:*)"] }\n}\n';
+    writeFileSync(join(claude, 'settings.json'), mine);
+    const res = install(home, ['--mode=full', '--skills=essential']);
+    ok(res, 'install');
+    assert.strictEqual(readFileSync(join(claude, 'settings.json'), 'utf8'), mine);
+    assert.match(res.stdout, /Guard hooks are not added to an existing settings\.json/);
+    const verify = run(INSTALL_SH, home, ['--verify']);
+    assert.match(verify.stdout, /careful-guard not registered in settings\.json/);
+  });
+});
+
 // H14: a checkout without node_modules (a symlink farm of this repo, with its own copy of commander/tui.js so
 // module resolution cannot reach the repo's node_modules), driven with a fake npm on PATH.
 function depsFarm(home) {
