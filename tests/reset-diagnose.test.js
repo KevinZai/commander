@@ -149,3 +149,69 @@ test('a failed command-file backup aborts before removal', () => {
     fs.rmSync(sb.home, { recursive: true, force: true });
   }
 });
+
+// Codex #302 H10: a clean checkout still holds ignored files and local-only commits; it is archived before removal.
+test('--remove-checkout archives a clean checkout with an ignored .env and a local-only commit', () => {
+  const sb = sandbox();
+  try {
+    const dir = makeCheckout(sb.home);
+    fs.writeFileSync(path.join(dir, '.gitignore'), '.env\n');
+    git(dir, 'add', '.gitignore');
+    git(dir, 'commit', '-qm', 'local only');
+    fs.writeFileSync(path.join(dir, '.env'), 'SECRET=1\n');
+    assert.equal(git(dir, 'status', '--porcelain'), '', 'the checkout is clean by porcelain');
+    const r = run(RESET, ['--full', '--remove-checkout'], sb);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.ok(!fs.existsSync(dir), 'checkout removed');
+    assert.match(r.stdout, /commit\(s\) on no remote/);
+    const backups = fs.readdirSync(path.join(sb.home, '.claude', 'backups'));
+    const archive = path.join(sb.home, '.claude', 'backups', backups[0], 'cc-commander-checkout.tar.gz');
+    const listing = execFileSync('tar', ['-tzf', archive], { encoding: 'utf8' });
+    assert.match(listing, /\.cc-commander\/\.env/);
+    assert.match(listing, /\.cc-commander\/\.git\//);
+  } finally {
+    fs.rmSync(sb.home, { recursive: true, force: true });
+  }
+});
+
+test('a clean checkout is kept when its archive fails', () => {
+  const sb = sandbox();
+  try {
+    const dir = makeCheckout(sb.home);
+    fs.writeFileSync(path.join(sb.bin, 'tar'), '#!/bin/sh\nexit 1\n', { mode: 0o755 });
+    const r = run(RESET, ['--full', '--remove-checkout'], sb);
+    assert.notEqual(r.status, 0);
+    assert.ok(fs.existsSync(path.join(dir, 'bin', 'kc.js')), 'clean checkout kept when its archive fails');
+  } finally {
+    fs.rmSync(sb.home, { recursive: true, force: true });
+  }
+});
+
+// Codex #302 H10: commands of the current install are not legacy.
+test('diagnose and reset leave the current install\'s commands alone', () => {
+  const sb = sandbox();
+  try {
+    const cmds = path.join(sb.home, '.claude', 'commands');
+    fs.mkdirSync(cmds, { recursive: true });
+    fs.copyFileSync(path.join(ROOT, 'commands', 'ccc-audit.md'), path.join(cmds, 'ccc-audit.md'));
+    fs.writeFileSync(path.join(cmds, 'ccc-recorded.md'), 'recorded by the manifest\n');
+    fs.writeFileSync(path.join(cmds, 'ccc-old-thing.md'), 'from v1\n');
+    fs.mkdirSync(path.join(sb.home, '.claude', 'commander'), { recursive: true });
+    fs.writeFileSync(path.join(sb.home, '.claude', 'commander', 'install-manifest.json'),
+      JSON.stringify({ entries: [{ group: 'commands', type: 'file', path: 'commands/ccc-recorded.md' }] }));
+    const d = run(DIAGNOSE, [], sb);
+    assert.equal(d.status, 0, d.stderr);
+    assert.match(d.stdout, /LEGACY user command: .*ccc-old-thing\.md/);
+    assert.doesNotMatch(d.stdout, /LEGACY user command: .*ccc-audit\.md/);
+    assert.doesNotMatch(d.stdout, /LEGACY user command: .*ccc-recorded\.md/);
+    assert.match(d.stdout, /2 command file\(s\) from the current CC Commander install/);
+    const r = run(RESET, ['--full'], sb);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.ok(!fs.existsSync(path.join(cmds, 'ccc-old-thing.md')), 'legacy command removed');
+    assert.ok(fs.existsSync(path.join(cmds, 'ccc-audit.md')), 'shipped command kept');
+    assert.ok(fs.existsSync(path.join(cmds, 'ccc-recorded.md')), 'manifest-recorded command kept');
+    assert.match(r.stdout, /Keeping 2 command file\(s\) of the current install/);
+  } finally {
+    fs.rmSync(sb.home, { recursive: true, force: true });
+  }
+});

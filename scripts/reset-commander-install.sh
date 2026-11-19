@@ -264,6 +264,28 @@ PY
   done
 fi
 
+CLAUDE_DIR="${HOME}/.claude"
+# Command files that belong to the current install: recorded in this profile's install manifest, or byte-identical
+# to the file of the same name shipped in this checkout or the CLI checkout. Only the rest are legacy (Codex #302).
+CCC_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd || echo "")"
+current_command_files() {
+  node -e '
+    var fs = require("fs"), path = require("path"), c = require("crypto");
+    var manifest = process.argv[1], cmdDir = process.argv[2], shipped = process.argv.slice(3);
+    var sha = function(p) { try { return c.createHash("sha256").update(fs.readFileSync(p)).digest("hex"); } catch (_e) { return null; } };
+    var recorded = new Set();
+    try { (JSON.parse(fs.readFileSync(manifest, "utf8")).entries || []).forEach(function(e) {
+      if (e && e.type === "file" && typeof e.path === "string" && path.dirname(e.path) === "commands") recorded.add(path.basename(e.path));
+    }); } catch (_e) { /* no manifest */ }
+    var names = []; try { names = fs.readdirSync(cmdDir); } catch (_e) { names = []; }
+    names.forEach(function(n) {
+      if (!/\.md$/.test(n)) return;
+      var mine = sha(path.join(cmdDir, n));
+      if (recorded.has(n) || shipped.some(function(d) { var s = sha(path.join(d, n)); return s && s === mine; })) console.log(n);
+    });
+  ' "$CLAUDE_DIR/commander/install-manifest.json" "$CLAUDE_DIR/commands" "$@" 2>/dev/null || true
+}
+
 # ----- Phase 2: Legacy CLI purge (--full only) -----
 if [[ $FULL -eq 1 ]]; then
   step "Purging legacy CLI install (--full)…"
@@ -271,12 +293,23 @@ if [[ $FULL -eq 1 ]]; then
 
   # 2a. Legacy slash commands (install-remote.sh left these before v4.0 plugin).
   # Every file is copied into the backup before any is removed.
+  # Commands of the current install (manifest-recorded or identical to the shipped file) are left to uninstall.sh.
   COMMAND_FILES=()
+  CURRENT_CMDS="$(current_command_files ${CCC_SELF_DIR:+"$CCC_SELF_DIR/commands"} "${HOME}/.cc-commander/commands")"
+  KEPT_CURRENT=0
   for pattern in ccc commander; do
     for f in "${HOME}/.claude/commands/${pattern}"*.md; do
-      [[ -f "$f" ]] && COMMAND_FILES+=("$f")
+      [[ -f "$f" ]] || continue
+      if printf '%s\n' "$CURRENT_CMDS" | grep -qxF "$(basename "$f")"; then
+        KEPT_CURRENT=$((KEPT_CURRENT + 1))
+        continue
+      fi
+      COMMAND_FILES+=("$f")
     done
   done
+  if [[ $KEPT_CURRENT -gt 0 ]]; then
+    warn "Keeping $KEPT_CURRENT command file(s) of the current install; remove them with uninstall.sh."
+  fi
   if [[ ${#COMMAND_FILES[@]} -gt 0 && $DRY_RUN -eq 0 ]]; then
     mkdir -p "$BACKUP/commands" && cp -p "${COMMAND_FILES[@]}" "$BACKUP/commands/" || {
       fail "Could not back up command files to $BACKUP/commands — nothing removed from ~/.claude/commands."
@@ -318,29 +351,34 @@ if [[ $FULL -eq 1 ]]; then
   fi
 
   # 2d. The CLI checkout (install-remote.sh's default path) needs
-  # --remove-checkout. A checkout with any local change or untracked file is
-  # archived into the backup first and kept unless the archive verifies.
+  # --remove-checkout. It is always archived into the backup first (the whole
+  # tree, so ignored files such as .env, hidden untracked files and commits
+  # that exist only locally are kept) and removed only once the archive
+  # verifies. Local-only commits are named so the user knows to push them.
   CHECKOUT_DIR="${HOME}/.cc-commander"
   if [[ -e "$CHECKOUT_DIR" ]]; then
     if [[ $REMOVE_CHECKOUT -eq 0 ]]; then
       warn "Keeping $CHECKOUT_DIR (the CLI checkout). Add --remove-checkout to remove it."
-    elif [[ -e "$CHECKOUT_DIR/.git" ]] && [[ -n "$(git -C "$CHECKOUT_DIR" status --porcelain 2>/dev/null || echo unreadable)" ]]; then
+    else
       ARCHIVE="$BACKUP/cc-commander-checkout.tar.gz"
+      LOCAL_ONLY=""
+      if [[ -e "$CHECKOUT_DIR/.git" ]]; then
+        LOCAL_ONLY="$(git -C "$CHECKOUT_DIR" log --oneline --branches --not --remotes 2>/dev/null | wc -l | tr -d ' ')"
+        [[ "$LOCAL_ONLY" == "0" ]] && LOCAL_ONLY=""
+      fi
+      [[ -n "$LOCAL_ONLY" ]] && warn "$CHECKOUT_DIR has $LOCAL_ONLY commit(s) on no remote; they are kept in the archive."
       if [[ $DRY_RUN -eq 1 ]]; then
-        dry "would archive $CHECKOUT_DIR (local changes) to $ARCHIVE, verify it, then remove it"
+        dry "would archive $CHECKOUT_DIR to $ARCHIVE, verify it, then remove it"
         FULL_REMOVED=$((FULL_REMOVED + 1))
-      elif tar -czf "$ARCHIVE" -C "$(dirname "$CHECKOUT_DIR")" "$(basename "$CHECKOUT_DIR")" \
+      elif mkdir -p "$BACKUP" && tar -czf "$ARCHIVE" -C "$(dirname "$CHECKOUT_DIR")" "$(basename "$CHECKOUT_DIR")" \
           && tar -tzf "$ARCHIVE" >/dev/null; then
         echo "  archived: $CHECKOUT_DIR -> $ARCHIVE"
         safe_rm "$CHECKOUT_DIR"
         FULL_REMOVED=$((FULL_REMOVED + 1))
       else
-        fail "$CHECKOUT_DIR has local changes or untracked files and the archive at $ARCHIVE did not verify — keeping it."
+        fail "The archive of $CHECKOUT_DIR at $ARCHIVE did not verify — keeping the checkout."
         CHECKOUT_REFUSED=1
       fi
-    else
-      safe_rm "$CHECKOUT_DIR"
-      FULL_REMOVED=$((FULL_REMOVED + 1))
     fi
   fi
 
@@ -407,8 +445,11 @@ fi
 
 if [[ $FULL -eq 1 ]]; then
   # Extra verification under --full
+  # CURRENT_CMDS was computed before the purge (2c removes the manifest); those are kept on purpose.
   for f in "${HOME}/.claude/commands"/ccc*.md "${HOME}/.claude/commands"/commander*.md; do
-    [[ -f "$f" ]] && { warn "Leftover legacy command: $f"; LEFTOVER=$((LEFTOVER + 1)); }
+    [[ -f "$f" ]] || continue
+    printf '%s\n' "${CURRENT_CMDS:-}" | grep -qxF "$(basename "$f")" && continue
+    warn "Leftover legacy command: $f"; LEFTOVER=$((LEFTOVER + 1))
   done
   for d in "${HOME}/.claude/skills/ccc" "${HOME}/.claude/skills/commander" "${HOME}/.claude/commander"; do
     [[ -d "$d" ]] && { warn "Leftover legacy dir: $d"; LEFTOVER=$((LEFTOVER + 1)); }

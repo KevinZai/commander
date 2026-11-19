@@ -52,6 +52,27 @@ if [[ -e "$CHECKOUT_DIR/.git" ]] && command -v git >/dev/null 2>&1; then
   fi
 fi
 
+# Command files that belong to the current install: recorded in this profile's install manifest, or byte-identical
+# to the file of the same name shipped in this checkout or the CLI checkout. Only the rest are legacy (Codex #302).
+CCC_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd || echo "")"
+current_command_files() {
+  node -e '
+    var fs = require("fs"), path = require("path"), c = require("crypto");
+    var manifest = process.argv[1], cmdDir = process.argv[2], shipped = process.argv.slice(3);
+    var sha = function(p) { try { return c.createHash("sha256").update(fs.readFileSync(p)).digest("hex"); } catch (_e) { return null; } };
+    var recorded = new Set();
+    try { (JSON.parse(fs.readFileSync(manifest, "utf8")).entries || []).forEach(function(e) {
+      if (e && e.type === "file" && typeof e.path === "string" && path.dirname(e.path) === "commands") recorded.add(path.basename(e.path));
+    }); } catch (_e) { /* no manifest */ }
+    var names = []; try { names = fs.readdirSync(cmdDir); } catch (_e) { names = []; }
+    names.forEach(function(n) {
+      if (!/\.md$/.test(n)) return;
+      var mine = sha(path.join(cmdDir, n));
+      if (recorded.has(n) || shipped.some(function(d) { var s = sha(path.join(d, n)); return s && s === mine; })) console.log(n);
+    });
+  ' "$CLAUDE_DIR/commander/install-manifest.json" "$CLAUDE_DIR/commands" "$@" 2>/dev/null || true
+}
+
 # Resolve a path through symlinks (passed as an argument, never interpolated).
 real_path() {
   node -e 'try{console.log(require("fs").realpathSync(process.argv[1]))}catch(e){console.log(process.argv[1])}' "$1" 2>/dev/null || echo "$1"
@@ -110,7 +131,7 @@ else
         [[ -d "$ver_dir" ]] || continue
         pj="$ver_dir/.claude-plugin/plugin.json"
         if [[ -f "$pj" ]]; then
-          name=$(node -e "try{console.log(require('$pj').name||'')}catch(e){}" 2>/dev/null)
+          name=$(node -e 'try{console.log(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).name||"")}catch(e){}' "$pj" 2>/dev/null)
           if [[ "$name" == "commander" || "$name" == "ccc" ]]; then
             v=$(read_version "$pj")
             found "Plugin cache: $ver_dir  ${BOLD}(v$v)${RESET}"
@@ -126,17 +147,26 @@ fi
 hdr "2. User-level slash commands (~/.claude/commands/)"
 
 if [[ -d "$CLAUDE_DIR/commands" ]]; then
-  # Search for anything that could match /ccc
+  # Search for anything that could match /ccc; the current install's own commands are not legacy.
+  CURRENT_CMDS="$(current_command_files ${CCC_SELF_DIR:+"$CCC_SELF_DIR/commands"} ${CURRENT_CHECKOUT:+"$CURRENT_CHECKOUT/commands"})"
+  CURRENT_CMD_COUNT=0
   for f in "$CLAUDE_DIR/commands"/ccc*.md "$CLAUDE_DIR/commands"/commander*.md; do
     [[ -f "$f" ]] || continue
+    if printf '%s\n' "$CURRENT_CMDS" | grep -qxF "$(basename "$f")"; then
+      CURRENT_CMD_COUNT=$((CURRENT_CMD_COUNT + 1))
+      continue
+    fi
     warn "LEGACY user command: $f"
     LEGACY=$((LEGACY + 1))
     # Try to pull a version hint from inside
     v=$(grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?' "$f" 2>/dev/null | head -1)
     [[ -n "$v" ]] && note "   version hint inside: $v"
   done
+  if [[ $CURRENT_CMD_COUNT -gt 0 ]]; then
+    found "$CURRENT_CMD_COUNT command file(s) from the current CC Commander install (not legacy)"
+  fi
   if [[ $LEGACY -eq 0 ]]; then
-    miss "No ccc* or commander* user commands."
+    miss "No legacy ccc* or commander* user commands."
   fi
 else
   miss "No ~/.claude/commands/ directory."
