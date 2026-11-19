@@ -86,7 +86,7 @@ async function runStubbed(src, args) {
   const calls = [];
   const agent = async (prompt, opts = {}) => {
     assert.strictEqual(typeof prompt, 'string');
-    calls.push(opts);
+    calls.push({ ...opts, prompt });
     return fill(opts.schema);
   };
   const parallel = (thunks) => Promise.all(thunks.map(t => Promise.resolve().then(t).catch(() => null)));
@@ -200,4 +200,16 @@ test('ccc-release-audit returns no-go when a gate fails', async () => {
   const res = await fn(agent, parallel, pipeline, () => {}, () => {}, { skipTests: true }, {}, async () => null);
   assert.strictEqual(res.verdict, 'no-go');
   assert.deepStrictEqual(res.blockers.map(b => b.id), ['audit-counts']);
+});
+
+test('ccc-fleet-run gives every slice and stage a CCC pre-run skill step', async () => {
+  const src = fs.readFileSync(path.join(WF_DIR, 'ccc-fleet-run.workflow.js'), 'utf8');
+  const fan = await runStubbed(src, { mode: 'fanout', tasks: ['fix the flaky test', 'add docs'], skills: [['/ccc-systematic-debugging', 'ccc-testing'], null] });
+  const slices = fan.calls.filter(c => /^slice-/.test(c.label));
+  assert.match(slices[0].prompt, /^CCC pre-run: before you start, load commander:ccc-systematic-debugging, then commander:ccc-testing/);
+  assert.match(slices[1].prompt, /^CCC pre-run: before you start, check your skill list/);
+  const bad = await runStubbed(src, { mode: 'pipeline', tasks: ['a', 'b'], skills: ['/deploy; rm -rf /', '/ccc-plan'] });
+  const stages = bad.calls.filter(c => /^stage-/.test(c.label));
+  assert.match(stages[0].prompt, /check your skill list/, 'a malformed skill id is ignored');
+  assert.match(stages[1].prompt, /load commander:ccc-plan/);
 });

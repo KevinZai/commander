@@ -71,9 +71,9 @@ test('high tier (auto-run) only ever fires the expected skill', async () => {
 
 // Hidden (disable-model-invocation) skills never auto-run: an explicit request
 // for one becomes a medium-tier offer with that skill on top (CC-2112).
-test('explicit high-tier requests auto-run a visible skill and offer a hidden one', async () => {
+test('explicit high-tier requests auto-run a visible skill and offer a hidden or side-effect one', async () => {
   const s = await import(SCORER);
-  const manual = new Set(s.loadRoutes().filter((r) => r.manual).map((r) => r.id));
+  const manual = new Set(s.loadRoutes().filter((r) => r.manual || r.sideEffect).map((r) => r.id));
   const { results } = await evaluate();
   for (const r of results.filter((x) => x.minTier === 'high')) {
     assert.strictEqual(r.tier, manual.has(r.expect) ? 'medium' : 'high', `wrong tier for "${r.prompt}"`);
@@ -92,8 +92,12 @@ test('high requires intent evidence as well as score and margin', async () => {
   assert.strictEqual(s.tierFor(request, 'suggest'), 'medium');
   assert.strictEqual(s.tierFor([{ ...request[0], score: s.HIGH_THRESHOLD - 0.01 }]), 'medium');
   assert.strictEqual(s.tierFor([request[0], { ...request[0], score: request[0].score - 0.1 }]), 'medium');
-  for (const overrides of [{ manual: true }, { kind: 'agent' }]) {
+  for (const overrides of [{ manual: true }, { kind: 'agent' }, { sideEffect: true }]) {
     assert.strictEqual(s.tierFor([{ ...request[0], route: { ...review, ...overrides } }]), 'medium');
+  }
+  // Side-effect skills never auto-run in any mode (audit finding 10: ccc-fleet in auto).
+  for (const mode of ['auto', 'always']) {
+    assert.strictEqual(s.tierFor([{ ...request[0], route: { ...review, sideEffect: true } }], mode), 'medium');
   }
 });
 

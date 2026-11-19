@@ -95,12 +95,15 @@ describe('hooks.json v8 registrations', () => {
   const SAFETY = new Set(['orchestrator/pre-tool-use-dispatcher.js', 'config-protection.js', 'permission-gate.js']);
   const fileOf = (h) => /\/hooks\/([\w./-]+\.js)"$/.exec(h.command)[1];
 
-  it('onFailure is only ever "continue", and only on advisory handlers', () => {
+  it('onFailure is "continue" on advisory handlers and "block" only on safety handlers', () => {
     for (const [event, groups] of Object.entries(cfg.hooks)) {
       for (const h of groups.flatMap((g) => g.hooks)) {
         if (!('onFailure' in h)) continue;
-        assert.equal(h.onFailure, 'continue', `${event}: ${fileOf(h)} onFailure`);
-        assert.ok(!SAFETY.has(fileOf(h)), `${event}: safety handler ${fileOf(h)} must fail closed`);
+        if (SAFETY.has(fileOf(h))) {
+          assert.equal(h.onFailure, 'block', `${event}: safety handler ${fileOf(h)} must fail closed`);
+        } else {
+          assert.equal(h.onFailure, 'continue', `${event}: ${fileOf(h)} onFailure`);
+        }
       }
     }
   });
@@ -111,6 +114,13 @@ describe('hooks.json v8 registrations', () => {
         if (h.async || SAFETY.has(fileOf(h))) continue;
         assert.equal(h.onFailure, 'continue', `${event}: ${fileOf(h)}`);
       }
+    }
+  });
+
+  it('the secret guard (dispatcher) and config protection fail closed in every session (onFailure: "block")', () => {
+    const pre = cfg.hooks.PreToolUse.flatMap((g) => g.hooks);
+    for (const file of ['orchestrator/pre-tool-use-dispatcher.js', 'config-protection.js']) {
+      assert.equal(pre.find((h) => fileOf(h) === file).onFailure, 'block', file);
     }
   });
 

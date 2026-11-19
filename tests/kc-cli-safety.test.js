@@ -227,3 +227,22 @@ test('--skills install refuses a symlinked skills dir and leaves a foreign manif
     assert.strictEqual(readFileSync(manifest, 'utf8'), foreign, 'foreign manifest untouched');
   });
 });
+
+// CC-2186: on POSIX a backslash is a file-name character, so a sibling profile named "<home>\"
+// is its own directory, not the home directory with a trailing separator.
+test('--skills accepts a POSIX profile whose name ends in a backslash', { skip: process.platform === 'win32' }, () => {
+  const root = mkdtempSync(join(tmpdir(), 'ccc-kc-'));
+  try {
+    const home = join(root, 'home');
+    const cfg = `${home}\\`;
+    mkdirSync(home);
+    mkdirSync(cfg);
+    const r = kc(home, ['--skills', 'install', 'ccc-seo'], { CLAUDE_CONFIG_DIR: cfg });
+    assert.strictEqual(r.status, 0, r.stderr);
+    assert.doesNotMatch(r.stderr, /home directory/);
+    assert.ok(isLink(join(cfg, 'skills', 'ccc-seo')));
+    assert.ok(!existsSync(join(home, 'skills')), 'the home directory is untouched');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

@@ -159,7 +159,7 @@ if $VERIFY_ONLY; then
 
   # Check settings.json
   if [ -f "$CLAUDE_DIR/settings.json" ]; then
-    if python3 -c "import json; json.load(open('$CLAUDE_DIR/settings.json'))" 2>/dev/null; then
+    if python3 -c "import json, sys; json.load(open(sys.argv[1]))" "$CLAUDE_DIR/settings.json" 2>/dev/null; then
       cc_status_line "✓" "settings.json valid JSON"
     else
       cc_status_line "✗" "settings.json invalid JSON"

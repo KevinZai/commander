@@ -38,7 +38,7 @@ function laneWith(skills, opts) {
   return { home: home, dir: dir, env: { HOME: home, CLAUDE_CONFIG_DIR: dir } };
 }
 
-var CONTRACT_KEYS = ['schema', 'action', 'when', 'skill', 'reason', 'version', 'source', 'tier', 'score', 'route_source', 'candidates'];
+var CONTRACT_KEYS = ['schema', 'action', 'when', 'skill', 'reason', 'version', 'source', 'tier', 'score', 'route_source', 'candidates', 'skills', 'prompt_block'];
 
 test('registry match: a security audit job routes to /ccc-security with stable keys', async function() {
   var l = laneWith(['ccc-security', 'ccc-build', 'ccc-review']);
@@ -58,13 +58,27 @@ test('a registry match whose skill is not installed falls back to the tag/kind m
   assert.match(r.reason, /kind code -> \/ccc-build$/);
 });
 
-test('fallbacks: tag beats kind, unknown kind goes to the hub', async function() {
+test('fallbacks: tag beats kind; nothing matching gives no skill, never the /ccc hub', async function() {
   var l = laneWith(['ccc-build', 'ccc-plan']);
   assert.strictEqual((await nextLib.next({ job: { kind: 'code', tags: ['Planning'] }, env: l.env })).skill, '/ccc-plan');
-  var hub = await nextLib.next({ job: { kind: 'mystery' }, env: l.env });
-  assert.strictEqual(hub.skill, '/ccc');
-  assert.match(hub.reason, /hub -> \/ccc$/);
-  assert.deepStrictEqual(hub.candidates, []);
+  var none = await nextLib.next({ job: { kind: 'mystery' }, env: l.env });
+  assert.strictEqual(none.skill, null);
+  assert.match(none.reason, /no matching skill$/);
+  assert.deepStrictEqual(none.candidates, []);
+  assert.deepStrictEqual(none.skills, []);
+  assert.match(none.prompt_block, /no CCC skill fits this task/);
+});
+
+test('fleet pick: weak matches in a long description still give the worker 0-2 usable skills', async function() {
+  var l = laneWith(['ccc-systematic-debugging', 'ccc-testing', 'ccc-plan', 'ccc-deploy']);
+  var preamble = 'Repo rules: work in your worktree, keep commits small, follow CLAUDE.md. '.repeat(12);
+  var r = await nextLib.next({ job: { kind: 'code', title: 'Lane filler', description: preamble + '\nTask: fix the flaky lane-filler test and add a regression test.' }, env: l.env });
+  assert.ok(r.skills.length >= 1 && r.skills.length <= 2, JSON.stringify(r.skills));
+  assert.ok(r.skills.indexOf('/ccc-systematic-debugging') >= 0 || r.skills.indexOf('/ccc-testing') >= 0, JSON.stringify(r.skills));
+  assert.ok(r.skills.every(function(s) { return /^\/ccc-[a-z0-9-]+$/.test(s); }));
+  assert.match(r.prompt_block, /CCC pre-run/);
+  var deploy = await nextLib.next({ job: { kind: 'code', title: 'deploy this to fly' }, env: l.env });
+  assert.strictEqual(deploy.skills.indexOf('/ccc-deploy'), -1, 'side-effect skills are never a worker pick');
 });
 
 test('without an installed registry the checkout registry is used and reported', async function() {
@@ -155,7 +169,7 @@ test('a corrupt fleet-hold.json fails closed as a hold', async function() {
   assert.strictEqual((await nextLib.next({ job: {}, env: l.env })).action, 'proceed', 'valid expired deferral proceeds');
 });
 
-test('prototype keys as kind or tag fall back to the hub', async function() {
+test('prototype keys as kind or tag give no skill', async function() {
   var l = laneWith(['ccc-build']);
-  assert.strictEqual((await nextLib.next({ job: { kind: 'constructor', tags: ['__proto__', 'toString'] }, env: l.env })).skill, '/ccc');
+  assert.strictEqual((await nextLib.next({ job: { kind: 'constructor', tags: ['__proto__', 'toString'] }, env: l.env })).skill, null);
 });

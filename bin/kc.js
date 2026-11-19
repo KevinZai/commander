@@ -187,7 +187,7 @@ if (args[0] === 'next' || args.includes('--next')) {
   dispatching = true;
   var nx = require(path.join(__dirname,'..','commander','lib','next'));
   var nxEmit = function(r) {
-    console.log(args.includes('--json') ? JSON.stringify(r) : r.action + ' ' + r.when + ' ' + r.skill + ' (' + r.reason + ')');
+    console.log(args.includes('--json') ? JSON.stringify(r) : r.action + ' ' + r.when + ' ' + ((r.skills && r.skills.length ? r.skills.join(', ') : r.skill) || 'no skill') + ' (' + r.reason + ')');
     process.exit(0);
   };
   var nxFail = function(e) { process.stderr.write('ccc next: ' + e.message + '\n'); process.exit(e.exitCode || 1); };
@@ -307,13 +307,19 @@ if (args.includes('--skills')) {
   // Fold case only where the filesystem usually does (macOS, Windows); elsewhere a
   // case-only alias is caught by the dev+ino comparison, not the path text.
   var foldCase = process.platform === 'darwin' || process.platform === 'win32';
-  function pathKey(p) { var k = path.resolve(p).replace(/[\\/]+$/, ''); return foldCase ? k.toLowerCase() : k; }
+  // Only win32 treats a backslash as a separator; on POSIX a backslash is an ordinary file-name
+  // character, so stripping it could make a profile named "home\" look like "home" (CC-2186).
+  var TRAILING_SEP = process.platform === 'win32' ? /[\\/]+$/ : /\/+$/;
+  function pathKey(p) { var k = path.resolve(p).replace(TRAILING_SEP, ''); return foldCase ? k.toLowerCase() : k; }
   function realOrNull(p) { try { return fs.realpathSync.native(p); } catch (_e) { return null; } }
+  var EXTENDED_ROOT = /^[\\/]{2}[?.][\\/](UNC[\\/][^\\/]+[\\/][^\\/]+|[A-Za-z]:)[\\/]?$/i;
   function isRootPath(p) {
     var r = path.resolve(p);
     if (path.parse(r).root === r) return true;
     if (/^[A-Za-z]:[\\/]?$/.test(r)) return true;                 // another drive's root
     if (/^(\\\\|\/\/)[^\\/]+[\\/][^\\/]+[\\/]?$/.test(r)) return true; // UNC share root
+    // Extended-length and device roots: \\?\UNC\server\share, \\?\X:\ and \\.\X:\ (CC-2187).
+    if (EXTENDED_ROOT.test(String(p)) || EXTENDED_ROOT.test(r)) return true;
     if (process.platform === 'win32' && path.win32.parse(r).root === r) return true;
     return false;
   }
@@ -342,6 +348,9 @@ if (args.includes('--skills')) {
       }
     });
     [claudeConfigDir, skillsInstallDir].forEach(function(p) {
+      // Without a resolvable realpath on Windows a mapped or extended-length root can hide
+      // behind another spelling, so an existing profile that cannot be resolved is refused.
+      if (process.platform === 'win32' && fs.existsSync(p) && realOrNull(p) === null) refuseProfile(p, 'cannot be resolved to a real path');
       [p, realOrNull(p)].forEach(function(form) {
         if (!form) return;
         if (isRootPath(form)) refuseProfile(p, 'is a filesystem root');
@@ -438,6 +447,9 @@ if (args.includes('--skills')) {
     var target = fs.readlinkSync(p);
     var resolvedTarget = path.resolve(path.dirname(p), target);
     try { resolvedTarget = fs.realpathSync(p); } catch (e) { if (!e || e.code !== 'ENOENT') return false; /* dangling: compare lexically */ }
+    // A link to a filesystem root (for example a whole \\server\share) is never ours: dirname()
+    // of a root is the root itself, so it could pass the parent check below (CC-2187).
+    if (isRootPath(resolvedTarget)) return false;
     var src = path.resolve(skillsSourceDir);
     try { src = fs.realpathSync(skillsSourceDir); } catch (_e) { /* keep lexical */ }
     // A link into this checkout's skills/ is ours only under its own name; skills/alias -> <src>/other is the user's.

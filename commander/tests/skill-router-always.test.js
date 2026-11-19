@@ -133,7 +133,8 @@ test('PreToolUse queues Agent calls and SubagentStart claims each once, in spawn
     const start = { session_id: 's1', agent_type: 'general-purpose', hook_event_name: 'SubagentStart' };
     assert.match(ctx(run(start, env)), /ccc-review/, 'first worker gets the first call');
     assert.equal(ctx(run(start, env)), undefined, 'second worker gets its own (non-matching) task');
-    assert.equal(ctx(run(start, env)), undefined, 'nothing left for this type');
+    // Nothing left for this type: a worker with no task text gets the generic pre-run check.
+    assert.match(ctx(run(start, env)), /Pre-run check/, 'nothing left for this type');
     assert.match(ctx(run({ ...start, agent_type: 'Explore' }, env)), /ccc-review/);
   } finally {
     if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
@@ -207,7 +208,9 @@ test('a queue-matched hint names its task; a worker with its own task takes only
     const out = ctx(run(start, env));
     assert.match(out, /For the task "Review PR 12"/);
     assert.match(out, /if that is not your task, ignore this block\./);
-    assert.equal(ctx(run(start, env)), undefined, 'queue drained');
+    const drained = ctx(run(start, env));
+    assert.match(drained, /Pre-run check/, 'queue drained');
+    assert.doesNotMatch(drained, /Review PR 12/);
   } finally {
     if (prev === undefined) delete process.env.CCC_CONFIG_DIR; else process.env.CCC_CONFIG_DIR = prev;
     rmSync(dir, { recursive: true, force: true });
@@ -219,5 +222,60 @@ test('failed Agent calls are dropped synchronously', () => {
   for (const event of ['PostToolUseFailure', 'PermissionDenied']) {
     const h = hooks[event].flatMap((g) => g.hooks).find((x) => /logger\.js/.test(x.command));
     assert.ok(h && !h.async, `${event} logger must run synchronously`);
+  }
+});
+
+test('always mode is never silent on an everyday work request, and stays quiet on quick questions', async () => {
+  const { looksLikeWork, renderCheckContext } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
+  const fx = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'routing-everyday.json'), 'utf8'));
+  const respond = (p) => {
+    const c = scoreRoutes(p, routes);
+    return renderRouteContext(c, tierFor(c, 'always'), 'claude-code', 'always') || (looksLikeWork(p) ? renderCheckContext('claude-code') : null);
+  };
+  const silent = fx.work.filter((p) => !respond(p));
+  assert.deepEqual(silent, [], 'silent on work requests');
+  // Most should name a skill, not just the generic check line.
+  const named = fx.work.filter((p) => /Clear match|Likely match|Possible fit|Hidden skill/.test(respond(p) || ''));
+  assert.ok(named.length / fx.work.length >= 0.7, `only ${named.length}/${fx.work.length} named a skill`);
+  for (const q of fx.questions) assert.equal(respond(q), null, q);
+});
+
+test('headless routing never asks for a picker and drops side-effect skills', () => {
+  const c = scoreRoutes('can you look over the diff before I push', routes);
+  const out = renderRouteContext(c, 'medium', 'claude-code', 'auto', { headless: true });
+  assert.match(out, /Headless, no menu/);
+  assert.doesNotMatch(out, /AskUserQuestion/);
+  const deploy = scoreRoutes('deploy this to fly', routes);
+  assert.equal(renderRouteContext(deploy, tierFor(deploy, 'auto'), 'claude-code', 'auto', { headless: true }), null);
+});
+
+test('isHeadless: claude -p, CI and CCC_HEADLESS; the override wins', async () => {
+  const { isHeadless } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
+  assert.equal(isHeadless({ CLAUDE_CODE_ENTRYPOINT: 'sdk-cli' }), true);
+  assert.equal(isHeadless({ CLAUDE_CODE_ENTRYPOINT: 'cli' }), false);
+  assert.equal(isHeadless({ CI: 'true' }), true);
+  assert.equal(isHeadless({ CI: 'false' }), false);
+  assert.equal(isHeadless({ CCC_HEADLESS: '1' }), true);
+  assert.equal(isHeadless({ CCC_HEADLESS: '0', CI: '1' }), false);
+});
+
+test('a long worker task is scored past its preamble', async () => {
+  const { scoreTask } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
+  const preamble = 'Shared rules: stay in your worktree, keep commits small, follow CLAUDE.md and the repo conventions. '.repeat(10);
+  const task = `${preamble}\nTask: write unit tests for the date parser.`;
+  assert.equal(scoreRoutes(task, routes).find((c) => c.route.id === 'ccc-testing'), undefined, 'the first 600 chars miss it');
+  assert.equal(scoreTask(task, routes)[0].route.id, 'ccc-testing');
+});
+
+test('a worker whose task never reached the hook gets the pre-run check (workflow workers)', () => {
+  const env = { CCC_CONFIG_DIR: mkdtempSync(join(tmpdir(), 'ccc-route-')) };
+  try {
+    const out = ctx(run({ hook_event_name: 'SubagentStart', session_id: 'wf', agent_type: 'general-purpose' }, env));
+    assert.match(out, /Pre-run check/);
+    assert.equal(ctx(run({ hook_event_name: 'SubagentStart', session_id: 'wf', agent_type: 'general-purpose' }, { ...env, CCC_ROUTE_MODE: 'off' })), undefined);
+    // always mode: a task that matches nothing still gets the check.
+    assert.match(ctx(run({ hook_event_name: 'SubagentStart', prompt: 'rename the user model to account' }, { ...env, CCC_ROUTE_MODE: 'always' })), /Pre-run check/);
+  } finally {
+    rmSync(env.CCC_CONFIG_DIR, { recursive: true, force: true });
   }
 });

@@ -12,7 +12,11 @@
  *
  * Task text comes from the payload when the host provides it, else from the
  * Agent/Task call queued by the PreToolUse dispatcher (see recordAgentCall).
- * Workers a Workflow script spawns make no such call and get no block.
+ * The whole task (up to TASK_CHARS) is scored in pieces, so a long shared
+ * preamble does not hide the job. Workers a Workflow script spawns make no
+ * Agent call, so their text never reaches this hook: they get a short
+ * pre-run check that asks them to pick a fitting skill themselves. In always
+ * mode a worker whose task matched nothing gets the same check.
  *
  * Follows the lane's route mode (CCC_ROUTE_MODE, then config.json routeMode):
  * off and suggest stay silent; auto and always inject. CCC_SUBAGENT_ROUTE=off
@@ -24,7 +28,7 @@ import { join } from 'node:path';
 import { emitModel, emitSilent } from './lib/emit.mjs';
 import { readStdinJson } from './lib/session-key.mjs';
 import { isMainModule } from './lib/code-mode.mjs';
-import { loadRoutes, scoreRoutes, routeMode, detectHost, renderSubagentContext } from './lib/route-scorer.mjs';
+import { loadRoutes, scoreTask, routeMode, detectHost, renderSubagentContext, renderSubagentCheck } from './lib/route-scorer.mjs';
 import { readablePath, stateDir } from '../lib/lane-state.js';
 
 // Claude Code's SubagentStart payload carries no task text (only session_id,
@@ -39,7 +43,7 @@ import { readablePath, stateDir } from '../lib/lane-state.js';
 // denied, cancelled or failed and is dropped instead of handed out.
 const AGENT_TOOLS = new Set(['Agent', 'Task']);
 const QUEUE_TTL_MS = 60 * 1000;
-const TEXT_MAX = 2000;
+const TEXT_MAX = 4000;
 const DEFAULT_AGENT_TYPE = 'general-purpose';
 
 function slug(value) {
@@ -171,9 +175,13 @@ export function run(input = {}, env = process.env) {
     const text = own || (claimed ? claimed.text : '');
     // Queue-matched tasks are named in the block, so a mismatched worker ignores it.
     const forTask = own ? '' : (claimed && (claimed.label || claimed.text)) || '';
+    const host = detectHost(env);
+    // No task text reached the hook (a Workflow script's worker): pre-run check.
+    if (!text.trim()) return emitModel('SubagentStart', renderSubagentCheck(host));
     // A worker already told to use a specific skill needs no hint.
-    if (!text.trim() || /(?:^|\s)[/$]ccc[\w-]*|commander:ccc/.test(text)) return emitSilent();
-    const context = renderSubagentContext(scoreRoutes(text, loadRoutes()), detectHost(env), mode, forTask);
+    if (/(?:^|\s)[/$]ccc[\w-]*|commander:ccc/.test(text)) return emitSilent();
+    const context = renderSubagentContext(scoreTask(text, loadRoutes()), host, mode, forTask)
+      || (mode === 'always' ? renderSubagentCheck(host, forTask) : null);
     return context ? emitModel('SubagentStart', context) : emitSilent();
   } catch {
     return emitSilent();

@@ -91,8 +91,8 @@ export function skipReason(rawPrompt, payload = {}) {
   return null;
 }
 
-/** Lowercased routing text: code, URLs and quoted pastes removed, first 600 chars. */
-export function normalizePrompt(prompt) {
+/** Lowercased routing text: code, URLs and quoted pastes removed, first 600 chars (or maxChars). */
+export function normalizePrompt(prompt, maxChars = ANALYZED_CHARS) {
   return String(prompt || '')
     .replace(/```[\s\S]*?(```|$)/g, ' ')
     .replace(/`[^`\n]*`/g, ' ')
@@ -100,13 +100,13 @@ export function normalizePrompt(prompt) {
     .replace(/<pasted_content[\s\S]*?(<\/pasted_content[^>]*>|$)/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-    .slice(0, ANALYZED_CHARS)
+    .slice(0, maxChars)
     .toLowerCase();
 }
 
 /** Score every route; returns candidates sorted by score (desc), score > 0 only. */
-export function scoreRoutes(prompt, routes = loadRoutes()) {
-  const text = normalizePrompt(prompt);
+export function scoreRoutes(prompt, routes = loadRoutes(), opts = {}) {
+  const text = opts.normalized ? String(prompt || '') : normalizePrompt(prompt);
   if (!text) return [];
   const candidates = [];
   for (const route of routes) {
@@ -130,6 +130,48 @@ export function scoreRoutes(prompt, routes = loadRoutes()) {
   const kindRank = (c) => (c.route.kind === 'skill' ? 0 : 1);
   candidates.sort((a, b) => b.score - a.score || (b.route.priority || 0) - (a.route.priority || 0) || kindRank(a) - kindRank(b));
   return candidates;
+}
+
+// A worker's task often opens with a long shared preamble (repo rules,
+// worktree notes) and states the job further down, so a task is scored in
+// pieces and each route keeps its best piece: the first line (usually the
+// description), every line that names the task, and 600-character windows
+// over the first TASK_CHARS characters.
+export const TASK_CHARS = 4000;
+const TASK_LINE = /^\s*(?:[#>*-]+\s*)?(?:\*\*)?(?:task|goal|objective|your (?:task|job|slice)|slice \d+|deliverable|what to do|todo|ticket|issue|bug|fix|implement|build)\b/i;
+const WINDOW_STEP = 450;
+
+function taskSegments(task) {
+  const raw = String(task || '');
+  const lines = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const segments = [];
+  if (lines.length) segments.push(lines[0]);
+  lines.forEach((line, i) => {
+    if (i > 0 && TASK_LINE.test(line)) segments.push(lines.slice(i, i + 3).join(' '));
+  });
+  const flat = normalizePrompt(raw, TASK_CHARS);
+  for (let start = 0; start < flat.length; start += WINDOW_STEP) {
+    segments.push(flat.slice(start, start + ANALYZED_CHARS));
+    if (start + ANALYZED_CHARS >= flat.length) break;
+  }
+  return segments;
+}
+
+/**
+ * Score a worker task (fleet job, subagent prompt): like scoreRoutes, but the
+ * whole task up to TASK_CHARS is read, in pieces, and each route keeps the
+ * score of its best piece. Same sort order as scoreRoutes.
+ */
+export function scoreTask(task, routes = loadRoutes()) {
+  const best = new Map();
+  for (const segment of taskSegments(task)) {
+    for (const c of scoreRoutes(segment, routes)) {
+      const prev = best.get(c.route.id);
+      if (!prev || c.score > prev.score || (c.score === prev.score && c.patternHits > prev.patternHits)) best.set(c.route.id, c);
+    }
+  }
+  const kindRank = (c) => (c.route.kind === 'skill' ? 0 : 1);
+  return [...best.values()].sort((a, b) => b.score - a.score || (b.route.priority || 0) - (a.route.priority || 0) || kindRank(a) - kindRank(b));
 }
 
 const ROUTE_MODES = ['off', 'suggest', 'auto', 'always'];
@@ -161,8 +203,8 @@ export function tierFor(candidates, mode = 'auto') {
   // Topic scores alone cannot authorize an auto-run. Curated patterns must
   // express a request to do this skill's job, not merely name its subject.
   // Manual (disable-model-invocation) skills and agents never auto-run.
-  // always mode never auto-runs a side-effect skill, even on a clear match.
-  if (mode === 'always' && SIDE_EFFECT_SKILLS.has(top.route.id)) return 'medium';
+  // No mode auto-runs a side-effect skill, even on a clear match.
+  if (isSideEffect(top.route)) return 'medium';
   if (clearWinner && top.patternHits > 0 && (mode === 'auto' || mode === 'always') && top.route.kind === 'skill' && !top.route.manual) return 'high';
   return 'medium';
 }
@@ -172,6 +214,35 @@ export function detectHost(env = process.env, moduleUrl = import.meta.url) {
   if (env.CCC_SOURCE_APP === 'codex' || env.CCC_SOURCE_APP === 'claude-code') return env.CCC_SOURCE_APP;
   if (env.PLUGIN_ROOT || /cowork-plugin-codex|\/\.codex\//.test(moduleUrl)) return 'codex';
   return 'claude-code';
+}
+
+/**
+ * True when nobody can answer a picker: `claude -p` (entrypoint sdk-cli), CI,
+ * or CCC_HEADLESS=1 (fleet lanes, `codex exec`). CCC_HEADLESS=0 forces
+ * interactive. Headless routing never asks for AskUserQuestion or
+ * request_user_input; it names the best fitting skill instead.
+ */
+export function isHeadless(env = process.env) {
+  const flag = String(env.CCC_HEADLESS || '').trim().toLowerCase();
+  if (['1', 'true', 'on', 'yes'].includes(flag)) return true;
+  if (['0', 'false', 'off', 'no'].includes(flag)) return false;
+  if (String(env.CLAUDE_CODE_ENTRYPOINT || '').toLowerCase() === 'sdk-cli') return true;
+  return ['CI', 'CONTINUOUS_INTEGRATION', 'GITHUB_ACTIONS'].some((k) => {
+    const v = String(env[k] || '').trim().toLowerCase();
+    return v !== '' && v !== '0' && v !== 'false';
+  });
+}
+
+// A request to do work (not a quick question): the always-mode check line
+// is added only for these when no route matched.
+const WORK_VERB = /\b(fix|debug|add|build|implement|create|write|refactor|migrate|update|set ?up|make|review|test|deploy|optimi[sz]e|clean ?up|remove|delete|rename|investigate|check|improve|design|document|split|bump|upgrade|port|convert|integrate|wire|ship|audit|speed up|shrink|harden|scaffold|draft|plan|research|analy[sz]e|profile|benchmark|validate|polish|tidy|restyle|redesign|rewrite|log|scan)\b/;
+const WORK_SIGNAL = /\b(bug|error|broken|failing|fails|failed|crash\w*|slow|leak|regression|exception|timeout|timing out|500|404|blank|not working|doesn'?t work|isn'?t working|wrong)\b/;
+
+/** Does this prompt ask for work, as opposed to a quick question or chat? */
+export function looksLikeWork(prompt) {
+  const text = normalizePrompt(prompt);
+  if (text.split(' ').filter(Boolean).length < 4) return false;
+  return WORK_VERB.test(text) || WORK_SIGNAL.test(text);
 }
 
 function invokeText(route, host) {
@@ -206,22 +277,17 @@ function clamp(text) {
 }
 
 // Skills that act outside the conversation: deploys, pushes, publishing,
-// tracker, fleet or memory writes, settings, long loops. `always` mode never
-// tells the model to run these on its own, visible or hidden; it still offers
-// them as a menu. Visible ones keep auto mode's strict high-tier rule.
-export const SIDE_EFFECT_SKILLS = new Set([
-  'ccc-deploy', 'ccc-rollback', 'ccc-full-send', 'ccc-full-stop', 'ccc-ship', 'ccc-yolo-setup',
-  'ccc-night-mode', 'ccc-nightwatch', 'ccc-broadcast', 'ccc-upgrade', 'ccc-update', 'ccc-file-pr',
-  'ccc-takeover', 'ccc-babysit-pr', 'ccc-loop', 'ccc-sol-loop', 'ccc-spawn', 'ccc-linear',
-  'ccc-linear-board', 'ccc-tasks', 'ccc-connect', 'ccc-settings', 'ccc-hermes', 'ccc-relay',
-  'ccc-domains', 'ccc-ultracode', 'ccc-pr-comments', 'ccc-console', 'ccc-mission-control',
-  'ccc-fleet', 'ccc-orchestrate', 'ccc-codex', 'ccc-memory', 'ccc-session', 'ccc-save-session',
-  'ccc-resume-session', 'ccc-handoff', 'ccc-standup', 'ccc-smb-ops', 'ccc-ci', 'ccc-infra',
-  'ccc-modernize', 'ccc-council', 'ccc-triage', 'ccc-harden', 'ccc-content', 'ccc-safety',
-  'ccc-usage', 'ccc-knowledge', 'ccc-adhd', 'ccc-fable', 'ccc-ecc', 'ccc-prompt-fix',
-  'ccc-claudemd', 'ccc-plan-exec', 'ccc-debate', 'ccc-e2e', 'ccc-doc-sync', 'ccc-agent-writing',
-  'ccc-deploy-check', 'ccc-fleet-viz', 'ccc-makeover',
-]);
+// tracker, fleet or memory writes, settings, long loops. Each skill declares
+// this as `sideEffect` in commander/core/route-hints.json (the build fails
+// when one does not), and build-routes copies it into ccc-routes.json. No
+// route mode tells the model to run these on its own; they are only offered
+// as a menu for the user to pick.
+export const SIDE_EFFECT_SKILLS = new Set(loadRoutes().filter((r) => r.sideEffect).map((r) => r.id));
+
+/** Does this route act outside the conversation? Older registries lack the flag. */
+export function isSideEffect(route) {
+  return !!route && (route.sideEffect === true || SIDE_EFFECT_SKILLS.has(route.id));
+}
 
 // Hidden (disable-model-invocation) skills that only read and advise, so
 // `always` mode may follow them by reading their SKILL.md. An allowlist: a
@@ -232,12 +298,12 @@ const PLUGIN_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 /** A hidden skill the model may follow by reading its file (always mode only). */
 export function followable(route) {
-  return route.kind === 'skill' && !!route.manual && FOLLOWABLE_HIDDEN_SKILLS.has(route.id) && !SIDE_EFFECT_SKILLS.has(route.id);
+  return route.kind === 'skill' && !!route.manual && FOLLOWABLE_HIDDEN_SKILLS.has(route.id) && !isSideEffect(route);
 }
 
 /** May `always` mode tell the model to run this route without asking? */
 export function autoFollowable(route) {
-  if (route.kind !== 'skill' || SIDE_EFFECT_SKILLS.has(route.id)) return false;
+  if (route.kind !== 'skill' || isSideEffect(route)) return false;
   return !route.manual || followable(route);
 }
 
@@ -247,13 +313,21 @@ function skillCall(route, host) {
 }
 
 /** The <ccc-route> block for the model, or null for the low tier. */
-export function renderRouteContext(candidates, tier, host, mode = 'auto') {
+export function renderRouteContext(candidates, tier, host, mode = 'auto', opts = {}) {
   if (tier === 'low' || !candidates.length) return null;
   // Weak tail candidates only add menu noise.
   const top3 = candidates.slice(0, 3).filter((c, i) => i === 0 || c.score >= MIN_LISTED_SCORE);
   const list = top3.map((c) => `${invokeText(c.route, host)} ${c.score.toFixed(2)}`).join(' | ');
   let body;
-  if (tier === 'hint') {
+  if (opts.headless && tier !== 'high') {
+    // Nobody can answer a picker: name the best usable skill instead. Side-
+    // effect, hidden-only and agent routes are dropped, never offered.
+    const usable = top3.filter((c) => autoFollowable(c.route));
+    if (!usable.length) return null;
+    const [top, ...rest] = usable;
+    const alts = rest.map((c) => invokeText(c.route, host)).join(', ');
+    body = `Headless, no menu. If it fits the task, ${skillCall(top.route, host)} first and follow it (${top.route.label})${alts ? `; else consider ${alts}` : ''}. Otherwise just do the task.`;
+  } else if (tier === 'hint') {
     const usable = top3.filter((c) => autoFollowable(c.route));
     if (!usable.length) return null;
     const opts = usable.map((c) => optionText(c.route, host)).join('; ');
@@ -280,6 +354,16 @@ export function renderRouteContext(candidates, tier, host, mode = 'auto') {
     body = `Possible fit. ${menuInstruction(host, shown.length)} Options: ${opts}. Run the pick; manual skills need the user to type them; agents spawn with fresh context.`;
   }
   return clamp(`<ccc-route tier="${tier}" candidates="${list}">\n${body}\n</ccc-route>`);
+}
+
+/**
+ * always mode, nothing matched, and the prompt asks for work: one short line
+ * asking the model to check its own skill list before starting. Keyword
+ * routing cannot cover every phrasing; the model can.
+ */
+export function renderCheckContext(host) {
+  const skills = host === 'codex' ? '$ccc-* skill' : 'commander:ccc-* skill';
+  return `<ccc-route tier="check">\nNo CCC skill matched by keyword. Before substantial work, check your skill list for a ${skills} that fits (debugging, tests, review, plan, design, SaaS, DevOps, data, security) and load it first; never auto-run deploy, push, publish or tracker skills. For a quick answer, just answer.\n</ccc-route>`;
 }
 
 /** The <ccc-next> block offered after a skill finished, or null. */
@@ -309,6 +393,18 @@ export function renderNextContext(fromRoute, nextRoutes, host) {
  * task and tells the worker to ignore it if the task is not its own, so a
  * mis-assigned or stale entry is harmless.
  */
+/**
+ * A worker whose task matched no route, or whose task text never reached
+ * the router (a Workflow script's agent makes no Agent tool call): a short
+ * pre-run check so it still evaluates CCC skills before starting.
+ */
+export function renderSubagentCheck(host, forTask = '') {
+  const skills = host === 'codex' ? '$ccc-* skill' : 'commander:ccc-* skill';
+  const label = String(forTask || '').replace(/\s+/g, ' ').replace(/["<>]/g, '').trim().slice(0, 80);
+  const guard = label ? `For the task "${label}" only; if that is not your task, ignore this block. ` : '';
+  return `<ccc-skills for="subagent">\n${guard}Pre-run check: before starting, look in your skill list for a ${skills} that fits your task and load it; skip deploy, push, publish and tracker skills unless your task says to. If none fits, just start.\n</ccc-skills>`;
+}
+
 export function renderSubagentContext(candidates, host, mode = 'auto', forTask = '') {
   const floor = mode === 'always' ? HINT_THRESHOLD : MEDIUM_THRESHOLD;
   const usable = candidates

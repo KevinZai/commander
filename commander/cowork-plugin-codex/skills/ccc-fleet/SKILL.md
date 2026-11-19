@@ -22,7 +22,7 @@ This is the manual-dispatch side of `rules/workflow-first.md`: delegate the doin
 ## When to use / when not to
 
 - Use when the work splits into independent slices, staged hand-offs, or a decision worth several independent opinions.
-- Use `$ccc-spawn` for one isolated task, `$ccc-relay` for recurring chains of separate sessions, `$ccc-debate` for a multi-lens stress test; for a pattern-driven codebase migration run the ccc-migrate workflow (see step 5, or `/commander:ccc-migrate`).
+- Use `$ccc-spawn` for one isolated task, `$ccc-relay` for recurring chains of separate sessions, `$ccc-debate` for a multi-lens stress test; for a pattern-driven codebase migration run the ccc-migrate workflow (see step 6, or `/commander:ccc-migrate`).
 - Do not use for work that fits in a handful of tool calls; spawn overhead is real.
 
 ## What happens
@@ -89,13 +89,17 @@ Report the failing check and spawn nothing if any hard check fails.
 
 Before dispatch, show the arc in two to four lines: pattern, agent count, model and effort per role, and "when all report back I verify, merge through the coordinator, and report". Route roles with [references/model-tiers.md](references/model-tiers.md). Keep the coordinator on the user's selected model unless they choose otherwise.
 
-### 5. Dispatch
+### 5. Pre-run skill evaluation
+
+Pick the CCC skills for each slice before dispatch, so every worker starts with the right skill: run `node "${CLAUDE_PLUGIN_ROOT}/lib/route-task.mjs" "<slice text>"` once per slice and pass each answer's `skills` array, in slice order, as the workflow's `args.skills`. A slice with no pick gets a pre-run check instead. With the Agent tool, put each answer's `prompt_block` at the top of that worker's prompt. Never add a side-effect skill (deploy, push, publish, tracker) that the slice does not ask for.
+
+### 6. Dispatch
 
 Prefer the Workflow tool for Fan-out, Pipeline and Judge panel. It runs fan-out slices with `isolation: 'worktree'`, verifies each slice with a separate agent prompted to refute, and surfaces failed slices instead of dropping them.
 
 | Pattern | Workflow call |
 |---|---|
-| Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "fanout", tasks: ["slice 1 …", "slice 2 …"] } })` |
+| Fan-out | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "fanout", tasks: ["slice 1 …", "slice 2 …"], skills: [["/ccc-testing"], []] } })` |
 | Pipeline | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "pipeline", tasks: ["stage 1 …", "stage 2 …"] } })` (2 or more stages) |
 | Judge panel | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-fleet-run.workflow.js", args: { mode: "judge", task: "<decision>", attempts: 3 } })` |
 | Pattern migration | `Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/ccc-migrate.workflow.js", args: { pattern: "…", transform: "…", verify: "…" } })` |
@@ -123,11 +127,11 @@ Per pattern:
 - **Background.** One agent, isolated if it writes. Tell the user they can keep working and how to check (`git worktree list`). If the task is "keep going until a gate holds" (tests green, CI fixed), run it as a `/goal` loop instead (see `$ccc-loop`); recurring checks belong to `/loop` or `/schedule`.
 - **Team hierarchy.** Phase 1: one Director (`opus` or `fable`, effort `high`, read-only) returns an architecture brief of at most 200 words, file domains for two or three Leads, and a specialist checklist. Phase 2: Leads in parallel (`sonnet`, effort `medium`, isolated), each with the brief and its domain. Phase 3: specialists in parallel (`haiku`, effort `low`) on the Lead worktrees for lint, format, docs and simple tests. Directors plan; they never implement. Never skip Phase 1.
 
-### 6. Track progress
+### 7. Track progress
 
 Emit worker progress events and write a completion marker for every worker that exits, successful or failed, with `lib/fleet-status.js`. Commands, schema and cleanup: [references/runtime-contracts.md](references/runtime-contracts.md). On a long run, post a one-line status every ten or so steps.
 
-### 7. Verify and synthesize
+### 8. Verify and synthesize
 
 1. Collect each worker's report and completion marker. A failed worker is reported on its own line; it does not stop synthesis of the others.
 2. For Agent-tool fan-out or team runs, start one fresh-context `reviewer` (effort `high`, read-only) over the combined diff, prompted to refute each worker's claim. Workflow fan-out already did this per slice.
@@ -140,8 +144,8 @@ Emit worker progress events and write a completion marker for every worker that 
 
 - Pattern and sub-pattern (step 2).
 - Branch behind or diverged, or secret-like variables present (step 3): ask with AskUserQuestion: 🟢 "Stop and fix first" (sync the branch or move the secrets out of the environment, then rerun pre-flight) · "Proceed anyway" (workers start from the current HEAD with the variables redacted from their prompts; the report notes the skipped check).
-- Pinned versus role-based models (step 5), only when the user asks for one model or the run is large: 🟢 "Role-based" (each role on its tier from references/model-tiers.md) · "Pinned" (every workflow agent on one model; requires `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` in the session environment, so relaunch if it is unset) · "Pinned for this run only" (set `model` on every Agent call instead).
-- Merge conflict (step 7): 🟢 "Stop, show the conflicting files" · "Keep branches unmerged for manual review".
+- Pinned versus role-based models (step 6), only when the user asks for one model or the run is large: 🟢 "Role-based" (each role on its tier from references/model-tiers.md) · "Pinned" (every workflow agent on one model; requires `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` in the session environment, so relaunch if it is unset) · "Pinned for this run only" (set `model` on every Agent call instead).
+- Merge conflict (step 8): 🟢 "Stop, show the conflicting files" · "Keep branches unmerged for manual review".
 
 ## Arguments
 

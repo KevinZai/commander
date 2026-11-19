@@ -110,6 +110,9 @@ function buildEntry({ id, kind, name, fm, hint }) {
     paths: hint.paths || [],
     requirePath: Boolean(hint.requirePath),
     priority: priorityOf(id, hint),
+    // Acts outside the conversation (deploy, push, publish, tracker or memory
+    // writes, settings, fan-out): never auto-run, in any route mode.
+    sideEffect: kind === 'skill' ? hint.sideEffect === true : false,
     next: hint.next || [],
     descTriggers: descTriggersFrom(description),
   };
@@ -133,6 +136,11 @@ function build(sources = DEFAULT_SOURCES) {
   for (const name of skillNames) {
     const fm = readFrontmatter(path.join(skillsDir, name, 'SKILL.md'));
     const hint = skillHints[name] || {};
+    // Every skill states whether it acts outside the conversation, so a new
+    // skill cannot become auto-runnable by omission.
+    if (typeof hint.sideEffect !== 'boolean') {
+      throw new Error(`skill ${name}: route-hints.json must set "sideEffect": true or false`);
+    }
     // Aliases forward to a canonical skill; routing to them only adds interference.
     if (hint.exclude || /^Alias\b/i.test(fm.description || '')) continue;
     routes.push(buildEntry({ id: name, kind: 'skill', name, fm, hint }));

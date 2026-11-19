@@ -15,6 +15,8 @@ export const meta = {
 //   attempts?: number   judge: independent attempts, 2-5 (default 3)
 //   lenses?: string[]   debate: lenses (default security, performance, contrarian)
 //   rounds?: number     debate: cross-examination rounds, 1-3 (default 2)
+//   skills?: (string|string[])[]  fanout/pipeline: the CCC pre-run pick per slice or stage,
+//                       e.g. the `skills` field of `ccc next --json` ("/ccc-testing")
 if (!args || !args.mode) throw new Error('ccc-fleet-run requires args: { mode, tasks | task }')
 const mode = args.mode
 const asText = (r) => (typeof r === 'string' ? r : JSON.stringify(r))
@@ -28,6 +30,20 @@ const SLICE_VERDICT = {
   },
 }
 
+// CCC pre-run skill evaluation for each worker. A Workflow agent makes no
+// Agent tool call, so the SubagentStart router never sees its task; the
+// prompt carries the pick instead: the caller's skills[i] when given, else a
+// check of the worker's own skill list.
+const SKILL_ID = /^\/?(ccc-[a-z0-9-]{1,40})$/
+function preRun(i) {
+  const raw = Array.isArray(args.skills) ? args.skills[i] : null
+  const list = (Array.isArray(raw) ? raw : raw ? [raw] : [])
+    .map(s => (typeof s === 'string' ? (s.trim().match(SKILL_ID) || [])[1] : null)).filter(Boolean).slice(0, 2)
+  return list.length
+    ? `CCC pre-run: before you start, load ${list.map(id => `commander:${id}`).join(', then ')} with the Skill tool and follow it where it fits this task.\n`
+    : 'CCC pre-run: before you start, check your skill list for a commander:ccc-* skill that fits this task and load it; never run deploy, push, publish or tracker skills. If none fits, just start.\n'
+}
+
 phase('Fleet')
 
 if (mode === 'fanout') {
@@ -39,6 +55,7 @@ if (mode === 'fanout') {
   const results = await pipeline(
     tasks,
     (t, _item, i) => agent(
+      preRun(i) +
       `Slice ${i + 1} of ${tasks.length}. Work only on this slice; other agents own the rest: ${t}\n` +
       'Report the worktree path (`git rev-parse --show-toplevel`), the branch, every file you changed, and the check you ran. ' +
       'Do not grade your own work; an independent verifier checks it.',
@@ -71,6 +88,7 @@ if (mode === 'pipeline') {
   const out = []
   for (let i = 0; i < stages.length; i++) {
     const r = await agent(
+      preRun(i) +
       `Pipeline stage ${i + 1} of ${stages.length}: ${stages[i]}` +
       (carry ? `\n\nPrevious stage report:\n${carry}` : '') +
       '\n\nReport what you changed and the check you ran.',

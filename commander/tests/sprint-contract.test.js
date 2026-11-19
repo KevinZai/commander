@@ -236,3 +236,16 @@ test('CLI: breaking a verified criterion makes status not current and record ref
   assert.strictEqual(rec.code, 1);
   assert.match(rec.json.errors.join(' '), /AC1: check-json/);
 });
+
+// CC-2188: a criterion that quotes the marker syntax inside a code span keeps its real check.
+test('a check marker quoted inside a code span does not drop the real check (round trip)', async () => {
+  const lib = await libP;
+  assert.strictEqual(lib.splitCriterion('The preview displays `mode · check:manual` · check: `npm test`').check, 'npm test');
+  assert.strictEqual(lib.splitCriterion('Shows ``a · check: `b` `` · check: `npm test`').check, 'npm test');
+  const dir = tmpRepo();
+  const made = run(dir, ['new', '--title', 'Quoted marker', '--criterion', 'The preview displays `mode · check:manual` :: npm test']);
+  assert.strictEqual(made.code, 0, JSON.stringify(made.json));
+  const parsed = lib.parseContract(fs.readFileSync(path.join(dir, 'tasks', 'sprint-contract.md'), 'utf8'));
+  assert.strictEqual(parsed.criteria[0].check, 'npm test');
+  assert.match(parsed.criteria[0].text, /`mode · check:manual`/);
+});
