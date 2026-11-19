@@ -246,19 +246,45 @@ test('install.sh --force merges into an existing ~/.claude without deleting user
     assert.strictEqual(readFileSync(join(claude, 'commands', 'mine.md'), 'utf8'), 'mine');
     assert.strictEqual(readFileSync(join(claude, 'hooks', 'hooks.json'), 'utf8'), '{"mine":1}');
     assert.ok(existsSync(join(claude, 'hooks', 'hooks.commander.json')), 'Commander hooks config is written beside the user\'s');
-    // A same-named file is replaced, but only after a file-level backup
-    const backups = backupsIn(home);
-    assert.strictEqual(backups.length, 1);
-    assert.strictEqual(readFileSync(join(home, backups[0], 'commands', 'ccc-ao.md'), 'utf8'), 'my own ccc-ao');
-    assert.ok(!existsSync(join(home, backups[0], 'projects')), 'the backup must not copy session transcripts');
-    assert.ok(!existsSync(join(home, backups[0], 'skills')), 'the backup holds only replaced files');
+    // H11: a same-named file of the user's is kept by default and listed; nothing is backed up or replaced
+    assert.strictEqual(readFileSync(join(claude, 'commands', 'ccc-ao.md'), 'utf8'), 'my own ccc-ao');
+    assert.match(res.stdout, /existing file\(s\) of yours kept[\s\S]*commands\/ccc-ao\.md/);
+    assert.match(res.stdout, /--replace-existing/);
+    assert.deepStrictEqual(backupsIn(home), [], 'no backup when nothing is replaced');
     // The manifest lists what was written and not the user's files
     const m = readManifest(claude);
     const paths = new Set(m.entries.map((e) => e.path));
     assert.ok(paths.has('hooks/hooks.commander.json'));
     assert.ok(!paths.has('hooks/hooks.json') && !paths.has('commands/mine.md') && !paths.has('skills/my-skill/SKILL.md'));
+    assert.ok(!paths.has('commands/ccc-ao.md'), 'a kept file of the user\'s is not recorded');
+
+    // --replace-existing backs the file up, then replaces it
+    const again = install(home, ['--replace-existing']);
+    ok(again, 'install --replace-existing');
+    assert.notStrictEqual(readFileSync(join(claude, 'commands', 'ccc-ao.md'), 'utf8'), 'my own ccc-ao');
+    const backups = backupsIn(home);
+    assert.strictEqual(backups.length, 1);
+    assert.strictEqual(readFileSync(join(home, backups[0], 'commands', 'ccc-ao.md'), 'utf8'), 'my own ccc-ao');
+    assert.ok(!existsSync(join(home, backups[0], 'projects')), 'the backup must not copy session transcripts');
+    assert.ok(!existsSync(join(home, backups[0], 'skills')), 'the backup holds only replaced files');
     // The installer records physical paths (a symlinked temp dir, like macOS /var, resolves to its target).
-    assert.strictEqual(m.entries.find((e) => e.path === 'commands/ccc-ao.md').backup, join(realpathSync(home), backups[0], 'commands', 'ccc-ao.md'));
+    assert.strictEqual(readManifest(claude).entries.find((e) => e.path === 'commands/ccc-ao.md').backup, join(realpathSync(home), backups[0], 'commands', 'ccc-ao.md'));
+  });
+});
+
+test('install.sh keeps a kit file the user edited and carries its record forward', () => {
+  withHome('ccc-install-edited-', (home) => {
+    const claude = join(home, '.claude');
+    ok(install(home), 'first install');
+    const before = readManifest(claude).entries.find((e) => e.path === 'commands/ccc-audit.md');
+    assert.ok(before, 'precondition: the kit command is recorded');
+    writeFileSync(join(claude, 'commands', 'ccc-audit.md'), 'edited by me');
+    const res = install(home);
+    ok(res, 'second install');
+    assert.strictEqual(readFileSync(join(claude, 'commands', 'ccc-audit.md'), 'utf8'), 'edited by me');
+    assert.match(res.stdout, /commands\/ccc-audit\.md/);
+    assert.deepStrictEqual(backupsIn(home), []);
+    assert.ok(readManifest(claude).entries.some((e) => e.path === 'commands/ccc-audit.md'), 'the previous record carries forward');
   });
 });
 
@@ -362,7 +388,7 @@ test('uninstall.sh keeps files created or changed after install and restores rep
     const claude = join(home, '.claude');
     mkdirSync(join(claude, 'commands'), { recursive: true });
     writeFileSync(join(claude, 'commands', 'ccc-aside.md'), 'my version');
-    ok(install(home, ['--skills=essential']), 'install');
+    ok(install(home, ['--skills=essential', '--replace-existing']), 'install');
     assert.notStrictEqual(readFileSync(join(claude, 'commands', 'ccc-aside.md'), 'utf8'), 'my version');
 
     // After install: a new skill, a new command, an edited kit command
@@ -383,6 +409,22 @@ test('uninstall.sh keeps files created or changed after install and restores rep
     assert.ok(!existsSync(join(claude, 'hooks')), 'hooks/ created by the install and emptied is removed');
     assert.ok(!existsSync(join(claude, 'commander', 'install-manifest.json')), 'the manifest is removed');
     assert.ok(existsSync(join(claude, 'CLAUDE.md')) && existsSync(join(claude, 'settings.json')));
+  });
+});
+
+test('uninstall keeps the active file when its backup is missing', () => {
+  withHome('ccc-install-nobackup-', (home) => {
+    const claude = join(home, '.claude');
+    mkdirSync(join(claude, 'commands'), { recursive: true });
+    writeFileSync(join(claude, 'commands', 'ccc-aside.md'), 'my version');
+    ok(install(home, ['--replace-existing']), 'install');
+    const kit = readFileSync(join(claude, 'commands', 'ccc-aside.md'), 'utf8');
+    const [bk] = backupsIn(home);
+    rmSync(join(home, bk), { recursive: true, force: true });
+    const res = uninstall(home);
+    ok(res, 'uninstall');
+    assert.strictEqual(readFileSync(join(claude, 'commands', 'ccc-aside.md'), 'utf8'), kit, 'the active file is kept');
+    assert.match(res.stdout, /commands\/ccc-aside\.md \(its recorded backup .* is missing\)/);
   });
 });
 
