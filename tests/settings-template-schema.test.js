@@ -23,6 +23,19 @@ test('no broad shell grants', () => {
   assert.ok(!allow.includes('Bash') && !allow.includes('Bash(*)'), 'no blanket Bash grant');
 });
 
+// Fable and Codex review of #302: a package-script runner executes arbitrary repo code, and git write ops change
+// history; under auto mode neither is pre-approved. Only read-only Bash prefixes remain.
+test('no script runners or git write ops are pre-approved', () => {
+  const allow = template().permissions.allow;
+  const writers = ['npm run', 'npm test', 'pnpm run', 'pnpm test', 'pnpm build', 'yarn', 'bun run',
+    'git add', 'git commit', 'git branch', 'git fetch', 'git merge', 'git rebase', 'git tag', 'git reset', 'mkdir'];
+  for (const cmd of writers) {
+    assert.ok(!allow.some((a) => a.startsWith(`Bash(${cmd}`)), `${cmd} must not be pre-approved`);
+  }
+  const READ_ONLY = /^Bash\((?:git (?:diff|log|status)|ls|wc|cat|head|tail):\*\)$/;
+  for (const a of allow.filter((x) => x.startsWith('Bash('))) assert.match(a, READ_ONLY, `${a} is not a read-only prefix`);
+});
+
 test('guard hooks registered', () => {
   const pre = template().hooks.PreToolUse;
   assert.ok(Array.isArray(pre));

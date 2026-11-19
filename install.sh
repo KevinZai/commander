@@ -193,27 +193,40 @@ if $VERIFY_ONLY; then
   fi
 
   # Guard hooks: Claude Code runs hooks registered in settings.json (not <config dir>/hooks/hooks.json).
+  # A guard counts as registered only for the exact entry the installer writes: a PreToolUse matcher "Bash", a
+  # hook of type "command", and the rendered command for this config dir (or the template's $HOME/.claude form
+  # when this is ~/.claude). A Read matcher, or any command that merely mentions the guard path, does not count.
   # Not registered is a warning (an existing settings.json is never edited); registered but missing is an error.
   if [ -f "$CLAUDE_DIR/settings.json" ]; then
     for guard in careful-guard confidence-gate; do
       guard_state="$(node -e '
-        var fs = require("fs");
+        var fs = require("fs"), path = require("path"), nodeCrypto = require("crypto");
         var cfg; try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (_e) { process.stdout.write("unreadable"); process.exit(0); }
-        var name = process.argv[2] + ".js", found = null;
+        var root = path.resolve(process.argv[2]), name = process.argv[3], srcRoot = process.argv[4], home = process.env.HOME || "";
+        var file = path.join(root, "hooks", name + ".js");
+        var q = path.join(root, "hooks").replace(/[\\"$`]/g, "\\$&") + "/" + name + ".js";
+        var expected = ["if [ -f \"" + q + "\" ]; then node \"" + q + "\"; fi"];
+        if (home && root === path.resolve(home, ".claude")) expected.push("if [ -f \"$HOME/.claude/hooks/" + name + ".js\" ]; then node \"$HOME/.claude/hooks/" + name + ".js\"; fi");
+        var exact = false, mentioned = false;
         ((cfg.hooks && cfg.hooks.PreToolUse) || []).forEach(function(m) {
-          (m.hooks || []).forEach(function(h) {
-            if (found || typeof h.command !== "string" || h.command.indexOf(name) === -1) return;
-            var q = /"((?:[^"\\]|\\.)*)"/.exec(h.command);
-            found = q ? q[1].replace(/\\(.)/g, "$1").split("$HOME").join(process.env.HOME || "") : "";
+          (m && m.hooks || []).forEach(function(h) {
+            if (!h || typeof h.command !== "string" || h.command.indexOf(name + ".js") === -1) return;
+            mentioned = true;
+            if (m.matcher === "Bash" && h.type === "command" && expected.indexOf(h.command) !== -1) exact = true;
           });
         });
-        if (found === null) process.stdout.write("unregistered");
-        else if (found && fs.existsSync(found)) process.stdout.write("ok");
-        else process.stdout.write("missing:" + found);
-      ' "$CLAUDE_DIR/settings.json" "$guard" 2>/dev/null || echo unreadable)"
+        if (!exact) { process.stdout.write(mentioned ? "mismatch" : "unregistered"); process.exit(0); }
+        var st = null; try { st = fs.lstatSync(file); } catch (_e) { st = null; }
+        if (!st || !st.isFile()) { process.stdout.write("missing:" + file); process.exit(0); }
+        var sha = function(p) { return nodeCrypto.createHash("sha256").update(fs.readFileSync(p)).digest("hex"); };
+        var shipped = null; try { shipped = sha(path.join(srcRoot, "hooks", name + ".js")); } catch (_e) { shipped = null; }
+        process.stdout.write(shipped && sha(file) !== shipped ? "modified:" + file : "ok");
+      ' "$CLAUDE_DIR/settings.json" "$CLAUDE_DIR" "$guard" "$SCRIPT_DIR" 2>/dev/null || echo unreadable)"
       case "$guard_state" in
         ok) cc_status_line "✓" "$guard registered in settings.json (PreToolUse Bash)" ;;
         unregistered) cc_status_line "!" "$guard not registered in settings.json (see settings.json.template)" ;;
+        mismatch) cc_status_line "!" "$guard is referenced in settings.json, but not as the expected PreToolUse Bash command hook (see settings.json.template)" ;;
+        modified:*) cc_status_line "!" "$guard registered, but ${guard_state#modified:} differs from the shipped version" ;;
         missing:*) cc_status_line "✗" "$guard registered but its script is missing: ${guard_state#missing:}"; errors=$((errors+1)) ;;
         *) ;;  # settings.json validity is reported above
       esac
@@ -1105,26 +1118,75 @@ if should_install "claude-md" || should_install "settings"; then
   if should_install "settings"; then
     if [ ! -f "$CLAUDE_DIR/settings.json" ] && [ -f "$SCRIPT_DIR/settings.json.template" ]; then
       # Render hook paths for this config dir, as the hooks config is: "$HOME/.claude/hooks/x.js" -> "<config dir>/hooks/x.js".
-      # The guard hooks are wrapped in `if [ -f … ]`, so they keep blocking (exit 2) and become no-ops after uninstall.
-      node - "$SCRIPT_DIR/settings.json.template" "$CLAUDE_DIR" <<'SETTINGS'
+      # A guard hook is registered only when this install wrote it and it verifies: the manifest records it with the
+      # shipped content hash, the installed file has that hash, and hooks/ is a real directory inside the config dir.
+      # A pre-existing guard the installer declined to manage, one under a symlinked hooks/, or a guard whose
+      # component was not selected (--mode=config) is reported and left inactive (Codex #302).
+      # The registered guards stay wrapped in `if [ -f … ]`, so they block (exit 2) and become no-ops after uninstall.
+      settings_out="$(node - "$SCRIPT_DIR/settings.json.template" "$CLAUDE_DIR" "$MANIFEST" "$SCRIPT_DIR" <<'SETTINGS'
 'use strict';
-var fs = require('fs'), path = require('path');
-var src = process.argv[2], root = path.resolve(process.argv[3]);
+var fs = require('fs'), path = require('path'), nodeCrypto = require('crypto');
+var src = process.argv[2], root = path.resolve(process.argv[3]), manifestPath = process.argv[4], srcRoot = process.argv[5];
 var hooksDir = path.join(root, 'hooks').replace(/[\\"$`]/g, '\\$&');
+var sha = function(buf) { return nodeCrypto.createHash('sha256').update(buf).digest('hex'); };
+var manifest = null;
+try { manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); } catch (_e) { manifest = null; }
+function guardProblem(name) {
+  var rel = 'hooks/' + name + '.js';
+  var shipped; try { shipped = sha(fs.readFileSync(path.join(srcRoot, rel))); } catch (_e) { return 'not shipped in this checkout'; }
+  var rec = manifest && (manifest.entries || []).find(function(e) { return e.type === 'file' && e.path === rel; });
+  if (!rec) return 'not written by this install (an existing file, a skipped hooks/ dir, or the hooks component was not selected)';
+  if (rec.sha !== shipped) return 'the recorded copy is not the shipped version';
+  var dir = path.join(root, 'hooks'), st;
+  try { st = fs.lstatSync(dir); } catch (_e) { return 'hooks/ is missing'; }
+  if (st.isSymbolicLink() || !st.isDirectory()) return 'hooks/ is a symlink or not a directory';
+  try { if (fs.realpathSync(dir) !== path.join(fs.realpathSync(root), 'hooks')) return 'hooks/ resolves outside the config dir'; } catch (_e) { return 'hooks/ cannot be resolved'; }
+  var file = path.join(dir, name + '.js'), fst;
+  try { fst = fs.lstatSync(file); } catch (_e) { return rel + ' is missing'; }
+  if (!fst.isFile()) return rel + ' is not a regular file';
+  if (sha(fs.readFileSync(file)) !== shipped) return rel + ' differs from the shipped version';
+  return null;
+}
 var cfg = JSON.parse(fs.readFileSync(src, 'utf8'));
+var registered = [], inactive = [];
 Object.keys(cfg.hooks || {}).forEach(function(ev) {
-  (cfg.hooks[ev] || []).forEach(function(m) {
-    (m.hooks || []).forEach(function(h) {
-      if (typeof h.command === 'string') h.command = h.command.split('$HOME/.claude/hooks/').join(hooksDir + '/');
+  cfg.hooks[ev] = (cfg.hooks[ev] || []).map(function(m) {
+    m.hooks = (m.hooks || []).filter(function(h) {
+      if (typeof h.command !== 'string') return true;
+      var g = /\$HOME\/\.claude\/hooks\/([\w-]+)\.js/.exec(h.command);
+      if (g) {
+        var why = guardProblem(g[1]);
+        if (why) { inactive.push(g[1] + ': ' + why); return false; }
+        registered.push(g[1]);
+      }
+      h.command = h.command.split('$HOME/.claude/hooks/').join(hooksDir + '/');
+      return true;
     });
-  });
+    return m;
+  }).filter(function(m) { return m.hooks.length > 0; });
+  if (!cfg.hooks[ev].length) delete cfg.hooks[ev];
 });
+// The status line script lives in this config dir's lib/, like the hooks.
+if (cfg.statusLine && typeof cfg.statusLine.command === 'string') {
+  cfg.statusLine.command = cfg.statusLine.command.split('$HOME/.claude/lib/').join(path.join(root, 'lib').replace(/[\\"$`]/g, '\\$&') + '/');
+}
 var dst = path.join(root, 'settings.json');
 var tmp = path.join(root, '.settings.json.ccc-tmp-' + process.pid);
 fs.writeFileSync(tmp, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o644, flag: 'wx' });
 fs.renameSync(tmp, dst);
+process.stdout.write('registered\t' + Array.from(new Set(registered)).join(', ') + '\n');
+inactive.forEach(function(i) { process.stdout.write('inactive\t' + i + '\n'); });
 SETTINGS
-      cc_status_line "✓" "settings.json created (new install; careful-guard and confidence-gate registered)"
+)" || { cc_status_line "✗" "settings.json could not be written" "$M_RED"; exit 1; }
+      guards_registered="$(printf '%s\n' "$settings_out" | awk -F'\t' '$1=="registered"{print $2}')"
+      if [ -n "$guards_registered" ]; then
+        cc_status_line "✓" "settings.json created (new install; registered: $guards_registered)"
+      else
+        cc_status_line "✓" "settings.json created (new install; no guard hooks registered)"
+      fi
+      printf '%s\n' "$settings_out" | awk -F'\t' '$1=="inactive"{print $2}' | while IFS= read -r line; do
+        [ -n "$line" ] && cc_status_line "!" "Guard hook left inactive — $line"
+      done
     else
       cc_status_line "·" "settings.json preserved (existing config kept)"
       cc_status_line "·" "Guard hooks are not added to an existing settings.json; to register careful-guard and confidence-gate, copy the PreToolUse entry from $SCRIPT_DIR/settings.json.template"

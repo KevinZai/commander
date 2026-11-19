@@ -215,6 +215,9 @@ if (manifest && !manifestOwnerOk(manifest, ROOT, REAL_ROOT)) {
 if (manifest) {
   console.log('  Using the install manifest (CC Commander v' + manifest.version + ', ' + (manifest.entries || []).length + ' entries).');
   var touchedDirs = new Set(manifest.dirs || []);
+  // Entries left unresolved (an active file whose recorded backup is missing) stay in the manifest, so a retry
+  // makes the same decision instead of falling back to the pre-manifest sweep and deleting the kept copy.
+  var retained = [];
   (manifest.entries || []).slice().reverse().forEach(function(e) {
     // Outside the config dir the installer only ever writes the ccc link and one key in .claude.json.
     if ((e.abs && !(e.type === 'symlink' && path.basename(e.abs) === 'ccc')) ||
@@ -247,7 +250,7 @@ if (manifest) {
     if (!ours) { result.kept.push(label(e)); return; }
     var b = e.backup && lst(e.backup);
     // The install replaced a file of the user's; without that backup, removing the active file would lose both.
-    if (e.backup && !b) { result.kept.push(label(e) + ' (its recorded backup ' + e.backup + ' is missing)'); return; }
+    if (e.backup && !b) { result.kept.push(label(e) + ' (its recorded backup ' + e.backup + ' is missing)'); retained.unshift(e); return; }
     if (apply) {
       if (b) restoreOver(e.backup, abs);
       else fs.unlinkSync(abs);
@@ -262,8 +265,15 @@ if (manifest) {
       if (!dst || dst.isSymbolicLink()) return;
       try { fs.rmdirSync(abs); result.dirs++; } catch (_e) { /* not empty: holds files that are not ours */ }
     });
-    fs.unlinkSync(manifestPath);
-    try { fs.rmdirSync(path.dirname(manifestPath)); } catch (_e) { /* other Commander state lives there */ }
+    if (retained.length) {
+      var kept = Object.assign({}, manifest, { entries: retained, uninstall_retained_at: new Date().toISOString() });
+      writeAtomic(manifestPath, JSON.stringify(kept, null, 2) + '\n', 0o644);
+      console.log('  ' + retained.length + ' unresolved entr' + (retained.length === 1 ? 'y stays' : 'ies stay') + ' in ' + manifestPath +
+        ' so a later uninstall keeps ' + (retained.length === 1 ? 'it' : 'them') + ' too; restore the backup or delete the file yourself.');
+    } else {
+      fs.unlinkSync(manifestPath);
+      try { fs.rmdirSync(path.dirname(manifestPath)); } catch (_e) { /* other Commander state lives there */ }
+    }
   }
   report();
   return;

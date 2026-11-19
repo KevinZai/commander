@@ -425,6 +425,14 @@ test('uninstall keeps the active file when its backup is missing', () => {
     ok(res, 'uninstall');
     assert.strictEqual(readFileSync(join(claude, 'commands', 'ccc-aside.md'), 'utf8'), kit, 'the active file is kept');
     assert.match(res.stdout, /commands\/ccc-aside\.md \(its recorded backup .* is missing\)/);
+    // Codex #302 H11: a retry must make the same decision; the pre-manifest sweep would delete the kept copy.
+    const m = readManifest(claude);
+    assert.deepStrictEqual(m.entries.map((e) => e.path), ['commands/ccc-aside.md'], 'only the unresolved entry is retained');
+    const again = uninstall(home);
+    assert.ok(again.status === 0 || again.status === 3, again.stdout + again.stderr);
+    assert.doesNotMatch(again.stdout, /No install manifest found/);
+    assert.strictEqual(readFileSync(join(claude, 'commands', 'ccc-aside.md'), 'utf8'), kit, 'a second uninstall keeps it too');
+    assert.ok(existsSync(join(claude, 'commander', 'install-manifest.json')));
   });
 });
 
@@ -812,6 +820,7 @@ test('fresh install renders guard hooks for the config dir', () => {
       assert.ok(existsSync(f));
     }
     assert.ok(!JSON.stringify(settings.hooks).includes('$HOME/.claude'), 'no default-profile paths remain');
+    assert.strictEqual(settings.statusLine.command, `"${join(cfg, 'lib', 'statusline.sh')}"`, 'statusLine rendered for the config dir');
     const guardCmd = cmds.find((c) => c.includes('careful-guard'));
     const blocked = spawnSync('bash', ['-c', guardCmd], {
       input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'rm -rf /' } }), encoding: 'utf8',
@@ -828,6 +837,72 @@ test('fresh install renders guard hooks for the config dir', () => {
       input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'rm -rf /' } }), encoding: 'utf8',
     });
     assert.strictEqual(after.status, 0);
+  });
+});
+
+// Codex #302 (High): a fresh settings.json registers only guards this install wrote and verified.
+const guardCmds = (cfgDir) => {
+  const s = JSON.parse(readFileSync(join(cfgDir, 'settings.json'), 'utf8'));
+  return ((s.hooks && s.hooks.PreToolUse) || []).flatMap((m) => m.hooks.map((h) => h.command));
+};
+
+test('fresh settings never register a pre-existing guard the installer did not write', () => {
+  withHome('ccc-install-unowned-guard-', (home) => {
+    const claude = join(home, '.claude');
+    mkdirSync(join(claude, 'hooks'), { recursive: true });
+    writeFileSync(join(claude, 'hooks', 'careful-guard.js'), 'process.exit(0) // not CC Commander\'s\n');
+    copyFileSync(join(REPO_ROOT, 'hooks', 'confidence-gate.js'), join(claude, 'hooks', 'confidence-gate.js'));
+    const res = install(home, ['--mode=full', '--skills=essential']);
+    ok(res, 'install');
+    const cmds = guardCmds(claude);
+    assert.ok(!cmds.some((c) => c.includes('careful-guard')), 'a guard of the user\'s is not registered: ' + cmds.join(' | '));
+    assert.ok(!cmds.some((c) => c.includes('confidence-gate')), 'an identical copy the install did not adopt is not registered');
+    assert.match(res.stdout, /Guard hook left inactive — careful-guard: not written by this install/);
+    assert.match(res.stdout, /Guard hook left inactive — confidence-gate/);
+    assert.strictEqual(readFileSync(join(claude, 'hooks', 'careful-guard.js'), 'utf8'), 'process.exit(0) // not CC Commander\'s\n');
+  });
+});
+
+test('fresh settings leave guards inactive under a symlinked hooks/ dir', () => {
+  withHome('ccc-install-linked-hooks-', (home) => {
+    const claude = join(home, '.claude');
+    const shared = join(home, 'dotfiles-hooks');
+    mkdirSync(shared, { recursive: true });
+    mkdirSync(claude, { recursive: true });
+    symlinkSync(shared, join(claude, 'hooks'));
+    const res = install(home, ['--mode=full', '--skills=essential']);
+    ok(res, 'install');
+    const cmds = guardCmds(claude);
+    assert.ok(!cmds.some((c) => /careful-guard|confidence-gate/.test(c)), cmds.join(' | '));
+    assert.match(res.stdout, /Guard hook left inactive — careful-guard/);
+    assert.deepStrictEqual(readdirSync(shared), [], 'nothing written through the link');
+  });
+});
+
+test('--mode=config fresh install registers no absent guards', () => {
+  withHome('ccc-install-config-guards-', (home) => {
+    const claude = join(home, '.claude');
+    const res = run(INSTALL_SH, home, ['--force', '--mode=config', '--skip-deps']);
+    ok(res, 'install');
+    const cmds = guardCmds(claude);
+    assert.deepStrictEqual(cmds.filter((c) => /careful-guard|confidence-gate/.test(c)), []);
+    assert.match(res.stdout, /no guard hooks registered/);
+    assert.ok(!existsSync(join(claude, 'hooks', 'careful-guard.js')));
+  });
+});
+
+test('--verify counts only the exact Bash command hook as a registered guard', () => {
+  withHome('ccc-install-verify-guard-', (home) => {
+    const claude = join(home, '.claude');
+    ok(install(home, ['--mode=full', '--skills=essential']), 'install');
+    const f = join(claude, 'hooks', 'careful-guard.js');
+    const settings = JSON.parse(readFileSync(join(claude, 'settings.json'), 'utf8'));
+    settings.hooks.PreToolUse = [{ matcher: 'Read', hooks: [{ type: 'command', command: `echo "${f}"` }] }];
+    writeFileSync(join(claude, 'settings.json'), JSON.stringify(settings, null, 2));
+    const verify = run(INSTALL_SH, home, ['--verify']);
+    assert.doesNotMatch(verify.stdout, /careful-guard registered in settings\.json/);
+    assert.match(verify.stdout, /careful-guard is referenced in settings\.json, but not as the expected PreToolUse Bash command hook/);
+    assert.match(verify.stdout, /confidence-gate not registered in settings\.json/);
   });
 });
 
