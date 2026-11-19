@@ -14,3 +14,12 @@ export function supabaseAdmin(): SupabaseClient {
   });
   return cached;
 }
+
+/** The admin client, or null when Supabase env is not configured. */
+export function supabaseAdminOrNull(): SupabaseClient | null {
+  try {
+    return supabaseAdmin();
+  } catch {
+    return null;
+  }
+}

@@ -112,5 +112,8 @@ alter table public.usage_counters enable row level security;
 -- (Add user-scoped SELECT policies later if/when an OAuth user-facing UI ships.)
 
 -- ─── grants ─────────────────────────────────────────────────────────────────
+-- Functions are executable by PUBLIC by default; these are SECURITY DEFINER.
+revoke execute on function public.get_effective_cap(uuid)       from public, anon, authenticated;
+revoke execute on function public.increment_usage(uuid, text)   from public, anon, authenticated;
 grant execute on function public.get_effective_cap(uuid)        to service_role;
 grant execute on function public.increment_usage(uuid, text)    to service_role;

@@ -87,6 +87,30 @@ describe("hosted migrations (apps/mcp-server-cloud/src/db/migrations)", () => {
     assert.match(text, /revoke all on table public\.stripe_events from public, anon, authenticated/);
     assert.match(text, /if new\.lifetime_tier = 'founders' then new\.tier := 'founders'/);
   });
+
+  it("004 drops the public creators policy and revokes anon RPC execute", () => {
+    const text = sql(path.join(MIGRATIONS, "004_creators_lockdown.sql"));
+    assert.match(text, /drop policy if exists creators_public_read on public\.creators/);
+    assert.match(text, /revoke all on table public\.creators from anon, authenticated/);
+    assert.match(text, /create or replace view public\.creators_public/);
+    const view = text.slice(text.indexOf("create or replace view public.creators_public"), text.indexOf("$view$;"));
+    for (const secret of ["email", "ls_affiliate_id", "total_commission_cents", "github_id,"]) {
+      assert.ok(!view.includes(secret), `creators_public must not expose ${secret}`);
+    }
+    assert.match(view, /where approved_at is not null/);
+    for (const fn of ["increment_usage", "get_effective_cap", "increment_creator_clicks"]) {
+      assert.ok(text.includes(`'${fn}'`), `004 covers ${fn}`);
+    }
+    assert.match(text, /revoke execute on function %s from public, anon, authenticated/);
+  });
+
+  it("fresh-install SQL matches the 004 end-state", () => {
+    const creators = sql(path.join(APP_ROOT, "src/db/creators-schema.sql"));
+    assert.ok(!/create policy creators_public_read/.test(creators), "no public-read policy");
+    assert.ok(!/to service_role, anon, authenticated/.test(creators), "no anon grant");
+    const schema = sql(path.join(APP_ROOT, "src/db/schema.sql"));
+    assert.match(schema, /revoke execute on function public\.increment_usage\(uuid, text\) from public, anon, authenticated/);
+  });
 });
 
 describe("migrations are never applied by the repo's tooling", () => {
