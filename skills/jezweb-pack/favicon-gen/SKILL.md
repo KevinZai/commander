@@ -135,4 +135,4 @@ Place all files in site root (`/public/` in Vite/React).
 - Path: `plugins/design-assets/skills/favicon-gen/`
 - Pinned commit: `1260fa7439b36b18dbf16648ccc7fb44783f6c23`
 - License: MIT, Copyright (c) 2025 Jeremy Dawes (Jezweb); full text in `LICENSE.txt` beside this file (also at `skills/jezweb-pack/licenses/jezweb_claude-skills-LICENSE.txt`)
-- Local changes: lines starting "CCC safety:" and the Next step and Source sections
+- Local changes: lines starting "CCC safety:", the Next step and Source sections, and the SVGO install in `references/extraction-methods.md` pinned to `svgo@4.1.0`

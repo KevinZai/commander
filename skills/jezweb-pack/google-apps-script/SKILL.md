@@ -434,25 +434,48 @@ Copy rows with "Complete" status to an Archive sheet.
 
 CCC safety: example rewritten as copy-only. Upstream copied values only (`appendRow`, losing formulas and formatting) and deleted each source row at once with no confirmation; deleting after a confirmation dialog is not safe either, because rows can move while the dialog is open. This version copies whole rows with `copyTo` (values, formulas, formats; relative references shift to the new row) and deletes nothing. Removing the archived rows from Active is left to the user, by hand, after they check the Archive sheet. Running it twice copies the same rows twice. Run it on a copy of the sheet first.
 
+CCC safety: run it while nobody else is editing Active or Archive. The lock below only serializes runs of this script; a person sorting Active or typing into Archive mid-run is not blocked. So the script reserves its Archive rows up front and re-checks each source row just before copying it, skipping any row that changed since the snapshot. It reports the skipped rows instead of guessing.
+
 ```javascript
 function archiveCompleted() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const source = ss.getSheetByName('Active');
-  const archive = ss.getSheetByName('Archive');
-  const data = source.getDataRange().getValues();
-  const statusCol = 4; // column E (0-indexed)
-  const lastCol = source.getLastColumn();
+  const lock = LockService.getDocumentLock();
+  if (!lock.tryLock(30000)) throw new Error('Another archive run is in progress');
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const source = ss.getSheetByName('Active');
+    const archive = ss.getSheetByName('Archive');
+    const statusCol = 4; // column E (0-indexed)
+    const lastCol = source.getLastColumn();
+    const snapshot = source.getDataRange().getValues();
+    const rows = [];
+    for (let i = 1; i < snapshot.length; i++) {
+      if (snapshot[i][statusCol] === 'Complete') rows.push(i);
+    }
+    if (rows.length === 0) { ss.toast('No completed rows.', 'Archive', 5); return; }
 
-  let copied = 0;
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][statusCol] !== 'Complete') continue;
-    // Copy the whole row (values, formulas, formats); nothing is deleted
-    const target = archive.getRange(archive.getLastRow() + 1, 1, 1, lastCol);
-    source.getRange(i + 1, 1, 1, lastCol).copyTo(target);
-    copied++;
+    // Reserve the destination rows in one step so concurrent appends land below them
+    const start = archive.getLastRow() + 1;
+    archive.insertRowsAfter(Math.max(archive.getLastRow(), 1), rows.length);
+
+    let copied = 0;
+    const skipped = [];
+    rows.forEach(function (i) {
+      const live = source.getRange(i + 1, 1, 1, lastCol).getValues()[0];
+      // Copy only if the row still holds exactly what the snapshot saw
+      if (JSON.stringify(live) !== JSON.stringify(snapshot[i].slice(0, lastCol))) {
+        skipped.push(i + 1);
+        return;
+      }
+      source.getRange(i + 1, 1, 1, lastCol).copyTo(archive.getRange(start + copied, 1, 1, lastCol));
+      copied++;
+    });
+    SpreadsheetApp.flush();
+    ss.toast(copied + ' completed row(s) copied to Archive' +
+      (skipped.length ? '; rows changed mid-run and were skipped: ' + skipped.join(', ') : '') +
+      '. Remove copied rows from Active by hand once checked.', 'Archive', 10);
+  } finally {
+    lock.releaseLock();
   }
-  SpreadsheetApp.flush();
-  ss.toast(copied + ' completed row(s) copied to Archive. Remove them from Active by hand once checked.', 'Archive', 8);
 }
 ```
 
@@ -496,6 +519,8 @@ Pattern: loop numbered weekly tabs (`01`-`52`), read summary cells from each, wr
 ---
 
 ## Error Handling
+
+CCC safety: this example calls an outside API with a stored key. Confirm the endpoint with the user, keep the key in Script Properties, and never log the key or the full response.
 
 Always wrap external calls in try/catch. Use `muteHttpExceptions: true` to handle HTTP errors yourself. Re-throw for dialog error handlers.
 

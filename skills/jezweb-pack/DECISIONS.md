@@ -34,7 +34,7 @@ License check: the repository LICENSE is MIT, Copyright (c) 2025 Jeremy Dawes (J
 Every copied file is byte-identical to upstream except for: added lines starting "CCC safety:", the appended Next step and Source sections, and the upstream lines replaced in "Changed upstream examples" below. Each replaced example has a "CCC safety:" line beside it saying what changed and why.
 
 - All three: `## Next step` (pack convention, as on every other pack sub-skill) and `## Source` sections appended.
-- `google-apps-script`: "CCC safety:" lines at Step 3 (step 3 erases editor code: only after the user approves, otherwise add a new file), at Step 4 (the "Advanced > Go to (unsafe) > Allow" click-through only for a script the user or their organisation wrote and read), before the trigger recipes (copy first, user says go), before Email from Sheets (covers the PDF export below it too), at PDF Export (confirmed recipient), at External API Calls (confirm endpoint and data), at Auto-Archive (rewritten, below) and before the Batch Email Sender (test on a copy, user confirms recipients).
+- `google-apps-script`: "CCC safety:" lines at Step 3 (step 3 erases editor code: only after the user approves, otherwise add a new file), at Step 4 (the "Advanced > Go to (unsafe) > Allow" click-through only for a script the user or their organisation wrote and read), before the trigger recipes (copy first, user says go), before Email from Sheets (covers the PDF export below it too), at PDF Export (confirmed recipient), at External API Calls (confirm endpoint and data), at Auto-Archive (rewritten, below; plus a line asking that nobody else edits the sheets mid-run), at Error Handling (confirm endpoint, key in Script Properties) and before the Batch Email Sender (test on a copy, user confirms recipients).
 - `favicon-gen`: "CCC safety:" lines after the ImageMagick install hint (ask before `brew` or `apt`) and the favicon.io fallback (no upload without the user's say-so); in `references/format-guide.md` above the online converters, after the file-placement list (WordPress upload: confirm site and destination) and at Validation Tools; in `references/extraction-methods.md` above SVGO (both the global install and `npx` download code: ask first; install line pinned to `svgo@4.1.0`), at Technical Tests and at Tools Reference (online services only with the user's say-so).
 - `icon-set-generator`: no change beyond the two appended sections.
 
@@ -42,7 +42,7 @@ Every copied file is byte-identical to upstream except for: added lines starting
 
 | File and section | Upstream | Now | Why |
 |---|---|---|---|
-| `google-apps-script/SKILL.md`, Auto-Archive Completed Rows | "Move rows" description; `appendRow(values)` then `deleteRow`, row by row, no prompt | "Copy rows" description; copies whole rows with `copyTo` (values, formulas, formats), deletes nothing, and ends with a toast telling the user to remove the archived rows by hand | Upstream lost formulas and formatting and deleted with no confirmation. A confirm-then-delete version was also unsafe: Codex reproduced rows moving while the dialog was open, so the stored row numbers pointed at other rows |
+| `google-apps-script/SKILL.md`, Auto-Archive Completed Rows | "Move rows" description; `appendRow(values)` then `deleteRow`, row by row, no prompt | "Copy rows" description; copies whole rows with `copyTo` (values, formulas, formats), deletes nothing, holds a document lock, reserves its Archive rows up front, re-checks each source row against the snapshot before copying (skipping and reporting changed rows), and ends with a toast telling the user to remove the archived rows by hand | Upstream lost formulas and formatting and deleted with no confirmation. A confirm-then-delete version was also unsafe: Codex reproduced rows moving while the dialog was open, so the stored row numbers pointed at other rows. A later Codex pass showed the copy-only version could still copy a moved row or overwrite a concurrent Archive append, hence the re-check and reserved rows |
 | `favicon-gen/references/extraction-methods.md`, SVGO | `npm install -g svgo` | `npm install -g svgo@4.1.0` | Unpinned global install |
 
 ## Install-safety sweep (2026-11-19)
@@ -53,7 +53,7 @@ The install-safety sweep used for the MIT add-on batches (`install-sweep.py`, ke
 |---|---|---|
 | `npm install -g svgo` | `favicon-gen/references/extraction-methods.md` | Pinned in place to `svgo@4.1.0`; the CCC safety line gates both it and `npx` on the user's go-ahead |
 | `brew install imagemagick` / `apt install imagemagick` | `favicon-gen/SKILL.md` | CCC safety line: ask before installing |
-| favicon.io, realfavicongenerator.net, cloudconvert.com uploads | `favicon-gen/SKILL.md`, `references/format-guide.md` | CCC safety lines: no upload without the user's say-so. The tools table in `extraction-methods.md` only names the services and is covered by the router rule |
+| favicon.io, realfavicongenerator.net, cloudconvert.com uploads | `favicon-gen/SKILL.md`, `references/format-guide.md` | CCC safety lines: no upload without the user's say-so. The tools table in `extraction-methods.md` has its own CCC safety line at Tools Reference |
 
 No other hits: no `latest` tags, images, download-and-execute, `.env` loading or remote manifests in the three remaining skills.
 
