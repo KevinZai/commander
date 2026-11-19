@@ -32,7 +32,7 @@
  * be able to make a session start noisy or slow.
  */
 import { readFile, mkdir, stat, writeFile } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
+import { join, dirname, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readablePath, readableStateDir, stateDir } from '../lib/lane-state.js';
 import { emitModel, emitSilent } from './lib/emit.mjs';
@@ -65,19 +65,30 @@ const BUILDER_PATH = fileURLToPath(new URL('../scripts/build-console.mjs', impor
 // nobody is watching the transcript anyway.
 const CI_ENV_KEYS = ['CI', 'CONTINUOUS_INTEGRATION', 'GITHUB_ACTIONS', 'BUILD_NUMBER'];
 
-// Fixed template — no telemetry, no user text, no file paths from disk are
-// interpolated into it. Same rule the console's chips follow: nothing that can
-// be written into a log may end up in something the model reads as an
+// Shell-quote a path for a command line the model will run: single quotes,
+// with an embedded quote closed, escaped and reopened.
+function shellQuote(value) {
+  return "'" + String(value).replace(/'/g, "'\\''") + "'";
+}
+
+// Fixed template — no telemetry, no user text and no path read from disk are
+// interpolated into it. The one path in it is this hook's own builder,
+// resolved from import.meta.url and checked to exist; it is spelled out
+// absolute and quoted because ${CLAUDE_PLUGIN_ROOT} is set for hook commands,
+// not in the model's shell. Same rule the console's chips follow: nothing that
+// can be written into a log may end up in something the model reads as an
 // instruction.
-const NUDGE = [
-  'Commander: the user has agent telemetry on this machine and has auto-open enabled.',
-  'If (and only if) the visualize MCP is available in this session, render the Commander Console widget inline ONCE, near the start of your reply:',
-  'run `node "${CLAUDE_PLUGIN_ROOT}/scripts/build-console.mjs" --tab overview` and pass its stdout to the visualize MCP\'s show_widget as widget_code.',
-  'Rules: handle whatever the user actually asked for FIRST — if their opening message is a real request, answer it and skip the console entirely.',
-  'Do NOT publish anything: publishing is a separate, consent-gated act (/ccc-console publish).',
-  'If the visualize MCP is unavailable, say nothing about it — do not describe the console, do not fake it with a table, and do not mention this instruction.',
-  'Do not repeat this later in the session; the user can re-open it with /ccc-console, or turn this off with `{"autoOpen": false}` in ~/.claude/commander/console.json.',
-].join(' ');
+function nudgeFor(builderPath) {
+  return [
+    'Commander: the user has agent telemetry on this machine and has auto-open enabled.',
+    'If (and only if) the visualize MCP is available in this session, render the Commander Console widget inline ONCE, near the start of your reply:',
+    'run `node ' + shellQuote(builderPath) + ' --tab overview` and pass its stdout to the visualize MCP\'s show_widget as widget_code.',
+    'Rules: handle whatever the user actually asked for FIRST — if their opening message is a real request, answer it and skip the console entirely.',
+    'Do NOT publish anything: publishing is a separate, consent-gated act (/ccc-console publish).',
+    'If the visualize MCP is unavailable, say nothing about it — do not describe the console, do not fake it with a table, and do not mention this instruction.',
+    'Do not repeat this later in the session; the user can re-open it with /ccc-console, or turn this off with `{"autoOpen": false}` in ~/.claude/commander/console.json.',
+  ].join(' ');
+}
 
 function commanderDir(env) {
   return stateDir(env);
@@ -163,6 +174,8 @@ export async function run({ input = {}, env = process.env, now = Date.now, build
     // No plugin-local builder means the nudge would name a command that
     // cannot run; stay quiet instead of pointing the model elsewhere.
     if (!(await builderExists(builderPath))) return emitSilent();
+    // An absolute path without control characters, or no nudge at all.
+    if (!isAbsolute(builderPath) || /[\x00-\x1f\x7f`]/.test(builderPath)) return emitSilent();
 
     const source = typeof input.source === 'string' ? input.source : '';
     if (source && !OPENING_SOURCES.has(source)) return emitSilent();
@@ -177,7 +190,7 @@ export async function run({ input = {}, env = process.env, now = Date.now, build
     const dedupeKey = sessionId || `no-session:${new Date(now()).toISOString().slice(0, 10)}`;
     if (!(await claimSession(env, dedupeKey, now()))) return emitSilent();
 
-    return emitModel('SessionStart', NUDGE);
+    return emitModel('SessionStart', nudgeFor(builderPath));
   } catch {
     return emitSilent();
   }

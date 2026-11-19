@@ -100,6 +100,8 @@ const DOUBLE_QUOTED = /"[^"\n]*"|\u201c[^\u201d\n]*\u201d/g;
 function flatten(text, maxChars) {
   return String(text || '')
     .replace(DOUBLE_QUOTED, ' ')
+    // Typographic apostrophes ("Don\u2019t") read as ASCII so negations match.
+    .replace(/[\u2018\u2019\u02bc]/g, "'")
     .replace(/https?:\/\/\S+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
@@ -117,19 +119,35 @@ export function normalizePrompt(prompt, maxChars = ANALYZED_CHARS) {
 }
 
 // What the user says not to do is not a request to do it: "don't deploy",
-// "skip the review", "no need to write tests". A directive negator in a
-// command position (start of a sentence or clause, or after a joining word)
-// blanks the rest of its clause, up to the sentence end or a contrast marker
-// ("but", "instead", "just", "only", "rather"). Descriptions of a problem
-// ("the tests don't work", "login is not working", "it doesn't build") are
-// not directives and stay. Applied in scoreRoutes only: looksLikeWork and
-// fleet intents still see the whole request.
-const NEGATION_END = String.raw`(?=[.!?;]|\b(?:but|instead|just|only|rather)\b|$)`;
-const COMMAND_POSITION = String.raw`(?:^|[.!?;:,(]\s*|\b(?:and|but|so|then|please|pls|also|or)\s+)`;
-const DIRECTIVE = String.raw`(?:do not|don'?t|never|skip|avoid)\b(?!\s+(?:know|understand|see|get|think|remember|care|mind)\b)`;
+// "skip the review", "no need to write tests", "you should not write unit
+// tests here", "let's not deploy", "it is not necessary to add tests". A
+// directive negator in a command position (start of a sentence or clause,
+// after a joining word, or after a spaced dash) blanks the rest of its clause,
+// up to the sentence end, a spaced dash, a contrast marker ("but",
+// "instead", "just", "only", "rather", "then") or a new imperative clause. A subject-led negation ("you must
+// not", "we shouldn't", "let's not", "it is not necessary to") counts at any
+// position. A double negation ("don't skip the tests", "never forget to") is
+// a request and stays. Descriptions of a problem ("the tests don't work",
+// "login is not working", "it doesn't build") are not directives and stay.
+// Applied in scoreRoutes only: looksLikeWork and fleet intents still see the
+// whole request.
+// A new imperative clause after a comma ("skip deployment, then write
+// tests", "don't deploy, write unit tests for my code") also ends the
+// negation; a bare list ("don't deploy, build or test") does not.
+const CLAUSE_VERB = String.raw`(?:write|add|run|review|fix|debug|build|create|make|test|update|refactor|implement|check|explain|plan|ship|document|audit|deploy|generate|set|draft|scan|summarize|optimize|design)`;
+const NEGATION_END = String.raw`(?=[.!?;]|\s[-\u2013\u2014]+\s|\b(?:but|instead|just|only|rather|then)\b|,\s*now\b|,\s*${CLAUSE_VERB}\s+(?:the|a|an|my|our|your|this|that|these|those|some|unit|it|me|up|all)\b|$)`;
+const COMMAND_POSITION = String.raw`(?:^|(?:[.!?;:,(]|\s[-\u2013\u2014]+)\s*|\b(?:and|but|so|then|please|pls|also|or)\s+)`;
+// "don't skip", "never forget to", "you shouldn't avoid": two negations make a request.
+const NOT_DOUBLE = String.raw`(?!\s+(?:skip|skipping|avoid|avoiding|forget|omit|neglect|ignore|stop)\b)`;
+const DIRECTIVE = String.raw`(?:do not|don'?t|never|skip|avoid)\b(?!\s+(?:know|understand|see|get|think|remember|care|mind)\b)${NOT_DOUBLE}`;
+const SUBJECT_NEGATION = String.raw`(?:` +
+  String.raw`\b(?:you|we|they|i|one)\s+(?:(?:should|must|shall|ought)(?:\s+not|n'?t)(?:\s+to)?|need\s+not|needn'?t|(?:do\s+not|don'?t)\s+(?:need|have)\s+to)(?!\s+(?:have|be)\b)` +
+  String.raw`|\blet(?:'?s|\s+us)\s+not` +
+  String.raw`|\b(?:it|this|that)(?:\s+is\s+not|\s+isn'?t|'s\s+not)\s+(?:necessary|needed|required)(?:\s+to)?` +
+  String.raw`)\b${NOT_DOUBLE}`;
 const NEGATED = new RegExp(
   `(${COMMAND_POSITION}|\\b(?:i|we)\\s+(?=(?:do not|don'?t) (?:want|need)\\b))(${DIRECTIVE}[^.!?;]*?)${NEGATION_END}` +
-    `|()(\\b(?:no need to|without \\w+ing)\\b[^.!?;]*?)${NEGATION_END}`,
+    `|()((?:\\b(?:no need to|without \\w+ing)\\b|${SUBJECT_NEGATION})[^.!?;]*?)${NEGATION_END}`,
   'g'
 );
 
