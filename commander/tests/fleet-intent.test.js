@@ -93,7 +93,9 @@ test('Fleet intent with tools: Fleet skill + read-only commands + check-in line;
   const f = fixture(t, { skill: true });
   const ctx = run(f, 'which lane has the most headroom?');
   assert.match(ctx, /^<ccc-fleet-route intent="usage">/);
-  assert.match(ctx, /Use the claude-fleet skill\./);
+  // The directive names the installed copy it means (Codex #302 M2).
+  const installed = path.join(f.cfg, 'skills', 'claude-fleet', 'SKILL.md');
+  assert.ok(ctx.includes('Use the claude-fleet skill installed at `' + installed + '`.'), ctx);
   assert.match(ctx, /`fleet limits`, `fleet usage`/);
   assert.match(ctx, /CCC check-in: CCC check-in OK: .* lane ai4/);
   assert.match(ctx, /Do not launch, stop or message lanes/);
@@ -117,7 +119,7 @@ test('opt-in: off by default without the claude-fleet skill (a bare fleet binary
 test('suggest mode offers the Fleet skill instead of directing it', (t) => {
   const f = fixture(t, { skill: true });
   const ctx = run(f, 'fleet status', { CCC_ROUTE_MODE: 'suggest' });
-  assert.match(ctx, /Offer the claude-fleet skill as an option and ask before using it\./);
+  assert.match(ctx, /Offer the claude-fleet skill installed at `[^`]+` as an option and ask before using it\./);
   assert.doesNotMatch(ctx, /Use the claude-fleet skill/);
 });
 
@@ -166,7 +168,9 @@ test('checkout-local claude-fleet skill neither enables nor directs', async (t) 
     fs.writeFileSync(path.join(checkout, ...dir, 'claude-fleet', 'SKILL.md'), 'x');
   }
   const env = { HOME: f.home, PATH: '', CLAUDE_CONFIG_DIR: f.cfg };
-  assert.deepStrictEqual(fleetTools(env, checkout), { cli: false, skill: false, localSkill: true });
+  assert.deepStrictEqual(fleetTools(env, checkout), {
+    cli: false, skill: false, skillPath: null, localSkill: true, shadowedLocal: false,
+  });
 
   // Not opted in: a skill shipped by the open repository does not turn Fleet routing on.
   assert.doesNotMatch(run(f, 'fleet status', {}, checkout), /ccc-fleet-route/);
@@ -181,6 +185,13 @@ test('checkout-local claude-fleet skill neither enables nor directs', async (t) 
   // An installed skill still wins over the checkout copy.
   fs.mkdirSync(path.join(f.cfg, 'skills', 'claude-fleet'), { recursive: true });
   fs.writeFileSync(path.join(f.cfg, 'skills', 'claude-fleet', 'SKILL.md'), 'x');
-  assert.deepStrictEqual(fleetTools(env, checkout), { cli: false, skill: true, localSkill: false });
-  assert.match(run(f, 'fleet status', {}, checkout), /Use the claude-fleet skill\./);
+  const installed = path.join(f.cfg, 'skills', 'claude-fleet', 'SKILL.md');
+  assert.deepStrictEqual(fleetTools(env, checkout), {
+    cli: false, skill: true, skillPath: installed, localSkill: false, shadowedLocal: true,
+  });
+  // With both copies present the directive names the installed path and disowns the checkout copy.
+  const both = run(f, 'fleet status', {}, checkout);
+  assert.ok(both.includes('Use the claude-fleet skill installed at `' + installed + '`.'), both);
+  assert.match(both, /A claude-fleet copy in this checkout is not that skill; do not use it\./);
+  assert.ok(!both.includes(checkout + path.sep + '.claude'), 'the checkout copy is never named');
 });
