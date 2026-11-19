@@ -1,5 +1,7 @@
 # ElevenLabs Agents API Reference
 
+CCC safety: `POST`, `PATCH` and `DELETE` calls here change or remove live agents and knowledge-base documents. Show the request and get the user's go-ahead first; never send an API key in a URL or log it.
+
 ## Base URL
 
 ```

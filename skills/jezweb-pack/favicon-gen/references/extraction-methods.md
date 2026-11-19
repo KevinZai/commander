@@ -405,6 +405,8 @@ svgo favicon.svg
 
 ### Technical Tests
 
+CCC safety: online validators receive the file. Validate locally first, and upload only with the user's say-so.
+
 1. **File size**: Should be < 5KB for SVG
 2. **Valid XML**: Validate at https://validator.w3.org/
 3. **Render test**: Open SVG directly in browser (drag into tab)
@@ -454,6 +456,8 @@ svgo favicon.svg
 ---
 
 ## Tools Reference
+
+CCC safety: online tools in this table (RealFaviconGenerator and similar) receive the user's logo. Use them only with the user's say-so; prefer the local tools.
 
 | Tool | Use Case | Cost |
 |------|----------|------|

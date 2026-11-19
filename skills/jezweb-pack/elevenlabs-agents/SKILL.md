@@ -204,6 +204,8 @@ CCC safety: do not ship `cors({ origin: '*' })`. Allow only the origins that cal
 
 ### Step 4: Add Knowledge Base (RAG)
 
+CCC safety: upload only documents the user chose and is allowed to share with ElevenLabs. Knowledge-base content leaves the machine and is readable by anyone who talks to the agent.
+
 Upload documents for the agent to reference:
 - PDFs, text files, web URLs
 - Configure via dashboard: Agent -> Knowledge Base -> Upload
@@ -329,6 +331,8 @@ elevenlabs agents push --env prod --dry-run
 elevenlabs agents push --env prod
 ```
 
+CCC safety: push to `--env prod` only after showing the `--dry-run` output and getting the user's go-ahead.
+
 Multi-environment workflow:
 ```bash
 elevenlabs agents push --env dev       # Development
@@ -401,6 +405,8 @@ Key savings:
 ---
 
 ## CLI Quick Reference
+
+CCC safety: `push --env prod` and `pull` change the live agent or overwrite local config. Run them only after a dry run is shown and the user says go.
 
 ```bash
 elevenlabs auth login                              # Authenticate

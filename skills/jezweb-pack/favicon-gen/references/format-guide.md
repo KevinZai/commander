@@ -392,6 +392,8 @@ All files should be in site root:
 - [ ] Test in incognito window (no cache)
 
 ### Validation Tools
+
+CCC safety: the online checkers below fetch or receive the site and its icons. Use them only with the user's say-so; the local checks need no upload.
 - **Favicon test**: https://realfavicongenerator.net/favicon_checker
 - **Manifest validator**: Chrome DevTools → Application → Manifest (the validator service is gone)
 - **ICO inspection**: `identify favicon.ico` (ImageMagick)

@@ -1,6 +1,6 @@
 # Skill-hub scan (2026-11-19)
 
-Kevin's X post on 2026-11-19 named nine hubs in the Claude skills ecosystem. This file records the verdict on each, so nothing is dropped silently. Licenses and contents were checked on 2026-11-19 during planning; the two sources acted on (jezweb/claude-skills and Skill_Seekers) were re-read from clones at the pinned commits below.
+Kevin's X post on 2026-11-19 named nine hubs in the Claude skills ecosystem. This file records the verdict on each, so nothing is dropped silently. Licenses were read from GitHub repository search (the `license` field) on 2026-11-19, and contents from each repository's README; the two sources acted on (jezweb/claude-skills and Skill_Seekers) were re-read from clones at the pinned commits below.
 
 ## Verdicts
 
@@ -14,7 +14,7 @@ Kevin's X post on 2026-11-19 named nine hubs in the Claude skills ecosystem. Thi
 | [yusufkaraaslan/Skill_Seekers](https://github.com/yusufkaraaslan/Skill_Seekers) | MIT | Opt-in mention only: `/ccc-suggest` names it as an authoring tool that turns docs sites, repositories and PDFs into skills, with its upstream README reviewed at `15a67e3c1e7ceb6c63b88f9f3fe480d7b547fe22`. No code copied. |
 | [VoltAgent/awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills) | MIT (the list itself) | Not taken now: a cross-agent link list whose linked skills carry their own licenses. A later scan could cherry-pick, checking each skill's license on its own. |
 | [majiayu000/claude-skill-registry](https://github.com/majiayu000/claude-skill-registry) | MIT | Skip: a catalog of other people's skills; `/ccc-browse` already covers browsing Commander's catalog. |
-| aradotso/trending-skills | Unknown | Skip: an auto-generated trending mirror of other repositories, and not found through GitHub search during planning. |
+| aradotso/trending-skills | Unknown | Skip: an auto-generated trending mirror of other repositories, and GitHub repository search returned no match for it on 2026-11-19. |
 
 ## What changed in Commander
 

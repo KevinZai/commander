@@ -32,6 +32,8 @@ Follow the structure template below. Every script needs a header comment, config
 
 ### Step 3: Provide Installation Instructions
 
+CCC safety: deleting existing code in the editor discards it. Check the editor is empty or that the user has a copy before replacing anything.
+
 All scripts install the same way:
 1. Open the Google Sheet
 2. **Extensions > Apps Script**
@@ -362,6 +364,8 @@ function emailWeeklySchedule() {
 
 ### PDF Export
 
+CCC safety: this recipe emails the exported sheet. Replace the placeholder recipient with one the user confirms, and test on a copy of the sheet first.
+
 Non-obvious URL construction -- export parameters are undocumented:
 
 ```javascript
@@ -380,6 +384,8 @@ function exportSheetAsPdf() {
 ```
 
 ### External API Calls
+
+CCC safety: these calls send sheet data to an outside service. Confirm the endpoint and which data leaves the sheet with the user, and keep keys in Script Properties, not in code.
 
 ```javascript
 // GET
