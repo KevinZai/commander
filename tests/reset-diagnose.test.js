@@ -242,6 +242,38 @@ test('a second --full keeps an edited command the manifest records', () => {
   }
 });
 
+// Codex #302 delta3 NH1: a symlinked ~/.claude/commander is refused, never followed. With a kept
+// command the manifest-preservation loop used to glob the link target's children and remove them.
+for (const keep of [true, false]) {
+  test(`--full refuses a symlinked CLI state dir and leaves its target alone (kept command: ${keep})`, () => {
+    const sb = sandbox();
+    try {
+      const cmds = path.join(sb.home, '.claude', 'commands');
+      const outside = path.join(sb.home, 'elsewhere');
+      fs.mkdirSync(cmds, { recursive: true });
+      fs.mkdirSync(path.join(outside, 'nested'), { recursive: true });
+      fs.writeFileSync(path.join(outside, 'precious.txt'), 'keep me\n');
+      fs.writeFileSync(path.join(outside, 'nested', 'data.json'), '{}\n');
+      if (keep) {
+        fs.writeFileSync(path.join(cmds, 'ccc-recorded.md'), 'recorded\n');
+        fs.writeFileSync(path.join(outside, 'install-manifest.json'),
+          JSON.stringify({ entries: [{ group: 'commands', type: 'file', path: 'commands/ccc-recorded.md' }] }));
+      }
+      const link = path.join(sb.home, '.claude', 'commander');
+      fs.symlinkSync(outside, link);
+      const r = run(RESET, ['--full'], sb);
+      assert.notEqual(r.status, 0, 'a refused state dir is not reported clean');
+      assert.match(r.stdout + r.stderr, /commander is a symlink/);
+      assert.ok(fs.lstatSync(link).isSymbolicLink(), 'the link itself is left in place');
+      assert.equal(fs.readFileSync(path.join(outside, 'precious.txt'), 'utf8'), 'keep me\n');
+      assert.ok(fs.existsSync(path.join(outside, 'nested', 'data.json')), 'nested target content survives');
+      if (keep) assert.ok(fs.existsSync(path.join(outside, 'install-manifest.json')));
+    } finally {
+      fs.rmSync(sb.home, { recursive: true, force: true });
+    }
+  });
+}
+
 // Codex #302 M9: the backup holds ignored files such as .env, so it is owner-only.
 test('the backup dir is 0700 and the checkout archive 0600', () => {
   const sb = sandbox();

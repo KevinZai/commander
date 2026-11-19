@@ -344,8 +344,15 @@ if [[ $FULL -eq 1 ]]; then
   # protects an edited kept command on the next --full and what uninstall.sh removes them by (Codex #302 H10).
   STATE_DIR="${HOME}/.claude/commander"
   KEEP_MANIFEST=0
+  # A symlinked state dir is never followed: the backup copy and the manifest-preservation glob
+  # would act on the link target (Codex #302 delta3 NH1). It is left in place and the run fails.
+  if [[ -L "$STATE_DIR" ]]; then
+    fail "$STATE_DIR is a symlink (-> $(readlink "$STATE_DIR")) — not following it; nothing under it was backed up or removed."
+    fail "Replace the link with the directory it points to, or remove the link yourself, then re-run."
+    STATE_REFUSED=1
+  fi
   [[ $KEPT_CURRENT -gt 0 && -f "$STATE_DIR/install-manifest.json" ]] && KEEP_MANIFEST=1
-  if [[ -d "$STATE_DIR" ]]; then
+  if [[ "${STATE_REFUSED:-0}" -eq 0 && -d "$STATE_DIR" ]]; then
     if [[ $DRY_RUN -eq 0 ]]; then
       cp -r "$STATE_DIR" "$BACKUP/commander-state-backup" || {
         fail "Could not back up $STATE_DIR — not removing it."
@@ -470,6 +477,7 @@ if [[ $FULL -eq 1 ]]; then
   done
   for d in "${HOME}/.claude/skills/ccc" "${HOME}/.claude/skills/commander" "${HOME}/.claude/commander"; do
     [[ -d "$d" ]] || continue
+    [[ "$d" == "${HOME}/.claude/commander" && "${STATE_REFUSED:-0}" -eq 1 ]] && continue
     if [[ "$d" == "${HOME}/.claude/commander" && "${KEEP_MANIFEST:-0}" -eq 1 && $DRY_RUN -eq 0 \
           && "$(ls -A "$d")" == "install-manifest.json" ]]; then
       continue
@@ -482,6 +490,11 @@ if [[ $DRY_RUN -eq 1 ]]; then
   echo ""
   info "DRY RUN COMPLETE — re-run without --dry-run to apply changes."
   exit 0
+fi
+
+if [[ "${STATE_REFUSED:-0}" -eq 1 ]]; then
+  fail "${HOME}/.claude/commander was not removed because it is a symlink (see above)."
+  exit 1
 fi
 
 if [[ "${CHECKOUT_REFUSED:-0}" -eq 1 ]]; then
