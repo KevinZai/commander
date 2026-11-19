@@ -51,6 +51,14 @@ down script under `src/db/migrations/down/` where one applies):
    `subscription_status`, `subscription_event_created`, and the
    `users_enforce_lifetime_tier` trigger. The webhook answers 500 to every
    event until 003 is applied.
+3. `src/db/migrations/004_creators_lockdown.sql` — creator data and
+   SECURITY DEFINER RPC lockdown.
+4. `src/db/migrations/005_oauth_identities.sql` — OAuth identity links (§3).
+5. `src/db/migrations/006_license_key_version.sql` — license key versioning.
+   Required BEFORE deploying this release: the license lookup selects
+   `license_key_version` and answers 503 without it.
+
+Manual verification steps for each: `src/db/migrations/VERIFY.md`.
 
 ### 2. Stripe (Dashboard — this code never creates Stripe objects)
 

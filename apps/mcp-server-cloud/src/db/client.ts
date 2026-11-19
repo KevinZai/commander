@@ -23,6 +23,8 @@ export type UserRow = {
   founders_payment_intent: string | null;
   subscription_status: string | null;
   subscription_event_created: string | null;
+  // Migration 006 — license JWTs carry kv = this value; bump to revoke.
+  license_key_version: number;
 };
 
 export type UsageCounterRow = {

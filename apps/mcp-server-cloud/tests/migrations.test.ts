@@ -113,6 +113,16 @@ describe("hosted migrations (apps/mcp-server-cloud/src/db/migrations)", () => {
     assert.match(text, /revoke all on table public\.oauth_identities from public, anon, authenticated/);
   });
 
+  it("006 adds license_key_version defaulting to 1", () => {
+    const text = sql(path.join(MIGRATIONS, "006_license_key_version.sql"));
+    assert.match(text, /add column if not exists license_key_version integer not null default 1/);
+  });
+
+  it("VERIFY.md covers every forward migration", () => {
+    const doc = read(path.join(MIGRATIONS, "VERIFY.md"));
+    for (const file of forward) assert.ok(doc.includes(file.replace(/\.sql$/, "")), `VERIFY.md mentions ${file}`);
+  });
+
   it("fresh-install SQL matches the 004 end-state", () => {
     const creators = sql(path.join(APP_ROOT, "src/db/creators-schema.sql"));
     assert.ok(!/create policy creators_public_read/.test(creators), "no public-read policy");
