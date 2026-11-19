@@ -136,3 +136,62 @@ test('no plugin source still reads or writes a shared /tmp/ccc-fleet', () => {
   walk(PLUGIN);
   assert.deepEqual(hits, []);
 });
+
+// Codex #302 delta2 HIGH 4: cleanup never follows a symlinked run store or recurses outside it.
+test('pruneFleetTmp refuses a symlinked runs dir and leaves the linked directory alone', { skip: !POSIX }, (t) => {
+  const { env, home, base } = lane(t);
+  fleet.startFleetRun({ env });
+  const outside = path.join(home, 'outside');
+  fs.mkdirSync(path.join(outside, 'precious'), { recursive: true });
+  fs.writeFileSync(path.join(outside, 'precious', 'data.txt'), 'keep');
+  const dayAgo = (Date.now() - 2 * 24 * 60 * 60 * 1000) / 1000;
+  fs.utimesSync(path.join(outside, 'precious'), dayAgo, dayAgo);
+  const runs = path.join(base, 'runs');
+  fs.rmSync(runs, { recursive: true, force: true });
+  fs.symlinkSync(outside, runs);
+  assert.throws(() => fleet.pruneFleetTmp({ env }), /not a private directory|symlink/);
+  assert.ok(fs.existsSync(path.join(outside, 'precious', 'data.txt')), 'linked content survives');
+  // An explicit root that is a symlink is refused the same way.
+  assert.throws(() => fleet.pruneFleetTmp({ root: runs }), /symlink|not a directory/);
+  assert.ok(fs.existsSync(path.join(outside, 'precious', 'data.txt')));
+});
+
+test('pruneFleetTmp removes an old symlinked entry as a link, never its target', { skip: !POSIX }, (t) => {
+  const { env, home, base } = lane(t);
+  fleet.startFleetRun({ env });
+  const outside = path.join(home, 'outside2');
+  fs.mkdirSync(outside);
+  fs.writeFileSync(path.join(outside, 'data.txt'), 'keep');
+  const link = path.join(base, 'runs', 'old-link');
+  fs.symlinkSync(outside, link);
+  const dayAgo = (Date.now() - 2 * 24 * 60 * 60 * 1000) / 1000;
+  fs.lutimesSync(link, dayAgo, dayAgo);
+  const { removed } = fleet.pruneFleetTmp({ env });
+  assert.deepEqual(removed, [link]);
+  assert.ok(!fs.existsSync(link));
+  assert.ok(fs.existsSync(path.join(outside, 'data.txt')), 'target content survives');
+});
+
+// Codex #302 delta2 MEDIUM 1: overlapping runs in one lane keep their own markers.
+test('a worker started with run A writes to run A even after run B becomes current', (t) => {
+  const { env } = lane(t);
+  const a = fleet.startFleetRun({ env });
+  const b = fleet.startFleetRun({ env });
+  assert.equal(fleet.currentRunDir({ env }), b.runDir);
+  const { markerPath } = fleet.writeCompletionMarker('w1', { exit_code: 0 }, { env, runId: a.runId });
+  assert.equal(path.dirname(markerPath), a.runDir);
+  fleet.emitFleetWorkerProgress({ worker_id: 'w1', status: 'complete' }, { env, runId: a.runId, stream: quiet });
+  assert.ok(fs.existsSync(path.join(a.runDir, fleet.PROGRESS_FILE)));
+  assert.ok(!fs.existsSync(path.join(b.runDir, 'w1-complete.json')));
+  // The run id also travels in the worker's environment.
+  const viaEnv = fleet.writeCompletionMarker('w2', { exit_code: 0 }, { env: { ...env, CCC_FLEET_RUN_ID: a.runId } });
+  assert.equal(path.dirname(viaEnv.markerPath), a.runDir);
+});
+
+test('an unknown or invalid run id fails instead of falling back to the current run', (t) => {
+  const { env } = lane(t);
+  const b = fleet.startFleetRun({ env });
+  assert.throws(() => fleet.writeCompletionMarker('w1', { exit_code: 0 }, { env, runId: 'no-such-run' }), /run/);
+  assert.throws(() => fleet.writeCompletionMarker('w1', { exit_code: 0 }, { env, runId: '../escape' }), /runId/);
+  assert.ok(!fs.existsSync(path.join(b.runDir, 'w1-complete.json')));
+});

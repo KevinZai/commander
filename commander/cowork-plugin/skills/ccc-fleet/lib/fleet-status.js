@@ -127,8 +127,29 @@ function currentRunDir(options = {}) {
   return isPrivateDir(runDir) ? runDir : null;
 }
 
-/** The current run's directory, starting a new run when there is none (or the current one fails its checks). */
+/** The directory of run `runId` when it exists and passes the ownership and mode checks; throws otherwise. */
+function runDirFor(runId, options = {}) {
+  if (typeof runId !== 'string' || !RUN_ID_RE.test(runId)) {
+    throw new TypeError('runId must match [A-Za-z0-9][A-Za-z0-9._-]{0,79}');
+  }
+  const base = fleetBaseDir(options);
+  const runs = path.join(base, 'runs');
+  const runDir = path.join(runs, runId);
+  if (!isPrivateDir(base) || !isPrivateDir(runs) || !isPrivateDir(runDir)) {
+    throw new Error(`fleet run ${runId} does not exist or is not a private directory`);
+  }
+  return runDir;
+}
+
+/**
+ * The run a worker writes to. A worker started for a run keeps writing there even after a later run becomes
+ * current: options.runId, else CCC_FLEET_RUN_ID from options.env or process.env. Only without a run id does it use
+ * the current run (starting one when there is none or the current one fails its checks).
+ */
 function ensureRunDir(options = {}) {
+  const env = options.env || process.env;
+  const runId = options.runId !== undefined ? options.runId : env.CCC_FLEET_RUN_ID;
+  if (runId !== undefined && runId !== '') return runDirFor(runId, options);
   return currentRunDir(options) || startFleetRun({ env: options.env }).runDir;
 }
 
@@ -200,23 +221,37 @@ function pruneFleetTmp(options = {}) {
   // Default: the run directories under <base>/runs/, never the current run. options.root prunes the
   // entries of that one directory instead. (The old codex-fleet and ccc-fleet dirs under os.tmpdir() are legacy
   // locations nothing writes to any more.)
-  const root = options.root || path.join(fleetBaseDir(options), 'runs');
+  // Cleanup never leaves the run store: the default store (fleet/ and fleet/runs/) must be private real directories,
+  // an explicit root must be a real directory (lstat, not a symlink), and an entry that is a symlink is removed as a
+  // link without following it.
+  const base = fleetBaseDir(options);
+  const root = options.root || path.join(base, 'runs');
   const olderThanMs = options.olderThanMs || ONE_DAY_MS;
   const now = options.now || Date.now();
   const removed = [];
   const keep = options.root ? null : currentRunDir(options);
 
-  if (!fs.existsSync(root)) {
-    return { root, removed };
+  let rootStats;
+  try {
+    rootStats = fs.lstatSync(root);
+  } catch (err) {
+    if (err && err.code === 'ENOENT') return { root, removed };
+    throw err;
+  }
+  if (rootStats.isSymbolicLink()) throw new Error(`refusing to prune a symlinked fleet dir: ${root}`);
+  if (!rootStats.isDirectory()) throw new Error(`fleet prune root is not a directory: ${root}`);
+  if (!options.root && (!isPrivateDir(base) || !isPrivateDir(root))) {
+    throw new Error(`refusing to prune: fleet run store is not a private directory: ${root}`);
   }
 
   for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
     const entryPath = path.join(root, entry.name);
     if (keep && entryPath === keep) continue;
-    const stats = fs.statSync(entryPath);
+    const stats = fs.lstatSync(entryPath);
     if (now - stats.mtimeMs <= olderThanMs) continue;
 
-    fs.rmSync(entryPath, { recursive: entry.isDirectory(), force: true });
+    if (stats.isDirectory()) fs.rmSync(entryPath, { recursive: true, force: true });
+    else fs.unlinkSync(entryPath);   // a file or a symlink: the link itself, never its target
     removed.push(entryPath);
   }
 
@@ -233,6 +268,7 @@ module.exports = {
   isPrivateDir,
   startFleetRun,
   pruneFleetTmp,
+  runDirFor,
   // Back-compat alias for the legacy export name.
   pruneCodexFleetTmp: pruneFleetTmp,
   writeCompletionMarker,

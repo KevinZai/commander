@@ -11,7 +11,7 @@ node -e 'console.log(JSON.stringify(require(process.argv[1]).startFleetRun()))' 
   "${CLAUDE_PLUGIN_ROOT}/skills/ccc-fleet/lib/fleet-status.js"
 ```
 
-It prints `{"runId":…,"runDir":…}`. The helpers below write to the current run (and start one if there is none).
+It prints `{"runId":…,"runDir":…}`. Give every worker of this run that id as `CCC_FLEET_RUN_ID=<runId>` in the environment of the helper commands below, so its progress and marker land in this run even when another fleet in the same lane starts later; an id that does not name a private run directory is an error, never a fallback. Without `CCC_FLEET_RUN_ID` the helpers write to the current run (and start one if there is none).
 
 ## Worker progress events
 
@@ -52,7 +52,7 @@ One worker failure never cancels or rolls back another. Preserve every worktree,
 
 ## Cleanup on success
 
-Only after every worker succeeded and the synthesis report is written, prune run directories older than 24 hours (the current run is kept):
+Only after every worker succeeded and the synthesis report is written, prune run directories older than 24 hours (the current run is kept; a symlinked or non-private run store is refused, and a symlinked entry is removed as a link without touching its target):
 
 ```bash
 node -e 'console.log(JSON.stringify(require(process.argv[1]).pruneFleetTmp()))' \
