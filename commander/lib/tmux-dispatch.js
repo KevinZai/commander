@@ -139,6 +139,8 @@ function dispatch(task, resumeSessionId, options) {
     var splitArgs = paneCount === 1
       ? ['split-window', '-h', '-t', sessionName, '-l', '75%', '-P', '-F', '#{pane_id}']
       : ['split-window', '-h', '-t', sessionName + ':.' + (paneCount - 1), '-P', '-F', '#{pane_id}'];
+    // Start the pane in the imported project's directory, so Claude Code loads its CLAUDE.md.
+    if (o.cwd) splitArgs.push('-c', String(o.cwd));
     var paneId = String(exec('tmux', splitArgs)).trim();
     if (!/^%\d+$/.test(paneId)) return null;
 

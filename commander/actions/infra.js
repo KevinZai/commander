@@ -196,7 +196,7 @@ module.exports = {
         if (project.summary && project.summary.length > 0) {
           project.summary.forEach(function(s) { process.stdout.write('  ' + tui.dimText('  v ' + s) + '\n'); });
         }
-        process.stdout.write('\n  ' + tui.dimText('Dispatches will include this project CLAUDE.md context.') + '\n');
+        process.stdout.write('\n  ' + tui.dimText('Dispatches run in ' + project.dir + ', so Claude Code loads its CLAUDE.md.') + '\n');
         process.stdout.write('  ' + tui.dimText('CC Commander will NOT modify your .claude/ directory.') + '\n');
         process.stdout.write(tui.celebrate('Project loaded!'));
         try { require('../integrations/linear').pulse('claude_md_loaded', project.name).catch(function(){}); } catch(_e2) {}

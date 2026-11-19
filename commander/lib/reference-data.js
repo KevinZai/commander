@@ -20,6 +20,25 @@ function withReferenceData(task, blocks) {
   return DATA_NOTICE + '\n\n' + present.join('\n\n') + '\n\nTask:\n' + task;
 }
 
+// Skill names come from SKILL.md frontmatter, including a checkout's own
+// .claude/skills, so they are data too: restricted to a plain token and sent
+// in a labelled block with the task, never in the system prompt.
+function plainToken(value) {
+  return String(value == null ? '' : value).replace(/[^A-Za-z0-9_.:-]/g, '').slice(0, 80);
+}
+
+function relevantSkillsBlock(techStack) {
+  var stack = (techStack || []).map(plainToken).filter(Boolean);
+  if (stack.length === 0) return '';
+  var names = [];
+  try {
+    var sbr = require('../skill-browser');
+    names = sbr.filterByProject(sbr.listSkills(), techStack).slice(0, 8).map(function(s) { return plainToken(s.name); }).filter(Boolean);
+  } catch (_e) { names = []; }
+  return dataBlock('relevant-skills', 'Project stack detected: ' + stack.join(', ') +
+    (names.length ? '\nMost relevant skills: ' + names.join(', ') : ''));
+}
+
 // The task Commander dispatches: the active project's context and relevant past
 // lessons as labelled blocks, then the task. options.projectDir and
 // options.lessonsFor (the text past lessons are matched against) are optional.
@@ -29,7 +48,9 @@ function buildReferencedTask(task, options) {
   if (o.projectDir) {
     try {
       var pi = require('../project-importer');
-      blocks.push(pi.buildProjectPrompt(pi.scanProject(o.projectDir)));
+      var project = pi.scanProject(o.projectDir);
+      blocks.push(pi.buildProjectPrompt(project));
+      blocks.push(relevantSkillsBlock(project.techStack));
     } catch (_e) { /* project unreadable: dispatch without it */ }
   }
   if (o.lessonsFor) {
@@ -41,6 +62,7 @@ function buildReferencedTask(task, options) {
 module.exports = {
   DATA_NOTICE: DATA_NOTICE,
   dataBlock: dataBlock,
+  relevantSkillsBlock: relevantSkillsBlock,
   withReferenceData: withReferenceData,
   buildReferencedTask: buildReferencedTask
 };

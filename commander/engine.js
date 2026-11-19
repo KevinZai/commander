@@ -34,7 +34,8 @@ function tmuxDispatch(task, resumeSessionId) {
   dispatchCounter++;
   return require('./lib/tmux-dispatch').dispatch(task, resumeSessionId, {
     sessionName: process.env.CCC_TMUX_SESSION || 'ccc',
-    paneTitle: 'claude-' + dispatchCounter
+    paneTitle: 'claude-' + dispatchCounter,
+    cwd: activeProjectDir()
   });
 }
 
@@ -46,6 +47,18 @@ function referencedTask(task) {
     projectDir: cs.activeProject && cs.activeProject.dir,
     lessonsFor: task
   });
+}
+
+// The imported project's directory, when it still exists. Dispatches run there, so Claude Code loads that
+// project's CLAUDE.md and .claude/ itself; otherwise they run in the launch directory.
+function activeProjectDir() {
+  try {
+    var cs = state.loadState() || {};
+    var dir = cs.activeProject && cs.activeProject.dir;
+    if (!dir) return undefined;
+    var real = require('fs').realpathSync(String(dir));
+    return require('fs').statSync(real).isDirectory() ? real : undefined;
+  } catch (_e) { return undefined; }
 }
 
 // Identifiers interpolated into a system prompt are restricted to a plain token.
@@ -450,8 +463,8 @@ class KitCommander {
       if (complexity.effort) defaults.effort = complexity.effort;
     }
 
-    // System prompt: fixed PM instructions + Linear MCP context + skill hint. Project context and past lessons are
-    // data, so they travel with the task as labelled blocks (lib/reference-data.js), never in the system prompt.
+    // System prompt: fixed PM instructions + Linear MCP context. Project context, the relevant-skills hint and past
+    // lessons are data, so they travel with the task as labelled blocks (lib/reference-data.js), never in the system prompt.
     var sysPrompt = (function() {
       var pluginsMod = require("./plugins");
       var det = pluginsMod.detectPlugins();
@@ -490,19 +503,8 @@ class KitCommander {
           }
         }
       } catch(_e) {}
-      // Intelligence Layer: relevant skills for this project
-      var skillHint = '';
-      try {
-        var projectStack = [];
-        var cs2 = state.loadState();
-        if (cs2.activeProject) { try { projectStack = require('./project-importer').scanProject(cs2.activeProject.dir).techStack || []; } catch(_) {} }
-        if (projectStack.length > 0) {
-          var sbr = require('./skill-browser');
-          var topSkills = sbr.filterByProject(sbr.listSkills(), projectStack).slice(0, 8).map(function(s) { return s.name; });
-          skillHint = '\n\nProject stack detected: ' + projectStack.join(', ') + '. Most relevant skills: ' + topSkills.join(', ') + '.';
-        }
-      } catch(_) {}
-      return prompt + linearCtx + skillHint;
+      // The relevant-skills hint travels with the task as reference data (lib/reference-data.js).
+      return prompt + linearCtx;
     })();
     var dispatchTask = referencedTask(fullTask);
 
@@ -532,7 +534,8 @@ class KitCommander {
           stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
           model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
           fallbackModel: "sonnet", bare: false,
-          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
+          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt,
+          cwd: activeProjectDir()
         });
         var result = await cancellableDispatch(dispatchP, fullTask.slice(0, 60));
         if (result.cancelled) { state.completeSession(session.id, 'cancelled'); } else {
@@ -614,7 +617,8 @@ class KitCommander {
           stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
           model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
           fallbackModel: "sonnet", bare: false,
-          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
+          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt,
+          cwd: activeProjectDir()
         });
         var result = await cancellableDispatch(dispatchP, fullTask.slice(0, 60));
         if (result.cancelled) { state.completeSession(session.id, 'cancelled'); } else {
