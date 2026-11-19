@@ -1,6 +1,6 @@
 # Launch plan: release 8.3
 
-DRAFT for review. Nothing here has been posted, scheduled or sent. Dates are proposed (today is 2026-11-18) and slip with the release gate: nothing launches until 8.3 is tagged and `npm run release:gate` is green. The repo is at 8.1.6 with an Unreleased section; what ships as 8.3 is Kevin's call (open question in the report).
+DRAFT for review. Nothing here has been posted, scheduled or sent. Dates are proposed (today is 2026-11-18) and slip with the release gate: nothing launches until 8.3 is tagged and `npm run release:gate` is green. The repo is at 8.1.7; what ships as 8.3 is Kevin's call (open question in the report).
 
 Goal: weekly active users (the 90-day north star, see `metrics.md`). Activation, a first finished result, is the leading signal. Every post therefore points at a one-line install and a first command (`/ccc-start`), not at the pricing or consulting pages. Revenue is secondary.
 
