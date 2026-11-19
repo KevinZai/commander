@@ -44,7 +44,7 @@ var subcommand = Object.hasOwn(SUBCOMMANDS, args[0]) ? args[0]
 var flags = subcommand ? [] : args;
 
 if (flags.includes('--help') || flags.includes('-h')) {
-  console.log('\n  CC Commander — 576 skills. One command. Your AI work, managed by AI.\n');
+  console.log('\n  CC Commander — 580 skills. One command. Your AI work, managed by AI.\n');
   console.log('  Usage:  ccc\n');
   console.log('  --version    Show version');
   console.log('  --test       Validate all modules');

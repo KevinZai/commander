@@ -2685,6 +2685,34 @@ skills:
     domain: general
     tier: free
     description: Pattern for progressively refining context retrieval to solve the subagent context problem
+  - id: jezweb-pack
+    name: jezweb-pack
+    path: skills/jezweb-pack/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: "Route to one Jezweb sub-skill: Google Apps Script automation for Sheets and Workspace (menus, triggers, dialogs, sidebars, email, PDF export), a complete favicon package from a logo or initials, or a consistent custom SVG icon set for a site or app. Use when the task names one of these and no..."
+  - id: favicon-gen
+    name: favicon-gen
+    path: skills/jezweb-pack/favicon-gen/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Generate custom favicons from logos, text, or brand colours. Produces favicon.svg, favicon.ico, apple-touch-icon.png, icon-192/512.png, and web manifest. Use whenever the user wants a favicon, mentions replacing a CMS default favicon, converting a logo into a favicon, creating branded initials...
+  - id: google-apps-script
+    name: google-apps-script
+    path: skills/jezweb-pack/google-apps-script/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Build Google Apps Script automation for Sheets and Workspace. Custom menus, triggers (onEdit / time-driven / form submit), dialogs, sidebars, email batches, PDF export, external API. Use whenever the user wants to automate a Google Sheet, build a Sheets menu / sidebar / dialog, hit a Sheets row...
+  - id: icon-set-generator
+    name: icon-set-generator
+    path: skills/jezweb-pack/icon-set-generator/SKILL.md
+    source: ecosystem
+    domain: general
+    tier: free
+    description: Generate cohesive, project-specific SVG icon sets for websites and applications. Use this skill whenever the user needs custom icons, an icon set for a website or app, icons for a client project, or mentions needing SVG icons that look consistent together. Also trigger when the user describes a...
   - id: jpa-patterns
     name: jpa-patterns
     path: skills/jpa-patterns/SKILL.md

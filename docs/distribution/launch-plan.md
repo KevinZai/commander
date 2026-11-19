@@ -4,7 +4,7 @@ DRAFT for review. Nothing here has been posted, scheduled or sent. Dates are pro
 
 Goal: weekly active users (the 90-day north star, see `metrics.md`). Activation, a first finished result, is the leading signal. Every post therefore points at a one-line install and a first command (`/ccc-start`), not at the pricing or consulting pages. Revenue is secondary.
 
-Evidence rule: draft posts state only what the repo backs. No install, user, star or revenue numbers (telemetry shows near zero; `docs/stats.json`). Numbers used: 93 plugin skills, 23 agents, 28 hook events, 47 handlers, 576 ecosystem skills (`commander/contract.json`), and the session-start token figures measured in CC-2112 (say "in our measurement").
+Evidence rule: draft posts state only what the repo backs. No install, user, star or revenue numbers (telemetry shows near zero; `docs/stats.json`). Numbers used: 93 plugin skills, 23 agents, 28 hook events, 47 handlers, 580 ecosystem skills (`commander/contract.json`), and the session-start token figures measured in CC-2112 (say "in our measurement").
 
 ## Sequence
 

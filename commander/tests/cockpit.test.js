@@ -127,10 +127,10 @@ test('payload counts match the contract and account for plugin-first dedup', fun
   // would still pass. 84 as of v8.0.0 (+/ccc-codex); 93 with the nine tstack
   // PR-workflow skills (CC-2124).
   assert.strictEqual(payload.meta.pluginSkills, 93);
-  assert.strictEqual(payload.meta.ecosystemSkills, 576);
+  assert.strictEqual(payload.meta.ecosystemSkills, 580);
   assert.strictEqual(pluginShown, payload.meta.pluginSkills);
   assert.strictEqual(ecosystemShown + dedupCount, payload.meta.ecosystemSkills);
-  assert.strictEqual(payload.skills.length, 93 + 576 - dedupCount);
+  assert.strictEqual(payload.skills.length, 93 + 580 - dedupCount);
   assert.strictEqual(payload.agents.length, payload.meta.agents);
 });
 
