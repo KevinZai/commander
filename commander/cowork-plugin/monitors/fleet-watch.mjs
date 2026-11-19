@@ -71,25 +71,40 @@ export function watchRecord(worker) {
 /**
  * Lines to print for the change from `previous` (id -> status) to `state`. Pure, so it is unit-tested.
  * Returns { lines, statuses }.
+ *
+ * A worker whose id is not a safe token is never printed, but it still counts: it is tracked under an internal
+ * key (never output) and its status holds the run open, so "settled" is not reported while it still runs.
  */
 export function diffFleet(previous, state) {
   const lines = [];
   const statuses = new Map();
-  const records = (state.workers || []).map(watchRecord).filter(Boolean);
-  for (const r of records) {
+  const all = [];
+  let changed = false;
+  (state.workers || []).forEach((worker, index) => {
+    const r = watchRecord(worker);
+    if (r) { all.push(r); return; }
+    const status = worker && KNOWN_STATUSES.has(worker.status) ? worker.status : 'unknown';
+    const key = `\0unsafe:${worker && typeof worker.id === 'string' ? worker.id : index}`;
+    statuses.set(key, status);
+    if (previous.get(key) !== status) changed = true;
+    all.push({ id: null, status });
+  });
+  for (const r of all) {
+    if (r.id === null) continue;
     statuses.set(r.id, r.status);
     const before = previous.get(r.id);
     if (before === r.status) continue;
+    changed = true;
     const line = { event: 'worker', id: r.id };
     if (before) line.from = before;
     line.status = r.status;
     if (r.exit_code !== null) line.exit_code = r.exit_code;
     lines.push(PREFIX + JSON.stringify(line));
   }
-  const nowSettled = records.length > 0 && records.every((r) => SETTLED.has(r.status));
-  if (lines.length && nowSettled) {
-    const done = records.filter((r) => r.status === 'done').length;
-    lines.push(PREFIX + JSON.stringify({ event: 'settled', done, failed: records.length - done, total: records.length, next: '/ccc-fleet-viz' }));
+  const nowSettled = all.length > 0 && all.every((r) => SETTLED.has(r.status));
+  if (changed && nowSettled) {
+    const done = all.filter((r) => r.status === 'done').length;
+    lines.push(PREFIX + JSON.stringify({ event: 'settled', done, failed: all.length - done, total: all.length, next: '/ccc-fleet-viz' }));
   }
   return { lines, statuses };
 }

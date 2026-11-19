@@ -76,6 +76,18 @@ test('workers with an unsafe id are dropped and an unknown status is reported as
   assert.deepEqual(lines, [{ event: 'worker', id: 'w3', status: 'unknown' }]);
 });
 
+// Codex #302 delta2 MEDIUM 2: a worker whose id is not printable still counts, so the run is not settled early.
+test('a worker with an unsafe id is never printed but keeps the run from settling early', () => {
+  const s1 = { workers: [{ id: 'w 1', status: 'running' }, { id: 'w2', status: 'done', exitCode: 0 }] };
+  const first = watch.diffFleet(new Map(), s1);
+  const lines1 = first.lines.map(parseLine);
+  assert.deepEqual(lines1, [{ event: 'worker', id: 'w2', status: 'done', exit_code: 0 }], 'no settled while w 1 runs');
+  const s2 = { workers: [{ id: 'w 1', status: 'failed', exitCode: 1 }, { id: 'w2', status: 'done', exitCode: 0 }] };
+  const lines2 = watch.diffFleet(first.statuses, s2).lines.map(parseLine);
+  assert.deepEqual(lines2, [{ event: 'settled', done: 1, failed: 1, total: 2, next: '/ccc-fleet-viz' }]);
+  for (const l of lines2) assert.ok(!('id' in l));
+});
+
 function lane(t) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-fleet-watch-'));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
