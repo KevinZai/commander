@@ -136,10 +136,10 @@ function needsReview(toolInput) {
   return typeof cmd === 'string' && REVIEW_PATTERNS.some(pat => pat.test(cmd));
 }
 
-// /ccc-review autofix write operations: Write, Edit, MultiEdit to source files
+// /ccc-review autofix write operations: Write, Edit, MultiEdit, NotebookEdit and Codex apply_patch
 // These require explicit CCC_AUTOFIX_APPROVED=1 flag or context.phase !== 'autofix'
 function isAutofixWrite(toolName, context) {
-  const writingTools = new Set(['Write', 'Edit', 'MultiEdit']);
+  const writingTools = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit', 'apply_patch']);
   if (!writingTools.has(toolName)) return false;
   const skill = context?.skill || '';
   const phase = context?.phase || '';
