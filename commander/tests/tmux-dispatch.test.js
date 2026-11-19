@@ -60,14 +60,15 @@ test('one non-shell poll is not enough; two consecutive are', function() {
   var id = run(fake, 'do the thing', null, { maxPolls: 10 });
   assert.ok(id, 'dispatch returns a session id once ready');
   var polls = fake.calls.filter(function(c) { return c[1] === 'display-message' && c.indexOf('#{pane_current_command}') !== -1; });
-  assert.strictEqual(polls.length, 5);
+  // Five readiness polls plus the re-checks before the task text and before Enter.
+  assert.strictEqual(polls.length, 7);
   var last = sendKeys(fake.calls).slice(-2);
   assert.deepStrictEqual(last[0].slice(-3), ['-l', '--', 'do the thing']);
   assert.deepStrictEqual(last[1].slice(-1), ['Enter']);
 });
 
 test('targets the pane id', function() {
-  var fake = fakeTmux(['node', 'node'], { paneId: '%42', panes: 3 });
+  var fake = fakeTmux(['claude', 'claude'], { paneId: '%42', panes: 3 });
   var id = run(fake, 'task', null);
   assert.ok(id);
   var split = fake.calls.filter(function(c) { return c[1] === 'split-window'; });
@@ -87,7 +88,7 @@ test('targets the pane id', function() {
 });
 
 test('a malformed pane id aborts without typing', function() {
-  var fake = fakeTmux(['node', 'node'], { paneId: 'ccc:0.1' });
+  var fake = fakeTmux(['claude', 'claude'], { paneId: 'ccc:0.1' });
   assert.strictEqual(run(fake, 'task', null), null);
   assert.strictEqual(sendKeys(fake.calls).length, 0);
 });
@@ -133,9 +134,9 @@ test('readiness is an allowlist: unlisted shells and REPLs never receive the tas
   });
 });
 
-test('isClaudeProcess accepts claude, node, the binary basename and native version names', function() {
+test('isClaudeProcess accepts claude, the binary basename and native version names, never node', function() {
   assert.ok(tmuxDispatch.isClaudeProcess('claude'));
-  assert.ok(tmuxDispatch.isClaudeProcess('node'));
+  assert.ok(!tmuxDispatch.isClaudeProcess('node'), 'node may be any script or REPL');
   assert.ok(tmuxDispatch.isClaudeProcess('2.1.30'));
   assert.ok(tmuxDispatch.isClaudeProcess('claude-dev', '/opt/bin/claude-dev'));
   assert.ok(!tmuxDispatch.isClaudeProcess('bash', '/bin/bash'), 'a shell never counts even when it matches the binary name');
@@ -165,4 +166,28 @@ test('a node REPL without the Claude Code screen is not ready', function() {
   assert.strictEqual(run(fake, 'process.exit()', null, { maxPolls: 3 }), null);
   var typed = sendKeys(fake.calls).map(function(c) { return c.join(' '); }).join('\n');
   assert.ok(typed.indexOf('process.exit()') === -1, typed);
+});
+
+test('Codex delta2 H8: node with stale Claude Code text on screen never receives the task', function() {
+  var fake = fakeTmux(['node', 'node', 'node', 'node']);
+  assert.strictEqual(run(fake, 'rm -rf build', null, { maxPolls: 4 }), null);
+  var typed = sendKeys(fake.calls).map(function(c) { return c.join(' '); }).join('\n');
+  assert.ok(typed.indexOf('rm -rf build') === -1, typed);
+});
+
+test('Codex delta2 H8: Claude exiting after the last poll aborts before the task is typed', function() {
+  // Two ready polls, then the pane falls back to the shell before delivery.
+  var fake = fakeTmux(['claude', 'claude', 'zsh']);
+  assert.strictEqual(run(fake, 'rm -rf build', null, { maxPolls: 4 }), null);
+  var typed = sendKeys(fake.calls).map(function(c) { return c.join(' '); }).join('\n');
+  assert.ok(typed.indexOf('rm -rf build') === -1, typed);
+});
+
+test('Codex delta2 H8: Claude exiting between the task text and Enter withholds Enter', function() {
+  var fake = fakeTmux(['claude', 'claude', 'claude', 'zsh']);
+  assert.strictEqual(run(fake, 'rm -rf build', null, { maxPolls: 4 }), null);
+  var keys = sendKeys(fake.calls);
+  var taskIdx = keys.findIndex(function(c) { return c[c.length - 1] === 'rm -rf build'; });
+  assert.ok(taskIdx !== -1, 'task text was typed while Claude was running');
+  assert.strictEqual(keys.slice(taskIdx + 1).filter(function(c) { return c[c.length - 1] === 'Enter'; }).length, 0, 'no Enter after Claude exited');
 });
