@@ -144,8 +144,17 @@ function writeAtomic(abs, buf, mode) {
   fs.writeFileSync(tmp, buf, { mode: mode || 0o644 });
   fs.renameSync(tmp, abs);
 }
+// Put the backed-up original back over abs in one rename, so the path is never left empty.
+function restoreOver(backupPath, abs) {
+  var tmp = path.join(path.dirname(abs), '.' + path.basename(abs) + '.ccc-restore-' + process.pid);
+  try { fs.unlinkSync(tmp); } catch (_e) { /* none */ }
+  var b = fs.lstatSync(backupPath);
+  if (b.isSymbolicLink()) fs.symlinkSync(fs.readlinkSync(backupPath), tmp);
+  else fs.copyFileSync(backupPath, tmp);
+  fs.renameSync(tmp, abs);
+}
 
-var result = { removed: 0, restored: 0, kept: [], dirs: 0 };
+var result ={ removed: 0, restored: 0, kept: [], dirs: 0 };
 var REAL_ROOT = (function() { try { return fs.realpathSync(ROOT); } catch (_e) { return ROOT; } })();
 // True when every existing ancestor between ROOT and abs is a real directory and the parent resolves inside the
 // config dir. A skills/, commands/ or hooks/ dir linked to shared dotfiles fails, so nothing is removed or
@@ -237,10 +246,11 @@ if (manifest) {
       : e.type === 'symlink' ? st.isSymbolicLink() && fs.readlinkSync(abs) === e.target : false;
     if (!ours) { result.kept.push(label(e)); return; }
     var b = e.backup && lst(e.backup);
+    // The install replaced a file of the user's; without that backup, removing the active file would lose both.
+    if (e.backup && !b) { result.kept.push(label(e) + ' (its recorded backup ' + e.backup + ' is missing)'); return; }
     if (apply) {
-      fs.unlinkSync(abs);
-      if (b && b.isSymbolicLink()) fs.symlinkSync(fs.readlinkSync(e.backup), abs);
-      else if (b) fs.copyFileSync(e.backup, abs);
+      if (b) restoreOver(e.backup, abs);
+      else fs.unlinkSync(abs);
     }
     if (b) result.restored++; else result.removed++;
   });

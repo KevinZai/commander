@@ -178,17 +178,19 @@ function searchRelevant(task, limit) {
 }
 
 /**
- * Build a system prompt injection from relevant past lessons.
- * "We hit this before, solution's here."
+ * Describe relevant past lessons as a labelled data block (<past-lessons>).
+ * "We hit this before, solution's here." Lessons hold earlier task text and
+ * model output, so the engine passes them with the task as reference data,
+ * never in --append-system-prompt.
  * @param {string} task - Current task
- * @returns {string} System prompt addition (empty if no matches)
+ * @returns {string} Labelled data block (empty if no matches)
  */
 function buildKnowledgePrompt(task) {
   if (!task) return '';
   var relevant = searchRelevant(task, 3);
   if (relevant.length === 0) return '';
 
-  var parts = ['\n\n--- PAST LESSONS (from CC Commander knowledge base) ---'];
+  var parts = ['Past lessons from the CC Commander knowledge base:'];
   relevant.forEach(function(lesson, i) {
     parts.push('\nLesson ' + (i + 1) + ': ' + lesson.task);
     parts.push('Outcome: ' + lesson.outcome + ' | Cost: $' + (lesson.cost || 0).toFixed(2));
@@ -205,8 +207,7 @@ function buildKnowledgePrompt(task) {
       parts.push('Summary: ' + lesson.resultSummary.slice(0, 300));
     }
   });
-  parts.push('\n--- END PAST LESSONS ---');
-  return parts.join('\n');
+  return require('./lib/reference-data').dataBlock('past-lessons', parts.join('\n'));
 }
 
 /**

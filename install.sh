@@ -64,6 +64,7 @@ FORCE=false
 CLEAN=false   # --clean: replace skills/commands/hooks instead of merging into them (audit P0, 2026-11-18)
 INSTALL_CLI=false   # --install-cli: allow `npm install -g` of Claude Code and context-mode when missing
 SKIP_DEPS=false     # --skip-deps: do not run `npm install` in this checkout
+REPLACE_EXISTING=false  # --replace-existing: back up and replace files of yours at kit paths (default: keep them)
 BACKUP_DIR=""
 INSTALL_MODE="full"
 SKILLS_TIER=""
@@ -81,6 +82,7 @@ while [[ $# -gt 0 ]]; do
     --clean)    CLEAN=true; shift ;;
     --install-cli) INSTALL_CLI=true; shift ;;
     --skip-deps) SKIP_DEPS=true; shift ;;
+    --replace-existing) REPLACE_EXISTING=true; shift ;;
     --mode=*)   INSTALL_MODE="${1#*=}"
                 case "$INSTALL_MODE" in full|essentials|scripts|dashboard|config) ;;
                   *) echo "ERROR: unknown --mode=$INSTALL_MODE (full|essentials|scripts|dashboard|config)"; exit 1 ;; esac
@@ -101,6 +103,8 @@ while [[ $# -gt 0 ]]; do
       echo "                     full is installed only when asked for"
       echo "  --install-cli      Allow npm install -g of Claude Code / context-mode when missing"
       echo "  --skip-deps        Do not run npm install in this checkout"
+      echo "  --replace-existing Back up and replace your own files at paths CC Commander installs"
+      echo "                     (default: keep them and list them)"
       echo "  --help             Show this help"
       exit 0
       ;;
@@ -188,6 +192,34 @@ if $VERIFY_ONLY; then
     cc_status_line "!" "hooks.json not found"
   fi
 
+  # Guard hooks: Claude Code runs hooks registered in settings.json (not <config dir>/hooks/hooks.json).
+  # Not registered is a warning (an existing settings.json is never edited); registered but missing is an error.
+  if [ -f "$CLAUDE_DIR/settings.json" ]; then
+    for guard in careful-guard confidence-gate; do
+      guard_state="$(node -e '
+        var fs = require("fs");
+        var cfg; try { cfg = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (_e) { process.stdout.write("unreadable"); process.exit(0); }
+        var name = process.argv[2] + ".js", found = null;
+        ((cfg.hooks && cfg.hooks.PreToolUse) || []).forEach(function(m) {
+          (m.hooks || []).forEach(function(h) {
+            if (found || typeof h.command !== "string" || h.command.indexOf(name) === -1) return;
+            var q = /"((?:[^"\\]|\\.)*)"/.exec(h.command);
+            found = q ? q[1].replace(/\\(.)/g, "$1").split("$HOME").join(process.env.HOME || "") : "";
+          });
+        });
+        if (found === null) process.stdout.write("unregistered");
+        else if (found && fs.existsSync(found)) process.stdout.write("ok");
+        else process.stdout.write("missing:" + found);
+      ' "$CLAUDE_DIR/settings.json" "$guard" 2>/dev/null || echo unreadable)"
+      case "$guard_state" in
+        ok) cc_status_line "✓" "$guard registered in settings.json (PreToolUse Bash)" ;;
+        unregistered) cc_status_line "!" "$guard not registered in settings.json (see settings.json.template)" ;;
+        missing:*) cc_status_line "✗" "$guard registered but its script is missing: ${guard_state#missing:}"; errors=$((errors+1)) ;;
+        *) ;;  # settings.json validity is reported above
+      esac
+    done
+  fi
+
   # Check lib
   if [ -f "$CLAUDE_DIR/lib/terminal-art.sh" ]; then
     cc_status_line "✓" "Terminal art library installed"
@@ -268,7 +300,11 @@ if $DRY_RUN; then
 
   if [ -d "$CLAUDE_DIR" ]; then
     echo ""
-    cc_status_line "!" "Would back up any existing file it replaces to ${CLAUDE_DIR}.backup.<timestamp>/"
+    if $REPLACE_EXISTING; then
+      cc_status_line "!" "Would back up any existing file it replaces to ${CLAUDE_DIR}.backup.<timestamp>/"
+    else
+      cc_status_line "·" "Would keep any file of yours at a path CC Commander installs (--replace-existing replaces it)"
+    fi
   fi
 
   echo ""
@@ -441,6 +477,43 @@ assert_inside_config() {
   fi
 }
 
+# ── Claude Code CLI ──────────────────────────────────────────────────────────
+# Global npm installs are opt-in (--install-cli): the installer never adds an unpinned global CLI on its own.
+
+if ! command -v claude &>/dev/null; then
+  cc_section_header "CLAUDE CODE CLI"
+  if $INSTALL_CLI; then
+    echo -e "  ${M_DIM}Claude Code CLI not found. Running: npm install -g @anthropic-ai/claude-code${NC}"
+    npm install -g @anthropic-ai/claude-code
+    cc_status_line "✓" "Claude Code CLI installed"
+  else
+    cc_status_line "!" "Claude Code CLI not found. Install it from https://code.claude.com, or re-run with --install-cli" "$M_AMBER"
+  fi
+fi
+
+# ── Dependencies (before any profile change) ────────────────────────────────
+# The ccc CLI needs this checkout's runtime dependencies. They are installed from the lockfile (npm ci --omit=dev)
+# with npm's errors shown, and a failure stops the install here, before the config dir is touched. A require of
+# commander/tui.js then proves the CLI loads, with or without --skip-deps.
+
+if ! $SKIP_DEPS && [ -f "$SCRIPT_DIR/package.json" ] && [ ! -d "$SCRIPT_DIR/node_modules" ]; then
+  cc_section_header "DEPENDENCIES"
+  command -v npm &>/dev/null || install_fail "npm is required to install the CLI's dependencies (or re-run with --skip-deps after installing them yourself)."
+  if [ -f "$SCRIPT_DIR/package-lock.json" ]; then
+    deps_cmd=(npm ci --omit=dev)
+  else
+    deps_cmd=(npm install --omit=dev)
+  fi
+  cc_status_line "►" "Installing npm dependencies: ${deps_cmd[*]}"
+  if ! (cd "$SCRIPT_DIR" && "${deps_cmd[@]}" >/dev/null); then
+    install_fail "${deps_cmd[*]} failed in $SCRIPT_DIR (npm's errors are above)."
+  fi
+  cc_status_line "✓" "Dependencies installed"
+fi
+if ! smoke_err="$(node -e 'require(process.argv[1])' "$SCRIPT_DIR/commander/tui.js" 2>&1 >/dev/null)"; then
+  install_fail "The ccc CLI does not load (commander/tui.js): ${smoke_err%%$'\n'*}. Run: cd \"$SCRIPT_DIR\" && npm ci --omit=dev"
+fi
+
 # ── Backup ───────────────────────────────────────────────────────────────────
 # Merge installs back up each file they replace, file by file, into BACKUP_DIR; the directory is created only when
 # something is actually replaced. --clean backs up the whole skills/commands/hooks directories before replacing them.
@@ -473,31 +546,9 @@ detect_openclaw() {
 
 detect_openclaw
 
-# ── Claude Code CLI ──────────────────────────────────────────────────────────
-# Global npm installs are opt-in (--install-cli): the installer never adds an unpinned global CLI on its own.
-
-if ! command -v claude &>/dev/null; then
-  cc_section_header "CLAUDE CODE CLI"
-  if $INSTALL_CLI; then
-    echo -e "  ${M_DIM}Claude Code CLI not found. Running: npm install -g @anthropic-ai/claude-code${NC}"
-    npm install -g @anthropic-ai/claude-code
-    cc_status_line "✓" "Claude Code CLI installed"
-  else
-    cc_status_line "!" "Claude Code CLI not found. Install it from https://code.claude.com, or re-run with --install-cli" "$M_AMBER"
-  fi
-fi
-
-# ── Install npm dependencies (if running from git clone) ────────────────────
-
-if ! $SKIP_DEPS && [ -f "$SCRIPT_DIR/package.json" ] && [ ! -d "$SCRIPT_DIR/node_modules" ]; then
-  cc_section_header "DEPENDENCIES"
-  cc_status_line "►" "Installing npm dependencies..."
-  (cd "$SCRIPT_DIR" && npm install --production 2>/dev/null) && cc_status_line "✓" "Dependencies installed" || cc_status_line "!" "npm install failed (ccc may not work — run: cd $SCRIPT_DIR && npm install)"
-fi
-
 # ── Install Components ───────────────────────────────────────────────────────
 # Components are first written to a plan (group, op, source, destination); one node pass then applies the plan,
-# backs up anything it replaces, removes entries a previous install wrote that this one no longer does (only while
+# keeps any file of the user's at a kit path (backs it up and replaces it with --replace-existing), removes entries a previous install wrote that this one no longer does (only while
 # they are unchanged), and records every entry in the install manifest.
 
 cc_section_header "INSTALLING"
@@ -615,7 +666,7 @@ plan_add bin bin-link "$CCC_BIN" "$ccc_bin_dir/ccc"
 mkdir -p "$CLAUDE_DIR"
 
 cc_status_line "►" "Applying install plan (tier: ${tier:-n/a})"
-node - "$CLAUDE_DIR" "$PLAN" "$MANIFEST" "$BACKUP_DIR" "$SCRIPT_DIR" "$VERSION" "$CLEAN" "$tier" <<'APPLY'
+node - "$CLAUDE_DIR" "$PLAN" "$MANIFEST" "$BACKUP_DIR" "$SCRIPT_DIR" "$VERSION" "$CLEAN" "$tier" "$REPLACE_EXISTING" <<'APPLY'
 'use strict';
 var fs = require('fs');
 var path = require('path');
@@ -625,6 +676,7 @@ var argv = process.argv.slice(2);
 var ROOT = path.resolve(argv[0]);
 var planFile = argv[1], manifestPath = argv[2], backupDir = argv[3], srcRoot = path.resolve(argv[4]);
 var version = argv[5], clean = argv[6] === 'true', tier = argv[7] || null;
+var replaceExisting = argv[8] === 'true';
 
 function lst(p) { try { return fs.lstatSync(p); } catch (_e) { return null; } }
 function sha(buf) { return cryptoMod.createHash('sha256').update(buf).digest('hex'); }
@@ -689,7 +741,7 @@ if (prevRead && !manifestOwnerOk(prev, ROOT, REAL_ROOT)) {
 }
 var prevByKey = new Map((prev.entries || []).map(function(e) { return [keyOf(e), e]; }));
 var dirs = new Set((prev.dirs || []).filter(function(d) { var s = lst(path.join(ROOT, d)); return s && s.isDirectory(); }));
-var stats = { written: 0, unchanged: 0, replaced: 0, pruned: 0, restored: 0, keptModified: 0, notAdopted: 0, conflicts: [] };
+var stats = { written: 0, unchanged: 0, replaced: 0, pruned: 0, restored: 0, keptModified: 0, notAdopted: 0, conflicts: [], keptExisting: [] };
 var backupUsed = false;
 
 // Is the entry still exactly what the installer wrote? null when it no longer exists.
@@ -725,14 +777,17 @@ function backup(e) {
   backupUsed = true;
   return dst;
 }
-function restore(e) {
-  var b = e.backup && lst(e.backup);
-  if (!b) return false;
-  if (b.isSymbolicLink()) fs.symlinkSync(fs.readlinkSync(e.backup), absOf(e));
-  else fs.copyFileSync(e.backup, absOf(e));
-  return true;
+// Put the backed-up original back over abs in one rename, so the path is never left empty.
+function restoreOver(backupPath, abs) {
+  var tmp = path.join(path.dirname(abs), '.' + path.basename(abs) + '.ccc-restore-' + process.pid);
+  try { fs.unlinkSync(tmp); } catch (_e) { /* none */ }
+  var b = fs.lstatSync(backupPath);
+  if (b.isSymbolicLink()) fs.symlinkSync(fs.readlinkSync(backupPath), tmp);
+  else fs.copyFileSync(backupPath, tmp);
+  fs.renameSync(tmp, abs);
 }
-// Remove an entry the installer still owns, restoring what it replaced. Returns removed|restored|kept|missing.
+// Remove an entry the installer still owns, restoring what it replaced.
+// Returns removed|restored|kept|missing|no-backup (a recorded backup is gone: the active file is kept).
 function removeOwned(e) {
   var o = owned(e);
   if (o === null) return 'missing';
@@ -743,8 +798,13 @@ function removeOwned(e) {
     writeAtomic(e.file, JSON.stringify(d, null, 2) + '\n', fs.statSync(e.file).mode & 0o777);
     return 'removed';
   }
+  if (e.backup) {
+    if (!lst(e.backup)) return 'no-backup';
+    restoreOver(e.backup, absOf(e));
+    return 'restored';
+  }
   fs.unlinkSync(absOf(e));
-  return restore(e) ? 'restored' : 'removed';
+  return 'removed';
 }
 function removeEmptyDirs() {
   Array.from(dirs).sort(function(a, b) { return b.split(path.sep).length - a.split(path.sep).length; }).forEach(function(d) {
@@ -881,6 +941,7 @@ function held(e) { return !e.abs && e.type !== 'mcp-server' && heldDirs.some(fun
   }
   if (!inRoot(e)) { stats.conflicts.push(e.path + ' (its parent now resolves outside the config dir; left alone)'); return; }
   var r = removeOwned(e);
+  if (r === 'no-backup') { stats.conflicts.push(e.path + ' (its recorded backup ' + e.backup + ' is missing; kept as is)'); return; }
   if (r === 'kept') stats.keptModified++;
   else if (r !== 'missing') stats.pruned++;
   if (r === 'restored') stats.restored++;
@@ -952,6 +1013,12 @@ ops.forEach(function(op) {
   else if (!ensureParents(abs)) { stats.conflicts.push(label + ' (a parent is a symlink or file; left alone)'); return; }
   if (st) {
     if (pe && owned(pe)) { if (carried) entry.backup = carried; }
+    else if (!op.abs && !replaceExisting) {
+      // A file of the user's (or a kit file the user edited) is kept; the previous record, if any, carries forward.
+      stats.keptExisting.push(label);
+      if (pe) entries.push(pe);
+      return;
+    }
     else { entry.backup = backup(entry); stats.replaced++; }
     fs.unlinkSync(abs);
   }
@@ -988,6 +1055,11 @@ console.log('  ✓ ' + stats.written + ' written, ' + stats.unchanged + ' unchan
   (stats.restored ? ' (' + stats.restored + ' of your originals restored)' : ''));
 if (stats.notAdopted) console.log('  · ' + stats.notAdopted + ' identical file(s) already present were left as yours (not recorded for uninstall)');
 if (stats.keptModified) console.log('  · ' + stats.keptModified + ' file(s) from the previous install were changed by you and kept');
+if (stats.keptExisting.length) {
+  console.log('  · ' + stats.keptExisting.length + ' existing file(s) of yours kept in place of CC Commander\'s (re-run with --replace-existing to back them up and replace them):');
+  stats.keptExisting.slice(0, 10).forEach(function(k) { console.log('      ' + k); });
+  if (stats.keptExisting.length > 10) console.log('      … and ' + (stats.keptExisting.length - 10) + ' more');
+}
 if (stats.conflicts.length) {
   console.log('  ! ' + stats.conflicts.length + ' entr' + (stats.conflicts.length === 1 ? 'y' : 'ies') + ' skipped:');
   stats.conflicts.slice(0, 10).forEach(function(c) { console.log('      ' + c); });
@@ -1032,10 +1104,30 @@ if should_install "claude-md" || should_install "settings"; then
   fi
   if should_install "settings"; then
     if [ ! -f "$CLAUDE_DIR/settings.json" ] && [ -f "$SCRIPT_DIR/settings.json.template" ]; then
-      cp "$SCRIPT_DIR/settings.json.template" "$CLAUDE_DIR/settings.json"
-      cc_status_line "✓" "settings.json created (new install)"
+      # Render hook paths for this config dir, as the hooks config is: "$HOME/.claude/hooks/x.js" -> "<config dir>/hooks/x.js".
+      # The guard hooks are wrapped in `if [ -f … ]`, so they keep blocking (exit 2) and become no-ops after uninstall.
+      node - "$SCRIPT_DIR/settings.json.template" "$CLAUDE_DIR" <<'SETTINGS'
+'use strict';
+var fs = require('fs'), path = require('path');
+var src = process.argv[2], root = path.resolve(process.argv[3]);
+var hooksDir = path.join(root, 'hooks').replace(/[\\"$`]/g, '\\$&');
+var cfg = JSON.parse(fs.readFileSync(src, 'utf8'));
+Object.keys(cfg.hooks || {}).forEach(function(ev) {
+  (cfg.hooks[ev] || []).forEach(function(m) {
+    (m.hooks || []).forEach(function(h) {
+      if (typeof h.command === 'string') h.command = h.command.split('$HOME/.claude/hooks/').join(hooksDir + '/');
+    });
+  });
+});
+var dst = path.join(root, 'settings.json');
+var tmp = path.join(root, '.settings.json.ccc-tmp-' + process.pid);
+fs.writeFileSync(tmp, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o644, flag: 'wx' });
+fs.renameSync(tmp, dst);
+SETTINGS
+      cc_status_line "✓" "settings.json created (new install; careful-guard and confidence-gate registered)"
     else
       cc_status_line "·" "settings.json preserved (existing config kept)"
+      cc_status_line "·" "Guard hooks are not added to an existing settings.json; to register careful-guard and confidence-gate, copy the PreToolUse entry from $SCRIPT_DIR/settings.json.template"
     fi
     # Deduplicate extraKnownMarketplaces: remove stale ccc-marketplace and
     # commander-marketplace entries (both point at the same repo as commander-hub

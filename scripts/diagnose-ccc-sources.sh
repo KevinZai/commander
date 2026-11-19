@@ -34,6 +34,29 @@ CLAUDE_DIR="${HOME}/.claude"
 FINDINGS=0
 LEGACY=0
 
+# The current standalone CLI is a git checkout at install-remote.sh's default
+# path, tracking the project repository. It is not a legacy install.
+CHECKOUT_DIR="${HOME}/.cc-commander"
+EXPECTED_ORIGIN="github.com/kevinzai/commander"
+CURRENT_CHECKOUT=""
+
+normalize_origin() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' \
+    | sed -e 's#/*$##' -e 's#\.git$##' -e 's#^[a-z+]*://##' -e 's#^[^@/]*@##' -e 's#:#/#'
+}
+
+if [[ -e "$CHECKOUT_DIR/.git" ]] && command -v git >/dev/null 2>&1; then
+  checkout_origin=$(git -C "$CHECKOUT_DIR" remote get-url origin 2>/dev/null || echo "")
+  if [[ "$(normalize_origin "$checkout_origin")" == "$EXPECTED_ORIGIN" ]]; then
+    CURRENT_CHECKOUT="$CHECKOUT_DIR"
+  fi
+fi
+
+# Resolve a path through symlinks (passed as an argument, never interpolated).
+real_path() {
+  node -e 'try{console.log(require("fs").realpathSync(process.argv[1]))}catch(e){console.log(process.argv[1])}' "$1" 2>/dev/null || echo "$1"
+}
+
 # Extract version from a JSON file (package.json or plugin.json)
 read_version() {
   local file="$1"
@@ -158,7 +181,9 @@ fi
 hdr "4. CLI state (~/.claude/commander/)"
 
 STATE="$CLAUDE_DIR/commander"
-if [[ -d "$STATE" ]]; then
+if [[ -d "$STATE" && -n "$CURRENT_CHECKOUT" ]]; then
+  found "CLI state dir for the current checkout: $STATE"
+elif [[ -d "$STATE" ]]; then
   warn "CLI state dir present: $STATE"
   LEGACY=$((LEGACY + 1))
   # Look for embedded version strings
@@ -178,10 +203,14 @@ hdr "5. Global CLI binary (ccc on PATH)"
 
 if command -v ccc >/dev/null 2>&1; then
   CCC_PATH=$(command -v ccc)
-  warn "LEGACY binary: $CCC_PATH"
-  LEGACY=$((LEGACY + 1))
-  # Resolve symlinks
-  REAL=$(readlink "$CCC_PATH" 2>/dev/null || echo "$CCC_PATH")
+  REAL=$(real_path "$CCC_PATH")
+  if [[ -n "$CURRENT_CHECKOUT" && "$REAL" == "$(real_path "$CURRENT_CHECKOUT")"/* ]]; then
+    found "Current CLI binary: $CCC_PATH (from the checkout at $CURRENT_CHECKOUT)"
+    FINDINGS=$((FINDINGS + 1))
+  else
+    warn "LEGACY binary: $CCC_PATH"
+    LEGACY=$((LEGACY + 1))
+  fi
   note "   resolves to: $REAL"
   # Try to invoke with --version (may print junk so cap output)
   v=$(ccc --version 2>/dev/null | head -1 || echo "")
@@ -206,7 +235,12 @@ fi
 hdr "6. Other install trails"
 
 # install-remote.sh leaves a log sometimes
+if [[ -n "$CURRENT_CHECKOUT" ]]; then
+  found "Current CLI checkout: $CURRENT_CHECKOUT (origin $(git -C "$CURRENT_CHECKOUT" remote get-url origin 2>/dev/null))"
+  FINDINGS=$((FINDINGS + 1))
+fi
 for trail in "$HOME/.cc-commander" "$HOME/.ccc" "$HOME/.config/cc-commander" "/usr/local/lib/node_modules/cc-commander"; do
+  [[ -n "$CURRENT_CHECKOUT" && "$trail" == "$CURRENT_CHECKOUT" ]] && continue
   if [[ -e "$trail" ]]; then
     warn "LEGACY trail: $trail"
     LEGACY=$((LEGACY + 1))
@@ -225,7 +259,10 @@ fi
 # ────────────────────────────────────────────────────────────
 hdr "Summary"
 
-if [[ $LEGACY -eq 0 && $FINDINGS -gt 0 ]]; then
+if [[ $LEGACY -eq 0 && -n "$CURRENT_CHECKOUT" ]]; then
+  echo "  ${BOLD}${GREEN}✅ Clean.${RESET} The current CLI checkout is $CURRENT_CHECKOUT; no legacy sources found."
+  echo "  Update it with: ${BOLD}ccc --update${RESET}"
+elif [[ $LEGACY -eq 0 && $FINDINGS -gt 0 ]]; then
   echo "  ${BOLD}${GREEN}✅ Clean.${RESET} Only the plugin source is present. /ccc should serve the plugin version."
 elif [[ $LEGACY -gt 0 ]]; then
   echo "  ${BOLD}${RED}⚠️  $LEGACY legacy source(s) detected.${RESET}"
@@ -236,6 +273,10 @@ elif [[ $LEGACY -gt 0 ]]; then
   echo ""
   echo "  Or preview what --full would remove without touching anything:"
   echo "    ${BOLD}bash scripts/reset-commander-install.sh --full --dry-run${RESET}"
+  if [[ -n "$CURRENT_CHECKOUT" ]]; then
+    echo ""
+    echo "  --full keeps the current checkout at $CURRENT_CHECKOUT unless you add --remove-checkout."
+  fi
 elif [[ $FINDINGS -eq 0 ]]; then
   echo "  ${BOLD}${YELLOW}⚠️  No commander plugin or CLI found on this machine.${RESET}"
   echo "  Install the plugin:"

@@ -7,7 +7,7 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { execSync, spawnSync } = require('node:child_process');
+const { execSync, execFileSync, spawnSync } = require('node:child_process');
 const path = require('node:path');
 
 const HOOKS_DIR = path.join(__dirname, '..', 'hooks');
@@ -266,6 +266,81 @@ describe('auto-checkpoint.js', () => {
       timeout: 5000,
     });
     assert.ok(true);
+  });
+
+  // H13: opt-in snapshots that never touch the worktree, index or stash list.
+  const fs = require('node:fs');
+  const os = require('node:os');
+  function gitIn(cwd, ...args) {
+    return execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', '-c', 'init.defaultBranch=main', ...args],
+      { cwd, encoding: 'utf8' });
+  }
+  function repoWithChanges() {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccc-ckpt-'));
+    gitIn(dir, 'init', '-q');
+    fs.writeFileSync(path.join(dir, 'a.txt'), 'one\n');
+    fs.writeFileSync(path.join(dir, 'b.txt'), 'one\n');
+    gitIn(dir, 'add', '.');
+    gitIn(dir, 'commit', '-qm', 'init');
+    fs.writeFileSync(path.join(dir, 'a.txt'), 'two\n');          // unstaged change
+    fs.writeFileSync(path.join(dir, 'b.txt'), 'staged\n');
+    gitIn(dir, 'add', 'b.txt');                                 // staged change
+    fs.writeFileSync(path.join(dir, 'new.txt'), 'untracked\n');  // untracked file
+    return dir;
+  }
+  function edits(dir, n, env) {
+    const session = 'ckpt-test-' + process.pid + '-' + Math.random().toString(36).slice(2);
+    for (let i = 0; i < n; i++) {
+      const r = spawnSync(process.execPath, [hookPath], {
+        input: JSON.stringify({ tool_name: 'Edit', session_id: session, cwd: dir, tool_input: { file_path: path.join(dir, 'a.txt') } }),
+        encoding: 'utf-8', timeout: 10000, cwd: dir,
+        env: { ...process.env, CCC_AUTO_CHECKPOINT: '', KZ_DISABLE_AUTO_CHECKPOINT: '', ...env },
+      });
+      assert.equal(r.status, 0, r.stderr);
+    }
+    const counter = path.join(os.tmpdir(), 'kz-edits-' + session);
+    const counted = fs.existsSync(counter);
+    fs.rmSync(counter, { force: true });
+    return { session, counted };
+  }
+  const refs = (dir) => gitIn(dir, 'for-each-ref', '--format=%(refname)', 'refs/ccc-checkpoints').trim();
+
+  it('idle unless opted in', () => {
+    const dir = repoWithChanges();
+    try {
+      const { counted } = edits(dir, 10, {});
+      assert.equal(counted, false, 'no counter without CCC_AUTO_CHECKPOINT=1');
+      assert.equal(refs(dir), '');
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  });
+
+  it('honors the disable var', () => {
+    const dir = repoWithChanges();
+    try {
+      const { counted } = edits(dir, 10, { CCC_AUTO_CHECKPOINT: '1', KZ_DISABLE_AUTO_CHECKPOINT: '1' });
+      assert.equal(counted, false);
+      assert.equal(refs(dir), '');
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  });
+
+  it('10th edit writes a ref; index and worktree unchanged', () => {
+    const dir = repoWithChanges();
+    try {
+      const status = gitIn(dir, 'status', '--porcelain');
+      const staged = gitIn(dir, 'diff', '--cached');
+      const unstaged = gitIn(dir, 'diff');
+      const { session } = edits(dir, 10, { CCC_AUTO_CHECKPOINT: '1' });
+      assert.equal(refs(dir), `refs/ccc-checkpoints/${session}/10`);
+      assert.equal(gitIn(dir, 'status', '--porcelain'), status);
+      assert.equal(gitIn(dir, 'diff', '--cached'), staged);
+      assert.equal(gitIn(dir, 'diff'), unstaged);
+      assert.equal(gitIn(dir, 'stash', 'list'), '', 'the stash list is untouched');
+      assert.equal(fs.readFileSync(path.join(dir, 'new.txt'), 'utf8'), 'untracked\n');
+      // The snapshot holds the tracked change; untracked files are not captured.
+      const ref = `refs/ccc-checkpoints/${session}/10`;
+      assert.equal(gitIn(dir, 'show', `${ref}:a.txt`), 'two\n');
+      assert.throws(() => gitIn(dir, 'show', `${ref}:new.txt`));
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });
 });
 
