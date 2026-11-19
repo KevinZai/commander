@@ -19,8 +19,8 @@
  * deferred), never while stop_hook_active, never after the user picked
  * "Stop suggesting next steps" this session.
  * decision:block costs an extra model turn for each offered menu, including
- * chained skill runs. Headless sessions (claude -p, CI, CCC_HEADLESS=1) get
- * no Stop menu. CCC_ROUTE_NEXT=off opts out everywhere.
+ * chained skill runs. Headless sessions (CI, CCC_HEADLESS=1) get no Stop
+ * menu. CCC_ROUTE_NEXT=off opts out everywhere.
  *
  * Fleet control-plane prompts (launch a lane, batch status, lane sweep, what's
  * running on the fleet) get a <ccc-fleet-route> block instead: the Fleet skill,
@@ -36,7 +36,7 @@
  *        (default 10; 0 offers after every skill run)
  *      CCC_ROUTE_MENU=list forces a numbered list instead of a native picker
  *      CCC_HEADLESS=1|0 forces headless (no pickers, no Stop menu) or
- *        interactive; default: headless under `claude -p` and CI
+ *        interactive; default: headless only under CI
  *
  * always mode: when no route matches a work request, a one-line
  * <ccc-route tier="check"> asks the model to check its skill list first.
@@ -368,7 +368,7 @@ function handleStop(data) {
   if (turn.muted) next.muteNext = true;
 
   let output = emitSilent();
-  // Headless runs (claude -p, CI, fleet lanes) have nobody to answer the menu,
+  // Headless runs (CI, CCC_HEADLESS=1 fleet lanes) have nobody to answer the menu,
   // and each offer costs an extra model turn.
   const enabled = routeMode(process.env, savedRouteMode()) !== 'off' && String(process.env.CCC_ROUTE_NEXT || '').toLowerCase() !== 'off' && !isHeadless();
   if (enabled && !data.stop_hook_active && !next.muteNext && ran.length) {

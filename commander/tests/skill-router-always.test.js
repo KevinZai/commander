@@ -249,9 +249,10 @@ test('headless routing never asks for a picker and drops side-effect skills', ()
   assert.equal(renderRouteContext(deploy, tierFor(deploy, 'auto'), 'claude-code', 'auto', { headless: true }), null);
 });
 
-test('isHeadless: claude -p, CI and CCC_HEADLESS; the override wins', async () => {
+test('isHeadless: CI and CCC_HEADLESS; the override wins; the entrypoint alone is not enough', async () => {
   const { isHeadless } = await import('../cowork-plugin/hooks/lib/route-scorer.mjs');
-  assert.equal(isHeadless({ CLAUDE_CODE_ENTRYPOINT: 'sdk-cli' }), true);
+  // Remote Control and SDK sessions report sdk-cli while a person answers pickers.
+  assert.equal(isHeadless({ CLAUDE_CODE_ENTRYPOINT: 'sdk-cli' }), false);
   assert.equal(isHeadless({ CLAUDE_CODE_ENTRYPOINT: 'cli' }), false);
   assert.equal(isHeadless({ CI: 'true' }), true);
   assert.equal(isHeadless({ CI: 'false' }), false);
