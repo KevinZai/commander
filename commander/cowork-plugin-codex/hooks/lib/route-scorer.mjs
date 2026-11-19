@@ -134,10 +134,12 @@ export function normalizePrompt(prompt, maxChars = ANALYZED_CHARS) {
 // A new imperative clause after a comma ("skip deployment, then write
 // tests", "don't deploy, write unit tests for my code") also ends the
 // negation; a bare list ("don't deploy, build or test") does not, and
-// neither does a list of prohibitions closed by "or"/"nor" and a verb
-// ("do not write docs, write unit tests, or deploy anything").
+// neither does a list of prohibitions closed by a comma, "or"/"nor" and any
+// verb ("do not write docs, write unit tests, or publish a release"). An "or"
+// without that comma belongs to the new clause ("skip deployment, write unit
+// tests for my code or run integration tests" asks for tests).
 const CLAUSE_VERB = String.raw`(?:write|add|run|review|fix|debug|build|create|make|test|update|refactor|implement|check|explain|plan|ship|document|audit|deploy|generate|set|draft|scan|summarize|optimize|design)`;
-const LIST_TAIL = String.raw`(?![^.!?;]*?(?:,\s*|\s)(?:or|nor)\s+(?:\w+\s+)?${CLAUSE_VERB}\b)`;
+const LIST_TAIL = String.raw`(?![^.!?;]*?,\s*(?:or|nor)\s+\w)`;
 const NEGATION_END = String.raw`(?=[.!?;]|\s[-\u2013\u2014]+\s|\b(?:but|instead|just|only|rather|then)\b|,\s*now\b|,\s*${CLAUSE_VERB}\s+(?:the|a|an|my|our|your|this|that|these|those|some|unit|it|me|up|all)\b${LIST_TAIL}|$)`;
 const COMMAND_POSITION = String.raw`(?:^|(?:[.!?;:,(]|\s[-\u2013\u2014]+)\s*|\b(?:and|but|so|then|please|pls|also|or)\s+)`;
 // "don't skip", "never forget to", "you shouldn't avoid": two negations make a request.

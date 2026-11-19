@@ -297,6 +297,8 @@
     { "prompt": "Skip deployment, then write unit tests for my code", "expect": "ccc-testing" },
     { "prompt": "Skip deployment, write unit tests for my code", "expect": "ccc-testing" },
     { "prompt": "don't deploy - review the code changes in this pr", "expect": "ccc-review" },
-    { "prompt": "Do not write documentation, write unit tests for my code, or deploy anything", "expect": "none" }
+    { "prompt": "Do not write documentation, write unit tests for my code, or deploy anything", "expect": "none" },
+    { "prompt": "Skip deployment, write unit tests for my code or run integration tests", "expect": "ccc-testing" },
+    { "prompt": "Do not write documentation, write unit tests for my code, or publish a release", "expect": "none" }
   ]
 }
