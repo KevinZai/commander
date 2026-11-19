@@ -215,3 +215,29 @@ test('diagnose and reset leave the current install\'s commands alone', () => {
     fs.rmSync(sb.home, { recursive: true, force: true });
   }
 });
+
+// Codex #302 H10 / M8: the first --full keeps the install manifest that protects an
+// edited command it kept, so a second --full does not move that command out.
+test('a second --full keeps an edited command the manifest records', () => {
+  const sb = sandbox();
+  try {
+    const cmds = path.join(sb.home, '.claude', 'commands');
+    const state = path.join(sb.home, '.claude', 'commander');
+    fs.mkdirSync(cmds, { recursive: true });
+    fs.mkdirSync(state, { recursive: true });
+    fs.writeFileSync(path.join(cmds, 'ccc-recorded.md'), 'edited by me\n');
+    fs.writeFileSync(path.join(state, 'install-manifest.json'),
+      JSON.stringify({ entries: [{ group: 'commands', type: 'file', path: 'commands/ccc-recorded.md' }] }));
+    fs.writeFileSync(path.join(state, 'old-state.json'), '{}\n');
+    let r = run(RESET, ['--full'], sb);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.ok(fs.existsSync(path.join(state, 'install-manifest.json')), 'manifest kept while it protects a command');
+    assert.ok(!fs.existsSync(path.join(state, 'old-state.json')), 'other CLI state removed');
+    r = run(RESET, ['--full'], sb);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.equal(fs.readFileSync(path.join(cmds, 'ccc-recorded.md'), 'utf8'), 'edited by me\n');
+    assert.match(r.stdout, /Keeping 1 command file\(s\) of the current install/);
+  } finally {
+    fs.rmSync(sb.home, { recursive: true, force: true });
+  }
+});

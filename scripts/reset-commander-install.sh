@@ -24,7 +24,8 @@
 #   • ~/.claude/commands/commander*.md
 #   • ~/.claude/skills/ccc/                (legacy standalone skill — EXACT match only)
 #   • ~/.claude/skills/commander/          (legacy standalone skill)
-#   • ~/.claude/commander/                 (CLI state dir)
+#   • ~/.claude/commander/                 (CLI state dir; its install-manifest.json
+#                                           stays while it records kept commands)
 #   • ~/.ccc, ~/.config/cc-commander       (install trails)
 #   • ~/.cc-commander                      (only with --remove-checkout; a git
 #                                           checkout with local changes or
@@ -338,7 +339,11 @@ if [[ $FULL -eq 1 ]]; then
   done
 
   # 2c. CLI state directory (contains old v1.x code + state)
+  # While command files of the current install are kept, its install manifest stays: it is what
+  # protects an edited kept command on the next --full and what uninstall.sh removes them by (Codex #302 H10).
   STATE_DIR="${HOME}/.claude/commander"
+  KEEP_MANIFEST=0
+  [[ $KEPT_CURRENT -gt 0 && -f "$STATE_DIR/install-manifest.json" ]] && KEEP_MANIFEST=1
   if [[ -d "$STATE_DIR" ]]; then
     if [[ $DRY_RUN -eq 0 ]]; then
       cp -r "$STATE_DIR" "$BACKUP/commander-state-backup" || {
@@ -346,7 +351,16 @@ if [[ $FULL -eq 1 ]]; then
         exit 1
       }
     fi
-    safe_rm "$STATE_DIR"
+    if [[ $KEEP_MANIFEST -eq 1 ]]; then
+      for entry in "$STATE_DIR"/* "$STATE_DIR"/.[!.]* "$STATE_DIR"/..?*; do
+        [[ -e "$entry" || -L "$entry" ]] || continue
+        [[ "$entry" == "$STATE_DIR/install-manifest.json" ]] && continue
+        safe_rm "$entry"
+      done
+      warn "Keeping $STATE_DIR/install-manifest.json; it records the kept command file(s) for uninstall.sh."
+    else
+      safe_rm "$STATE_DIR"
+    fi
     FULL_REMOVED=$((FULL_REMOVED + 1))
   fi
 
@@ -452,7 +466,12 @@ if [[ $FULL -eq 1 ]]; then
     warn "Leftover legacy command: $f"; LEFTOVER=$((LEFTOVER + 1))
   done
   for d in "${HOME}/.claude/skills/ccc" "${HOME}/.claude/skills/commander" "${HOME}/.claude/commander"; do
-    [[ -d "$d" ]] && { warn "Leftover legacy dir: $d"; LEFTOVER=$((LEFTOVER + 1)); }
+    [[ -d "$d" ]] || continue
+    if [[ "$d" == "${HOME}/.claude/commander" && "${KEEP_MANIFEST:-0}" -eq 1 && $DRY_RUN -eq 0 \
+          && "$(ls -A "$d")" == "install-manifest.json" ]]; then
+      continue
+    fi
+    warn "Leftover legacy dir: $d"; LEFTOVER=$((LEFTOVER + 1))
   done
 fi
 
