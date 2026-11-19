@@ -197,6 +197,7 @@ if $VERIFY_ONLY; then
   # hook of type "command", and the rendered command for this config dir (or the template's $HOME/.claude form
   # when this is ~/.claude). A Read matcher, or any command that merely mentions the guard path, does not count.
   # Not registered is a warning (an existing settings.json is never edited); registered but missing is an error.
+  # disableAllHooks: true turns every hook off, so a registered guard is then reported as inactive, not ok.
   if [ -f "$CLAUDE_DIR/settings.json" ]; then
     for guard in careful-guard confidence-gate; do
       guard_state="$(node -e '
@@ -220,6 +221,7 @@ if $VERIFY_ONLY; then
         if (!st || !st.isFile()) { process.stdout.write("missing:" + file); process.exit(0); }
         var sha = function(p) { return nodeCrypto.createHash("sha256").update(fs.readFileSync(p)).digest("hex"); };
         var shipped = null; try { shipped = sha(path.join(srcRoot, "hooks", name + ".js")); } catch (_e) { shipped = null; }
+        if (cfg.disableAllHooks === true) { process.stdout.write("disabled"); process.exit(0); }
         process.stdout.write(shipped && sha(file) !== shipped ? "modified:" + file : "ok");
       ' "$CLAUDE_DIR/settings.json" "$CLAUDE_DIR" "$guard" "$SCRIPT_DIR" 2>/dev/null || echo unreadable)"
       case "$guard_state" in
@@ -227,6 +229,7 @@ if $VERIFY_ONLY; then
         unregistered) cc_status_line "!" "$guard not registered in settings.json (see settings.json.template)" ;;
         mismatch) cc_status_line "!" "$guard is referenced in settings.json, but not as the expected PreToolUse Bash command hook (see settings.json.template)" ;;
         modified:*) cc_status_line "!" "$guard registered, but ${guard_state#modified:} differs from the shipped version" ;;
+        disabled) cc_status_line "!" "$guard is registered, but settings.json sets disableAllHooks: true, so it does not run" ;;
         missing:*) cc_status_line "✗" "$guard registered but its script is missing: ${guard_state#missing:}"; errors=$((errors+1)) ;;
         *) ;;  # settings.json validity is reported above
       esac

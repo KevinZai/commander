@@ -906,6 +906,21 @@ test('--verify counts only the exact Bash command hook as a registered guard', (
   });
 });
 
+// Codex #302: disableAllHooks turns every registered hook off, so --verify must not report the guards as active.
+test('--verify warns that guards are inactive when settings has disableAllHooks', () => {
+  withHome('ccc-install-verify-disabled-', (home) => {
+    const claude = join(home, '.claude');
+    ok(install(home, ['--mode=full', '--skills=essential']), 'install');
+    const settings = JSON.parse(readFileSync(join(claude, 'settings.json'), 'utf8'));
+    settings.disableAllHooks = true;
+    writeFileSync(join(claude, 'settings.json'), JSON.stringify(settings, null, 2));
+    const verify = run(INSTALL_SH, home, ['--verify']);
+    assert.doesNotMatch(verify.stdout, /careful-guard registered in settings\.json/);
+    assert.match(verify.stdout, /careful-guard is registered, but settings\.json sets disableAllHooks: true/);
+    assert.match(verify.stdout, /confidence-gate is registered, but settings\.json sets disableAllHooks: true/);
+  });
+});
+
 test('install keeps an existing settings.json byte-for-byte', () => {
   withHome('ccc-install-keepsettings-', (home) => {
     const claude = join(home, '.claude');
