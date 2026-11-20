@@ -3,7 +3,7 @@
 -- This schema implements CC-665 (creator program: GitHub OAuth + /r/{slug} pages).
 --
 -- Apply via Supabase SQL Editor or `supabase db push`.
--- Service-role bypasses RLS; anon/authenticated get public-read only on creators.
+-- Service-role bypasses RLS; anon/authenticated have no access to these tables.
 --
 -- Tables: creators, creator_clicks
 -- RPCs:   increment_creator_clicks(p_slug text)
@@ -79,29 +79,14 @@ create index if not exists creator_clicks_creator_ts on public.creator_clicks (c
 alter table public.creators       enable row level security;
 alter table public.creator_clicks enable row level security;
 
--- Public read on creators (slug-based lookup for landing pages, anon traffic).
--- Never expose email or ls_affiliate_id to anon — those are service-role only.
--- NB: Postgres CREATE POLICY has no IF NOT EXISTS — guard with a DO block (same
--- pattern this file uses for the creators_set_updated_at trigger below).
-do $do$
-begin
-  if not exists (
-    select 1 from pg_policies
-    where schemaname = 'public' and tablename = 'creators' and policyname = 'creators_public_read'
-  ) then
-    create policy creators_public_read on public.creators
-      for select
-      using (true);
-  end if;
-end
-$do$;
-
+-- No anon/authenticated access to the table. Public pages read the
+-- creators_public view (display columns of approved creators only), created by
+-- migrations/004_creators_lockdown.sql — apply 004 after this file.
 -- No public write — only service-role inserts/updates.
 -- (creator_clicks has no public policies — inserted via service-role only)
 
 -- ─── RPC: increment_creator_clicks ───────────────────────────────────────────
--- Called by the edge function that handles /r/{slug} page visits.
--- Uses security definer so anon callers can increment without write access to the table.
+-- Called server-side (service role) by the site's /api/creator/click route.
 
 create or replace function public.increment_creator_clicks(p_slug text)
 returns void
@@ -118,8 +103,10 @@ begin
 end;
 $$;
 
+revoke execute on function public.increment_creator_clicks(text)
+  from public, anon, authenticated;
 grant execute on function public.increment_creator_clicks(text)
-  to service_role, anon, authenticated;
+  to service_role;
 
 -- ─── updated_at trigger (optional but useful) ────────────────────────────────
 

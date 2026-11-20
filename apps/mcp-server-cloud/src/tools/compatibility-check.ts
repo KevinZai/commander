@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { getRepoRoot, resolveSkillSource } from "./skill-source.js";
+import { contentPath } from "../lib/content-root.js";
+import { resolveSkillSource } from "./skill-source.js";
 import type { TargetEnv } from "./install-skill.js";
 import { TARGET_ENVS } from "./install-skill.js";
 
@@ -233,7 +233,8 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 }
 
 async function loadCodexHookMap(): Promise<CodexHookMap | null> {
-  const mapPath = path.join(getRepoRoot(), "commander/adapters/codex/hook-event-map.json");
+  const mapPath = contentPath("commander/adapters/codex/hook-event-map.json");
+  if (!mapPath) return null;
   try {
     const raw = await readFile(mapPath, "utf8");
     const parsed = asRecord(JSON.parse(raw));

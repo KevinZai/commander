@@ -283,3 +283,81 @@ describe("streamable-HTTP handshake (stateless)", () => {
     assert.doesNotMatch(body.result.content[0].text, /secret internal detail/);
   });
 });
+
+// ─── 3. OAuth subject → user mapping (oauth_identities only) ───────────────
+const { resolveOAuthSubject } = await import("../src/mcp/oauth.js");
+const { db } = await import("../src/db/client.js");
+
+type IdentityRow = { issuer: string; subject: string; user_id: string };
+type UserRow = { user_id: string; tier: string; license_key: string | null; email?: string };
+
+function subjectDeps(identities: IdentityRow[], users: UserRow[]) {
+  const calls: string[] = [];
+  return {
+    calls,
+    deps: {
+      async findIdentity(issuer: string, subject: string) {
+        calls.push(`identity:${issuer}|${subject}`);
+        const row = identities.find((i) => i.issuer === issuer && i.subject === subject);
+        return row ? { user_id: row.user_id } : null;
+      },
+      async findUser(userId: string) {
+        calls.push(`user:${userId}`);
+        return users.find((u) => u.user_id === userId) ?? null;
+      },
+    },
+  };
+}
+
+describe("OAuth subject resolution", () => {
+  const ISS = "https://issuer.example.com";
+  const USER: UserRow = { user_id: "8a68e2f2-0000-4000-8000-000000000001", tier: "pro", license_key: "lk_1", email: "dev@example.com" };
+
+  it("resolves a linked (iss, sub) to the users row", async () => {
+    const { deps } = subjectDeps([{ issuer: ISS, subject: "auth0|abc", user_id: USER.user_id }], [USER]);
+    const auth = await resolveOAuthSubject({ iss: ISS, sub: "auth0|abc" }, deps);
+    assert.deepEqual(auth, { userId: USER.user_id, tier: "pro", licenseKey: "lk_1" });
+  });
+
+  it("denies a sub equal to a users.user_id when no identity row links it", async () => {
+    const { deps, calls } = subjectDeps([], [USER]);
+    const auth = await resolveOAuthSubject({ iss: ISS, sub: USER.user_id }, deps);
+    assert.equal(auth, null);
+    assert.deepEqual(calls, [`identity:${ISS}|${USER.user_id}`]);
+  });
+
+  it("never falls back to the email claim", async () => {
+    const { deps, calls } = subjectDeps([], [USER]);
+    const auth = await resolveOAuthSubject({ iss: ISS, sub: "auth0|other", email: USER.email }, deps);
+    assert.equal(auth, null);
+    assert.ok(calls.every((c) => !c.includes(USER.email ?? "@")));
+  });
+
+  it("does not link the same subject from a different issuer", async () => {
+    const { deps } = subjectDeps([{ issuer: ISS, subject: "auth0|abc", user_id: USER.user_id }], [USER]);
+    assert.equal(await resolveOAuthSubject({ iss: "https://evil.example.com", sub: "auth0|abc" }, deps), null);
+  });
+
+  it("denies a token without iss or sub", async () => {
+    const { deps, calls } = subjectDeps([], [USER]);
+    assert.equal(await resolveOAuthSubject({ sub: "auth0|abc" }, deps), null);
+    assert.equal(await resolveOAuthSubject({ iss: ISS }, deps), null);
+    assert.equal(calls.length, 0);
+  });
+
+  it("denies when oauth_identities is missing (migration 005 not applied)", async (t) => {
+    t.mock.method(db, "from", (table: string) => {
+      const query = {
+        select() { return query; },
+        eq() { return query; },
+        async maybeSingle() {
+          return table === "oauth_identities"
+            ? { data: null, error: { code: "PGRST205", message: "Could not find the table 'public.oauth_identities'" } }
+            : { data: USER, error: null };
+        },
+      };
+      return query;
+    });
+    assert.equal(await resolveOAuthSubject({ iss: ISS, sub: USER.user_id, email: USER.email }), null);
+  });
+});

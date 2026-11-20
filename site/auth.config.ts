@@ -41,6 +41,10 @@ export const authConfig: NextAuthConfig = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session.user as any).login = token.login;
       }
+      if (typeof token.githubId === "string") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (session.user as any).githubId = token.githubId;
+      }
       if (typeof token.followers === "number") {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session.user as any).followers = token.followers;
@@ -51,6 +55,10 @@ export const authConfig: NextAuthConfig = {
       if (profile) {
         token.login = (profile as Record<string, unknown>).login;
         token.followers = (profile as Record<string, unknown>).followers;
+        const githubId = (profile as Record<string, unknown>).id;
+        if (typeof githubId === "number" || typeof githubId === "string") {
+          token.githubId = String(githubId);
+        }
       }
       return token;
     },
