@@ -34,6 +34,50 @@ CLAUDE_DIR="${HOME}/.claude"
 FINDINGS=0
 LEGACY=0
 
+# The current standalone CLI is a git checkout at install-remote.sh's default
+# path, tracking the project repository. It is not a legacy install.
+CHECKOUT_DIR="${HOME}/.cc-commander"
+EXPECTED_ORIGIN="github.com/kevinzai/commander"
+CURRENT_CHECKOUT=""
+
+normalize_origin() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' \
+    | sed -e 's#/*$##' -e 's#\.git$##' -e 's#^[a-z+]*://##' -e 's#^[^@/]*@##' -e 's#:#/#'
+}
+
+if [[ -e "$CHECKOUT_DIR/.git" ]] && command -v git >/dev/null 2>&1; then
+  checkout_origin=$(git -C "$CHECKOUT_DIR" remote get-url origin 2>/dev/null || echo "")
+  if [[ "$(normalize_origin "$checkout_origin")" == "$EXPECTED_ORIGIN" ]]; then
+    CURRENT_CHECKOUT="$CHECKOUT_DIR"
+  fi
+fi
+
+# Command files that belong to the current install: recorded in this profile's install manifest, or byte-identical
+# to the file of the same name shipped in this checkout or the CLI checkout. Only the rest are legacy (Codex #302).
+CCC_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd || echo "")"
+current_command_files() {
+  node -e '
+    var fs = require("fs"), path = require("path"), c = require("crypto");
+    var manifest = process.argv[1], cmdDir = process.argv[2], shipped = process.argv.slice(3);
+    var sha = function(p) { try { return c.createHash("sha256").update(fs.readFileSync(p)).digest("hex"); } catch (_e) { return null; } };
+    var recorded = new Set();
+    try { (JSON.parse(fs.readFileSync(manifest, "utf8")).entries || []).forEach(function(e) {
+      if (e && e.type === "file" && typeof e.path === "string" && path.dirname(e.path) === "commands") recorded.add(path.basename(e.path));
+    }); } catch (_e) { /* no manifest */ }
+    var names = []; try { names = fs.readdirSync(cmdDir); } catch (_e) { names = []; }
+    names.forEach(function(n) {
+      if (!/\.md$/.test(n)) return;
+      var mine = sha(path.join(cmdDir, n));
+      if (recorded.has(n) || shipped.some(function(d) { var s = sha(path.join(d, n)); return s && s === mine; })) console.log(n);
+    });
+  ' "$CLAUDE_DIR/commander/install-manifest.json" "$CLAUDE_DIR/commands" "$@" 2>/dev/null || true
+}
+
+# Resolve a path through symlinks (passed as an argument, never interpolated).
+real_path() {
+  node -e 'try{console.log(require("fs").realpathSync(process.argv[1]))}catch(e){console.log(process.argv[1])}' "$1" 2>/dev/null || echo "$1"
+}
+
 # Extract version from a JSON file (package.json or plugin.json)
 read_version() {
   local file="$1"
@@ -87,7 +131,7 @@ else
         [[ -d "$ver_dir" ]] || continue
         pj="$ver_dir/.claude-plugin/plugin.json"
         if [[ -f "$pj" ]]; then
-          name=$(node -e "try{console.log(require('$pj').name||'')}catch(e){}" 2>/dev/null)
+          name=$(node -e 'try{console.log(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).name||"")}catch(e){}' "$pj" 2>/dev/null)
           if [[ "$name" == "commander" || "$name" == "ccc" ]]; then
             v=$(read_version "$pj")
             found "Plugin cache: $ver_dir  ${BOLD}(v$v)${RESET}"
@@ -103,17 +147,26 @@ fi
 hdr "2. User-level slash commands (~/.claude/commands/)"
 
 if [[ -d "$CLAUDE_DIR/commands" ]]; then
-  # Search for anything that could match /ccc
+  # Search for anything that could match /ccc; the current install's own commands are not legacy.
+  CURRENT_CMDS="$(current_command_files ${CCC_SELF_DIR:+"$CCC_SELF_DIR/commands"} ${CURRENT_CHECKOUT:+"$CURRENT_CHECKOUT/commands"})"
+  CURRENT_CMD_COUNT=0
   for f in "$CLAUDE_DIR/commands"/ccc*.md "$CLAUDE_DIR/commands"/commander*.md; do
     [[ -f "$f" ]] || continue
+    if printf '%s\n' "$CURRENT_CMDS" | grep -qxF "$(basename "$f")"; then
+      CURRENT_CMD_COUNT=$((CURRENT_CMD_COUNT + 1))
+      continue
+    fi
     warn "LEGACY user command: $f"
     LEGACY=$((LEGACY + 1))
     # Try to pull a version hint from inside
     v=$(grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?' "$f" 2>/dev/null | head -1)
     [[ -n "$v" ]] && note "   version hint inside: $v"
   done
+  if [[ $CURRENT_CMD_COUNT -gt 0 ]]; then
+    found "$CURRENT_CMD_COUNT command file(s) from the current CC Commander install (not legacy)"
+  fi
   if [[ $LEGACY -eq 0 ]]; then
-    miss "No ccc* or commander* user commands."
+    miss "No legacy ccc* or commander* user commands."
   fi
 else
   miss "No ~/.claude/commands/ directory."
@@ -158,7 +211,9 @@ fi
 hdr "4. CLI state (~/.claude/commander/)"
 
 STATE="$CLAUDE_DIR/commander"
-if [[ -d "$STATE" ]]; then
+if [[ -d "$STATE" && -n "$CURRENT_CHECKOUT" ]]; then
+  found "CLI state dir for the current checkout: $STATE"
+elif [[ -d "$STATE" ]]; then
   warn "CLI state dir present: $STATE"
   LEGACY=$((LEGACY + 1))
   # Look for embedded version strings
@@ -178,10 +233,14 @@ hdr "5. Global CLI binary (ccc on PATH)"
 
 if command -v ccc >/dev/null 2>&1; then
   CCC_PATH=$(command -v ccc)
-  warn "LEGACY binary: $CCC_PATH"
-  LEGACY=$((LEGACY + 1))
-  # Resolve symlinks
-  REAL=$(readlink "$CCC_PATH" 2>/dev/null || echo "$CCC_PATH")
+  REAL=$(real_path "$CCC_PATH")
+  if [[ -n "$CURRENT_CHECKOUT" && "$REAL" == "$(real_path "$CURRENT_CHECKOUT")"/* ]]; then
+    found "Current CLI binary: $CCC_PATH (from the checkout at $CURRENT_CHECKOUT)"
+    FINDINGS=$((FINDINGS + 1))
+  else
+    warn "LEGACY binary: $CCC_PATH"
+    LEGACY=$((LEGACY + 1))
+  fi
   note "   resolves to: $REAL"
   # Try to invoke with --version (may print junk so cap output)
   v=$(ccc --version 2>/dev/null | head -1 || echo "")
@@ -206,7 +265,12 @@ fi
 hdr "6. Other install trails"
 
 # install-remote.sh leaves a log sometimes
+if [[ -n "$CURRENT_CHECKOUT" ]]; then
+  found "Current CLI checkout: $CURRENT_CHECKOUT (origin $(git -C "$CURRENT_CHECKOUT" remote get-url origin 2>/dev/null))"
+  FINDINGS=$((FINDINGS + 1))
+fi
 for trail in "$HOME/.cc-commander" "$HOME/.ccc" "$HOME/.config/cc-commander" "/usr/local/lib/node_modules/cc-commander"; do
+  [[ -n "$CURRENT_CHECKOUT" && "$trail" == "$CURRENT_CHECKOUT" ]] && continue
   if [[ -e "$trail" ]]; then
     warn "LEGACY trail: $trail"
     LEGACY=$((LEGACY + 1))
@@ -225,7 +289,10 @@ fi
 # ────────────────────────────────────────────────────────────
 hdr "Summary"
 
-if [[ $LEGACY -eq 0 && $FINDINGS -gt 0 ]]; then
+if [[ $LEGACY -eq 0 && -n "$CURRENT_CHECKOUT" ]]; then
+  echo "  ${BOLD}${GREEN}✅ Clean.${RESET} The current CLI checkout is $CURRENT_CHECKOUT; no legacy sources found."
+  echo "  Update it with: ${BOLD}ccc --update${RESET}"
+elif [[ $LEGACY -eq 0 && $FINDINGS -gt 0 ]]; then
   echo "  ${BOLD}${GREEN}✅ Clean.${RESET} Only the plugin source is present. /ccc should serve the plugin version."
 elif [[ $LEGACY -gt 0 ]]; then
   echo "  ${BOLD}${RED}⚠️  $LEGACY legacy source(s) detected.${RESET}"
@@ -236,6 +303,10 @@ elif [[ $LEGACY -gt 0 ]]; then
   echo ""
   echo "  Or preview what --full would remove without touching anything:"
   echo "    ${BOLD}bash scripts/reset-commander-install.sh --full --dry-run${RESET}"
+  if [[ -n "$CURRENT_CHECKOUT" ]]; then
+    echo ""
+    echo "  --full keeps the current checkout at $CURRENT_CHECKOUT unless you add --remove-checkout."
+  fi
 elif [[ $FINDINGS -eq 0 ]]; then
   echo "  ${BOLD}${YELLOW}⚠️  No commander plugin or CLI found on this machine.${RESET}"
   echo "  Install the plugin:"

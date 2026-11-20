@@ -10,6 +10,8 @@
 #   reset-commander-install.sh --full          # also remove legacy CLI install (pre-v4 plugin era)
 #   reset-commander-install.sh --dry-run       # show what WOULD be removed, touch nothing
 #   reset-commander-install.sh --full --dry-run
+#   reset-commander-install.sh --full --remove-checkout
+#                                              # also remove the ~/.cc-commander checkout
 #
 # Default mode removes (from ~/.claude/plugins/):
 #   • ccc-marketplace         (v3.0.0 legacy)
@@ -22,8 +24,14 @@
 #   • ~/.claude/commands/commander*.md
 #   • ~/.claude/skills/ccc/                (legacy standalone skill — EXACT match only)
 #   • ~/.claude/skills/commander/          (legacy standalone skill)
-#   • ~/.claude/commander/                 (CLI state dir)
-#   • ~/.cc-commander, ~/.ccc              (install trails)
+#   • ~/.claude/commander/                 (CLI state dir; its install-manifest.json
+#                                           stays while it records kept commands)
+#   • ~/.ccc, ~/.config/cc-commander       (install trails)
+#   • ~/.cc-commander                      (only with --remove-checkout; a git
+#                                           checkout with local changes or
+#                                           untracked files is archived to the
+#                                           backup first, and kept if the
+#                                           archive cannot be verified)
 #   • npm-global cc-commander              (if detected via `npm ls -g`)
 #
 # NOT touched (even under --full):
@@ -32,6 +40,8 @@
 #
 # Safe to re-run. Creates timestamped backup of all state files + manifests
 # to ~/.claude/backups/commander-reset-YYYYMMDD-HHMMSS/ before touching anything.
+# Command files, skill dirs and the CLI state dir are copied into the backup
+# before removal; a failed copy aborts the reset.
 #
 # After running: fully quit Claude Code / Cowork Desktop (Cmd+Q), reopen, then:
 #   /plugin marketplace add KevinZai/commander
@@ -42,12 +52,14 @@ set -euo pipefail
 # ----- Parse flags -----
 FULL=0
 DRY_RUN=0
+REMOVE_CHECKOUT=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --full)    FULL=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
+    --remove-checkout) REMOVE_CHECKOUT=1; shift ;;
     -h|--help)
-      grep -E '^# ?' "$0" | sed 's/^# \?//' | head -40
+      grep -E '^# ?' "$0" | sed 's/^# \?//' | head -50
       exit 0
       ;;
     *) echo "Unknown flag: $1" >&2; exit 2 ;;
@@ -91,6 +103,32 @@ safe_rm_file() {
 
 [[ $DRY_RUN -eq 1 ]] && warn "DRY-RUN MODE — no changes will be made."
 [[ $FULL -eq 1 ]]    && info "FULL MODE — will also purge legacy CLI install (~/.claude/commands/, ~/.claude/commander/, etc.)"
+if [[ $REMOVE_CHECKOUT -eq 1 && $FULL -eq 0 ]]; then
+  fail "--remove-checkout only applies with --full."
+  exit 2
+fi
+
+# The inode of a path, never following a final symlink (ls -d does not dereference on BSD or GNU ls).
+inode_of() { ls -di "$1" 2>/dev/null | awk '{print $1}'; }
+
+# ----- Preflight (before any change; --dry-run reports the same failure) -----
+# A symlinked CLI state dir is never followed: the backup copy and the manifest-preservation loop would act on
+# the link target (Codex #302 delta3 NH1). Refuse it before the plugin purge or any other change (Codex #302
+# delta4). A real directory is pinned by its physical path and inode; phase 2c re-checks both before it acts.
+STATE_DIR="${HOME}/.claude/commander"
+STATE_PHYS=""
+STATE_INODE=""
+if [[ $FULL -eq 1 ]]; then
+  if [[ -L "$STATE_DIR" ]]; then
+    fail "$STATE_DIR is a symlink (-> $(readlink "$STATE_DIR")) — not following it; nothing was changed."
+    fail "Replace the link with the directory it points to, or remove the link yourself, then re-run."
+    exit 1
+  fi
+  if [[ -d "$STATE_DIR" ]]; then
+    STATE_PHYS="$(cd -P "${HOME}/.claude" && pwd -P)/commander"
+    STATE_INODE="$(inode_of "$STATE_DIR")"
+  fi
+fi
 
 PLUGINS_DIR="${HOME}/.claude/plugins"
 
@@ -106,7 +144,8 @@ fi
 # ----- Backup -----
 BACKUP="${HOME}/.claude/backups/commander-reset-$(date +%Y%m%d-%H%M%S)"
 if [[ $DRY_RUN -eq 0 ]]; then
-  mkdir -p "$BACKUP"
+  # Owner-only: the backup can hold the checkout archive with ignored files such as .env (Codex #302 M9).
+  mkdir -p "$BACKUP" && chmod 700 "$BACKUP"
   for f in known_marketplaces.json installed_plugins.json install-counts-cache.json blocklist.json; do
     [[ -f "$PLUGINS_DIR/$f" ]] && cp "$PLUGINS_DIR/$f" "$BACKUP/" || true
   done
@@ -249,18 +288,61 @@ PY
   done
 fi
 
+CLAUDE_DIR="${HOME}/.claude"
+# Command files that belong to the current install: recorded in this profile's install manifest, or byte-identical
+# to the file of the same name shipped in this checkout or the CLI checkout. Only the rest are legacy (Codex #302).
+CCC_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd || echo "")"
+current_command_files() {
+  node -e '
+    var fs = require("fs"), path = require("path"), c = require("crypto");
+    var manifest = process.argv[1], cmdDir = process.argv[2], shipped = process.argv.slice(3);
+    var sha = function(p) { try { return c.createHash("sha256").update(fs.readFileSync(p)).digest("hex"); } catch (_e) { return null; } };
+    var recorded = new Set();
+    try { (JSON.parse(fs.readFileSync(manifest, "utf8")).entries || []).forEach(function(e) {
+      if (e && e.type === "file" && typeof e.path === "string" && path.dirname(e.path) === "commands") recorded.add(path.basename(e.path));
+    }); } catch (_e) { /* no manifest */ }
+    var names = []; try { names = fs.readdirSync(cmdDir); } catch (_e) { names = []; }
+    names.forEach(function(n) {
+      if (!/\.md$/.test(n)) return;
+      var mine = sha(path.join(cmdDir, n));
+      if (recorded.has(n) || shipped.some(function(d) { var s = sha(path.join(d, n)); return s && s === mine; })) console.log(n);
+    });
+  ' "$CLAUDE_DIR/commander/install-manifest.json" "$CLAUDE_DIR/commands" "$@" 2>/dev/null || true
+}
+
 # ----- Phase 2: Legacy CLI purge (--full only) -----
 if [[ $FULL -eq 1 ]]; then
   step "Purging legacy CLI install (--full)…"
   FULL_REMOVED=0
 
-  # 2a. Legacy slash commands (install-remote.sh left these before v4.0 plugin)
+  # 2a. Legacy slash commands (install-remote.sh left these before v4.0 plugin).
+  # Every file is copied into the backup before any is removed.
+  # Commands of the current install (manifest-recorded or identical to the shipped file) are left to uninstall.sh.
+  COMMAND_FILES=()
+  CURRENT_CMDS="$(current_command_files ${CCC_SELF_DIR:+"$CCC_SELF_DIR/commands"} "${HOME}/.cc-commander/commands")"
+  KEPT_CURRENT=0
   for pattern in ccc commander; do
     for f in "${HOME}/.claude/commands/${pattern}"*.md; do
       [[ -f "$f" ]] || continue
-      safe_rm_file "$f"
-      FULL_REMOVED=$((FULL_REMOVED + 1))
+      if printf '%s\n' "$CURRENT_CMDS" | grep -qxF "$(basename "$f")"; then
+        KEPT_CURRENT=$((KEPT_CURRENT + 1))
+        continue
+      fi
+      COMMAND_FILES+=("$f")
     done
+  done
+  if [[ $KEPT_CURRENT -gt 0 ]]; then
+    warn "Keeping $KEPT_CURRENT command file(s) of the current install; remove them with uninstall.sh."
+  fi
+  if [[ ${#COMMAND_FILES[@]} -gt 0 && $DRY_RUN -eq 0 ]]; then
+    mkdir -p "$BACKUP/commands" && cp -p "${COMMAND_FILES[@]}" "$BACKUP/commands/" || {
+      fail "Could not back up command files to $BACKUP/commands — nothing removed from ~/.claude/commands."
+      exit 1
+    }
+  fi
+  for f in ${COMMAND_FILES[@]+"${COMMAND_FILES[@]}"}; do
+    safe_rm_file "$f"
+    FULL_REMOVED=$((FULL_REMOVED + 1))
   done
 
   # 2b. Legacy standalone skills (EXACT dir name "ccc" or "commander" only —
@@ -269,7 +351,10 @@ if [[ $FULL -eq 1 ]]; then
     if [[ -d "$dir" ]]; then
       # Backup before nuking a skill dir (larger artifacts)
       if [[ $DRY_RUN -eq 0 ]]; then
-        cp -r "$dir" "$BACKUP/$(basename "$dir")-skill-backup" 2>/dev/null || true
+        cp -r "$dir" "$BACKUP/$(basename "$dir")-skill-backup" || {
+          fail "Could not back up $dir — not removing it."
+          exit 1
+        }
       fi
       safe_rm "$dir"
       FULL_REMOVED=$((FULL_REMOVED + 1))
@@ -277,24 +362,105 @@ if [[ $FULL -eq 1 ]]; then
   done
 
   # 2c. CLI state directory (contains old v1.x code + state)
-  STATE_DIR="${HOME}/.claude/commander"
+  # While command files of the current install are kept, its install manifest stays: it is what
+  # protects an edited kept command on the next --full and what uninstall.sh removes them by (Codex #302 H10).
+  # The directory validated in preflight is entered once (cd -P) and checked by physical path and inode; the
+  # backup and every removal then run relative to it, and the name is re-checked right before removal, so a
+  # directory swapped for a symlink mid-run is never followed (Codex #302 delta4 H-race).
+  KEEP_MANIFEST=0
+  [[ $KEPT_CURRENT -gt 0 && -f "$STATE_DIR/install-manifest.json" ]] && KEEP_MANIFEST=1
+  state_changed() {
+    fail "$STATE_DIR changed during the reset (it is now a symlink or a different directory) — stopped before removing anything under it."
+    fail "Inspect it, then re-run."
+    exit 1
+  }
+  if [[ -L "$STATE_DIR" ]] || { [[ -e "$STATE_DIR" ]] && [[ "$(inode_of "$STATE_DIR")" != "$STATE_INODE" ]]; }; then
+    state_changed
+  fi
   if [[ -d "$STATE_DIR" ]]; then
-    if [[ $DRY_RUN -eq 0 ]]; then
-      cp -r "$STATE_DIR" "$BACKUP/commander-state-backup" 2>/dev/null || true
+    if [[ $DRY_RUN -eq 1 && $KEEP_MANIFEST -eq 0 ]]; then
+      dry "would back up and rm -rf $STATE_DIR"
+    else
+      STATE_RC=0
+      (
+        cd -P "$STATE_DIR" || exit 3
+        [[ "$(pwd -P)" == "$STATE_PHYS" && "$(inode_of .)" == "$STATE_INODE" ]] || exit 3
+        if [[ $DRY_RUN -eq 0 ]]; then
+          cp -R . "$BACKUP/commander-state-backup" || exit 4
+        fi
+        [[ ! -L "$STATE_DIR" && "$(inode_of "$STATE_DIR")" == "$STATE_INODE" ]] || exit 3
+        for entry in * .[!.]* ..?*; do
+          [[ -e "$entry" || -L "$entry" ]] || continue
+          [[ $KEEP_MANIFEST -eq 1 && "$entry" == "install-manifest.json" ]] && continue
+          if [[ $DRY_RUN -eq 1 ]]; then
+            dry "would rm -rf $STATE_DIR/$entry"
+          else
+            rm -rf -- "./$entry" || exit 5
+            echo "  removed: $STATE_DIR/$entry"
+          fi
+        done
+      ) || STATE_RC=$?
+      case "$STATE_RC" in
+        0) ;;
+        3) state_changed ;;
+        4) fail "Could not back up $STATE_DIR — not removing it."; exit 1 ;;
+        *) fail "Could not remove everything under $STATE_DIR."; exit 1 ;;
+      esac
+      if [[ $KEEP_MANIFEST -eq 1 ]]; then
+        warn "Keeping $STATE_DIR/install-manifest.json; it records the kept command file(s) for uninstall.sh."
+      elif [[ $DRY_RUN -eq 0 ]]; then
+        # rmdir removes only an empty directory and never follows a link: nothing else can be lost here.
+        [[ -L "$STATE_DIR" ]] && state_changed
+        rmdir "$STATE_DIR" || { fail "Could not remove $STATE_DIR (no longer empty?)."; exit 1; }
+        echo "  removed: $STATE_DIR"
+      fi
     fi
-    safe_rm "$STATE_DIR"
     FULL_REMOVED=$((FULL_REMOVED + 1))
   fi
 
-  # 2d. Other install trails
-  for trail in "${HOME}/.cc-commander" "${HOME}/.ccc" "${HOME}/.config/cc-commander"; do
+  # 2d. The CLI checkout (install-remote.sh's default path) needs
+  # --remove-checkout. It is always archived into the backup first (the whole
+  # tree, so ignored files such as .env, hidden untracked files and commits
+  # that exist only locally are kept) and removed only once the archive
+  # verifies. Local-only commits are named so the user knows to push them.
+  # The backup dir is 0700 and the archive 0600 because it keeps such files.
+  CHECKOUT_DIR="${HOME}/.cc-commander"
+  if [[ -e "$CHECKOUT_DIR" ]]; then
+    if [[ $REMOVE_CHECKOUT -eq 0 ]]; then
+      warn "Keeping $CHECKOUT_DIR (the CLI checkout). Add --remove-checkout to remove it."
+    else
+      ARCHIVE="$BACKUP/cc-commander-checkout.tar.gz"
+      LOCAL_ONLY=""
+      if [[ -e "$CHECKOUT_DIR/.git" ]]; then
+        LOCAL_ONLY="$(git -C "$CHECKOUT_DIR" log --oneline --branches --not --remotes 2>/dev/null | wc -l | tr -d ' ')"
+        [[ "$LOCAL_ONLY" == "0" ]] && LOCAL_ONLY=""
+      fi
+      [[ -n "$LOCAL_ONLY" ]] && warn "$CHECKOUT_DIR has $LOCAL_ONLY commit(s) on no remote; they are kept in the archive."
+      if [[ $DRY_RUN -eq 1 ]]; then
+        dry "would archive $CHECKOUT_DIR to $ARCHIVE, verify it, then remove it"
+        FULL_REMOVED=$((FULL_REMOVED + 1))
+      elif mkdir -p "$BACKUP" && chmod 700 "$BACKUP" \
+          && (umask 077 && tar -czf "$ARCHIVE" -C "$(dirname "$CHECKOUT_DIR")" "$(basename "$CHECKOUT_DIR")") \
+          && chmod 600 "$ARCHIVE" && tar -tzf "$ARCHIVE" >/dev/null; then
+        echo "  archived: $CHECKOUT_DIR -> $ARCHIVE"
+        safe_rm "$CHECKOUT_DIR"
+        FULL_REMOVED=$((FULL_REMOVED + 1))
+      else
+        fail "The archive of $CHECKOUT_DIR at $ARCHIVE did not verify — keeping the checkout."
+        CHECKOUT_REFUSED=1
+      fi
+    fi
+  fi
+
+  # 2e. Other install trails
+  for trail in "${HOME}/.ccc" "${HOME}/.config/cc-commander"; do
     if [[ -e "$trail" ]]; then
       safe_rm "$trail"
       FULL_REMOVED=$((FULL_REMOVED + 1))
     fi
   done
 
-  # 2e. Legacy ccc binary on PATH (from `npm install -g cc-commander` era).
+  # 2f. Legacy ccc binary on PATH (from `npm install -g cc-commander` era).
   # We detect via `command -v ccc` to catch all npm prefixes (nvm, homebrew,
   # system npm, pnpm, etc.) rather than guessing which prefix is active.
   CCC_BIN="$(command -v ccc 2>/dev/null || true)"
@@ -349,11 +515,19 @@ fi
 
 if [[ $FULL -eq 1 ]]; then
   # Extra verification under --full
+  # CURRENT_CMDS was computed before the purge (2c removes the manifest); those are kept on purpose.
   for f in "${HOME}/.claude/commands"/ccc*.md "${HOME}/.claude/commands"/commander*.md; do
-    [[ -f "$f" ]] && { warn "Leftover legacy command: $f"; LEFTOVER=$((LEFTOVER + 1)); }
+    [[ -f "$f" ]] || continue
+    printf '%s\n' "${CURRENT_CMDS:-}" | grep -qxF "$(basename "$f")" && continue
+    warn "Leftover legacy command: $f"; LEFTOVER=$((LEFTOVER + 1))
   done
   for d in "${HOME}/.claude/skills/ccc" "${HOME}/.claude/skills/commander" "${HOME}/.claude/commander"; do
-    [[ -d "$d" ]] && { warn "Leftover legacy dir: $d"; LEFTOVER=$((LEFTOVER + 1)); }
+    [[ -d "$d" ]] || continue
+    if [[ "$d" == "${HOME}/.claude/commander" && "${KEEP_MANIFEST:-0}" -eq 1 && $DRY_RUN -eq 0 \
+          && "$(ls -A "$d")" == "install-manifest.json" ]]; then
+      continue
+    fi
+    warn "Leftover legacy dir: $d"; LEFTOVER=$((LEFTOVER + 1))
   done
 fi
 
@@ -361,6 +535,11 @@ if [[ $DRY_RUN -eq 1 ]]; then
   echo ""
   info "DRY RUN COMPLETE — re-run without --dry-run to apply changes."
   exit 0
+fi
+
+if [[ "${CHECKOUT_REFUSED:-0}" -eq 1 ]]; then
+  fail "The CLI checkout was not removed (see above). Commit, stash or move its changes, then re-run."
+  exit 1
 fi
 
 if [[ "$LEFTOVER" -eq 0 ]]; then

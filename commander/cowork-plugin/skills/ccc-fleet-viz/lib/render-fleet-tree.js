@@ -2,8 +2,10 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import fleetStatus from '../../ccc-fleet/lib/fleet-status.js';
 
-const DEFAULT_STATE_DIR = '/tmp/ccc-fleet';
+// Markers live in the current run's owner-only directory (fleet-status.js currentRunDir():
+// <config dir>/commander/fleet/runs/<run-id>/); --state-dir or { stateDir } reads another directory.
 const STATUS_SUFFIX = '-status.json';
 const COMPLETE_SUFFIX = '-complete.json';
 
@@ -33,6 +35,25 @@ function stringOrNull(value) {
 function arrayOfStrings(value) {
   if (!Array.isArray(value)) return [];
   return value.filter((item) => typeof item === 'string' && item.length > 0);
+}
+
+/** Keep only the allowlisted top-level fields of a parsed marker; every field when no allowlist is given. */
+function pickFields(payload, fields) {
+  if (!fields) return payload;
+  const picked = {};
+  for (const key of fields) {
+    if (Object.prototype.hasOwnProperty.call(payload, key)) picked[key] = payload[key];
+  }
+  return picked;
+}
+
+// A worker id is used exactly as written (Codex #302 delta4): `build` and ` build ` are two workers. Only an
+// empty string or a non-string is skipped.
+function firstId(...values) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.length > 0) return value;
+  }
+  return null;
 }
 
 function firstString(...values) {
@@ -112,7 +133,7 @@ function titleFromId(id, ordinal) {
 }
 
 function normalizeWorker(payload, fallbackId, markerKind, sourceFile) {
-  const id = firstString(payload.worker_id, payload.workerId, payload.id, fallbackId);
+  const id = firstId(payload.worker_id, payload.workerId, payload.id, fallbackId);
   if (!id) return null;
 
   const status = normalizeStatus(payload.status || payload.state || payload.phase, payload, markerKind);
@@ -254,7 +275,7 @@ function enrichWorkerFromWorktrees(worker, worktrees) {
   };
 }
 
-function collectJsonlProgress(stateDir, byId, skipped) {
+function collectJsonlProgress(stateDir, byId, skipped, fields) {
   const file = path.join(stateDir, 'worker-progress.jsonl');
   if (!fs.existsSync(file)) return;
 
@@ -262,7 +283,9 @@ function collectJsonlProgress(stateDir, byId, skipped) {
   lines.forEach((line, index) => {
     if (!line.trim()) return;
     try {
-      const payload = JSON.parse(line);
+      const parsed = JSON.parse(line);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('not an object');
+      const payload = pickFields(parsed, fields);
       const worker = normalizeWorker(payload, payload.worker_id, 'status', `${file}:${index + 1}`);
       if (worker) byId.set(worker.id, mergeWorker(byId.get(worker.id), worker));
     } catch (error) {
@@ -287,18 +310,25 @@ function summarize(workers) {
   return summary;
 }
 
-function collectFleetState({ stateDir = DEFAULT_STATE_DIR } = {}) {
+/**
+ * Read a fleet run's markers. `stateDir` defaults to the current run (null when there is none, which reads
+ * nothing); `env` picks the lane; `fields` is an optional allowlist of top-level marker fields to parse,
+ * everything else in a marker is ignored.
+ */
+function collectFleetState({ stateDir, env, fields } = {}) {
+  if (stateDir === undefined) stateDir = fleetStatus.currentRunDir({ env });
   const skipped = [];
   const byId = new Map();
-  const entries = readDirSafe(stateDir).filter((entry) => entry.isFile());
+  const entries = stateDir ? readDirSafe(stateDir).filter((entry) => entry.isFile()) : [];
 
-  collectJsonlProgress(stateDir, byId, skipped);
+  if (stateDir) collectJsonlProgress(stateDir, byId, skipped, fields);
 
   for (const suffix of [STATUS_SUFFIX, COMPLETE_SUFFIX]) {
     for (const entry of entries.filter((item) => item.name.endsWith(suffix)).sort((a, b) => a.name.localeCompare(b.name))) {
       const file = path.join(stateDir, entry.name);
-      const payload = readJsonSafe(file, skipped);
-      if (!payload || typeof payload !== 'object' || Array.isArray(payload)) continue;
+      const parsed = readJsonSafe(file, skipped);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue;
+      const payload = pickFields(parsed, fields);
 
       const id = workerIdFromFilename(entry.name);
       const markerKind = suffix === COMPLETE_SUFFIX ? 'complete' : 'status';
@@ -343,13 +373,21 @@ function iconForStatus(status) {
   }[status] || '⏳';
 }
 
+// Whether `text` starts with `prefix` (case-insensitive) followed by a non-word character or the end. A plain
+// string comparison: a worker id is never compiled into a RegExp (Codex #302 delta4).
+function startsWithWord(text, prefix) {
+  if (!prefix || text.length < prefix.length) return false;
+  if (text.slice(0, prefix.length).toLowerCase() !== prefix.toLowerCase()) return false;
+  return text.length === prefix.length || !/\w/.test(text[prefix.length]);
+}
+
 function displayLabel(worker) {
   const explicit = firstString(worker.label);
   if (explicit) return explicit;
 
   const prefix = worker.ordinal !== null ? `W${worker.ordinal}` : worker.id;
   const title = firstString(worker.title) || titleFromId(worker.id, worker.ordinal);
-  if (new RegExp(`^${prefix}\\b`, 'i').test(title)) return title;
+  if (startsWithWord(title, prefix)) return title;
   if (title === prefix) return prefix;
   return `${prefix} ${title}`;
 }
@@ -473,7 +511,7 @@ function sleep(ms) {
 
 async function runCli() {
   const stateDirArg = process.argv.find((arg) => arg.startsWith('--state-dir='));
-  const stateDir = stateDirArg ? stateDirArg.slice('--state-dir='.length) : DEFAULT_STATE_DIR;
+  const stateDir = stateDirArg ? stateDirArg.slice('--state-dir='.length) : undefined;
   const watch = process.argv.includes('--watch');
 
   for (;;) {

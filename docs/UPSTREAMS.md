@@ -44,12 +44,16 @@ All 15 bumps are fast-forwards of the old pin.
 | `ccc-memory`, `ccc-tasks` | anthropics/knowledge-work-plugins | Apache-2.0 | adapted | 2026-11-13 | Heavily reframed for Commander; no line-level sync |
 | `ccc-adhd`, `mode-switcher` | ayghri/i-have-adhd | MIT | 2026-10 | 2026-10-11 | Up to date |
 | `caveman` | JuliusBrussee/caveman | MIT at our base; Apache-2.0 from 3.0.0 (2026-09-24) | pre-3.0 | 2026-11-17 | Kept at the MIT-era text on purpose; do not sync to the Apache-2.0 upstream |
-| `ccc-design/screenshots` | Shpigford/skills | Unverified (stated MIT; no license text shipped) | — | unreachable | Upstream repo is no longer public; copy kept |
+| `ccc-design/screenshots` | none (clean-room rewrite, 2026-11-19) | Project license | — | — | No longer a copy: rewritten from a functional spec without reading the earlier text, which came from the unreachable Shpigford/skills repo with no license text. Removed from `copied-content.json`; nothing to sync |
 | `playground` | frodo-temaki/playground-skill | MIT (README only, no LICENSE file) | — | 2026-01-28 | Identical to upstream |
 | `context-mode` | mksglu/context-mode | Elastic License 2.0 | external install | 2026-11-18 | Wrapper only; nothing bundled |
 | `ccc-testing/plankton-code-quality` | alexfazio/plankton | MIT | — | 2026-03-08 | Up to date |
 | `spawn-manager` (mentions) | smtg-ai/claude-squad | AGPL-3.0 | reference only | — | Link only; no code copied |
 | `ccc-recall` (optional) | thedotmack/claude-mem | Apache-2.0 (AGPL-3.0 before 2026) | reference only | — | Not bundled; bundling needs Kevin's decision |
+| `addyosmani-pack` (13 skills) | addyosmani/agent-skills | MIT | `39b723ce` | not rechecked in this pass | Copied with "CCC safety:" lines; skips in `skills/addyosmani-pack/DECISIONS.md` |
+| `threejs-pack` (13 skills) | CloudAI-X/threejs-skills | MIT | `0e181866` | not rechecked in this pass | Copied; local CLI pins and coordinate fix listed in NOTICE.md |
+| `science-pack` (48 skills) | K-Dense-AI/scientific-agent-skills | MIT (per-skill `license:` checked) | `ec59a29a` | not rechecked in this pass | MIT-licensed skills only; exclusions and edits in `skills/science-pack/DECISIONS.md` |
+| `specialist-pack` (24 skills) | Jeffallan/claude-skills `67c1961b`, wshobson/agents `9c61ab24`, VoltAgent/awesome-claude-code-subagents `ed74d115`, levnikolaevich/claude-code-skills `80984595` | MIT | per repo (left) | not rechecked in this pass | Cherry-picked; edits in `skills/specialist-pack/DECISIONS.md` |
 | `jezweb-pack` (`google-apps-script`, `favicon-gen`, `icon-set-generator`) | jezweb/claude-skills | MIT | `1260fa74` | `1260fa74` (2026-11-19) | Added: three sub-skills behind a router, with "CCC safety:" lines; elevenlabs-agents skipped. Skips and edits in `skills/jezweb-pack/DECISIONS.md` |
 | `mintlify` | mintlify.com | well-known | `skills-lock.json` hash | — | Not checked in this pass |
 

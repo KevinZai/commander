@@ -175,8 +175,98 @@ test('copied-content.json is valid JSON with required shape', function () {
   }
 });
 
-test('an unverified copy warns instead of passing or failing', function () {
-  assert.strictEqual(CLASSIFICATION['LicenseRef-Unverified'].verdict, 'WARN');
+// ─── Unverified copies: FAIL when packaged, WARN otherwise ────────────────────
+// Fixture-driven through --copies and --packlist, so the result does not depend
+// on what the real tree happens to hold.
+
+const SCRIPT = path.join(__dirname, '..', 'scripts', 'audit-licenses.js');
+const UNVERIFIED_COPY = {
+  file: 'skills/example/fixture/SKILL.md',
+  vendor: 'example-vendor',
+  license: 'LicenseRef-Unverified',
+  notes: 'Upstream returns 404 and the copy ships no license text.',
+};
+
+function auditFixture(copies, packlist, extraArgs) {
+  const { spawnSync } = require('node:child_process');
+  const os = require('node:os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'audit-licenses-'));
+  const copiesFile = path.join(dir, 'copies.json');
+  fs.writeFileSync(copiesFile, JSON.stringify({ copies }));
+  const args = [SCRIPT, '--copies', copiesFile];
+  if (packlist !== undefined) {
+    const packFile = path.join(dir, 'pack.json');
+    fs.writeFileSync(packFile, typeof packlist === 'string' ? packlist : JSON.stringify(packlist));
+    args.push('--packlist', packFile);
+  }
+  return spawnSync(process.execPath, args.concat(extraArgs || []), { encoding: 'utf8' });
+}
+
+function npmPackJson(paths) {
+  return [{ name: 'fixture', files: paths.map((p) => ({ path: p, size: 1, mode: 420 })) }];
+}
+
+test('unverified packaged copy fails --check', function () {
+  const result = auditFixture([UNVERIFIED_COPY], npmPackJson(['package.json', UNVERIFIED_COPY.file]), ['--check']);
+  assert.strictEqual(result.status, 1, 'a packaged copy with an unverified license must fail --check');
+  assert.ok(result.stdout.includes('HARD FAIL'), 'the report names the hard failure');
+  assert.ok(result.stdout.includes(UNVERIFIED_COPY.file + ' (LicenseRef-Unverified, packaged)'));
+
+  // The JSON view agrees and marks the copy as packaged.
+  const json = auditFixture([UNVERIFIED_COPY], npmPackJson([UNVERIFIED_COPY.file]), ['--json']);
+  assert.strictEqual(json.status, 1);
+  const copy = JSON.parse(json.stdout).copies[0];
+  assert.strictEqual(copy.verdict, 'FAIL');
+  assert.strictEqual(copy.packaged, true);
+});
+
+test('unverified unpackaged copy warns', function () {
+  const result = auditFixture([UNVERIFIED_COPY], npmPackJson(['package.json', 'README.md']), ['--check']);
+  assert.strictEqual(result.status, 0, 'an unpackaged unverified copy is a warning, not a failure');
+  const unverified = result.stdout.indexOf('LICENSE UNVERIFIED');
+  assert.ok(unverified > 0, 'the audit prints a LICENSE UNVERIFIED group');
+  const line = result.stdout.indexOf(UNVERIFIED_COPY.file + ' (LicenseRef-Unverified)');
+  assert.ok(line > unverified, 'the copy is listed under LICENSE UNVERIFIED');
+  const permissive = result.stdout.indexOf('Kevin has explicitly acknowledged');
+  assert.ok(permissive < 0 || permissive < unverified, 'the unverified group is separate from the acknowledged list');
+  assert.ok(result.stdout.includes('0 ❌ FAIL'));
+});
+
+test('an UNKNOWN packaged copy fails and an unreadable file list fails closed', function () {
+  const unknown = { file: 'skills/example/unknown/SKILL.md', vendor: 'nobody', license: 'UNKNOWN' };
+  assert.strictEqual(auditFixture([unknown], npmPackJson([unknown.file]), ['--check']).status, 1);
+  // A missing reason turns an unverified copy into UNKNOWN, which always fails.
+  const noReason = { ...UNVERIFIED_COPY, notes: '' };
+  assert.strictEqual(auditFixture([noReason], npmPackJson([]), ['--check']).status, 1);
+  // When the package list cannot be read, the copy is treated as packaged.
+  const broken = auditFixture([UNVERIFIED_COPY], '{not json', ['--check']);
+  assert.strictEqual(broken.status, 1, 'an unreadable packlist must not let an unverified copy pass');
+  assert.match(broken.stderr, /treating every unverified copy as packaged/);
+});
+
+// Codex #302 H15: path spellings compare canonically, and a packlist of the wrong shape fails closed.
+test('a ./-prefixed or backslash packlist path still counts as packaged', function () {
+  for (const spelling of ['./' + UNVERIFIED_COPY.file, UNVERIFIED_COPY.file.replace(/\//g, '\\'), 'skills/example/./fixture/SKILL.md']) {
+    assert.strictEqual(auditFixture([UNVERIFIED_COPY], npmPackJson([spelling]), ['--check']).status, 1, spelling);
+    assert.strictEqual(auditFixture([UNVERIFIED_COPY], [spelling], ['--check']).status, 1, spelling + ' (plain list)');
+  }
+  const dotCopy = { ...UNVERIFIED_COPY, file: './' + UNVERIFIED_COPY.file };
+  assert.strictEqual(auditFixture([dotCopy], npmPackJson([UNVERIFIED_COPY.file]), ['--check']).status, 1, './ in copies.json');
+});
+
+test('an invalid packlist schema fails closed', function () {
+  for (const bad of [{}, [{}], [{ files: [{ size: 1 }] }], [42], { files: 'x' }]) {
+    const r = auditFixture([UNVERIFIED_COPY], bad, ['--check']);
+    assert.strictEqual(r.status, 1, JSON.stringify(bad) + ' must not let an unverified copy pass');
+    assert.match(r.stderr, /treating every unverified copy as packaged/);
+  }
+});
+
+test('--copies and --packlist reject a missing value and unknown flags', function () {
+  const { spawnSync } = require('node:child_process');
+  assert.strictEqual(spawnSync(process.execPath, [SCRIPT, '--copies'], { encoding: 'utf8' }).status, 2);
+  assert.strictEqual(spawnSync(process.execPath, [SCRIPT, '--packlist', '--check'], { encoding: 'utf8' }).status, 2);
+  assert.strictEqual(spawnSync(process.execPath, [SCRIPT, '--nope'], { encoding: 'utf8' }).status, 2);
 });
 
 test('every license in copied-content.json is in CLASSIFICATION map', function () {
@@ -216,14 +306,9 @@ test('audit-licenses.js --check output shows 0 FAIL entries', function () {
   assert.ok(result.stdout.includes('0 ❌ FAIL'), 'Totals line must show 0 FAIL');
 });
 
-test('the real audit lists an unverified copy in its own group, never as acknowledged permissive', function () {
-  const { spawnSync } = require('node:child_process');
-  const script = path.join(__dirname, '..', 'scripts', 'audit-licenses.js');
-  const out = spawnSync(process.execPath, [script], { encoding: 'utf8' }).stdout;
-  const unverified = out.indexOf('LICENSE UNVERIFIED');
-  assert.ok(unverified > 0, 'the audit prints a LICENSE UNVERIFIED group');
-  const line = out.indexOf('skills/ccc-design/screenshots/SKILL.md (LicenseRef-Unverified)');
-  assert.ok(line > unverified, 'the screenshots copy is listed under LICENSE UNVERIFIED');
-  const permissive = out.indexOf('Kevin has explicitly acknowledged');
-  assert.ok(permissive < 0 || permissive < unverified, 'the unverified group is separate from the acknowledged list');
+test('the real provenance map holds no unverified copy and the rewritten screenshots skill is not listed', function () {
+  const jsonPath = path.join(__dirname, '..', 'scripts', 'copied-content.json');
+  const { copies } = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+  assert.deepStrictEqual(copies.filter((c) => c.license === 'LicenseRef-Unverified').map((c) => c.file), []);
+  assert.ok(!copies.some((c) => c.file === 'skills/ccc-design/screenshots/SKILL.md'), 'the clean-room rewrite is not a copy');
 });

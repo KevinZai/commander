@@ -5,6 +5,7 @@ var path = require('path');
 var adventure = require('./adventure');
 var tui = require('./tui');
 var state = require('./state');
+var projectRoot = require('./lib/project-root');
 var BRAND = require('./branding');
 var telemetry = (function() { try { return require('./lib/telemetry-cjs'); } catch (_e) { return { track: function() {}, flushBatch: function() {} }; } })();
 try { telemetry.track('cli_session_started', { ide: 'cli', surface: 'engine' }); } catch(_e) {}
@@ -26,95 +27,46 @@ function inSplitMode() {
   return !!process.env.CCC_TMUX_SESSION;
 }
 
-// Send a claude command to the right tmux pane instead of running headless
-// Dispatch counter for naming panes
+// Send a claude command to a new tmux pane instead of running headless.
+// The pane logic lives in lib/tmux-dispatch.js; null means nothing was sent.
 var dispatchCounter = 0;
 
-function tmuxDispatch(task, resumeSessionId) {
-  try {
-    var cp = require('child_process');
-    var crypto = require('crypto');
-    var claudeBin = require('./claude-finder').resolve();
+function tmuxDispatch(task, resumeSessionId, cwd) {
+  dispatchCounter++;
+  return require('./lib/tmux-dispatch').dispatch(task, resumeSessionId, {
+    sessionName: process.env.CCC_TMUX_SESSION || 'ccc',
+    paneTitle: 'claude-' + dispatchCounter,
+    cwd: cwd
+  });
+}
 
-    // Pre-dispatch auth check: verify Claude Code can authenticate
-    try {
-      var authCheck = cp.execFileSync(claudeBin, ['-p', 'reply with OK', '--max-turns', '1', '--output-format', 'text'], {
-        encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], timeout: 15000
-      });
-    } catch(authErr) {
-      var errMsg = String(authErr.stderr || authErr.message || '');
-      if (errMsg.indexOf('authentication') !== -1 || errMsg.indexOf('401') !== -1 || errMsg.indexOf('login') !== -1) {
-        process.stdout.write('\n  \x1b[31mAuth error: Claude Code credentials are invalid or expired.\x1b[0m\n');
-        process.stdout.write('  Run \x1b[1mclaude /login\x1b[0m to re-authenticate, then try again.\n\n');
-        return null;
-      }
-    }
+// The dispatched task: the project's context (from the same root the dispatch runs in) and relevant past lessons as
+// labelled reference data, then the task.
+function referencedTask(task, projectDir) {
+  return require('./lib/reference-data').buildReferencedTask(task, {
+    projectDir: projectDir || undefined,
+    lessonsFor: task
+  });
+}
 
-    var sessionName = process.env.CCC_TMUX_SESSION || 'ccc';
-    var sessionId = resumeSessionId || crypto.randomUUID();
-    dispatchCounter++;
-    var paneTitle = 'claude-' + dispatchCounter;
+// Where a new dispatch runs, resolved once per dispatch (lib/project-root.js): the imported project's absolute
+// root, so Claude Code loads that project's CLAUDE.md and .claude/ itself, or the launch directory when no project
+// is imported. A missing or relative project root is an error, never a silent fallback to the launch directory.
+// Returns { dir, projectDir, error }: dir is the cwd (always absolute), projectDir the imported root or null.
+function dispatchRoot(currentState) {
+  var r = projectRoot.activeRoot(currentState || state.loadState() || {});
+  if (r.error) return { dir: null, projectDir: null, error: r.error };
+  if (r.dir) return { dir: r.dir, projectDir: r.dir, error: null };
+  return { dir: launchDir(), projectDir: null, error: null };
+}
 
-    // Count current panes
-    var paneCount = 1;
-    try {
-      paneCount = parseInt(cp.execFileSync('tmux', ['display-message', '-p', '-t', sessionName, '#{window_panes}'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim(), 10) || 1;
-    } catch(_e) {}
+function launchDir() {
+  try { return require('fs').realpathSync(process.cwd()); } catch (_e) { return require('path').resolve(process.cwd()); }
+}
 
-    // Create pane
-    if (paneCount === 1) {
-      cp.execFileSync('tmux', ['split-window', '-h', '-t', sessionName, '-l', '75%'], { stdio: 'pipe' });
-    } else {
-      var lastPane = paneCount - 1;
-      cp.execFileSync('tmux', ['select-pane', '-t', sessionName + ':.' + lastPane], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['split-window', '-h', '-t', sessionName], { stdio: 'pipe' });
-    }
-
-    // Set pane title
-    cp.execFileSync('tmux', ['select-pane', '-T', paneTitle], { stdio: 'pipe' });
-
-    // Launch Claude with session persistence
-    // Validate sessionId: strict allowlist to prevent shell injection
-    if (!/^[a-zA-Z0-9._:-]+$/.test(sessionId)) {
-      sessionId = crypto.randomUUID(); // replace tainted ID with safe one
-    }
-    if (resumeSessionId) {
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', claudeBin + ' --resume ' + sessionId + ' --continue'], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
-    } else {
-      // Start interactive Claude, then send task as user input after a brief pause
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', claudeBin + ' --session-id ' + sessionId], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
-      // Wait for Claude Code to be ready (poll for prompt, up to 8s)
-      var ready = false;
-      for (var attempt = 0; attempt < 16; attempt++) {
-        try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500); } catch(e) { /* noop */ }
-        try {
-          var paneContent = cp.execFileSync('tmux', ['capture-pane', '-t', sessionName, '-p'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-          if (paneContent.indexOf('>') !== -1 || paneContent.indexOf('╭') !== -1) {
-            ready = true;
-            break;
-          }
-        } catch(_e) {}
-      }
-      if (!ready) { try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000); } catch(e) { /* noop */ } }
-      // Sanitize task: strip control chars, limit length
-      var safeTask = String(task || '').replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 4000);
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, '-l', safeTask], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['send-keys', '-t', sessionName, 'Enter'], { stdio: 'pipe' });
-    }
-
-    // Return focus to menu pane
-    cp.execFileSync('tmux', ['select-pane', '-t', sessionName + ':.0'], { stdio: 'pipe' });
-
-    // Rebalance layout
-    try {
-      cp.execFileSync('tmux', ['select-layout', '-t', sessionName, 'main-vertical'], { stdio: 'pipe' });
-      cp.execFileSync('tmux', ['resize-pane', '-t', sessionName + ':.0', '-x', '35'], { stdio: 'pipe' });
-    } catch(_e) {}
-
-    return sessionId;
-  } catch(_e) { return null; }
+// Identifiers interpolated into a system prompt are restricted to a plain token.
+function safeId(value) {
+  return String(value == null ? '' : value).replace(/[^A-Za-z0-9_.:-]/g, '').slice(0, 80);
 }
 
 var cockpit = require('./cockpit');
@@ -249,7 +201,7 @@ class KitCommander {
         if (loadIdx === 0) {
           var pi = require('./project-importer');
           var project = pi.scanProject(cwd);
-          state.updateState({ activeProject: { dir: project.dir, name: project.name || detectedName } });
+          state.updateState({ activeProject: { dir: projectRoot.normalizeRoot(project.dir), name: project.name || detectedName } });
           process.stdout.write('  ' + tui.dimText('Project loaded. Context will be included in dispatches.') + '\n\n');
           try { require('./integrations/linear').pulse('claude_md_loaded', detectedName).catch(function(){}); } catch(_e) { try { require('./error-logger').log(_e, 'linear-pulse-load'); } catch(_) {} }
         }
@@ -468,12 +420,24 @@ class KitCommander {
     }
   }
 
+  // A dispatch that cannot run in its bound project prints why and sends nothing.
+  async refuseDispatch(message) {
+    process.stdout.write('\n  ' + message + '\n');
+    process.stdout.write('  ' + tui.dimText('Nothing was dispatched.') + '\n');
+    if (!this.rl) this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    await this.ask('\n  Press Enter...');
+  }
+
   async executeBuild(task) {
     var currentState = state.loadState();
+    var root = dispatchRoot(currentState);
+    if (root.error) { await this.refuseDispatch(root.error); return; }
     var userLevel = state.getUserLevel(currentState);
     var spec = await this.runSpecFlow(task, userLevel);
     var fullTask = spec.enrichedTask;
     var session = state.createSession({ task: fullTask, project: null });
+    // Bind the session to the root it runs in: resume goes back there even after another project is imported.
+    state.updateSession(session.id, { projectDir: root.dir });
 
     // Sync to Linear — capture issue ID
     try {
@@ -514,10 +478,9 @@ class KitCommander {
       if (complexity.effort) defaults.effort = complexity.effort;
     }
 
-    // Build system prompt with plugins + knowledge + Linear MCP context
+    // System prompt: fixed PM instructions + Linear MCP context. Project context, the relevant-skills hint and past
+    // lessons are data, so they travel with the task as labelled blocks (lib/reference-data.js), never in the system prompt.
     var sysPrompt = (function() {
-      var knowledge = require("./knowledge");
-      var knowledgePrompt = knowledge.buildKnowledgePrompt(fullTask);
       var pluginsMod = require("./plugins");
       var det = pluginsMod.detectPlugins();
       var dispPlan = pluginsMod.buildDispatchPlan(det);
@@ -544,8 +507,6 @@ class KitCommander {
         "## Skill Suggestions (proactive)\n" +
         "Feature: spec-interviewer | Code: tdd-workflow | Bug: systematic-debugging | Review: review | Deploy: deploy-check | UI: ccc-design | SEO: ccc-seo | Security: ccc-security | Ship: qa/e2e\n" +
         "Suggest: I recommend [skill] because [reason]. AskUserQuestion: use / skip / others."
-      var cs = state.loadState();
-      if (cs.activeProject) { try { var pi = require("./project-importer"); var proj = pi.scanProject(cs.activeProject.dir); prompt += "\n\n" + pi.buildProjectPrompt(proj); } catch(_e) {} }
       // Linear MCP context injection
       var linearCtx = "";
       try {
@@ -553,24 +514,14 @@ class KitCommander {
         if (lm.validateAuth()) {
           var sess = state.getSession(session.id);
           if (sess && sess.linearIssueId) {
-            linearCtx = "\n\n## Linear Integration\nLinear MCP tools available (mcp__linear__*). Current issue: " + sess.linearIssueIdentifier + " (ID: " + sess.linearIssueId + "). Update progress via mcp__linear__save_comment. Mark done via mcp__linear__save_issue when complete.";
+            linearCtx = "\n\n## Linear Integration\nLinear MCP tools available (mcp__linear__*). Current issue: " + safeId(sess.linearIssueIdentifier) + " (ID: " + safeId(sess.linearIssueId) + "). Update progress via mcp__linear__save_comment. Mark done via mcp__linear__save_issue when complete.";
           }
         }
       } catch(_e) {}
-      // Intelligence Layer: relevant skills for this project
-      var skillHint = '';
-      try {
-        var projectStack = [];
-        var cs2 = state.loadState();
-        if (cs2.activeProject) { try { projectStack = require('./project-importer').scanProject(cs2.activeProject.dir).techStack || []; } catch(_) {} }
-        if (projectStack.length > 0) {
-          var sbr = require('./skill-browser');
-          var topSkills = sbr.filterByProject(sbr.listSkills(), projectStack).slice(0, 8).map(function(s) { return s.name; });
-          skillHint = '\n\nProject stack detected: ' + projectStack.join(', ') + '. Most relevant skills: ' + topSkills.join(', ') + '.';
-        }
-      } catch(_) {}
-      return prompt + knowledgePrompt + linearCtx + skillHint;
+      // The relevant-skills hint travels with the task as reference data (lib/reference-data.js).
+      return prompt + linearCtx;
     })();
+    var dispatchTask = referencedTask(fullTask, root.projectDir);
 
     try {
       sp.stop(true);
@@ -579,22 +530,27 @@ class KitCommander {
 
       if (inSplitMode()) {
         // Split mode: launch interactive Claude Code session the user can take over
-        var claudeSessionId = tmuxDispatch(fullTask);
+        var claudeSessionId = tmuxDispatch(fullTask, null, root.dir);
         if (claudeSessionId) {
           state.updateSession(session.id, { claudeSessionId: claudeSessionId });
+          process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
+          process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
+          state.completeSession(session.id, 'dispatched');
+        } else {
+          tmuxStatus('DISPATCH FAILED');
+          process.stdout.write('\x0a  Dispatch failed: Claude Code did not start in a new pane, so the task was not sent.\x0a');
+          state.completeSession(session.id, 'error');
         }
-        process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
-        process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
-        state.completeSession(session.id, 'dispatched');
       } else {
         // Simple mode: run headless with streaming output
         process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
         process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
-        var dispatchP = d.dispatchWithRetry(fullTask, {
+        var dispatchP = d.dispatchWithRetry(dispatchTask, {
           stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
           model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
           fallbackModel: "sonnet", bare: false,
-          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
+          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt,
+          cwd: root.dir
         });
         var result = await cancellableDispatch(dispatchP, fullTask.slice(0, 60));
         if (result.cancelled) { state.completeSession(session.id, 'cancelled'); } else {
@@ -635,8 +591,11 @@ class KitCommander {
   }
 
   async executeBuildFromIssue(issue) {
+    var root = dispatchRoot();
+    if (root.error) { await this.refuseDispatch(root.error); return; }
     var fullTask = issue.title;
     var session = state.createSession({ task: fullTask, project: null });
+    state.updateSession(session.id, { projectDir: root.dir });
     state.updateSession(session.id, { linearIssueId: issue.id, linearIssueIdentifier: issue.identifier || null });
     process.stdout.write('\n  ' + tui.boldText(issue.identifier + ': ' + fullTask, tui.getTheme().primary) + '\n');
     var sp = tui.spinner('Dispatching to Claude Code...');
@@ -645,14 +604,11 @@ class KitCommander {
     var currentState = state.loadState();
     var defaults = d.getDefaultsForLevel(state.getUserLevel(currentState));
     var sysPrompt = (function() {
-      var knowledge = require("./knowledge");
-      var knowledgePrompt = knowledge.buildKnowledgePrompt(fullTask);
       var prompt = "Start with a plan. Present it before implementing.";
-      var cs = state.loadState();
-      if (cs.activeProject) { try { var pi = require("./project-importer"); var proj = pi.scanProject(cs.activeProject.dir); prompt += "\n\n" + pi.buildProjectPrompt(proj); } catch(_e) {} }
-      prompt += "\n\n## Linear Integration\nLinear MCP tools available (mcp__linear__*). Current issue: " + issue.identifier + " (ID: " + issue.id + "). Update progress via mcp__linear__save_comment. Mark done via mcp__linear__save_issue when complete.";
-      return prompt + knowledgePrompt;
+      prompt += "\n\n## Linear Integration\nLinear MCP tools available (mcp__linear__*). Current issue: " + safeId(issue.identifier) + " (ID: " + safeId(issue.id) + "). Update progress via mcp__linear__save_comment. Mark done via mcp__linear__save_issue when complete.";
+      return prompt;
     })();
+    var dispatchTask = referencedTask(fullTask, root.projectDir);
     try {
       sp.stop(true);
       tmuxStatus('Building: ' + fullTask.slice(0, 60));
@@ -660,22 +616,27 @@ class KitCommander {
 
       if (inSplitMode()) {
         // Split mode: launch interactive Claude Code session the user can take over
-        var claudeSessionId = tmuxDispatch(fullTask);
+        var claudeSessionId = tmuxDispatch(fullTask, null, root.dir);
         if (claudeSessionId) {
           state.updateSession(session.id, { claudeSessionId: claudeSessionId });
+          process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
+          process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
+          state.completeSession(session.id, 'dispatched');
+        } else {
+          tmuxStatus('DISPATCH FAILED');
+          process.stdout.write('\x0a  Dispatch failed: Claude Code did not start in a new pane, so the task was not sent.\x0a');
+          state.completeSession(session.id, 'error');
         }
-        process.stdout.write('\x0a  ' + tui.boldText('Dispatched to Claude pane \u2192', tui.getTheme().primary) + '\x0a');
-        process.stdout.write('  ' + tui.dimText('Dispatched to pane ' + dispatchCounter + '. Ctrl+A \u2192 to switch.') + '\x0a');
-        state.completeSession(session.id, 'dispatched');
       } else {
         // Simple mode: run headless with streaming output
         process.stdout.write('\x0a  ' + tui.dimText('Claude is working \u2014 live output below. Ctrl+C to cancel.') + '\x0a');
         process.stdout.write(tui.divider('Claude Output') + '\x0a\x0a');
-        var dispatchP = d.dispatchWithRetry(fullTask, {
+        var dispatchP = d.dispatchWithRetry(dispatchTask, {
           stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort,
           model: defaults.model, maxBudgetUsd: defaults.maxBudgetUsd,
           fallbackModel: "sonnet", bare: false,
-          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt
+          name: d.generateSessionName(fullTask), systemPrompt: sysPrompt,
+          cwd: root.dir
         });
         var result = await cancellableDispatch(dispatchP, fullTask.slice(0, 60));
         if (result.cancelled) { state.completeSession(session.id, 'cancelled'); } else {
@@ -717,10 +678,18 @@ class KitCommander {
   }
 
   async resumeSession(session) {
+    var currentState = state.loadState();
+    // Resume where the session ran: its bound root, or (older sessions) the active project, validated either way.
+    var bound = projectRoot.sessionRoot(session, currentState);
+    if (bound.error) {
+      tmuxStatus('RESUME FAILED');
+      await this.refuseDispatch('Could not resume: ' + bound.error);
+      return;
+    }
+    var resumeDir = bound.dir || launchDir();
     var sp = tui.spinner('Resuming session...');
     sp.start();
     var d = getDispatcher();
-    var currentState = state.loadState();
     var defaults = d.getDefaultsForLevel(state.getUserLevel(currentState));
     try {
       sp.stop(true);
@@ -728,12 +697,17 @@ class KitCommander {
       process.stdout.write('\x0a' + tui.divider('Resuming Session') + '\x0a\x0a');
       process.stdout.write('  ' + tui.dimText('Task: ' + (session.task || 'unknown').slice(0, 120)) + '\x0a');
       if (inSplitMode() && session.claudeSessionId) {
-        tmuxDispatch(null, session.claudeSessionId);
-        process.stdout.write('  ' + tui.boldText('Resumed in Claude pane \u2192', tui.getTheme().primary) + '\x0a');
-        process.stdout.write('  ' + tui.dimText('Session resumed in pane. Ctrl+A \u2192 to switch.') + '\x0a');
+        if (tmuxDispatch(null, session.claudeSessionId, resumeDir)) {
+          process.stdout.write('  ' + tui.boldText('Resumed in Claude pane \u2192', tui.getTheme().primary) + '\x0a');
+          process.stdout.write('  ' + tui.dimText('Session resumed in pane. Ctrl+A \u2192 to switch.') + '\x0a');
+        } else {
+          tmuxStatus('RESUME FAILED');
+          process.stdout.write('  Could not resume: no Claude pane was opened.\x0a');
+          state.completeSession(session.id, 'error');
+        }
       } else {
         process.stdout.write('  ' + tui.dimText('Claude is working \u2014 live output below.') + '\x0a\x0a');
-        var result = await d.dispatch('Continue: ' + session.task, { stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort, fallbackModel: 'sonnet', bare: false, resume: session.claudeSessionId || undefined });
+        var result = await d.dispatch('Continue: ' + session.task, { stream: true, maxTurns: defaults.maxTurns, effort: defaults.effort, fallbackModel: 'sonnet', bare: false, resume: session.claudeSessionId || undefined, cwd: resumeDir });
         state.updateSession(session.id, { cost: (session.cost || 0) + (result.cost_usd || 0) });
         tmuxStatus('RESUME COMPLETE \u2714');
         process.stdout.write(tui.celebrate('Progress made!'));
@@ -893,6 +867,9 @@ class KitCommander {
     var cycles = [3, 5, 10];
     maxCycles = cycles[cycleIdx >= 0 ? cycleIdx : 1];
     process.stdout.write("\n  " + tui.boldText("Launching YOLO Loop: " + maxCycles + " cycles", tui.getTheme().primary) + "\n\n");
+    // Every cycle runs in the imported project's root (or the launch directory with no project), resolved once.
+    var yoloRoot = dispatchRoot();
+    if (yoloRoot.error) { await this.refuseDispatch(yoloRoot.error); return { next: "night-build" }; }
     var d = getDispatcher();
     var knowledge = require("./knowledge");
     var fs = require("fs");
@@ -906,6 +883,7 @@ class KitCommander {
       var sp = tui.spinner("Cycle " + cycle + "/" + maxCycles + ": " + (cycle === 1 ? "Building" : "Improving") + "...");
       sp.start();
       var session = state.createSession({ task: "YOLO cycle " + cycle + ": " + task, project: null });
+      state.updateSession(session.id, { projectDir: yoloRoot.dir });
 
       // Sync to Linear — capture issue
       try {
@@ -915,14 +893,14 @@ class KitCommander {
       } catch(_e) { try { require('./error-logger').log(_e, 'yolo-linear-start'); } catch(_) {} }
 
       var prompt = cycle === 1 ? task : "Review and improve the previous work on: " + task + ". Fix any issues. Add missing tests. Improve quality.";
-      var knowledgePrompt = knowledge.buildKnowledgePrompt(task);
+      var yoloTask = require('./lib/reference-data').buildReferencedTask(prompt, { projectDir: yoloRoot.projectDir || undefined, lessonsFor: task });
       try {
         fs.writeFileSync(statusPath, "YOLO Loop: cycle " + cycle + "/" + maxCycles + " | " + new Date().toISOString() + " | Task: " + task);
         tmuxStatus("YOLO Cycle " + cycle + "/" + maxCycles + " started");
         sp.stop(true);
         process.stdout.write("\x0a" + tui.divider("YOLO Cycle " + cycle + "/" + maxCycles + (cycle === 1 ? " \u2014 Building" : " \u2014 Improving")) + "\x0a\x0a");
         process.stdout.write("  " + tui.dimText("Live output below. Watch file: " + statusPath + "") + "\x0a\x0a");
-        var result = await d.dispatch(prompt, { stream: true, maxTurns: Math.round(100 / maxCycles), effort: cycle === 1 ? "high" : "medium", model: "opus", maxBudgetUsd: Math.round(10 / maxCycles), permissionMode: "plan", fallbackModel: "sonnet", bare: false, name: d.generateSessionName("yolo-" + cycle + "-" + task), systemPrompt: "YOLO Loop cycle " + cycle + "/" + maxCycles + ". " + (cycle === 1 ? "Build from scratch." : "Review previous work. Fix issues. Add tests. Ship quality.") + knowledgePrompt });
+        var result = await d.dispatch(yoloTask, { stream: true, maxTurns: Math.round(100 / maxCycles), effort: cycle === 1 ? "high" : "medium", model: "opus", maxBudgetUsd: Math.round(10 / maxCycles), permissionMode: "plan", fallbackModel: "sonnet", bare: false, cwd: yoloRoot.dir, name: d.generateSessionName("yolo-" + cycle + "-" + task), systemPrompt: "YOLO Loop cycle " + cycle + "/" + maxCycles + ". " + (cycle === 1 ? "Build from scratch." : "Review previous work. Fix issues. Add tests. Ship quality.") });
         state.updateSession(session.id, { claudeSessionId: result.session_id || null, cost: result.cost_usd || 0 });
         state.completeSession(session.id, "success");
         knowledge.extractAndStore(state.getSession(session.id) || session, result.result || "");

@@ -28,7 +28,7 @@ Hooks are lifecycle scripts that run automatically during Claude Code sessions. 
 | Auto Notify | `auto-notify.js` | Notifications on significant events |
 | PreUse Logger | `preuse-logger.js` | Log tool usage for cost analysis |
 | Context Guard | `context-guard.js` | Warn at ~70% context usage, auto-save session |
-| Auto Checkpoint | `auto-checkpoint.js` | Git-stash checkpoint every 10 file edits |
+| Auto Checkpoint | `auto-checkpoint.js` | Opt-in (`CCC_AUTO_CHECKPOINT=1`): snapshot of tracked changes to `refs/ccc-checkpoints/<session>/<n>` every 10 file edits; worktree, index and stash list untouched |
 | Cost Alert | `cost-alert.js` | Cost proxy alerts at ~$0.50 and ~$2.00 thresholds |
 | Auto Lessons | `auto-lessons.js` | Capture errors and corrections to tasks/lessons.md |
 | Rate Predictor | `rate-predictor.js` | Predict session duration from tool call rate |

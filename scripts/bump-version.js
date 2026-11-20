@@ -18,9 +18,15 @@ if (!version) {
   process.exit(1);
 }
 
-// Basic semver/pre-release sanity check
-if (!/^\d+\.\d+\.\d+/.test(version)) {
-  process.stderr.write('ERROR: version must start with X.Y.Z (got: ' + version + ')\n');
+// Strict semver, X.Y.Z with an optional pre-release (Codex #302 M10). The version is written into
+// install-remote.sh's CCC_SHIPPED_REF="v<version>" shell assignment and names the release tag, so nothing
+// else gets through: no shell characters, and no +build metadata, which install-remote.sh refuses as a ref.
+var NUM = '(?:0|[1-9]\\d*)';
+var PRE_ID = '(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*)';
+var STRICT_SEMVER = new RegExp('^' + NUM + '\\.' + NUM + '\\.' + NUM + '(?:-' + PRE_ID + '(?:\\.' + PRE_ID + ')*)?$');
+if (!STRICT_SEMVER.test(version)) {
+  process.stderr.write('ERROR: version must be strict semver X.Y.Z or X.Y.Z-prerelease (got: ' + JSON.stringify(version) + ')\n');
+  if (version.indexOf('+') !== -1) process.stderr.write('  Build metadata (+...) is not supported: release tags and install-remote.sh refs cannot carry it.\n');
   process.exit(1);
 }
 
@@ -56,7 +62,14 @@ var LOCKFILES = [
 // Best-effort rollback: if a rename fails mid-phase-2, restore files
 // that were already renamed from their saved pre-image.
 
-var plan = [];      // { path, beforeBytes, afterBytes, tempPath, summary[] }
+// Text files that pin the release tag: the remote installer's default ref and
+// the tag-pinned download URL in its header and the beginner guide.
+var TEXT_FILES = [
+  { path: path.join(ROOT, 'install-remote.sh'), patterns: [/^(CCC_SHIPPED_REF="v)[^"]+(")$/m, /(\/commander\/v)\d+\.\d+\.\d+[^/]*(\/install-remote\.sh)/g] },
+  { path: path.join(ROOT, 'guides', 'quickstart-beginner.md'), patterns: [/(\/commander\/v)\d+\.\d+\.\d+[^/]*(\/install-remote\.sh)/g] },
+];
+
+var plan = [];      // { path, beforeBytes, afterBytes, tempPath, summary[], mode }
 var errors = [];
 
 function buildPlan() {
@@ -109,6 +122,20 @@ function buildPlan() {
       summary: [path.relative(ROOT, lockfile) + ' (' + lockPrev + ' -> ' + version + ')'],
     });
   });
+
+  TEXT_FILES.forEach(function (file) {
+    var textRaw = fs.readFileSync(file.path, 'utf8');
+    var next = textRaw;
+    file.patterns.forEach(function (re) { next = next.replace(re, '$1' + version + '$2'); });
+    plan.push({
+      path: file.path,
+      beforeBytes: textRaw,
+      afterBytes: next,
+      tempPath: file.path + '.bump-tmp',
+      summary: [path.relative(ROOT, file.path) + ' (release tag -> v' + version + ')'],
+      mode: fs.statSync(file.path).mode & 0o777,
+    });
+  });
 }
 
 try {
@@ -126,6 +153,7 @@ try {
   // First, write ALL temp files. If any write fails, nothing has moved yet.
   for (var item of plan) {
     fs.writeFileSync(item.tempPath, item.afterBytes, 'utf8');
+    if (item.mode) fs.chmodSync(item.tempPath, item.mode);
   }
   // Then rename each into place. Each rename is atomic on the same fs.
   for (var item2 of plan) {

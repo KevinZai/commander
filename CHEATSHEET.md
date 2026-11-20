@@ -478,46 +478,46 @@ Stop: `Ctrl+C` or the stop button in Cowork Desktop. Avoid looping destructive s
 
 ### Proactive Hooks (14 Kit-Native)
 
-The standalone config (`hooks/hooks-standalone.json`) wires 14 kit-native hooks that fire automatically — no prompting required. Disable any hook with its env var.
+The standalone config (`hooks/hooks-standalone.json`) wires 14 kit-native hooks that fire automatically — no prompting required. To turn a hook off, remove its entry from the installed `hooks.json`; no environment variable switches these hooks off, except `auto-checkpoint`, which runs only when opted in.
 
 **PreToolUse (3 hooks)**
 
-| Hook | What it does | Disable with |
+| Hook | What it does | Turn off |
 |------|-------------|-------------|
-| `careful-guard` | Blocks destructive commands (rm -rf, DROP TABLE, force push) | `KZ_DISABLE_CAREFUL_GUARD=1` |
-| `pre-commit-verify` | TypeScript check before git commit — blocks on tsc errors | `KZ_DISABLE_PRE_COMMIT_VERIFY=1` |
-| `confidence-gate` | Warns on multi-file bash operations (sed -i on globs, find -exec) | `KZ_DISABLE_CONFIDENCE_GATE=1` |
+| `careful-guard` | Blocks destructive commands (rm -rf, DROP TABLE, force push) | Remove its `hooks.json` entry |
+| `pre-commit-verify` | TypeScript check before git commit — blocks on tsc errors | Remove its `hooks.json` entry |
+| `confidence-gate` | Warns on multi-file bash operations (sed -i on globs, find -exec) | Remove its `hooks.json` entry |
 
 **PostToolUse (7 hooks)**
 
-| Hook | What it does | Disable with |
+| Hook | What it does | Turn off |
 |------|-------------|-------------|
-| `auto-notify` | Notifications on significant events (PR created, deploy) | `KZ_DISABLE_AUTO_NOTIFY=1` |
-| `preuse-logger` | Logs tool usage for cost analysis | `KZ_DISABLE_PREUSE_LOGGER=1` |
-| `context-guard` | Warns at ~70% context, auto-saves session | `KZ_DISABLE_CONTEXT_GUARD=1` |
-| `auto-checkpoint` | Git-stash checkpoint every 10 file edits | `KZ_DISABLE_AUTO_CHECKPOINT=1` |
-| `cost-alert` | Cost proxy alerts at ~$0.50 (30 calls) and ~$2.00 (60 calls) | `KZ_DISABLE_COST_ALERT=1` |
-| `auto-lessons` | Captures errors and corrections to tasks/lessons.md | `KZ_DISABLE_AUTO_LESSONS=1` |
-| `rate-predictor` | Predicts remaining session duration from tool call rate | `KZ_DISABLE_RATE_PREDICTOR=1` |
+| `auto-notify` | Notifications on significant events (PR created, deploy) | Remove its `hooks.json` entry |
+| `preuse-logger` | Logs tool usage for cost analysis | Remove its `hooks.json` entry |
+| `context-guard` | Warns at ~70% context, auto-saves session | Remove its `hooks.json` entry |
+| `auto-checkpoint` | Opt-in with `CCC_AUTO_CHECKPOINT=1`: every 10 file edits, snapshots tracked changes to `refs/ccc-checkpoints/<session>/<n>` (worktree, index and stash list untouched; untracked files not captured) | Leave `CCC_AUTO_CHECKPOINT` unset, or set `KZ_DISABLE_AUTO_CHECKPOINT=1` |
+| `cost-alert` | Cost proxy alerts at ~$0.50 (30 calls) and ~$2.00 (60 calls) | Remove its `hooks.json` entry |
+| `auto-lessons` | Captures errors and corrections to tasks/lessons.md | Remove its `hooks.json` entry |
+| `rate-predictor` | Predicts remaining session duration from tool call rate | Remove its `hooks.json` entry |
 
 **Stop (3 hooks)**
 
-| Hook | What it does | Disable with |
+| Hook | What it does | Turn off |
 |------|-------------|-------------|
-| `status-checkin` | Session end status summary | `KZ_DISABLE_STATUS_CHECKIN=1` |
-| `session-end-verify` | Verifies modified files, checks for leftover console.log | `KZ_DISABLE_SESSION_END_VERIFY=1` |
+| `status-checkin` | Session end status summary | Remove its `hooks.json` entry |
+| `session-end-verify` | Verifies modified files, checks for leftover console.log | Remove its `hooks.json` entry |
 
 **PreCompact (1 hook)**
 
-| Hook | What it does | Disable with |
+| Hook | What it does | Turn off |
 |------|-------------|-------------|
-| `pre-compact` | Saves session state and critical context before context compaction | `KZ_DISABLE_PRE_COMPACT=1` |
+| `pre-compact` | Saves session state and critical context before context compaction | Remove its `hooks.json` entry |
 
 **PostToolUse (1 additional hook)**
 
-| Hook | What it does | Disable with |
+| Hook | What it does | Turn off |
 |------|-------------|-------------|
-| `self-verify` | Auto-verifies file changes against stated intent, catches drift | `KZ_DISABLE_SELF_VERIFY=1` |
+| `self-verify` | Auto-verifies file changes against stated intent, catches drift | Remove its `hooks.json` entry |
 
 **Session Coach** was retired 2026-07-10 — its heuristics now feed the plugin suggest engine (`CCC_SUGGEST_MODE` / `CC_COACH_DISABLE=1` still silences the stack-hint suggestions).
 

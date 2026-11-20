@@ -194,3 +194,76 @@ test('route-eval flags a case that expects a route missing from the registry', a
   assert.strictEqual(report.unknown.length, 1);
   assert.strictEqual(report.pass, false);
 });
+
+test('a negated directive never routes; a described failure still does', async () => {
+  const s = await import(SCORER);
+  const fires = (p) => s.tierFor(s.scoreRoutes(p), 'auto') !== 'low';
+  for (const p of ['do not deploy to vercel', 'skip the code review, how long does the build take',
+    "don't write a changelog, what changed in the last release", 'avoid deploying on fridays, is that a common rule',
+    "we don't want to deploy, what is in the vercel config"]) {
+    assert.ok(!fires(p), `negated prompt fired: ${p}`);
+  }
+  // The clause after a contrast marker is still the request.
+  assert.strictEqual(s.scoreRoutes("review this pr but don't deploy it")[0].route.id, 'ccc-review');
+  assert.strictEqual(s.scoreRoutes("don't deploy, just review the code changes in this pr")[0].route.id, 'ccc-review');
+  // Problem descriptions are not directives.
+  assert.strictEqual(s.stripNegated("the tests don't work on my machine"), "the tests don't work on my machine");
+  assert.strictEqual(s.stripNegated("login is not working, it doesn't work"), "login is not working, it doesn't work");
+  assert.strictEqual(s.stripNegated("i don't know why it fails, debug it"), "i don't know why it fails, debug it");
+  // Mid-sentence, subject-led negations (Fable review of #302).
+  for (const p of ['You should not write unit tests here', 'You must not deploy to vercel', "Let's not deploy to vercel today",
+    'It is not necessary to write unit tests for this', "you don't need to write a changelog", 'Don\u2019t write unit tests for my code']) {
+    assert.ok(!fires(p), `negated prompt fired: ${p}`);
+  }
+  // Double negation, a spaced dash and a new imperative clause end the negated span.
+  assert.strictEqual(s.scoreRoutes("don't skip the unit tests - write unit tests for auth")[0].route.id, 'ccc-testing');
+  assert.strictEqual(s.scoreRoutes('Skip deployment, then write unit tests for my code')[0].route.id, 'ccc-testing');
+  assert.strictEqual(s.scoreRoutes('Skip deployment, write unit tests for my code')[0].route.id, 'ccc-testing');
+  assert.strictEqual(s.stripNegated("don't deploy, build or test anything").trim(), '', 'a bare list stays negated');
+  // Codex delta2 M1/M7: a comma list of prohibited actions closed by "or <verb>" stays negated.
+  // Codex delta3 NM3: the list is closed by ", or"/", nor" and any verb (not a fixed verb list); an "or"
+  // without a comma belongs to the new clause, so that clause is still a request.
+  for (const p of ['Do not write documentation, write unit tests for my code, or deploy anything',
+    'Never deploy, add the tests, nor ship the release',
+    'Do not write documentation, write unit tests for my code, or publish a release']) {
+    assert.ok(!fires(p), `prohibited list fired: ${p}`);
+  }
+  // Codex delta4: ", or" closes the list only before a verb; before a preposition or adverb ("in", "with",
+  // "if") it continues the new clause. Without the comma the "or" is ambiguous and reads as a request.
+  for (const p of ['Skip deployment, write unit tests for my code or run integration tests',
+    "don't deploy, write unit tests for my code or run the audit",
+    'Do not write documentation, write unit tests for my code in Python, or in JavaScript if you prefer',
+    'Skip deployment, write unit tests for my code with pytest, or with jest if you prefer',
+    'Do not write documentation, write unit tests for my code or deploy anything']) {
+    assert.strictEqual(s.scoreRoutes(p)[0].route.id, 'ccc-testing', p);
+  }
+  assert.strictEqual(s.stripNegated('i must have broken it, debug the test'), 'i must have broken it, debug the test');
+  // Length is kept, so offsets into the text stay valid.
+  const text = 'do not deploy. review the pr';
+  assert.strictEqual(s.stripNegated(text).length, text.length);
+  assert.match(s.stripNegated(text), /^ +\. review the pr$/);
+});
+
+test('normalizePrompt blanks double-quoted spans and reuses the task quoting rules', async () => {
+  const s = await import(SCORER);
+  assert.strictEqual(s.normalizePrompt('what does "deploy to production" mean'), 'what does mean');
+  assert.strictEqual(s.normalizePrompt('what does “run a security audit” mean'), 'what does mean');
+  // Blockquotes and indented code are quoted material, as in worker tasks.
+  assert.strictEqual(s.normalizePrompt('> deploy the app now\n\nwhat is this log line'), 'what is this log line');
+  assert.strictEqual(s.normalizePrompt('explain this:\n\n    npm run deploy\n\nplease'), 'explain this: please');
+  // A paste longer than the task window cannot push the request out.
+  const paste = `<pasted_content>${'x '.repeat(3000)}</pasted_content>\nreview this pr`;
+  assert.strictEqual(s.normalizePrompt(paste), 'review this pr');
+  // Apostrophes are not quotes.
+  assert.strictEqual(s.normalizePrompt("it's the user's build"), "it's the user's build");
+});
+
+test('worker tasks apply the same negation rules as prompts (route-task path)', async () => {
+  const s = await import(SCORER);
+  const routes = s.loadRoutes();
+  const top = (t) => (s.scoreTask(t, routes)[0] || {}).route?.id;
+  assert.notStrictEqual(top('Don\u2019t write unit tests for my code'), 'ccc-testing');
+  assert.notStrictEqual(top('You should not write unit tests here'), 'ccc-testing');
+  assert.strictEqual(top('Skip deployment, then write unit tests for my code'), 'ccc-testing');
+  assert.strictEqual(top("don't skip the unit tests - write unit tests for auth"), 'ccc-testing');
+});

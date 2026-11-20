@@ -62,6 +62,12 @@ var MANIFESTS = {
     path: path.join(ROOT, 'commander', 'cowork-plugin-codex', '.codex-plugin', 'plugin.json'),
     extract: function (obj) { return obj.version || null; },
   },
+  // Text files that embed the release tag the remote installer defaults to.
+  'install-remote.sh (CCC_SHIPPED_REF)': {
+    path: path.join(ROOT, 'install-remote.sh'),
+    text: true,
+    extract: function (raw) { var m = /^CCC_SHIPPED_REF="v([^"]+)"$/m.exec(raw); return m ? m[1] : null; },
+  },
 };
 
 // apps/mcp-server-cloud versions independently of the plugin: any change under
@@ -97,8 +103,8 @@ function semverCompare(a, b) {
 
 function readVersion(entry) {
   try {
-    var obj = JSON.parse(fs.readFileSync(entry.path, 'utf8'));
-    return entry.extract(obj);
+    var raw = fs.readFileSync(entry.path, 'utf8');
+    return entry.extract(entry.text ? raw : JSON.parse(raw));
   } catch (err) {
     return null;
   }

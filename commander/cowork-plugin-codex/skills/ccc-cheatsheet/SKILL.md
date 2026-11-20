@@ -30,11 +30,12 @@ The filesystem is the only source. Skill names come from `${CLAUDE_PLUGIN_ROOT}/
 
 ### 1. Read the inventory
 
-Run in one Bash call. `R` falls back to the repository path when the plugin root is unset:
+Run in one Bash call. `R` falls back to the repository path when the plugin root is unset; the manifest is `.claude-plugin/plugin.json`, or `.codex-plugin/plugin.json` in the Codex build:
 
 ```bash
 R="${CLAUDE_PLUGIN_ROOT:-commander/cowork-plugin}"
-node -e 'console.log("version\t" + require(process.argv[1] + "/.claude-plugin/plugin.json").version)' "$R"
+M="$R/.claude-plugin/plugin.json"; [ -f "$M" ] || M="$R/.codex-plugin/plugin.json"
+node -e 'console.log("version\t" + require(require("path").resolve(process.argv[1])).version)' "$M"
 for d in "$R"/skills/*/; do
   f="${d}SKILL.md"; [ -f "$f" ] || continue
   desc=$(sed -n 's/^description: *//p' "$f" | head -1 | sed 's/^"//; s/"$//' | cut -c1-90)
@@ -42,11 +43,11 @@ for d in "$R"/skills/*/; do
 done
 for w in "$R"/workflows/*.workflow.js; do [ -f "$w" ] && printf 'workflow\t/commander:%s\n' "$(basename "$w" .workflow.js)"; done
 for m in "$R"/menus/*.json; do [ -f "$m" ] && printf 'menu\t%s\n' "$(basename "$m" .json)"; done
-printf 'agents\t%s\n' "$(ls "$R"/agents/*.md 2>/dev/null | wc -l | tr -d ' ')"
-node -e 'const fs=require("fs"),R=process.argv[1];const n=(p,k)=>{try{const j=JSON.parse(fs.readFileSync(R+p,"utf8"));return Object.keys(k?j[k]||{}:j).length}catch{return "—"}};console.log("hookEvents\t"+n("/hooks/hooks.json","hooks"));console.log("mcpServers\t"+n("/.mcp.json","mcpServers"))' "$R"
+printf 'agents\t%s\n' "$(ls "$R"/agents/*.md "$R"/agents/*.toml 2>/dev/null | wc -l | tr -d ' ')"
+node -e 'const fs=require("fs"),R=process.argv[1];const n=(ps,k)=>{for(const p of ps){try{const j=JSON.parse(fs.readFileSync(R+p,"utf8"));return Object.keys(k?j[k]||{}:j).length}catch{}}return "—"};console.log("hookEvents\t"+n(["/hooks/hooks.json","/hooks.json"],"hooks"));console.log("mcpServers\t"+n(["/.mcp.json"],"mcpServers"))' "$R"
 ```
 
-Each output row is tab-separated: `version`, one `skill` row per skill directory (name, truncated description), one `workflow` row per plugin workflow, one `menu` row per menu file, then `agents`, `hookEvents`, `mcpServers`. A failed probe prints nothing or `—`; keep going and show `—`.
+Each output row is tab-separated: `version`, one `skill` row per skill directory (name, truncated description), one `workflow` row per plugin workflow, one `menu` row per menu file, then `agents` (`agents/*.md`, or `agents/*.toml` in the Codex build), `hookEvents` (`hooks/hooks.json`, or `hooks.json` at the Codex plugin root), `mcpServers`. A failed probe prints nothing or `—`; keep going and show `—`.
 
 ### 2. Header and stats
 

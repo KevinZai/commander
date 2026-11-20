@@ -30,7 +30,8 @@
  *        always also runs a likely match and hints weak ones;
  *        overrides the lane's saved `routeMode` in <config dir>/commander/config.json)
  *      CCC_FLEET_ROUTE=on|off Fleet routing (default: on only when the
- *        claude-fleet skill is installed)
+ *        claude-fleet skill is installed at user or machine level; a
+ *        checkout-local copy never turns it on)
  *      CCC_ROUTE_NEXT=off disables only the Stop menu
  *      CCC_ROUTE_NEXT_COOLDOWN_MIN minutes between Stop menus in a session
  *        (default 10; 0 offers after every skill run)
@@ -208,7 +209,7 @@ function handlePrompt(data) {
       // Fleet control-plane requests go to the Fleet skill, never dispatched from here.
       const intent = matchFleetIntent(rawPrompt);
       const tools = fleetTools();
-      context = renderFleetContext(intent, tools, tools.cli || tools.skill ? checkinLine() : null, mode);
+      context = renderFleetContext(intent, tools, tools.cli || tools.skill || tools.localSkill ? checkinLine() : null, mode);
       logRouteEvent({ event: 'offered', route: `fleet:${intent.id}`, score: 1, tier: 'fleet', host, session_id: data.session_id || null });
     } else {
       const candidates = scoreRoutes(rawPrompt, loadRoutes());

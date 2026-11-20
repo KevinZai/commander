@@ -91,23 +91,89 @@ export function skipReason(rawPrompt, payload = {}) {
   return null;
 }
 
-/** Lowercased routing text: code, URLs and quoted pastes removed, first 600 chars (or maxChars). */
-export function normalizePrompt(prompt, maxChars = ANALYZED_CHARS) {
-  return String(prompt || '')
-    .replace(/```[\s\S]*?(```|$)/g, ' ')
-    .replace(/`[^`\n]*`/g, ' ')
+// A double-quoted span on one line ("...", or curly quotes) names something
+// the user is quoting, not the job they are asking for.
+const DOUBLE_QUOTED = /"[^"\n]*"|\u201c[^\u201d\n]*\u201d/g;
+
+// Already-stripped text to one lowercased line: quoted spans and URLs out,
+// whitespace collapsed, cut at maxChars.
+function flatten(text, maxChars) {
+  return String(text || '')
+    .replace(DOUBLE_QUOTED, ' ')
+    // Typographic apostrophes ("Don\u2019t") read as ASCII so negations match.
+    .replace(/[\u2018\u2019\u02bc]/g, "'")
     .replace(/https?:\/\/\S+/g, ' ')
-    .replace(/<pasted_content[\s\S]*?(<\/pasted_content[^>]*>|$)/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, maxChars)
     .toLowerCase();
 }
 
+/**
+ * Lowercased routing text, first 600 chars (or maxChars): code fences and
+ * spans, indented code, blockquotes, pasted blocks, URLs and double-quoted
+ * spans are removed by the same rules a worker task uses (blankQuoted).
+ */
+export function normalizePrompt(prompt, maxChars = ANALYZED_CHARS) {
+  return flatten(blankQuoted(prompt), maxChars);
+}
+
+// What the user says not to do is not a request to do it: "don't deploy",
+// "skip the review", "no need to write tests", "you should not write unit
+// tests here", "let's not deploy", "it is not necessary to add tests". A
+// directive negator in a command position (start of a sentence or clause,
+// after a joining word, or after a spaced dash) blanks the rest of its clause,
+// up to the sentence end, a spaced dash, a contrast marker ("but",
+// "instead", "just", "only", "rather", "then") or a new imperative clause. A subject-led negation ("you must
+// not", "we shouldn't", "let's not", "it is not necessary to") counts at any
+// position. A double negation ("don't skip the tests", "never forget to") is
+// a request and stays. Descriptions of a problem ("the tests don't work",
+// "login is not working", "it doesn't build") are not directives and stay.
+// Applied in scoreRoutes only: looksLikeWork and fleet intents still see the
+// whole request.
+// A new imperative clause after a comma ("skip deployment, then write
+// tests", "don't deploy, write unit tests for my code") also ends the
+// negation; a bare list ("don't deploy, build or test") does not, and
+// neither does a list of prohibitions closed by a comma, "or"/"nor" and any
+// verb ("do not write docs, write unit tests, or publish a release"); a
+// preposition or adverb after ", or" ("..., or in JavaScript if you prefer")
+// continues the new clause. An "or" without that comma belongs to the new
+// clause ("skip deployment, write unit tests for my code or run integration
+// tests" asks for tests).
+const CLAUSE_VERB = String.raw`(?:write|add|run|review|fix|debug|build|create|make|test|update|refactor|implement|check|explain|plan|ship|document|audit|deploy|generate|set|draft|scan|summarize|optimize|design)`;
+// Closed-class words that cannot start a verb phrase. ", or in JavaScript", ", or with jest", ", or if you
+// prefer" continue the new clause instead of closing a prohibition list (Codex #302 delta4); any other word
+// after ", or"/", nor" is read as a verb, since verbs are an open class (Codex #302 delta3 NM3).
+const NOT_A_VERB = String.raw`(?:in|into|on|onto|at|with|without|within|by|for|from|to|of|as|via|using|per|over|under|after|before|during|until|unless|than|like|if|when|whenever|where|wherever|whether|whichever|whatever|while|otherwise|else|alternatively|preferably|ideally|possibly|perhaps|maybe|even|also|just|only|so|not|both|either|neither|the|a|an|my|our|your|its|their|this|that|these|those|any|some|it|you|we|they|me|us|them|anything|something)`;
+const LIST_TAIL = String.raw`(?![^.!?;]*?,\s*(?:or|nor)\s+(?!${NOT_A_VERB}\b)\w)`;
+const NEGATION_END = String.raw`(?=[.!?;]|\s[-\u2013\u2014]+\s|\b(?:but|instead|just|only|rather|then)\b|,\s*now\b|,\s*${CLAUSE_VERB}\s+(?:the|a|an|my|our|your|this|that|these|those|some|unit|it|me|up|all)\b${LIST_TAIL}|$)`;
+const COMMAND_POSITION = String.raw`(?:^|(?:[.!?;:,(]|\s[-\u2013\u2014]+)\s*|\b(?:and|but|so|then|please|pls|also|or)\s+)`;
+// "don't skip", "never forget to", "you shouldn't avoid": two negations make a request.
+const NOT_DOUBLE = String.raw`(?!\s+(?:skip|skipping|avoid|avoiding|forget|omit|neglect|ignore|stop)\b)`;
+const DIRECTIVE = String.raw`(?:do not|don'?t|never|skip|avoid)\b(?!\s+(?:know|understand|see|get|think|remember|care|mind)\b)${NOT_DOUBLE}`;
+const SUBJECT_NEGATION = String.raw`(?:` +
+  String.raw`\b(?:you|we|they|i|one)\s+(?:(?:should|must|shall|ought)(?:\s+not|n'?t)(?:\s+to)?|need\s+not|needn'?t|(?:do\s+not|don'?t)\s+(?:need|have)\s+to)(?!\s+(?:have|be)\b)` +
+  String.raw`|\blet(?:'?s|\s+us)\s+not` +
+  String.raw`|\b(?:it|this|that)(?:\s+is\s+not|\s+isn'?t|'s\s+not)\s+(?:necessary|needed|required)(?:\s+to)?` +
+  String.raw`)\b${NOT_DOUBLE}`;
+const NEGATED = new RegExp(
+  `(${COMMAND_POSITION}|\\b(?:i|we)\\s+(?=(?:do not|don'?t) (?:want|need)\\b))(${DIRECTIVE}[^.!?;]*?)${NEGATION_END}` +
+    `|()((?:\\b(?:no need to|without \\w+ing)\\b|${SUBJECT_NEGATION})[^.!?;]*?)${NEGATION_END}`,
+  'g'
+);
+
+/** Blank negated directives (see NEGATED) in normalized text; length is kept. */
+export function stripNegated(text) {
+  return String(text || '').replace(NEGATED, (m, lead, neg, lead2, neg2) => {
+    const body = neg !== undefined ? neg : neg2;
+    return m.slice(0, m.length - body.length) + ' '.repeat(body.length);
+  });
+}
+
 /** Score every route; returns candidates sorted by score (desc), score > 0 only. */
 export function scoreRoutes(prompt, routes = loadRoutes(), opts = {}) {
-  const text = opts.normalized ? String(prompt || '') : normalizePrompt(prompt);
-  if (!text) return [];
+  const text = stripNegated(opts.normalized ? String(prompt || '') : normalizePrompt(prompt));
+  if (!text.trim()) return [];
   const candidates = [];
   for (const route of routes) {
     if (route._negatives.some((re) => re.test(text))) continue;
@@ -157,7 +223,9 @@ function findRun(line, from, n) {
   return -1;
 }
 
-function stripQuoted(text) {
+// stripQuoted without the TASK_CHARS cut: normalizePrompt cuts after
+// collapsing whitespace, so a long paste cannot push the request out.
+function blankQuoted(text) {
   const blank = (m) => m.replace(/[^\n]/g, ' ');
   const lines = String(text || '').replace(/<pasted_content[\s\S]*?(<\/pasted_content[^>]*>|$)/g, blank).split('\n');
   let fence = null; // { ch, len } of the open fence
@@ -221,7 +289,11 @@ function stripQuoted(text) {
     if (span && BLOCK_START.test(line)) span = 0;
     return inline(line).replace(/https?:\/\/\S+/g, blank);
   });
-  return out.join('\n').slice(0, TASK_CHARS);
+  return out.join('\n');
+}
+
+function stripQuoted(text) {
+  return blankQuoted(text).slice(0, TASK_CHARS);
 }
 
 function taskSegments(task) {
@@ -232,7 +304,8 @@ function taskSegments(task) {
   lines.forEach((line, i) => {
     if (i > 0 && TASK_LINE.test(line)) segments.push(lines.slice(i, i + 3).join(' '));
   });
-  const flat = normalizePrompt(raw, TASK_CHARS);
+  // raw is already stripped; stripping again could misread blanked spans as indented code.
+  const flat = flatten(raw, TASK_CHARS);
   for (let start = 0; start < flat.length; start += WINDOW_STEP) {
     segments.push(flat.slice(start, start + ANALYZED_CHARS));
     if (start + ANALYZED_CHARS >= flat.length) break;

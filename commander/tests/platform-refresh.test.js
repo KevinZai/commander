@@ -152,10 +152,11 @@ test('fleet-watch monitor: declared in the manifest, Claude-only, prints status 
   assert.deepEqual(diffFleet(first.statuses, s1).lines, [], 'no change, no line');
   const s2 = { summary: { total: 2, done: 1, failed: 1 }, workers: [{ id: 'w1', status: 'done' }, { id: 'w2', status: 'failed', error: 'conflict' }] };
   const second = diffFleet(first.statuses, s2);
+  // Fixed-shape JSON only: the marker's free-text error is not echoed into the notification (M4).
   assert.deepEqual(second.lines, [
-    '[ccc-fleet] w1: running -> done',
-    '[ccc-fleet] w2: running -> failed: conflict',
-    '[ccc-fleet] run settled: 1 done, 1 failed of 2. Run /ccc-fleet-viz for the tree.',
+    '[ccc-fleet] {"event":"worker","id":"w1","from":"running","status":"done"}',
+    '[ccc-fleet] {"event":"worker","id":"w2","from":"running","status":"failed"}',
+    '[ccc-fleet] {"event":"settled","done":1,"failed":1,"total":2,"next":"/ccc-fleet-viz"}',
   ]);
 });
 

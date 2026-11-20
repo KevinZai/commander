@@ -144,8 +144,17 @@ function writeAtomic(abs, buf, mode) {
   fs.writeFileSync(tmp, buf, { mode: mode || 0o644 });
   fs.renameSync(tmp, abs);
 }
+// Put the backed-up original back over abs in one rename, so the path is never left empty.
+function restoreOver(backupPath, abs) {
+  var tmp = path.join(path.dirname(abs), '.' + path.basename(abs) + '.ccc-restore-' + process.pid);
+  try { fs.unlinkSync(tmp); } catch (_e) { /* none */ }
+  var b = fs.lstatSync(backupPath);
+  if (b.isSymbolicLink()) fs.symlinkSync(fs.readlinkSync(backupPath), tmp);
+  else fs.copyFileSync(backupPath, tmp);
+  fs.renameSync(tmp, abs);
+}
 
-var result = { removed: 0, restored: 0, kept: [], dirs: 0 };
+var result ={ removed: 0, restored: 0, kept: [], dirs: 0 };
 var REAL_ROOT = (function() { try { return fs.realpathSync(ROOT); } catch (_e) { return ROOT; } })();
 // True when every existing ancestor between ROOT and abs is a real directory and the parent resolves inside the
 // config dir. A skills/, commands/ or hooks/ dir linked to shared dotfiles fails, so nothing is removed or
@@ -206,6 +215,9 @@ if (manifest && !manifestOwnerOk(manifest, ROOT, REAL_ROOT)) {
 if (manifest) {
   console.log('  Using the install manifest (CC Commander v' + manifest.version + ', ' + (manifest.entries || []).length + ' entries).');
   var touchedDirs = new Set(manifest.dirs || []);
+  // Entries left unresolved (an active file whose recorded backup is missing) stay in the manifest, so a retry
+  // makes the same decision instead of falling back to the pre-manifest sweep and deleting the kept copy.
+  var retained = [];
   (manifest.entries || []).slice().reverse().forEach(function(e) {
     // Outside the config dir the installer only ever writes the ccc link and one key in .claude.json.
     if ((e.abs && !(e.type === 'symlink' && path.basename(e.abs) === 'ccc')) ||
@@ -237,10 +249,11 @@ if (manifest) {
       : e.type === 'symlink' ? st.isSymbolicLink() && fs.readlinkSync(abs) === e.target : false;
     if (!ours) { result.kept.push(label(e)); return; }
     var b = e.backup && lst(e.backup);
+    // The install replaced a file of the user's; without that backup, removing the active file would lose both.
+    if (e.backup && !b) { result.kept.push(label(e) + ' (its recorded backup ' + e.backup + ' is missing)'); retained.unshift(e); return; }
     if (apply) {
-      fs.unlinkSync(abs);
-      if (b && b.isSymbolicLink()) fs.symlinkSync(fs.readlinkSync(e.backup), abs);
-      else if (b) fs.copyFileSync(e.backup, abs);
+      if (b) restoreOver(e.backup, abs);
+      else fs.unlinkSync(abs);
     }
     if (b) result.restored++; else result.removed++;
   });
@@ -252,8 +265,15 @@ if (manifest) {
       if (!dst || dst.isSymbolicLink()) return;
       try { fs.rmdirSync(abs); result.dirs++; } catch (_e) { /* not empty: holds files that are not ours */ }
     });
-    fs.unlinkSync(manifestPath);
-    try { fs.rmdirSync(path.dirname(manifestPath)); } catch (_e) { /* other Commander state lives there */ }
+    if (retained.length) {
+      var kept = Object.assign({}, manifest, { entries: retained, uninstall_retained_at: new Date().toISOString() });
+      writeAtomic(manifestPath, JSON.stringify(kept, null, 2) + '\n', 0o644);
+      console.log('  ' + retained.length + ' unresolved entr' + (retained.length === 1 ? 'y stays' : 'ies stay') + ' in ' + manifestPath +
+        ' so a later uninstall keeps ' + (retained.length === 1 ? 'it' : 'them') + ' too; restore the backup or delete the file yourself.');
+    } else {
+      fs.unlinkSync(manifestPath);
+      try { fs.rmdirSync(path.dirname(manifestPath)); } catch (_e) { /* other Commander state lives there */ }
+    }
   }
   report();
   return;

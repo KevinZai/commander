@@ -92,3 +92,74 @@ test('install-remote.sh pins lightweight and annotated tags exactly and refuses 
     assert.strictEqual(head(), up.rev('v1.2.0'), 'a full commit SHA still works');
   });
 });
+
+// M10: the script installs the release it ships with unless told otherwise, and CCC_EXPECTED_COMMIT pins the
+// exact commit: a mismatch stops before checkout or install.
+test('install-remote.sh defaults to its embedded release; CCC_REF=latest picks the newest tag', () => {
+  const shipped = require('../package.json').version;
+  const src = require('node:fs').readFileSync(INSTALL_REMOTE_SH, 'utf8');
+  assert.match(src, new RegExp('^CCC_SHIPPED_REF="v' + shipped.replace(/\./g, '\\.') + '"$', 'm'));
+  withHome((home) => {
+    const up = makeUpstream(home);
+    const dir = join(home, '.cc-commander');
+    let r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir });
+    assert.match(r.stdout, new RegExp('Release: v' + shipped.replace(/\./g, '\\.')));
+    assert.notStrictEqual(r.status, 0, 'the fixture repo has no such tag');
+    r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'latest' });
+    assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+    assert.strictEqual(up.git(dir, 'rev-parse', 'HEAD'), up.rev('v1.2.0'));
+  });
+});
+
+test('install-remote.sh refuses a fetched commit other than CCC_EXPECTED_COMMIT', () => {
+  withHome((home) => {
+    const up = makeUpstream(home);
+    const dir = join(home, '.cc-commander');
+    let r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.2.0', CCC_EXPECTED_COMMIT: up.rev('v1.0.0') });
+    assert.notStrictEqual(r.status, 0);
+    assert.match(r.stdout, /CCC_EXPECTED_COMMIT/);
+    assert.doesNotMatch(r.stdout, /STUB INSTALL/);
+    r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.2.0', CCC_EXPECTED_COMMIT: 'not-a-sha' });
+    assert.notStrictEqual(r.status, 0);
+    assert.match(r.stdout, /CCC_EXPECTED_COMMIT must be a full 40-character commit/);
+    r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.2.0', CCC_EXPECTED_COMMIT: up.rev('v1.2.0').toUpperCase() });
+    assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /STUB INSTALL/);
+  });
+});
+
+// Codex #302 M10: build metadata is refused here as in scripts/bump-version.js, before anything is fetched.
+test('install-remote.sh refuses a ref with build metadata or shell characters before fetching', () => {
+  withHome((home) => {
+    const up = makeUpstream(home);
+    for (const ref of ['v1.2.0+build.1', 'v1.2.0;id', 'v1.2.0$(id)']) {
+      const dir = join(home, 'fresh-' + ref.replace(/\W/g, '_'));
+      const r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: ref });
+      assert.notStrictEqual(r.status, 0, ref);
+      assert.match(r.stdout, /CCC_REF must be a tag or commit/, ref);
+      assert.ok(!existsSync(dir), `${ref}: nothing was cloned`);
+    }
+  });
+});
+
+// Codex #302 LOW: a pin mismatch states what did change (a new checkout dir with fetched objects) instead of
+// claiming nothing was changed.
+test('install-remote.sh pin mismatch says what was left behind', () => {
+  withHome((home) => {
+    const up = makeUpstream(home);
+    const dir = join(home, '.cc-commander');
+    let r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.2.0', CCC_EXPECTED_COMMIT: up.rev('v1.0.0') });
+    assert.notStrictEqual(r.status, 0);
+    assert.doesNotMatch(r.stdout, /Nothing was changed/);
+    assert.match(r.stdout, /Nothing was checked out or installed/);
+    assert.match(r.stdout, /created .*\.cc-commander.* with the fetched objects only/);
+    {
+      r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.0.0' });
+      assert.strictEqual(r.status, 0, r.stdout + r.stderr);
+    }
+    r = run(home, { CCC_REPO_URL: up.url, CCC_INSTALL_DIR: dir, CCC_REF: 'v1.2.0', CCC_EXPECTED_COMMIT: up.rev('v1.0.0') });
+    assert.notStrictEqual(r.status, 0);
+    assert.match(r.stdout, /Nothing was checked out or installed; .*\.cc-commander stays at its previous commit/);
+    assert.strictEqual(up.git(dir, 'rev-parse', 'HEAD'), up.rev('v1.0.0'));
+  });
+});

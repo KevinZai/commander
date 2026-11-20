@@ -2306,7 +2306,7 @@ The original 4 hooks (careful-guard, auto-notify, preuse-logger, status-checkin)
 |------|-----------|-------------|
 | `context-guard` | PostToolUse | Tracks context usage — warns at ~70% and auto-saves session before overflow |
 | `pre-commit-verify` | PreToolUse | Runs TypeScript check before any git commit — blocks on tsc errors |
-| `auto-checkpoint` | PostToolUse | Creates a git-stash checkpoint every 10 file edits — automatic safety net |
+| `auto-checkpoint` | PostToolUse | Opt-in (`CCC_AUTO_CHECKPOINT=1`): every 10 file edits, snapshots tracked changes to `refs/ccc-checkpoints/<session>/<n>`; the worktree, index and stash list are untouched, untracked files are not captured |
 | `confidence-gate` | PreToolUse | Warns on risky multi-file bash operations (sed -i on globs, find -exec) |
 | `session-end-verify` | Stop | Verifies modified files and checks for leftover console.log statements |
 | `cost-alert` | PostToolUse | Cost proxy alerts at ~$0.50 (30 tool calls) and ~$2.00 (60 calls) |
@@ -2331,7 +2331,7 @@ The session-coach hook was folded into the Desktop plugin suggest engine (`comma
 | Kit standalone | 28 | `hooks-standalone.json` |
 | Kit + ECC | 28 | `hooks.json` |
 
-Every kit-native hook can be individually disabled via its `KZ_DISABLE_*` env var. See CHEATSHEET.md for the full list.
+To turn a kit-native hook off, remove its entry from the installed `hooks.json`. Only `auto-checkpoint` reads a `KZ_DISABLE_*` variable (`KZ_DISABLE_AUTO_CHECKPOINT=1`); the other `KZ_DISABLE_*` names listed in CHEATSHEET.md are not read by any hook.
 
 ---
 

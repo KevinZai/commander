@@ -31,7 +31,7 @@ This skill renders in the chat only. It publishes nothing and reads only local s
    fi
    ```
    Without `--watch` it prints one snapshot and exits. `--state-dir=PATH` reads markers from another directory.
-2. It reads `/tmp/ccc-fleet/*-status.json`, `/tmp/ccc-fleet/*-complete.json`, `/tmp/ccc-fleet/worker-progress.jsonl` when present, and `git worktree list --porcelain`. Malformed markers are skipped, not fatal.
+2. It reads the current run's owner-only directory (`<config dir>/commander/fleet/runs/<run-id>/`, set by `$ccc-fleet`): `*-status.json`, `*-complete.json` and `worker-progress.jsonl` when present, plus `git worktree list --porcelain`. Malformed markers are skipped, not fatal.
 3. stdout is an ASCII tree followed by a fenced `mermaid` `graph TD` block. While any worker is `running`, `waiting` or `unknown`, it refreshes every 2 seconds; when all are `done` or `failed`, it prints the final snapshot and exits.
 4. Show the final tree and the Mermaid block in your reply (the Mermaid block renders as a diagram in the chat), then one line per failed worker with its reason.
 
@@ -45,7 +45,7 @@ $ccc-fleet (orchestrator) — 4 workers, 2 done, 1 running, 1 failed
 └── ❌ W4 migrate      → blocked: merge conflict
 ```
 
-No markers at all: say "No fleet run found in /tmp/ccc-fleet. Start one with `$ccc-fleet`." and stop.
+No markers at all: say "No fleet run found. Start one with `$ccc-fleet`." and stop.
 
 ## Done when
 

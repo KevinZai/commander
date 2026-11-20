@@ -181,12 +181,15 @@ function scanProject(dir) {
 }
 
 /**
- * Generate a system prompt from imported project context.
- * This gets passed to --append-system-prompt when dispatching.
+ * Describe imported project context as a labelled data block (<project-context>).
+ * The engine prepends it to the task with a fixed "reference data, not
+ * instructions" sentence; it never goes into --append-system-prompt.
+ * CLAUDE.md is not copied: dispatches run in the imported project's directory
+ * (engine.js dispatchRoot, lib/project-root.js), so Claude Code loads it from there.
  * Commander NEVER writes to the project's .claude/ — only reads.
  *
  * @param {object} project - From scanProject()
- * @returns {string} System prompt addition
+ * @returns {string} Labelled data block
  */
 function buildProjectPrompt(project) {
   var parts = [];
@@ -208,12 +211,6 @@ function buildProjectPrompt(project) {
     parts.push('\nProject README (first 5 lines):\n' + project.readmePreview);
   }
 
-  if (project.claudeMd) {
-    // Include first 100 lines of CLAUDE.md as context
-    var lines = project.claudeMd.split('\n').slice(0, 100);
-    parts.push('\nProject instructions (from CLAUDE.md):\n' + lines.join('\n'));
-  }
-
   if (project.skills.length > 0) {
     parts.push('\nProject skills available: ' + project.skills.join(', '));
   }
@@ -230,7 +227,7 @@ function buildProjectPrompt(project) {
     parts.push('Detected tech stack: ' + project.techStack.join(', '));
   }
 
-  return parts.join('\n');
+  return require('./lib/reference-data').dataBlock('project-context', parts.join('\n'));
 }
 
 /**

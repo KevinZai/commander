@@ -36,6 +36,7 @@ var crypto = require('crypto');
 var pkg = require('../../package.json');
 var isOffline = require('../cowork-plugin/lib/network-mode').isOffline;
 var BRAND = require('../branding');
+var lane = require('../lib/lane');
 
 var SERVER_INFO = {
   name: 'commander',
@@ -125,12 +126,23 @@ function handleGetAgent(args) {
   }
 }
 
+/**
+ * A dispatch hint for a shipped agent: the command and its argv as data, so no
+ * caller pastes the task into a shell line. The name must be a plain token that
+ * names a file in the plugin's agents dir.
+ */
 function handleInvokeAgent(args) {
+  var name = args && args.name;
+  var task = requireString(args && args.task, 'task');
+  if (typeof name !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(name)) throw new Error('Unknown agent: ' + String(name));
+  var agentsDir = path.join(__dirname, '..', 'cowork-plugin', 'agents');
+  if (!fs.existsSync(path.join(agentsDir, name + '.md'))) throw new Error('Unknown agent: ' + name);
   return {
-    agent: args.name,
-    task: args.task,
-    note: 'Local mode: use Claude Code /ccc-' + args.name + ' with the task context below.',
-    dispatchHint: 'ccc --dispatch "' + args.task.replace(/"/g, '\\"') + '" --agent ' + args.name,
+    agent: name,
+    task: task,
+    note: 'Local mode: use Claude Code /ccc-' + name + ' with the task context below.',
+    // The task follows "--", so a task that starts with "-" is never read as a ccc option.
+    dispatch: { command: 'ccc', argv: ['--dispatch', '--agent', name, '--', task] },
   };
 }
 
@@ -205,8 +217,81 @@ function handleInit(args) {
 // success response for a record that never landed. An unreadable store is
 // never overwritten with an empty list.
 
+// The lane's state dir (CCC_CONFIG_DIR > CLAUDE_CONFIG_DIR > ~/.claude), as the CLI uses.
 function storeDir() {
-  return path.join(os.homedir(), '.claude', 'commander');
+  return lane.resolveLane(process.env).stateDir;
+}
+
+var LOCK_STALE_MS = 10 * 1000;
+var LOCK_WAIT_MS = 2 * 1000;
+
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+/**
+ * Run fn(guard) while holding <file>.lock, created with O_EXCL so two servers
+ * (one per session) never interleave a read-modify-write. A lock older than
+ * LOCK_STALE_MS is left by a dead writer and is broken; a live one is waited
+ * on for up to LOCK_WAIT_MS (on every retry path), then the call fails instead
+ * of losing a record. The lock holds a unique token: guard.assertOwned()
+ * re-reads it right before a write, so a slow writer whose lock was broken as
+ * stale fails instead of saving its older snapshot, and release removes the
+ * lock only while it is still ours.
+ */
+function withStoreLock(file, fn) {
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+  } catch (err) {
+    throw new Error('Could not save ' + file + ': ' + err.message);
+  }
+  var lockFile = file + '.lock';
+  var token = process.pid + ':' + crypto.randomBytes(8).toString('hex');
+  var deadline = Date.now() + LOCK_WAIT_MS;
+  var fd;
+  for (;;) {
+    if (Date.now() >= deadline) throw new Error('Store ' + file + ' is locked by another writer; try again');
+    try {
+      fd = fs.openSync(lockFile, 'wx', 0o600);
+      break;
+    } catch (err) {
+      if (!err || err.code !== 'EEXIST') throw new Error('Could not lock ' + file + ': ' + (err && err.message));
+      var age = 0;
+      try { age = Date.now() - fs.statSync(lockFile).mtimeMs; } catch (_) { sleepSync(5); continue; }
+      if (age > LOCK_STALE_MS) { try { fs.unlinkSync(lockFile); } catch (_) {} continue; }
+      sleepSync(25);
+    }
+  }
+  function owned() {
+    try { return fs.readFileSync(lockFile, 'utf8') === token; } catch (_) { return false; }
+  }
+  var guard = {
+    assertOwned: function () {
+      if (!owned()) throw new Error('Lost the lock on ' + file + ' to another writer; nothing was saved, try again');
+    },
+  };
+  try {
+    fs.writeSync(fd, token);
+    fs.closeSync(fd);
+    return fn(guard);
+  } finally {
+    if (owned()) { try { fs.unlinkSync(lockFile); } catch (_) {} }
+  }
+}
+
+// The store's raw bytes (null when it does not exist), for the compare-and-swap check before a write.
+function storeSnapshot(file) {
+  try { return fs.readFileSync(file, 'utf8'); } catch (err) {
+    if (err && err.code === 'ENOENT') return null;
+    throw new Error('Could not read ' + file + ': ' + err.message);
+  }
+}
+
+// Right before the rename: the lock is still ours and the store is byte-identical to what was read.
+function assertWritable(file, guard, snapshot) {
+  if (typeof deps.storeWriteHook === 'function') deps.storeWriteHook(file);
+  guard.assertOwned();
+  if (storeSnapshot(file) !== snapshot) throw new Error('Store ' + file + ' changed during the update; nothing was saved, try again');
 }
 
 function newRecordId(prefix) {
@@ -231,12 +316,13 @@ function readStore(file) {
   return parsed;
 }
 
-/** Atomically write the list (temp file + rename), then confirm the record landed. */
-function writeStore(file, records, id) {
+/** Atomically write the list (temp file + rename), then confirm the record landed. beforeRename may veto. */
+function writeStore(file, records, id, beforeRename) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   var tmp = file + '.' + process.pid + '.' + crypto.randomBytes(4).toString('hex') + '.tmp';
   try {
     fs.writeFileSync(tmp, JSON.stringify(records, null, 2));
+    if (beforeRename) beforeRename();
     fs.renameSync(tmp, file);
   } catch (err) {
     try { fs.unlinkSync(tmp); } catch (_) {}
@@ -248,14 +334,22 @@ function writeStore(file, records, id) {
 
 function appendRecord(fileName, record) {
   var file = path.join(storeDir(), fileName);
-  var records = readStore(file);
-  records.push(record);
-  writeStore(file, records, record.id);
-  return file;
+  return withStoreLock(file, function (guard) {
+    var snapshot = storeSnapshot(file);
+    var records = readStore(file);
+    records.push(record);
+    writeStore(file, records, record.id, function () { assertWritable(file, guard, snapshot); });
+    return file;
+  });
 }
 
 function updateRecord(fileName, id, patch) {
   var file = path.join(storeDir(), fileName);
+  return withStoreLock(file, function (guard) { updateRecordLocked(file, id, patch, guard); });
+}
+
+function updateRecordLocked(file, id, patch, guard) {
+  var snapshot = storeSnapshot(file);
   var records = readStore(file);
   var found = false;
   records = records.map(function (r) {
@@ -264,7 +358,7 @@ function updateRecord(fileName, id, patch) {
     return Object.assign({}, r, patch);
   });
   if (!found) throw new Error('Record ' + id + ' not found in ' + file);
-  writeStore(file, records, id);
+  writeStore(file, records, id, function () { assertWritable(file, guard, snapshot); });
 }
 
 function requireString(value, field) {
@@ -356,6 +450,8 @@ function handleTasksPush(args) {
 // Test seam: integrations are resolved lazily so tests can substitute them.
 var deps = {
   linear: function () { return require('../integrations/linear'); },
+  // Called inside the store lock right before the ownership and compare-and-swap checks; null in production.
+  storeWriteHook: null,
 };
 
 // ─── Tool dispatch map ─────────────────────────────────────────
@@ -388,6 +484,10 @@ function handleRequest(req) {
   var id = req.id;
   var method = req.method;
   var params = req.params || {};
+
+  // A message without an id is a notification (notifications/initialized,
+  // notifications/cancelled, ...): JSON-RPC forbids a reply of any kind.
+  if (id === undefined || id === null) return;
 
   if (method === 'initialize') {
     reply(id, {
@@ -473,4 +573,5 @@ module.exports = {
   HANDLERS: HANDLERS,
   handleRequest: handleRequest,
   deps: deps,
+  _store: { withStoreLock: withStoreLock },
 };

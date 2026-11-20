@@ -186,17 +186,18 @@ module.exports = {
         process.stdout.write('  ' + tui.dimText('cd into a project directory and restart, or specify a path.') + '\n');
         if (!engine.rl) { var readline = require('readline'); engine.rl = readline.createInterface({ input: process.stdin, output: process.stdout }); }
         var projDir = await engine.ask('\n  Project path (or Enter to skip): ');
-        if (projDir.trim()) { project = pi.scanProject(projDir.trim()); }
+        // Resolve now: a relative path stored as-is would point elsewhere after a restart from another directory.
+        if (projDir.trim()) { project = pi.scanProject(require('../lib/project-root').normalizeRoot(projDir.trim())); }
         else { return { next: 'main-menu' }; }
       }
       if (project.hasClaudeMd || project.hasClaudeDir) {
-        stateModule.updateState({ activeProject: { dir: project.dir, name: project.name } });
+        stateModule.updateState({ activeProject: { dir: require('../lib/project-root').normalizeRoot(project.dir), name: project.name } });
         process.stdout.write('\n' + tui.divider('Project Imported') + '\n');
         process.stdout.write('  ' + tui.boldText(project.name, tui.getTheme().primary) + '\n');
         if (project.summary && project.summary.length > 0) {
           project.summary.forEach(function(s) { process.stdout.write('  ' + tui.dimText('  v ' + s) + '\n'); });
         }
-        process.stdout.write('\n  ' + tui.dimText('Dispatches will include this project CLAUDE.md context.') + '\n');
+        process.stdout.write('\n  ' + tui.dimText('Dispatches run in ' + project.dir + ', so Claude Code loads its CLAUDE.md.') + '\n');
         process.stdout.write('  ' + tui.dimText('CC Commander will NOT modify your .claude/ directory.') + '\n');
         process.stdout.write(tui.celebrate('Project loaded!'));
         try { require('../integrations/linear').pulse('claude_md_loaded', project.name).catch(function(){}); } catch(_e2) {}

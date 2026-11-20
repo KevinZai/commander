@@ -172,3 +172,19 @@ test('buildReviewArgs: refuses a review target combined with custom instructions
   const promptOnly = adapter.buildReviewArgs({ instructions: 'Focus on auth' });
   assert.equal(promptOnly[promptOnly.length - 1], 'Focus on auth');
 });
+
+// M3: Codex workspace-write always comes with a shell, so an agent that may write files but has Bash
+// removed cannot be mirrored faithfully. The build fails unless the gap is on the adapter's
+// acknowledged list, and the generated TOML says so.
+test('agents-toml: a writer without Bash fails the build unless its shell gap is acknowledged', async () => {
+  const { agentMarkdownToToml, ACKNOWLEDGED_SHELL_GAPS } = await import('../adapters/codex/agents-toml.js');
+  const md = (name) => `---\nname: ${name}\ndescription: d\ntools:\n  - Read\n  - Write\ndisallowedTools:\n  - Bash\n---\n\nbody\n`;
+  assert.throws(() => agentMarkdownToToml(md('new-writer')), /new-writer.*Bash.*shell/s);
+  assert.ok(Object.hasOwn(ACKNOWLEDGED_SHELL_GAPS, 'technical-writer'));
+  const out = agentMarkdownToToml(md('technical-writer'));
+  assert.equal(out.sandboxMode, 'workspace-write');
+  assert.match(out.toml, /^# Shell gap: .*Bash/m);
+  // Read-only and Bash-enabled agents are unaffected.
+  assert.doesNotThrow(() => agentMarkdownToToml('---\nname: r\ndescription: d\ntools:\n  - Read\n---\n\nbody\n'));
+  assert.doesNotThrow(() => agentMarkdownToToml('---\nname: w\ndescription: d\ntools:\n  - Write\n  - Bash\n---\n\nbody\n'));
+});

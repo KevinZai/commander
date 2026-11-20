@@ -165,12 +165,6 @@
       "notes": "Based on JuliusBrussee/caveman while it was MIT. Upstream relicensed to Apache-2.0 at 3.0.0 (LICENSE-MIT kept); pulling newer text would make this copy Apache-2.0."
     },
     {
-      "file": "skills/ccc-design/screenshots/SKILL.md",
-      "vendor": "shpigford-skills",
-      "license": "LicenseRef-Unverified",
-      "notes": "Frontmatter source: github.com/Shpigford/skills/tree/main/screenshots. Upstream returns 404 (checked 2026-11-18) and the copy ships no license text, so its license cannot be verified. The audit warns until the license is recovered or the skill is replaced."
-    },
-    {
       "file": "skills/ponytail/SKILL.md",
       "vendor": "ponytail",
       "license": "MIT",
@@ -192,7 +186,6 @@
     "anthropic-skills-proprietary": "LicenseRef-Anthropic-Proprietary",
     "tstack": "MIT",
     "i-have-adhd": "MIT",
-    "caveman": "MIT (Apache-2.0 from 3.0.0)",
-    "shpigford-skills": "LicenseRef-Unverified (upstream unreachable)"
+    "caveman": "MIT (Apache-2.0 from 3.0.0)"
   }
 }

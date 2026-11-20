@@ -120,15 +120,23 @@ function readMcpConfig() {
 }
 
 /**
- * Returns true if MCP is configured and not explicitly disabled.
- * Checks CCC_OFFLINE / MCP_DISABLED=1 first, then .claude/mcp.json.
+ * Why passthrough is off, or null when it is on: 'disabled' (offline,
+ * MCP_DISABLED=1, MCP_ENABLED=0) or 'not-configured' (no mcp.json entry and no
+ * mcp_url / mcp_token setting). The settings count as configuration on their
+ * own: a token alone targets the hosted default, a URL its own origin.
  */
+function disabledReason() {
+  if (require('./network-mode').isOffline(process.env)) return 'disabled';
+  if (process.env.MCP_DISABLED === '1') return 'disabled';
+  if (process.env.MCP_ENABLED === '0') return 'disabled';
+  if (readMcpConfig() !== null) return null;
+  if (setting('mcp_url') || setting('mcp_token')) return null;
+  return 'not-configured';
+}
+
+/** Returns true if MCP is configured (mcp.json or settings) and not explicitly disabled. */
 function isEnabled() {
-  if (require('./network-mode').isOffline(process.env)) return false;
-  if (process.env.MCP_DISABLED === '1') return false;
-  if (process.env.MCP_ENABLED === '0') return false;
-  const cfg = readMcpConfig();
-  return cfg !== null;
+  return disabledReason() === null;
 }
 
 /**
@@ -264,7 +272,21 @@ function buildHeaders(cfg, opts) {
  */
 function resolveTarget() {
   const { user, project } = readMcpConfigs();
-  if (!user && !project) return null;
+  if (!user && !project) {
+    // Settings only: mcp_url names the endpoint, else a token targets the default approved origin.
+    const url = setting('mcp_url');
+    const endpoint = url ? resolveEndpoint(url) : setting('mcp_token') ? resolveEndpoint(DEFAULT_APPROVED_ORIGINS[0]) : null;
+    if (!endpoint) {
+      if (url) log({ event: 'resolve_target', source: 'settings', reason: 'invalid-url' });
+      return null;
+    }
+    const origin = secureOrigin(endpoint);
+    const credentialed = Boolean(origin && approvedOrigins(null).has(origin));
+    const token = credentialed ? setting('mcp_token') || '' : '';
+    const headers = token ? { Authorization: 'Bearer ' + token } : {};
+    if (!credentialed) log({ event: 'resolve_target', source: 'settings', credentialed: false, reason: 'origin-not-approved' });
+    return { endpoint, headers, source: 'settings', credentialed };
+  }
   const approved = approvedOrigins(user);
   const isApproved = (endpoint) => {
     const origin = secureOrigin(endpoint);
@@ -520,14 +542,15 @@ async function call(toolName, args, opts) {
   }
 
   // Short-circuit: not enabled
-  if (!isEnabled()) {
-    log({ event: 'call', tool: toolName, path: 'local', reason: 'disabled' });
+  const off = disabledReason();
+  if (off) {
+    log({ event: 'call', tool: toolName, path: 'local', reason: off });
     return fallback(args);
   }
 
   const target = resolveTarget();
   if (!target) {
-    log({ event: 'call', tool: toolName, path: 'local', reason: 'no-config' });
+    log({ event: 'call', tool: toolName, path: 'local', reason: 'no-endpoint' });
     return fallback(args);
   }
 
@@ -585,6 +608,7 @@ module.exports = {
   resetHealthCache,
   // exported for tests
   _internal: {
+    logFile: LOG_FILE,
     resolveEndpoint,
     resolveHealthUrl,
     buildHeaders,

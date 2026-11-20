@@ -135,6 +135,18 @@ describe('permission-gate: reject autofix write without CCC_AUTOFIX_APPROVED', (
     assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny');
   });
 
+  // M3: Codex edits arrive as apply_patch and notebooks as NotebookEdit; both are autofix writes too.
+  for (const [tool_name, tool_input] of [
+    ['apply_patch', { command: '*** Begin Patch\n*** Update File: a.js\n@@\n-x\n+y\n*** End Patch\n' }],
+    ['NotebookEdit', { notebook_path: '/tmp/n.ipynb', new_source: 'x' }],
+  ]) {
+    it(`denies ${tool_name} during /ccc-review autofix phase`, () => {
+      const r = runGate({ tool_name, tool_input, context: { skill: '/ccc-review', phase: 'autofix' } }, { CCC_AUTOFIX_APPROVED: '' });
+      assert.equal(r.exitCode, 0);
+      assert.equal(r.parsed?.hookSpecificOutput?.decision?.behavior, 'deny', tool_name);
+    });
+  }
+
   it('approves Write tool during /ccc-review autofix when CCC_AUTOFIX_APPROVED=1', () => {
     const r = runGate(
       {

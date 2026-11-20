@@ -14,7 +14,7 @@ Think of it as a senior developer pair programming with you, except it never get
 
 CC Commander is a configuration toolkit that makes Claude Code dramatically more effective. It adds:
 
-- **84 plugin skills** — click-first `/ccc-*` workflows, plus a 467-skill ecosystem catalog across 11 domains
+- **93 plugin skills** — click-first `/ccc-*` workflows, plus a 580-skill ecosystem catalog across 11 domains
 - **22 specialist agents** — architect, reviewer, debugger, designer and more
 - **70+ commands** — slash commands for common workflows (`/plan`, `/verify`, `/tdd`)
 - **9 workflow modes** — switch Claude's behavior to match your task (design, SaaS, marketing, etc.)
@@ -29,17 +29,21 @@ Without CC Commander, Claude Code is a general-purpose assistant. With CC Comman
 
 ### Prerequisites
 
-- **Node.js 18+** — check with `node --version`
+- **Node.js 20.19+ or 22.12+** — check with `node --version`
 - **Claude Code** — install from [anthropic.com/claude/code](https://claude.ai/code) or `npm install -g @anthropic-ai/claude-code`
 - **Git** — check with `git --version`
 
 ### Install CC Commander (One Command)
 
-Open your terminal and run:
+Open your terminal and download the installer from a release tag, read it, then run it:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/KevinZai/commander/main/install-remote.sh | bash
+curl -fsSLo install-remote.sh https://raw.githubusercontent.com/KevinZai/commander/v8.1.7/install-remote.sh
+less install-remote.sh        # read what it will do
+bash install-remote.sh
 ```
+
+The script installs the release it ships with and prints the commit it checked out. To insist on an exact commit, run `CCC_EXPECTED_COMMIT=<40-character commit from the release page> bash install-remote.sh`; any other commit stops the install before anything changes.
 
 The installer:
 1. Detects your existing Claude Code configuration

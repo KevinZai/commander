@@ -74,10 +74,11 @@ function fixture(t, { fleetCli = true, skill = false, ccc = 'ok' } = {}) {
   return { root, bin, home, cfg, marker };
 }
 
-function run(f, prompt, env = {}) {
+function run(f, prompt, env = {}, cwd = undefined) {
   const clean = { ...process.env };
   for (const k of ['CCC_ROUTE_MODE', 'CCC_FLEET_ROUTE', 'CCC_CONFIG_DIR', 'PLUGIN_ROOT']) delete clean[k];
   const r = spawnSync(process.execPath, [HOOK], {
+    cwd,
     input: JSON.stringify({ hook_event_name: 'UserPromptSubmit', session_id: 'test', prompt }),
     encoding: 'utf8',
     timeout: 10000,
@@ -92,7 +93,9 @@ test('Fleet intent with tools: Fleet skill + read-only commands + check-in line;
   const f = fixture(t, { skill: true });
   const ctx = run(f, 'which lane has the most headroom?');
   assert.match(ctx, /^<ccc-fleet-route intent="usage">/);
-  assert.match(ctx, /Use the claude-fleet skill\./);
+  // The directive names the installed copy it means (Codex #302 M2).
+  const installed = path.join(f.cfg, 'skills', 'claude-fleet', 'SKILL.md');
+  assert.ok(ctx.includes('Use the claude-fleet skill installed at `' + installed + '`.'), ctx);
   assert.match(ctx, /`fleet limits`, `fleet usage`/);
   assert.match(ctx, /CCC check-in: CCC check-in OK: .* lane ai4/);
   assert.match(ctx, /Do not launch, stop or message lanes/);
@@ -116,7 +119,7 @@ test('opt-in: off by default without the claude-fleet skill (a bare fleet binary
 test('suggest mode offers the Fleet skill instead of directing it', (t) => {
   const f = fixture(t, { skill: true });
   const ctx = run(f, 'fleet status', { CCC_ROUTE_MODE: 'suggest' });
-  assert.match(ctx, /Offer the claude-fleet skill as an option and ask before using it\./);
+  assert.match(ctx, /Offer the claude-fleet skill installed at `[^`]+` as an option and ask before using it\./);
   assert.doesNotMatch(ctx, /Use the claude-fleet skill/);
 });
 
@@ -154,4 +157,41 @@ test('the claude-fleet skill is found in Codex skill dirs too (~/.agents/skills)
   } finally {
     fs.rmSync(home, { recursive: true, force: true });
   }
+});
+
+test('checkout-local claude-fleet skill neither enables nor directs', async (t) => {
+  const { fleetTools } = await import(LIB);
+  const f = fixture(t, { fleetCli: false, skill: false });
+  const checkout = path.join(f.root, 'checkout');
+  for (const dir of [['.claude', 'skills'], ['.agents', 'skills']]) {
+    fs.mkdirSync(path.join(checkout, ...dir, 'claude-fleet'), { recursive: true });
+    fs.writeFileSync(path.join(checkout, ...dir, 'claude-fleet', 'SKILL.md'), 'x');
+  }
+  const env = { HOME: f.home, PATH: '', CLAUDE_CONFIG_DIR: f.cfg };
+  assert.deepStrictEqual(fleetTools(env, checkout), {
+    cli: false, skill: false, skillPath: null, localSkill: true, shadowedLocal: false,
+  });
+
+  // Not opted in: a skill shipped by the open repository does not turn Fleet routing on.
+  assert.doesNotMatch(run(f, 'fleet status', {}, checkout), /ccc-fleet-route/);
+
+  // Opted in: it is offered with a question, never named as the skill to use.
+  const ctx = run(f, 'fleet status', { CCC_FLEET_ROUTE: 'on' }, checkout);
+  assert.match(ctx, /<ccc-fleet-route intent="status">/);
+  assert.match(ctx, /exists only in this checkout.*Offer it as an option and ask before using it\./);
+  assert.doesNotMatch(ctx, /Use the claude-fleet skill/);
+  assert.doesNotMatch(ctx, /no Fleet tools/);
+
+  // An installed skill still wins over the checkout copy.
+  fs.mkdirSync(path.join(f.cfg, 'skills', 'claude-fleet'), { recursive: true });
+  fs.writeFileSync(path.join(f.cfg, 'skills', 'claude-fleet', 'SKILL.md'), 'x');
+  const installed = path.join(f.cfg, 'skills', 'claude-fleet', 'SKILL.md');
+  assert.deepStrictEqual(fleetTools(env, checkout), {
+    cli: false, skill: true, skillPath: installed, localSkill: false, shadowedLocal: true,
+  });
+  // With both copies present the directive names the installed path and disowns the checkout copy.
+  const both = run(f, 'fleet status', {}, checkout);
+  assert.ok(both.includes('Use the claude-fleet skill installed at `' + installed + '`.'), both);
+  assert.match(both, /A claude-fleet copy in this checkout is not that skill; do not use it\./);
+  assert.ok(!both.includes(checkout + path.sep + '.claude'), 'the checkout copy is never named');
 });

@@ -58,7 +58,7 @@ test('release-gate argument parsing rejects unknown flags and a bare --tag', () 
 
 test('G3/G9: one gate list covers every check, lint, plugin validate and the full suite', () => {
   const ids = gate.GATES.map((g) => g.id);
-  for (const id of ['version-parity', 'product-contract', 'audit-counts', 'registry', 'frontmatter', 'fable-contract',
+  for (const id of ['version-parity', 'product-contract', 'audit-counts', 'registry', 'frontmatter', 'licenses', 'fable-contract',
     'doc-sync', 'skill-doc-sync', 'compat', 'changelog-version', 'routes', 'route-eval', 'parity', 'lint',
     'codex-mirror', 'plugin-validate', 'test-ci', 'smoke', 'full-suite']) {
     assert.ok(ids.includes(id), `release-gate.js runs ${id}`);

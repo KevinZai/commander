@@ -38,10 +38,13 @@ if (args[0] === '__profile-dir') {
 // Subcommands parse their own arguments. When argv[0] names one, the global flag scans below see an empty list,
 // so a value such as `ccc next --description --update` can never select another command. `--next` and
 // `--checkin` anywhere select their command the same way.
+// A `--dispatch` task (after "--", or the value right after --dispatch) is data and never reaches a flag scan
+// (commander/lib/dispatch-args.js), so a task such as "--help" or "--update" cannot run that operation.
+var dispatchSplit = require(path.join(__dirname, '..', 'commander', 'lib', 'dispatch-args')).splitArgs(args);
 var SUBCOMMANDS = { checkin: true, hold: true, statusline: true, next: true, doctor: true };
 var subcommand = Object.hasOwn(SUBCOMMANDS, args[0]) ? args[0]
-  : args.includes('--next') ? 'next' : args.includes('--checkin') ? 'checkin' : '';
-var flags = subcommand ? [] : args;
+  : dispatchSplit.flags.includes('--next') ? 'next' : dispatchSplit.flags.includes('--checkin') ? 'checkin' : '';
+var flags = subcommand ? [] : dispatchSplit.flags;
 
 if (flags.includes('--help') || flags.includes('-h')) {
   console.log('\n  CC Commander — 580 skills. One command. Your AI work, managed by AI.\n');
@@ -56,7 +59,7 @@ if (flags.includes('--help') || flags.includes('-h')) {
   console.log('  --repair     Fix corrupt state');
   console.log('  --simple     Menu-only mode (no tmux split)');
   console.log('  --update     Pull latest + reinstall');
-  console.log('  --dispatch   Headless: ccc --dispatch "task" [--json --model X --max-turns N --budget N --cwd PATH]');
+  console.log('  --dispatch   Headless: ccc --dispatch [--agent NAME --json --model X --max-turns N --budget N --cwd PATH] -- "task"');
   console.log('  --list-skills  List all skills (add --json for JSON)');
   console.log('  --skills       Manage installed skills (list, available, install, remove, tier)');
   console.log('  --list-sessions  Session history (add --json for JSON)');
@@ -889,16 +892,11 @@ if (flags.includes('--ingest')) {
 // Agent API: --dispatch "task"
 if (flags.includes('--dispatch')) {
   dispatching = true;
-  var ti = flags.indexOf('--dispatch') + 1;
-  var task = flags[ti];
-  if (!task || task.startsWith('--')) { console.error('Usage: ccc --dispatch "task"'); process.exit(1); }
-  var jm = flags.includes('--json');
-  var md = flags.includes('--model') ? flags[flags.indexOf('--model') + 1] : undefined;
-  var mt = flags.includes('--max-turns') ? parseInt(flags[flags.indexOf('--max-turns') + 1]) : 30;
-  var bg = flags.includes('--budget') ? parseFloat(flags[flags.indexOf('--budget') + 1]) : undefined;
-  var cw = flags.includes('--cwd') ? flags[flags.indexOf('--cwd') + 1] : undefined;
+  var dreq = require(path.join(__dirname, '..', 'commander', 'lib', 'dispatch-args')).parseDispatch(dispatchSplit);
+  if (dreq.error) { console.error(dreq.error); process.exit(1); }
+  var jm = dreq.json;
   var d = require(path.join(__dirname,'..','commander','dispatcher'));
-  var result = d.dispatch(task, { model: md, maxTurns: mt, maxBudgetUsd: bg, cwd: cw, bare: true, stream: false });
+  var result = d.dispatch(dreq.task, { agent: dreq.agent, model: dreq.model, maxTurns: dreq.maxTurns, maxBudgetUsd: dreq.maxBudgetUsd, cwd: dreq.cwd, bare: true, stream: false });
   if (result && typeof result.then === 'function') {
     result
       .then(function(r) { if (jm) console.log(JSON.stringify(r)); else console.log(r.result || 'Done'); process.exit(0); })

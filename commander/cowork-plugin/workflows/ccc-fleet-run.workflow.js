@@ -15,9 +15,11 @@ export const meta = {
 //   attempts?: number   judge: independent attempts, 2-5 (default 3)
 //   lenses?: string[]   debate: lenses (default security, performance, contrarian)
 //   rounds?: number     debate: cross-examination rounds, 1-3 (default 2)
-//   skills?: (string|string[])[]  fanout/pipeline: the CCC pre-run pick per slice or stage,
-//                       e.g. the `skills` field of `ccc next --json` ("/ccc-testing");
-//                       only worker skills (WORKER_SKILLS) are kept
+//   skills?: (string|string[])[]  the CCC pre-run pick: fanout/pipeline read one entry per
+//                       slice or stage; judge and debate share one task, so every
+//                       attempt and lens worker reads skills[0]. E.g. the `skills`
+//                       field of `ccc next --json` ("/ccc-testing"); only worker
+//                       skills (WORKER_SKILLS) are kept
 if (!args || !args.mode) throw new Error('ccc-fleet-run requires args: { mode, tasks | task }')
 const mode = args.mode
 const asText = (r) => (typeof r === 'string' ? r : JSON.stringify(r))
@@ -130,7 +132,7 @@ if (mode === 'judge') {
   log(`Judge panel: ${N} independent attempts`)
   // Barrier: the referee compares every attempt side by side.
   const attempts = await parallel(Array.from({ length: N }, (_, i) => () =>
-    agent(`Propose an approach to: ${task}\nLens: ${ANGLES[i % ANGLES.length]}. Be concrete and brief.`,
+    agent(preRun(0) + `Propose an approach to: ${task}\nLens: ${ANGLES[i % ANGLES.length]}. Be concrete and brief.`,
       { label: `attempt-${i + 1}`, phase: 'Fleet', effort: 'medium' })
   ))
   const valid = attempts.filter(Boolean)
@@ -156,6 +158,7 @@ if (mode === 'debate') {
   // Round 1: each lens argues blind to the others.
   let positions = await parallel(lenses.map(lens => () =>
     agent(
+      preRun(0) +
       `Argue adversarially about: ${task}\nYour lens: ${lens}. Take the strongest position from this lens: concrete objections, risks, or requirements, citing path:line where relevant. ` +
       `Round 1 of ${rounds}; you have not seen the other lenses.`,
       { label: `${lens}-r1`, phase: 'Fleet', effort: 'medium' }
@@ -168,6 +171,7 @@ if (mode === 'debate') {
     const prior = positions
     positions = await parallel(lenses.map((lens, i) => () =>
       agent(
+        preRun(0) +
         `You are the ${lens} lens in an adversarial debate about: ${task}\n\nRound ${round - 1} positions:\n${summary}\n\n` +
         `Cross-examine the other lenses from your ${lens} viewpoint. Concede where their point is stronger, sharpen objections that survive, and withdraw weak claims explicitly. Round ${round} of ${rounds}.`,
         { label: `${lens}-r${round}`, phase: 'Fleet', effort: 'medium' }

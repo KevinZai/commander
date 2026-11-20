@@ -102,7 +102,9 @@ test('skills-loader serves nested skills with their license, and refuses when a 
   var loader = require('../mcp-server/skills-loader.js');
   var fs = require('fs');
   var nested = loader.getSkill('canvas-design');
-  assert.strictEqual(nested.id, 'ccc-design/canvas-design');
+  assert.strictEqual(nested.id, 'canvas-design');
+  // The pre-registry nested id still resolves to the same skill.
+  assert.strictEqual(loader.getSkill('ccc-design/canvas-design').id, 'canvas-design');
   assert.ok(nested.license && nested.license.length > 0);
   var orig = fs.readFileSync;
   fs.readFileSync = function(file) {
@@ -154,4 +156,48 @@ test('skills-loader does not accept another license file name for a declared LIC
     fs.existsSync = origExists;
     fs.readFileSync = origRead;
   }
+});
+
+// M6: the catalog is the registry's skills: section — every skill once, ids unique,
+// real descriptions (never a "name:" frontmatter line), plugin/ecosystem duplicates namespaced.
+test('skills-loader catalog matches the registry skills section', function() {
+  var fs = require('fs');
+  var path = require('path');
+  var yaml = fs.readFileSync(path.join(__dirname, '..', 'core', 'registry.yaml'), 'utf8');
+  var section = yaml.split(/^skills:\n/m)[1].split(/^\S/m)[0];
+  var registryIds = (section.match(/^  - id: .+$/gm) || []).map(function(l) { return l.slice('  - id: '.length).trim(); });
+  loader.invalidateCache();
+  var first = loader.listSkills({ pageSize: 50 });
+  var all = [];
+  for (var p = 1; p <= first.pages; p++) all = all.concat(loader.listSkills({ pageSize: 50, page: p }).items);
+  assert.strictEqual(first.total, registryIds.length);
+  assert.deepStrictEqual(all.map(function(s) { return s.id; }).sort(), registryIds.slice().sort());
+  assert.strictEqual(new Set(all.map(function(s) { return s.id; })).size, all.length, 'ids are unique');
+  var bad = all.filter(function(s) { return /^name:/.test(s.description) || /^---/.test(s.description); });
+  assert.deepStrictEqual(bad.map(function(s) { return s.id; }), []);
+  assert.ok(all.some(function(s) { return s.id === 'plugin/ccc-data'; }) && all.some(function(s) { return s.id === 'ecosystem/ccc-data'; }));
+  assert.ok(loader.getSkill('ecosystem/ccc-data').content.length > 0);
+});
+
+// Codex #302 delta2 MEDIUM 6: a skill name shared by a top-level and a nested copy resolves to the top-level one.
+test('getSkill prefers the top-level skill when names collide', function () {
+  var fsMod = require('fs');
+  var pathMod = require('path');
+  var loader = require('../mcp-server/skills-loader.js');
+  var root = pathMod.join(__dirname, '..', '..');
+  var reg = fsMod.readFileSync(pathMod.join(root, 'commander', 'core', 'registry.yaml'), 'utf8');
+  var entries = [];
+  reg.replace(/^  - id: (.*)\n    name: (.*)\n    path: (.*)$/gm, function (_m, id, name, p) { entries.push({ id: id.trim(), name: name.trim(), path: p.trim() }); });
+  var byName = {};
+  entries.forEach(function (e) { (byName[e.name] = byName[e.name] || []).push(e); });
+  var collisions = Object.keys(byName).filter(function (n) {
+    return byName[n].length > 1 && !entries.some(function (e) { return e.id === n; }) &&
+      byName[n].some(function (e) { return e.path === 'skills/' + n + '/SKILL.md'; });
+  });
+  assert.ok(collisions.indexOf('cold-email') !== -1, 'fixture: cold-email has a top-level and a nested copy');
+  collisions.forEach(function (n) {
+    var got = loader.getSkill(n);
+    var want = fsMod.readFileSync(pathMod.join(root, 'skills', n, 'SKILL.md'), 'utf8');
+    assert.strictEqual(got && got.content, want, n + ' resolved to a nested copy');
+  });
 });
