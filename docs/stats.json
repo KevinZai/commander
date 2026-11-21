@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-11-20T14:45:58.668Z",
+  "generated_at": "2026-11-21T14:01:52.340Z",
   "totals": {
-    "hook_fires": 14,
+    "hook_fires": 2,
     "sessions": 0,
     "agents_dispatched": 0,
     "skill_invocations": 0,
@@ -22,19 +22,11 @@
   "top_agents": [],
   "top_hooks": [
     {
-      "name": "SubagentStop",
-      "count": 10
-    },
-    {
-      "name": "PostToolUse",
-      "count": 2
-    },
-    {
       "name": "Stop",
       "count": 1
     },
     {
-      "name": "UserPromptSubmit",
+      "name": "PostToolUse",
       "count": 1
     }
   ],
