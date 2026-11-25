@@ -199,15 +199,24 @@ describe('daemon stop verifies process identity', () => {
     try { process.kill(pid, 0); return true; } catch { return false; }
   }
 
+  // processIdentity reads /proc on Linux and runs `ps` elsewhere (macOS). Every case below needs a readable
+  // identity. When `ps` is missing from PATH or denied by a sandbox, fail with that cause, not on a null (CC-2215).
+  function liveIdentity(pid) {
+    const id = daemon.processIdentity(pid);
+    assert.ok(id, `no process identity for pid ${pid}: /proc is absent and \`ps -o lstart= -p\` / \`ps -o command= -p\` failed `
+      + '(ps missing from PATH or blocked by a sandbox); daemon stop refuses to signal without an identity');
+    return id;
+  }
+
   it('reads an identity for a live process', () => {
-    const id = daemon.processIdentity(child.pid);
+    const id = liveIdentity(child.pid);
     assert.ok(id, 'identity available on this platform');
     assert.ok(id.startTime);
     assert.match(id.command, /ccc-daemon-test-marker/);
   });
 
   it('does not signal a recycled pid whose start time differs', () => {
-    const id = daemon.processIdentity(child.pid);
+    const id = liveIdentity(child.pid);
     fs.writeFileSync(pidFile, JSON.stringify({ pid: child.pid, startTime: id.startTime + '-other', command: id.command }));
     let signalled = false;
     const origErr = process.stderr.write;
@@ -223,7 +232,7 @@ describe('daemon stop verifies process identity', () => {
   });
 
   it('does not signal a pid whose command line differs', () => {
-    const id = daemon.processIdentity(child.pid);
+    const id = liveIdentity(child.pid);
     fs.writeFileSync(pidFile, JSON.stringify({ pid: child.pid, startTime: id.startTime, command: 'node bin/kc.js --daemon' }));
     const origErr = process.stderr.write;
     process.stderr.write = () => true;
@@ -248,7 +257,7 @@ describe('daemon stop verifies process identity', () => {
   });
 
   it('signals the recorded process when start time and command match', async () => {
-    const id = daemon.processIdentity(child.pid);
+    const id = liveIdentity(child.pid);
     fs.writeFileSync(pidFile, JSON.stringify({ pid: child.pid, startTime: id.startTime, command: id.command }));
     assert.equal(daemon.isRunning({ pidFile }), child.pid);
     const exited = new Promise((r) => child.once('exit', (_code, signal) => r(signal)));
@@ -266,6 +275,7 @@ describe('daemon stop verifies process identity', () => {
   });
 
   it('writePidFile records this process identity', () => {
+    liveIdentity(process.pid);
     const rec = daemon.writePidFile(pidFile);
     assert.equal(rec.pid, process.pid);
     assert.deepEqual(daemon.readPidFile(pidFile), { pid: process.pid, startTime: rec.startTime, command: rec.command, legacy: false });
