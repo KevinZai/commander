@@ -15,6 +15,17 @@ const pkg = require(path.join(REPO_ROOT, 'package.json'));
 
 let packed = [];
 
+// `npm pack --json` printed an array of package entries through npm 11; npm 12 prints an object keyed by
+// package name. Accept exactly those two shapes and fail loudly on anything else.
+function packedFiles(parsed) {
+  const entry = Array.isArray(parsed) ? parsed[0]
+    : parsed && typeof parsed === 'object' && Object.hasOwn(parsed, pkg.name) ? parsed[pkg.name]
+      : undefined;
+  assert.ok(entry && Array.isArray(entry.files),
+    `unrecognized npm pack --json shape: ${JSON.stringify(parsed).slice(0, 200)}`);
+  return entry.files;
+}
+
 test.before(() => {
   const result = spawnSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], {
     cwd: REPO_ROOT,
@@ -23,8 +34,7 @@ test.before(() => {
     shell: process.platform === 'win32',
   });
   assert.equal(result.status, 0, result.stderr);
-  const parsed = JSON.parse(result.stdout);
-  packed = parsed[0].files.map((f) => f.path.replace(/\\/g, '/'));
+  packed = packedFiles(JSON.parse(result.stdout)).map((f) => f.path.replace(/\\/g, '/'));
   assert.ok(packed.length > 0, 'npm pack reported no files');
 });
 

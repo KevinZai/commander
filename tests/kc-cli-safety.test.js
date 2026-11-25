@@ -36,6 +36,18 @@ function withHome(fn) {
   try { return fn(home); } finally { rmSync(home, { recursive: true, force: true }); }
 }
 const isLink = (p) => { try { return lstatSync(p).isSymbolicLink(); } catch { return false; } };
+// A standalone copy of the CLI: bin/kc.js plus the modules it loads at startup, before any flag is read
+// (commander/lib/dispatch-args.js since the --dispatch fix). Without them the copy crashes on launch and an
+// --update test would see the crash instead of the update path.
+const KC_STARTUP_MODULES = [join('commander', 'lib', 'dispatch-args.js')];
+function copyCli(root) {
+  mkdirSync(join(root, 'bin'), { recursive: true });
+  copyFileSync(KC, join(root, 'bin', 'kc.js'));
+  for (const rel of KC_STARTUP_MODULES) {
+    mkdirSync(join(root, rel, '..'), { recursive: true });
+    copyFileSync(join(REPO_ROOT, rel), join(root, rel));
+  }
+}
 
 test('--skills remove unlinks only CC Commander links inside the skills dir', () => {
   withHome((home) => {
@@ -176,8 +188,7 @@ test('--update exits non-zero when npm update fails', () => {
   withHome((home) => {
     // A copy of the CLI outside any git checkout takes the npm update path
     const pkg = join(home, 'pkg');
-    mkdirSync(join(pkg, 'bin'), { recursive: true });
-    copyFileSync(KC, join(pkg, 'bin', 'kc.js'));
+    copyCli(pkg);
     const fakeBin = join(home, 'fake-bin');
     mkdirSync(fakeBin);
     writeFileSync(join(fakeBin, 'npm'), '#!/bin/sh\necho "npm ERR! simulated failure" >&2\nexit 1\n');
@@ -361,7 +372,7 @@ function makeUpdateUpstream(root) {
     return r.stdout.trim();
   };
   git(up, 'init', '-q');
-  copyFileSync(KC, join(up, 'bin', 'kc.js'));
+  copyCli(up);
   writeFileSync(join(up, 'install.sh'), '#!/bin/bash\necho "STUB INSTALL $*"\n');
   writeFileSync(join(up, 'commander', 'engine.js'), '// 1\n');
   git(up, 'add', '-A'); git(up, 'commit', '-qm', 'one'); git(up, 'tag', '-a', 'v1.0.0', '-m', 'v1.0.0');
