@@ -200,11 +200,12 @@ describe('daemon stop verifies process identity', () => {
   }
 
   // processIdentity reads /proc on Linux and runs `ps` elsewhere (macOS). Every case below needs a readable
-  // identity. When `ps` is missing from PATH or denied by a sandbox, fail with that cause, not on a null (CC-2215).
+  // identity, so fail on that precondition with a clear message instead of on a later null (CC-2215).
   function liveIdentity(pid) {
     const id = daemon.processIdentity(pid);
-    assert.ok(id, `no process identity for pid ${pid}: /proc is absent and \`ps -o lstart= -p\` / \`ps -o command= -p\` failed `
-      + '(ps missing from PATH or blocked by a sandbox); daemon stop refuses to signal without an identity');
+    assert.ok(id, `no process identity for pid ${pid}: processIdentity returned null (neither /proc nor `
+      + '`ps -o lstart= -p` / `ps -o command= -p` gave a usable identity; possible causes: ps missing from PATH '
+      + 'or blocked by a sandbox); daemon stop refuses to signal without an identity');
     return id;
   }
 
