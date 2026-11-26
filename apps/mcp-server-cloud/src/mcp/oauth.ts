@@ -9,9 +9,10 @@
 // against it, and present the resulting Bearer token here.
 //
 // Token → key-record mapping: a verified external token resolves to the SAME
-// Supabase `users` row the /v1 license-key path uses — by `sub` claim
-// (users.user_id UUID) first, then by `email` claim (users.email). The issuer
-// Kevin configures MUST mint tokens carrying one of those claims.
+// Supabase `users` row the /v1 license-key path uses, ONLY through the
+// oauth_identities table (migration 005) keyed by the token's (iss, sub).
+// There is no fallback to `sub` = users.user_id or to the `email` claim: an
+// unlinked identity, a missing table or any lookup error denies the token.
 //
 // Inert until OAUTH_ISSUER_URL is set. See PAYWALL.md for the full config.
 
@@ -21,7 +22,6 @@ import { db } from "../db/client.js";
 import { logger } from "../lib/logger.js";
 import { normalizeTier, type AuthContext } from "../middleware/auth.js";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Asymmetric JWS algorithms an external issuer would use. HS* tokens are
 // license JWTs (already tried before this path) — never sent to the JWKS
@@ -78,47 +78,72 @@ export async function verifyOAuthAccessToken(
   }
 }
 
+type IdentityLookup = (issuer: string, subject: string) => Promise<{ user_id: string } | null>;
+type UserLookup = (userId: string) => Promise<{ user_id: string; tier: unknown; license_key: string | null } | null>;
+
+export type OAuthSubjectDeps = {
+  findIdentity: IdentityLookup;
+  findUser: UserLookup;
+};
+
+const supabaseSubjectDeps: OAuthSubjectDeps = {
+  async findIdentity(issuer, subject) {
+    const { data, error } = await db
+      .from("oauth_identities")
+      .select("user_id")
+      .eq("issuer", issuer)
+      .eq("subject", subject)
+      .maybeSingle();
+    // Includes a missing table (migration 005 not applied): deny.
+    if (error) throw new Error(`oauth_identities lookup failed (${error.code ?? "unknown"})`);
+    return data ? { user_id: String(data.user_id) } : null;
+  },
+  async findUser(userId) {
+    const { data, error } = await db
+      .from("users")
+      .select("user_id, tier, license_key")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw new Error(`users lookup failed (${error.code ?? "unknown"})`);
+    return data ?? null;
+  },
+};
+
 /**
  * Map a verified issuer token to a CC Commander user record — the same
- * records /v1 Bearer license keys resolve to.
+ * records /v1 Bearer license keys resolve to — through oauth_identities only.
+ * Returns null (deny) for a token without iss/sub, an unlinked identity, or
+ * any lookup failure.
  */
-export async function resolveOAuthSubject(payload: JWTPayload): Promise<AuthContext | null> {
-  const sub = payload.sub;
-  if (sub && UUID_RE.test(sub)) {
-    const { data: user, error } = await db
-      .from("users")
-      .select("user_id, tier, license_key")
-      .eq("user_id", sub)
-      .maybeSingle();
-    if (error) {
-      logger.error({ err: error, sub }, "OAuth subject lookup by user_id failed");
-    } else if (user) {
-      return {
-        userId: user.user_id,
-        tier: normalizeTier(user.tier),
-        licenseKey: user.license_key ?? sub,
-      };
-    }
+export async function resolveOAuthSubject(
+  payload: JWTPayload,
+  deps: OAuthSubjectDeps = supabaseSubjectDeps
+): Promise<AuthContext | null> {
+  const issuer = typeof payload.iss === "string" ? payload.iss : "";
+  const subject = typeof payload.sub === "string" ? payload.sub : "";
+  if (!issuer || !subject || issuer.length > 512 || subject.length > 512) {
+    logger.warn({ hasIss: Boolean(issuer), hasSub: Boolean(subject) }, "OAuth token missing iss/sub");
+    return null;
   }
 
-  const email = typeof payload.email === "string" ? payload.email : undefined;
-  if (email) {
-    const { data: user, error } = await db
-      .from("users")
-      .select("user_id, tier, license_key")
-      .eq("email", email)
-      .maybeSingle();
-    if (error) {
-      logger.error({ err: error }, "OAuth subject lookup by email failed");
-    } else if (user) {
-      return {
-        userId: user.user_id,
-        tier: normalizeTier(user.tier),
-        licenseKey: user.license_key ?? email,
-      };
+  try {
+    const identity = await deps.findIdentity(issuer, subject);
+    if (!identity) {
+      logger.warn("OAuth identity not linked to a user");
+      return null;
     }
+    const user = await deps.findUser(identity.user_id);
+    if (!user) {
+      logger.warn("OAuth identity links to a missing user");
+      return null;
+    }
+    return {
+      userId: user.user_id,
+      tier: normalizeTier(user.tier),
+      licenseKey: user.license_key ?? `oauth:${issuer}#${subject}`,
+    };
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, "OAuth subject resolution failed; denying");
+    return null;
   }
-
-  logger.warn({ hasSub: Boolean(sub), hasEmail: Boolean(email) }, "OAuth token not linked to a user");
-  return null;
 }

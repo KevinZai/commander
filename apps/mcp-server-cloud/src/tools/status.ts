@@ -39,7 +39,6 @@ export async function getStatus(_args: GetStatusArgs, auth: AuthContext) {
     links: {
       dashboard: "https://commanderplugin.com/dashboard",
       pricing: "https://commanderplugin.com/pricing",
-      survey: "https://commanderplugin.com/beta/survey/pending",
     },
   };
 }

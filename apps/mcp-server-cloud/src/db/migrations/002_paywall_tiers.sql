@@ -12,6 +12,16 @@
 -- enforced app-side (src/lib/paywall.ts) and ONLY when env CCC_PAYWALL_ARMED=1,
 -- so arming the paywall is a config change with no schema dependency.
 -- Idempotent — safe to re-run.
+--
+-- Schema: written for the hosted uuid users schema (src/db/schema.sql). Step 3
+-- creates get_effective_cap(uuid). On the TEXT-keyed schema from
+-- supabase/migrations/20260417000000_beta_v4.sql, which already defines
+-- get_effective_cap(text), it adds a second overload instead of replacing
+-- it: SQL callers with a string literal still resolve to the text version
+-- (so Founders/Pro parity does not apply there), calling the uuid overload
+-- fails with "operator does not exist: text = uuid", and PostgREST may refuse
+-- the ambiguous RPC (PGRST203). On the TEXT schema, check before applying
+-- step 3 and drop get_effective_cap(uuid) if it was created. See VERIFY.md.
 
 -- 1. Extend the tier check constraint (inline check from schema.sql is
 --    auto-named users_tier_check by Postgres).

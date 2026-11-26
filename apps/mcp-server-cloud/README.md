@@ -98,7 +98,7 @@ Compose a plan:
 
 All `/v1` routes require: `Authorization: Bearer <license-key>`
 
-License key is issued on beta signup at `commanderplugin.com/beta`.
+License keys are HS256 JWTs signed out-of-band with `JWT_SECRET` (`sub` = `users.user_id`, `kv` = `users.license_key_version`); there is no public signup page. See `src/middleware/auth.ts`.
 
 ## Rate Limits
 

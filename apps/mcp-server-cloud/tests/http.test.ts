@@ -306,7 +306,12 @@ describe("dispatchTool", () => {
     );
   });
 
-  it("dispatches commander_update synchronously", async () => {
+  it("dispatches commander_update synchronously", async (t) => {
+    // Offline: the version check's network fetch fails, so the tool reports
+    // its own version as current (checked: false).
+    t.mock.method(globalThis, "fetch", async () => {
+      throw new Error("network disabled in tests");
+    });
     const result = await dispatchTool("commander_update", {}, {
       userId: "u1",
       tier: "free",

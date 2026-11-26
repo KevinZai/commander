@@ -1,0 +1,12 @@
+# Build context for the Fly image. data/ is deliberately NOT ignored: it holds
+# the content bundle written by scripts/bundle-catalog.mjs (git-ignored).
+node_modules/
+dist/
+tests/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.git/
+.DS_Store

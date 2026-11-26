@@ -1,31 +1,17 @@
 // Registry-driven skill catalog.
-// On cold start: reads commander/core/registry.yaml + skill files from skills/ dir.
-// Rebuilds on SIGHUP or every 10 min. Fails gracefully if skills dir is absent.
+// Reads the registry's `skills:` section, SKILL.md bodies and agent files from
+// the content root (lib/content-root.ts): a repo checkout in dev, the bundled
+// data/ dir (scripts/bundle-catalog.mjs) in production. No network fetch.
+// Rebuilds on SIGHUP or every 10 min. An absent content root yields an empty
+// catalog and an error log, never a crash.
 
 import { readFile, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { logger } from "./logger.js";
+import { AGENTS_REL, REGISTRY_REL, contentPath, resolveContentRoot } from "./content-root.js";
+import { frontmatterDescription, parseRegistrySkills, type SkillEntry } from "./registry-parse.js";
 
-// Walk up from apps/mcp-server-cloud/src/lib/ → repo root
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../");
-const REGISTRY_PATH = path.join(ROOT, "commander/core/registry.yaml");
-const SKILLS_DIR = path.join(ROOT, "skills");
-const AGENTS_DIR = path.join(ROOT, "commander/cowork-plugin/agents");
-
-// Fallback for containerized deployment: bundled data/ dir
-const BUNDLED_DATA_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "../../data");
-const BUNDLED_REGISTRY_PATH = path.join(BUNDLED_DATA_DIR, "registry.yaml");
-
-export type SkillEntry = {
-  id: string;
-  name: string;
-  domain: string;
-  tier: "free" | "pro";
-  description: string;
-  path: string;
-};
+export { frontmatterDescription, parseRegistrySkills, type SkillEntry };
 
 export type AgentEntry = {
   name: string;
@@ -61,74 +47,40 @@ let state: RegistryState = {
   uptimeStart: Date.now(),
 };
 
-// Parse minimal YAML subset (key: value, list items with -)
-function parseYamlRegistry(raw: string): SkillEntry[] {
-  const skills: SkillEntry[] = [];
-  const lines = raw.split("\n");
-  let current: Partial<SkillEntry> | null = null;
-
-  for (const line of lines) {
-    if (line.match(/^  - id:/)) {
-      if (current?.id) skills.push(current as SkillEntry);
-      const id = line.replace(/^  - id:\s*/, "").trim();
-      current = { id, name: id, domain: "general", tier: "free", description: "", path: "" };
-    } else if (current && line.match(/^    path:/)) {
-      current.path = line.replace(/^    path:\s*/, "").trim();
-    } else if (current && line.match(/^    domain:/)) {
-      current.domain = line.replace(/^    domain:\s*/, "").trim() || "general";
-    } else if (current && line.match(/^    tier:/)) {
-      const tier = line.replace(/^    tier:\s*/, "").trim();
-      current.tier = tier === "pro" ? "pro" : "free";
-    } else if (current && line.match(/^    description:/)) {
-      const raw_desc = line.replace(/^    description:\s*/, "").trim().replace(/^["']|["']$/g, "");
-      current.description = raw_desc;
-    }
-  }
-  if (current?.id) skills.push(current as SkillEntry);
-  return skills;
-}
-
 async function loadSkillDescriptions(skills: SkillEntry[]): Promise<SkillEntry[]> {
-  if (!existsSync(SKILLS_DIR)) return skills;
-
-  const enriched = await Promise.all(
+  return Promise.all(
     skills.map(async (skill) => {
       if (skill.description && !skill.description.startsWith("name:")) return skill;
-      const skillMdPath = path.join(ROOT, skill.path);
+      const file = contentPath(skill.path);
+      if (!file) return { ...skill, description: skill.name };
       try {
-        const content = await readFile(skillMdPath, "utf8");
-        const lines = content.split("\n");
-        let description = "";
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed && !trimmed.startsWith("#") && !trimmed.startsWith("---") && !trimmed.startsWith("**")) {
-            description = trimmed.slice(0, 150);
-            break;
-          }
-        }
-        return { ...skill, description: description || skill.name };
+        const description = frontmatterDescription(await readFile(file, "utf8"));
+        return { ...skill, description: (description || skill.name).slice(0, 300) };
       } catch {
-        return skill;
+        return { ...skill, description: skill.name };
       }
     })
   );
-  return enriched;
 }
 
 async function loadAgentsFromFs(): Promise<AgentEntry[]> {
-  if (!existsSync(AGENTS_DIR)) return STATIC_AGENTS;
+  const agentsDir = contentPath(AGENTS_REL);
+  if (!agentsDir || !existsSync(agentsDir)) return STATIC_AGENTS;
   try {
-    const entries = await readdir(AGENTS_DIR, { withFileTypes: true });
+    const entries = await readdir(agentsDir, { withFileTypes: true });
     const agents: AgentEntry[] = [];
     for (const entry of entries) {
       if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
       const name = entry.name.replace(".md", "");
       const existing = STATIC_AGENTS.find((a) => a.name === name);
-      const content = await readFile(path.join(AGENTS_DIR, entry.name), "utf8").catch(() => "");
+      const agentFile = contentPath(`${AGENTS_REL}/${entry.name}`);
+      const content = agentFile ? await readFile(agentFile, "utf8").catch(() => "") : "";
       let description = existing?.description ?? "";
       if (!description) {
-        const lines = content.split("\n");
-        for (const line of lines) {
+        description = frontmatterDescription(content);
+      }
+      if (!description) {
+        for (const line of content.split("\n")) {
           const t = line.trim();
           if (t && !t.startsWith("#") && !t.startsWith("---") && !t.startsWith("**")) {
             description = t.slice(0, 150);
@@ -151,39 +103,18 @@ async function loadAgentsFromFs(): Promise<AgentEntry[]> {
 
 async function buildIndex(): Promise<void> {
   try {
+    const resolved = resolveContentRoot();
+    const registryFile = contentPath(REGISTRY_REL);
     let skills: SkillEntry[] = [];
-    let registryToLoad = "";
 
-    // Try repo-local registry first (dev), then bundled (production container)
-    if (existsSync(REGISTRY_PATH)) {
-      registryToLoad = REGISTRY_PATH;
-    } else if (existsSync(BUNDLED_REGISTRY_PATH)) {
-      registryToLoad = BUNDLED_REGISTRY_PATH;
+    if (!resolved || !registryFile || !existsSync(registryFile)) {
+      logger.error(
+        { contentRoot: resolved?.root ?? null },
+        "No content root with a registry (bundle missing?) — serving an empty skill catalog"
+      );
     } else {
-      // Fallback: fetch from GitHub (production containers don't have local files)
-      try {
-        logger.info("Fetching registry.yaml from GitHub...");
-        const response = await fetch(
-          "https://raw.githubusercontent.com/KevinZai/commander/main/commander/core/registry.yaml"
-        );
-        if (response.ok) {
-          const raw = await response.text();
-          skills = parseYamlRegistry(raw);
-          skills = await loadSkillDescriptions(skills);
-          logger.info({ count: skills.length, source: "github" }, "Registry loaded from GitHub");
-        } else {
-          logger.warn({ status: response.status }, "GitHub fetch failed");
-        }
-      } catch (fetchErr) {
-        logger.warn({ err: (fetchErr as Error).message }, "GitHub fetch error");
-      }
-    }
-
-    if (registryToLoad && !skills.length) {
-      const raw = await readFile(registryToLoad, "utf8");
-      skills = parseYamlRegistry(raw);
-      skills = await loadSkillDescriptions(skills);
-      logger.info({ count: skills.length, path: registryToLoad }, "Registry loaded");
+      skills = await loadSkillDescriptions(parseRegistrySkills(await readFile(registryFile, "utf8")));
+      logger.info({ count: skills.length, mode: resolved.mode }, "Registry loaded");
     }
 
     const agents = await loadAgentsFromFs();
@@ -211,12 +142,12 @@ export async function initRegistry(): Promise<void> {
       buildIndex().catch((err) => logger.error({ err }, "Registry refresh failed"));
     }, REFRESH_INTERVAL_MS);
     refreshTimer.unref();
-  }
 
-  process.on("SIGHUP", () => {
-    logger.info("SIGHUP received — rebuilding registry");
-    buildIndex().catch((err) => logger.error({ err }, "SIGHUP registry rebuild failed"));
-  });
+    process.on("SIGHUP", () => {
+      logger.info("SIGHUP received — rebuilding registry");
+      buildIndex().catch((err) => logger.error({ err }, "SIGHUP registry rebuild failed"));
+    });
+  }
 }
 
 export function getSkills(): SkillEntry[] {
@@ -239,7 +170,9 @@ export function getRegistryState() {
 export async function getSkillContent(skillId: string): Promise<string | null> {
   const skill = state.skills.find((s) => s.id === skillId || s.name === skillId);
   if (!skill?.path) return null;
-  const fullPath = path.join(ROOT, skill.path);
+  // Null for skills the bundle's license gate excluded (file not bundled).
+  const fullPath = contentPath(skill.path);
+  if (!fullPath) return null;
   try {
     return await readFile(fullPath, "utf8");
   } catch {
@@ -247,11 +180,12 @@ export async function getSkillContent(skillId: string): Promise<string | null> {
   }
 }
 
+const AGENT_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$/;
+
 export async function getAgentContent(agentName: string): Promise<string | null> {
-  const resolved = path.resolve(AGENTS_DIR, `${agentName}.md`);
-  if (!resolved.startsWith(path.resolve(AGENTS_DIR) + path.sep)) {
-    return null;
-  }
+  if (!AGENT_NAME_RE.test(agentName)) return null;
+  const resolved = contentPath(`${AGENTS_REL}/${agentName}.md`);
+  if (!resolved) return null;
   try {
     return await readFile(resolved, "utf8");
   } catch {

@@ -1,0 +1,162 @@
+/**
+ * Static checks on migration text. There is no SQL harness in this repo and
+ * tests never connect to a database, so these assert the properties a
+ * reviewer would otherwise check by eye: every forward migration has a down,
+ * statements are guarded for re-runs, and the security-relevant statements
+ * are present. Manual verification steps: src/db/migrations/VERIFY.md.
+ *
+ * Run:  node --import tsx --test tests/migrations.test.ts
+ */
+
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const REPO_ROOT = path.resolve(APP_ROOT, "../..");
+const MIGRATIONS = path.join(APP_ROOT, "src/db/migrations");
+const DOWN = path.join(MIGRATIONS, "down");
+
+function read(file: string): string {
+  return readFileSync(file, "utf8");
+}
+
+/** SQL without `--` comments, lower-cased, whitespace collapsed. */
+function sql(file: string): string {
+  return read(file)
+    .split("\n")
+    .map((line) => line.replace(/--.*$/, ""))
+    .join("\n")
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+/** Every create table/index/policy/trigger/view statement must be re-runnable. */
+function assertIdempotent(file: string): void {
+  const text = sql(file);
+  for (const m of text.matchAll(/create (unique )?index (?!if not exists)/g)) {
+    assert.fail(`${path.basename(file)}: unguarded create index at ${m.index}`);
+  }
+  for (const m of text.matchAll(/create table (?!if not exists)/g)) {
+    assert.fail(`${path.basename(file)}: unguarded create table at ${m.index}`);
+  }
+  for (const m of text.matchAll(/add column (?!if not exists)/g)) {
+    assert.fail(`${path.basename(file)}: unguarded add column at ${m.index}`);
+  }
+  for (const m of text.matchAll(/drop (table|index|column|policy|trigger|view|function) (?!if exists)/g)) {
+    assert.fail(`${path.basename(file)}: unguarded drop at ${m.index}`);
+  }
+  // create trigger / create policy have no IF NOT EXISTS: require a preceding
+  // drop-if-exists or a pg_catalog existence check in the same file.
+  if (/create trigger /.test(text)) {
+    assert.match(text, /drop trigger if exists|from pg_trigger/, `${path.basename(file)}: create trigger needs a guard`);
+  }
+  if (/create policy /.test(text)) {
+    assert.match(text, /drop policy if exists|from pg_policies/, `${path.basename(file)}: create policy needs a guard`);
+  }
+}
+
+const forward = readdirSync(MIGRATIONS)
+  .filter((f) => /^\d{3}_.+\.sql$/.test(f) && Number(f.slice(0, 3)) >= 3)
+  .sort();
+
+describe("hosted migrations (apps/mcp-server-cloud/src/db/migrations)", () => {
+  it("has migration 003 onward", () => {
+    assert.ok(forward.includes("003_stripe_events.sql"));
+  });
+
+  for (const file of forward) {
+    it(`${file} has a down script and both are idempotent`, () => {
+      const down = path.join(DOWN, file.replace(/\.sql$/, ".down.sql"));
+      assert.ok(existsSync(down), `missing ${path.relative(APP_ROOT, down)}`);
+      assertIdempotent(path.join(MIGRATIONS, file));
+      assertIdempotent(down);
+    });
+  }
+
+  it("003 records events before processing and protects lifetime Founders", () => {
+    const text = sql(path.join(MIGRATIONS, "003_stripe_events.sql"));
+    assert.match(text, /create table if not exists public\.stripe_events \( event_id text primary key/);
+    assert.match(text, /processed_at timestamptz/);
+    for (const column of ["lifetime_tier", "founders_payment_intent", "subscription_status", "subscription_event_created"]) {
+      assert.match(text, new RegExp(`add column if not exists ${column} `));
+    }
+    assert.match(text, /create unique index if not exists users_founders_payment_intent_key/);
+    assert.match(text, /revoke all on table public\.stripe_events from public, anon, authenticated/);
+    assert.match(text, /if new\.lifetime_tier = 'founders' then new\.tier := 'founders'/);
+  });
+
+  it("004 drops the public creators policy and revokes anon RPC execute", () => {
+    const text = sql(path.join(MIGRATIONS, "004_creators_lockdown.sql"));
+    assert.match(text, /drop policy if exists creators_public_read on public\.creators/);
+    assert.match(text, /revoke all on table public\.creators from anon, authenticated/);
+    assert.match(text, /create or replace view public\.creators_public/);
+    const view = text.slice(text.indexOf("create or replace view public.creators_public"), text.indexOf("$view$;"));
+    for (const secret of ["email", "ls_affiliate_id", "total_commission_cents", "github_id,"]) {
+      assert.ok(!view.includes(secret), `creators_public must not expose ${secret}`);
+    }
+    assert.match(view, /where approved_at is not null/);
+    // The view is auto-updatable and runs as its owner (bypassing RLS), so
+    // Supabase's default anon/authenticated grants would make it writable.
+    // Every grant must be revoked before select is granted back.
+    assert.ok(!/security_invoker/.test(text), "no security_invoker option (rejected on PG <= 14; off is the default)");
+    const revokeAt = text.indexOf("revoke all on table public.creators_public from public, anon, authenticated");
+    const grantAt = text.indexOf("grant select on table public.creators_public to anon, authenticated, service_role");
+    assert.ok(revokeAt >= 0, "creators_public: revoke all from public, anon, authenticated");
+    assert.ok(grantAt > revokeAt, "creators_public: grant select only after the revoke");
+    assert.ok(!/grant (all|insert|update|delete)[^;]* on table public\.creators_public/.test(text), "creators_public: select only");
+    for (const fn of ["increment_usage", "get_effective_cap", "increment_creator_clicks"]) {
+      assert.ok(text.includes(`'${fn}'`), `004 covers ${fn}`);
+    }
+    assert.match(text, /revoke execute on function %s from public, anon, authenticated/);
+  });
+
+  it("005 keys OAuth identities by (issuer, subject) with the users.user_id type", () => {
+    const text = sql(path.join(MIGRATIONS, "005_oauth_identities.sql"));
+    assert.match(text, /create table if not exists public\.oauth_identities/);
+    assert.match(text, /primary key \(issuer, subject\)/);
+    assert.match(text, /user_id %s not null references public\.users\(user_id\) on delete cascade/);
+    assert.match(text, /attrelid = 'public\.users'::regclass and a\.attname = 'user_id'/);
+    assert.match(text, /revoke all on table public\.oauth_identities from public, anon, authenticated/);
+  });
+
+  it("006 adds license_key_version defaulting to 1", () => {
+    const text = sql(path.join(MIGRATIONS, "006_license_key_version.sql"));
+    assert.match(text, /add column if not exists license_key_version integer not null default 1/);
+  });
+
+  it("VERIFY.md covers every forward migration", () => {
+    const doc = read(path.join(MIGRATIONS, "VERIFY.md"));
+    for (const file of forward) assert.ok(doc.includes(file.replace(/\.sql$/, "")), `VERIFY.md mentions ${file}`);
+  });
+
+  it("fresh-install SQL matches the 004 end-state", () => {
+    const creators = sql(path.join(APP_ROOT, "src/db/creators-schema.sql"));
+    assert.ok(!/create policy creators_public_read/.test(creators), "no public-read policy");
+    assert.ok(!/to service_role, anon, authenticated/.test(creators), "no anon grant");
+    const schema = sql(path.join(APP_ROOT, "src/db/schema.sql"));
+    assert.match(schema, /revoke execute on function public\.increment_usage\(uuid, text\) from public, anon, authenticated/);
+  });
+});
+
+describe("migrations are never applied by the repo's tooling", () => {
+  it("supabase down scripts live outside supabase/migrations", () => {
+    const supaMigrations = readdirSync(path.join(REPO_ROOT, "supabase/migrations"));
+    assert.ok(supaMigrations.every((f) => !/\.down\.sql$/i.test(f)), "no down script inside supabase/migrations");
+  });
+
+  it("the users lockdown drops users_update_own and has a down in supabase/down", () => {
+    const name = "20261119000000_users_update_lockdown";
+    const forwardFile = path.join(REPO_ROOT, "supabase/migrations", `${name}.sql`);
+    const downFile = path.join(REPO_ROOT, "supabase/down", `${name}.down.sql`);
+    assert.ok(existsSync(downFile));
+    assert.match(sql(forwardFile), /drop policy if exists "users_update_own" on public\.users/);
+    assertIdempotent(forwardFile);
+    assertIdempotent(downFile);
+    // The down must work on both users schemas (TEXT and uuid user_id).
+    assert.match(sql(downFile), /attrelid = 'public\.users'::regclass and a\.attname = 'user_id'/);
+    assert.match(sql(downFile), /'auth\.uid\(\) = user_id'/);
+  });
+});

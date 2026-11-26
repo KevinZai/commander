@@ -1,5 +1,11 @@
 # Multi-stage production image for Fly.io.
 # Secrets are injected at runtime with `fly secrets set`; never bake them here.
+#
+# The build context is apps/mcp-server-cloud/ only. Run
+# `node scripts/bundle-catalog.mjs` first (deploy-mcp.yml does): it writes
+# data/ (registry, SKILL.md bodies, agents, LICENSE/NOTICE files) and
+# data/manifest.json. The build fails when the manifest is missing or any
+# bundled file does not match its sha256.
 
 FROM node:22-alpine AS deps
 
@@ -15,12 +21,13 @@ WORKDIR /app
 COPY tsconfig.json ./
 COPY src/ ./src/
 COPY scripts/ ./scripts/
+COPY data/ ./data/
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package.json ./package.json
 
-# The data/ directory with registry.yaml should already exist from the local prebuild step.
-# If it doesn't, npm run build will fail gracefully and skip bundling.
-RUN npm run build
+RUN node scripts/bundle-catalog.mjs --verify data
+# tsc directly: `npm run build` would re-run the bundler, which needs the repo.
+RUN npx tsc
 
 FROM node:22-alpine AS runner
 
@@ -35,6 +42,7 @@ RUN npm ci --prefer-offline --omit=dev --no-audit \
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/data ./data
+RUN test -f data/manifest.json
 
 RUN addgroup -g 1001 -S nodejs && adduser -S commander -u 1001
 USER commander

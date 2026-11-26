@@ -12,9 +12,11 @@
 --   survey_skip_streak >=3 → -500 (500 cap)
 -- Tiers 'pro' and 'founders': 100000 calls/mo flat.
 --
--- This file is the FRESH-INSTALL end-state. Existing databases upgrade via
--- migrations/002_paywall_tiers.sql (tier domain + stripe columns + founders
--- cap parity). The armed 100-call/mo free cap is app-side (lib/paywall.ts),
+-- This file is the FRESH-INSTALL base (it already includes migration 002).
+-- Existing databases upgrade via migrations/002_paywall_tiers.sql (tier
+-- domain + stripe columns + founders cap parity). Fresh AND existing
+-- databases then apply migrations/003_* onward, in numeric order; each is
+-- idempotent and has a down script in migrations/down/. The armed 100-call/mo free cap is app-side (lib/paywall.ts),
 -- gated by env CCC_PAYWALL_ARMED — no schema dependency.
 
 create extension if not exists "pgcrypto";
@@ -110,5 +112,8 @@ alter table public.usage_counters enable row level security;
 -- (Add user-scoped SELECT policies later if/when an OAuth user-facing UI ships.)
 
 -- ─── grants ─────────────────────────────────────────────────────────────────
+-- Functions are executable by PUBLIC by default; these are SECURITY DEFINER.
+revoke execute on function public.get_effective_cap(uuid)       from public, anon, authenticated;
+revoke execute on function public.increment_usage(uuid, text)   from public, anon, authenticated;
 grant execute on function public.get_effective_cap(uuid)        to service_role;
 grant execute on function public.increment_usage(uuid, text)    to service_role;
